@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caméléon Engine V7.3.2e</title>
+<style>
+:root{
+  --bg:#060606;
+  --panel:rgba(18,18,18,.88);
+  --panel-2:rgba(24,24,24,.94);
+  --panel-3:rgba(30,30,30,.97);
+  --border:rgba(212,175,55,.14);
+  --border-strong:rgba(212,175,55,.24);
+  --gold:#d4af37;
+  --text:#f4ecd0;
+  --text-soft:#e9ddb7;
+  --muted:#bba76b;
+  --danger:#ff7b7b;
+  --ok:#7dffb3;
+  --warn:#ffd36e;
+  --info:#98c6ff;
+  --shadow-xl:0 28px 90px rgba(0,0,0,.48);
+  --shadow-lg:0 18px 46px rgba(0,0,0,.28);
+  --radius-xl:28px;
+  --radius-lg:22px;
+  --radius-md:18px;
+  --sidebar-w:86px;
+  --state-rgb:212,175,55;
+  --state-text:#fff0c8;
+  --state-pill-text:#f4ecd0;
+  --state-glow:0 0 26px rgba(212,175,55,.16);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top, rgba(var(--state-rgb),.07), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(var(--state-rgb),.04), transparent 18%),
+    linear-gradient(180deg,#040404,#090909 42%,#050505 100%);
+  transition:background .35s ease;
+}
+a{color:inherit;text-decoration:none}
+.shell{max-width:1680px;margin:0 auto;padding:18px 18px 34px}
+.saas-header{
+  position:sticky;top:0;z-index:40;margin-bottom:18px;padding:12px 14px;
+  border:1px solid rgba(var(--state-rgb),.12);border-radius:22px;
+  background:linear-gradient(180deg,rgba(18,18,18,.92),rgba(12,12,12,.86));
+  backdrop-filter:blur(14px);
+  box-shadow:0 18px 50px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.02);
+}
+.saas-header-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand-wrap{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-seal{
+  width:46px;height:46px;border-radius:14px;
+  border:1px solid rgba(var(--state-rgb),.22);
+  background:radial-gradient(circle, rgba(var(--state-rgb),.18), rgba(255,255,255,.02));
+  box-shadow:var(--state-glow);flex:0 0 auto;
+}
+.brand-title{font-size:17px;font-weight:800;letter-spacing:-.03em;color:var(--state-text);line-height:1.1}
+.brand-subtitle{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.header-chip{
+  display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:8px 12px;
+  border-radius:999px;border:1px solid rgba(var(--state-rgb),.14);
+  background:rgba(255,255,255,.03);color:var(--text-soft);font-size:12px;white-space:nowrap;
+}
+.header-chip strong{color:var(--state-text)}
+.header-dot{width:8px;height:8px;border-radius:999px;background:var(--ok);box-shadow:0 0 10px rgba(125,255,179,.42);animation:pulseDot 2.2s infinite ease-in-out}
+.layout{display:grid;grid-template-columns:var(--sidebar-w) minmax(0,1fr);gap:18px;align-items:start}
+.floating-sidebar{
+  position:sticky;top:94px;display:flex;flex-direction:column;gap:12px;padding:14px 10px;
+  border:1px solid rgba(var(--state-rgb),.14);border-radius:24px;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
+  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.02);
+  backdrop-filter:blur(14px);min-height:420px;
+}
+.sidebar-head{display:flex;justify-content:center;margin-bottom:2px}
+.sidebar-seal{
+  width:42px;height:42px;border-radius:999px;border:1px solid rgba(var(--state-rgb),.22);
+  background:radial-gradient(circle, rgba(var(--state-rgb),.16), rgba(255,255,255,.02));
+  box-shadow:var(--state-glow)
+}
+.sidebar-nav{display:flex;flex-direction:column;gap:12px;align-items:center}
+.side-tab{
+  position:relative;width:100%;min-height:86px;border:1px solid rgba(var(--state-rgb),.10);
+  border-radius:18px;background:rgba(255,255,255,.03);color:var(--text-soft);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;
+  cursor:pointer;overflow:hidden;transition:.2s ease;
+}
+.side-tab:hover{transform:translateY(-1px);border-color:rgba(var(--state-rgb),.24);background:rgba(255,255,255,.04)}
+.side-tab.active{
+  border-color:rgba(var(--state-rgb),.34);
+  background:linear-gradient(180deg,rgba(var(--state-rgb),.16),rgba(255,255,255,.03));
+  color:var(--state-text);
+  box-shadow:0 12px 30px rgba(var(--state-rgb),.10), inset 0 1px 0 rgba(255,255,255,.03)
+}
+.side-tab.active::before{
+  content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(var(--state-rgb),.95))
+}
+.side-tab-icon{font-size:20px;line-height:1}
+.side-tab-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.25;padding:0 4px}
+.side-tab-state{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.hero{
+  position:relative;overflow:hidden;min-height:300px;padding:24px;
+  border:1px solid rgba(var(--state-rgb),.18);border-radius:var(--radius-xl);
+  background:
+    radial-gradient(circle at 78% 42%, rgba(var(--state-rgb),.10), transparent 18%),
+    radial-gradient(circle at top left, rgba(var(--state-rgb),.08), transparent 20%),
+    linear-gradient(90deg, rgba(8,8,8,.988) 0%, rgba(8,8,8,.956) 40%, rgba(8,8,8,.84) 60%, rgba(8,8,8,.46) 78%, rgba(8,8,8,.08) 100%);
+  box-shadow:var(--shadow-xl), inset 0 1px 0 rgba(255,255,255,.03), 0 0 0 1px rgba(var(--state-rgb),.04);
+  backdrop-filter:blur(16px);isolation:isolate;
+}
+.hero-top,.hero-bar,.hero-status-row,.onboarding-strip,.engine-journal-live,.signal-narratif,.mantra-operationnel{position:relative;z-index:5;max-width:1080px}
+.hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border:1px solid rgba(var(--state-rgb),.18);
+  border-radius:999px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.02);
+  letter-spacing:.04em;text-transform:uppercase
+}
+.badge-dot{width:8px;height:8px;border-radius:999px;background:var(--ok);box-shadow:0 0 10px rgba(125,255,179,.5);animation:pulseDot 2.2s infinite ease-in-out}
+.badge-dot.info{background:var(--info)}
+.badge-dot.warn{background:var(--warn)}
+h1{margin:10px 0 8px;font-size:clamp(30px,4vw,52px);line-height:.97;letter-spacing:-.055em;max-width:920px;text-wrap:balance}
+.subtitle{margin:0;max-width:900px;color:#d9c896;font-size:14px;line-height:1.55}
+.hero-logo{
+  position:absolute;top:0;right:0;width:35%;height:100%;z-index:1;pointer-events:none;overflow:hidden;
+  border-top-right-radius:var(--radius-xl);border-bottom-right-radius:var(--radius-xl)
+}
+.hero-logo::before{
+  content:"";position:absolute;inset:0;z-index:4;
+  background:linear-gradient(90deg, rgba(8,8,8,.998) 0%, rgba(8,8,8,.965) 14%, rgba(8,8,8,.86) 28%, rgba(8,8,8,.48) 44%, rgba(8,8,8,.10) 60%, rgba(8,8,8,0) 78%)
+}
+.hero-logo::after{
+  content:"";position:absolute;inset:0;z-index:3;
+  background:radial-gradient(circle at 60% 50%, rgba(var(--state-rgb),.14), transparent 36%);
+  mix-blend-mode:screen;
+}
+.hero-logo img{width:100%;height:100%;display:block;object-fit:cover;object-position:center;filter:saturate(1.04) contrast(1.06) brightness(.90)}
+.hero-bar{display:grid;grid-template-columns:1.5fr .85fr .85fr .85fr .85fr;gap:12px;margin-top:18px}
+.hero-chip{
+  padding:13px 14px;border:1px solid rgba(var(--state-rgb),.12);border-radius:18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));
+}
+.hero-chip.market-badge{
+  border-color:rgba(var(--state-rgb),.26);
+  background:radial-gradient(circle at top left, rgba(var(--state-rgb),.16), transparent 34%), linear-gradient(180deg, rgba(var(--state-rgb),.14), rgba(255,255,255,.02));
+  box-shadow:0 0 24px rgba(var(--state-rgb),.12);
+}
+.hero-chip-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.hero-chip-value{font-size:19px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.hero-chip-value.market-strong{font-size:28px;color:var(--state-text)}
+.hero-status-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.engine-journal-live,.signal-narratif,.mantra-operationnel,.card,.side-card,.master-card,.memory-box,.indicator-card,.diagnostic-item{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.016), var(--shadow-lg);
+}
+.engine-journal-live{
+  margin-top:16px;padding:16px;border-radius:20px;border:1px solid rgba(var(--state-rgb),.18);
+  background:radial-gradient(circle at top left, rgba(var(--state-rgb),.12), transparent 30%), linear-gradient(180deg, rgba(var(--state-rgb),.08), rgba(255,255,255,.02));
+}
+.engine-journal-head,.signal-narratif-head,.mantra-operationnel-head,.card-head,.publication-top,.publication-footer,.timeline-top{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.engine-journal-title,.signal-narratif-title,.mantra-operationnel-title,.tiny-label{
+  font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+}
+.engine-journal-status,.signal-narratif-pill,.mantra-operationnel-pill,.state-pill,.alert-badge,.micro-badge,.master-badge,.publication-tag,.publication-state,.pill{
+  display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;
+  border:1px solid rgba(var(--state-rgb),.18);background:rgba(var(--state-rgb),.08);
+  color:var(--state-text);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+}
+.engine-journal-main,.signal-narratif-main,.insight-quote{font-weight:800;letter-spacing:-.03em;color:var(--state-text)}
+.engine-journal-main{font-size:22px;line-height:1.35;margin-bottom:10px}
+.engine-journal-sub,.signal-narratif-sub,.card-desc,.mode-sub,.agent-role,.alert-sub,.helper,.publication-note,.table-mini-summary,.trend-note{font-size:13px;line-height:1.6;color:var(--text-soft)}
+.engine-journal-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.engine-journal-mini,.command-card,.mode-box,.action-box,.indicator-card,.diagnostic-item{
+  padding:12px;border-radius:14px;border:1px solid rgba(var(--state-rgb),.12);background:rgba(255,255,255,.02);
+}
+.engine-journal-mini-label,.alert-label,.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.engine-journal-mini-value{font-size:14px;font-weight:700;color:var(--text);line-height:1.4}
+.signal-narratif{margin-top:14px;padding:16px;border-radius:20px;border:1px solid rgba(var(--state-rgb),.16);background:radial-gradient(circle at top left, rgba(var(--state-rgb),.10), transparent 34%), linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.015))}
+.signal-narratif-main{font-size:24px;line-height:1.35;margin-bottom:10px}
+.mantra-operationnel{margin-top:14px;padding:14px 16px;border-radius:18px;border:1px solid rgba(var(--state-rgb),.16);background:linear-gradient(180deg, rgba(var(--state-rgb),.10), rgba(255,255,255,.02))}
+.mantra-operationnel-main{font-size:20px;font-weight:900;letter-spacing:-.03em;line-height:1.2;color:var(--state-text)}
+.onboarding-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.onboarding-card{
+  padding:14px;border-radius:18px;border:1px solid rgba(var(--state-rgb),.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.012))
+}
+.onboarding-step{
+  display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;
+  border:1px solid rgba(var(--state-rgb),.22);background:rgba(var(--state-rgb),.10);color:var(--state-text);font-size:12px;font-weight:700;margin-bottom:10px
+}
+.onboarding-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.onboarding-text{font-size:12px;color:var(--text-soft);line-height:1.5}
+.main-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,.78fr);gap:22px;margin-top:22px;align-items:start}
+.stack,.side-panel{display:grid;gap:22px;align-content:start;grid-auto-rows:max-content}
+.card,.side-card,.master-card{
+  border:1px solid rgba(var(--state-rgb),.12);border-radius:var(--radius-lg);
+  background:linear-gradient(180deg,rgba(255,255,255,.016),rgba(255,255,255,.010));padding:20px;
+}
+.master-card{
+  background:radial-gradient(circle at top left, rgba(var(--state-rgb),.12), transparent 26%), linear-gradient(180deg,rgba(var(--state-rgb),.05),rgba(255,255,255,.012));
+  border-color:rgba(var(--state-rgb),.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.016), var(--shadow-lg), 0 0 24px rgba(var(--state-rgb),.08);
+}
+.card-title{margin:0;font-size:20px;letter-spacing:-.03em}
+.state-pill{padding:10px 14px;font-size:13px}
+.alerts-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.alert-card{
+  position:relative;padding:16px;border-radius:18px;border:1px solid rgba(var(--state-rgb),.16);
+  background:linear-gradient(180deg, rgba(var(--state-rgb),.07), rgba(255,255,255,.02));overflow:hidden;min-height:112px;
+}
+.alert-card::after{
+  content:"";position:absolute;right:-14px;bottom:-14px;width:64px;height:64px;border-radius:999px;
+  background:radial-gradient(circle, rgba(var(--state-rgb),.18), transparent 72%);
+}
+.alert-value{margin-top:10px;font-size:21px;font-weight:800;letter-spacing:-.03em;color:var(--state-text);line-height:1.1}
+.master-grid{display:grid;grid-template-columns:1.25fr .95fr;gap:16px}
+.master-left,.master-right{display:grid;gap:14px}
+.master-xxl{
+  min-height:220px;padding:22px;border-radius:22px;
+  background:radial-gradient(circle at top left, rgba(var(--state-rgb),.20), transparent 36%), linear-gradient(180deg,rgba(var(--state-rgb),.12),rgba(255,255,255,.015));
+  border:1px solid rgba(var(--state-rgb),.22);
+  box-shadow:0 0 24px rgba(var(--state-rgb),.08);
+}
+.master-state-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.master-state-name{margin:10px 0 6px;font-size:42px;line-height:.95;font-weight:900;letter-spacing:-.06em;color:var(--state-text)}
+.master-state-note{font-size:16px;line-height:1.5;color:var(--text-soft);max-width:760px}
+.master-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.dot{width:8px;height:8px;border-radius:999px;background:rgb(var(--state-rgb))}
+.dot.green{background:var(--ok)}
+.dot.blue{background:var(--info)}
+.dot.warn{background:var(--warn)}
+.insight-box,.command-box,.next-step-box,.mode-panel,.agent-card,.table-shell,.memory-shell,.side-section{
+  margin-top:16px;padding:16px;border-radius:18px;border:1px solid rgba(var(--state-rgb),.12);background:rgba(255,255,255,.015)
+}
+.insight-quote{font-size:18px;line-height:1.5}
+.insight-sub{margin-top:10px}
+.command-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.command-card h4,.action-box h4{margin:0 0 8px;font-size:13px;color:var(--muted);text-transform:uppercase}
+.command-card .value{font-size:17px;font-weight:700;line-height:1.4}
+.tab-shell{display:grid;gap:16px}
+.top-tab-nav{display:flex;gap:10px;flex-wrap:wrap}
+.tab-btn{
+  appearance:none;border:1px solid rgba(var(--state-rgb),.14);background:rgba(255,255,255,.03);color:var(--text);
+  border-radius:999px;padding:11px 16px;cursor:pointer;font:inherit;font-weight:700;
+}
+.tab-btn.active{
+  border-color:rgba(var(--state-rgb),.34);
+  background:linear-gradient(180deg,rgba(var(--state-rgb),.16),rgba(255,255,255,.03));
+  color:var(--state-text)
+}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:panelReveal .25s ease forwards}
+.overview-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
+.short-box,.agent-box{min-height:170px;border-radius:20px;padding:18px}
+.short-box{background:linear-gradient(180deg,rgba(var(--state-rgb),.10),rgba(255,255,255,.02));border:1px solid rgba(var(--state-rgb),.18)}
+.agent-box{display:flex;flex-direction:column;gap:10px;background:rgba(255,255,255,.02);border:1px solid rgba(var(--state-rgb),.14)}
+.big-state{font-size:30px;font-weight:800;letter-spacing:-.05em;margin:0 0 10px;color:var(--state-text)}
+.agent-name{font-size:21px;font-weight:700;margin:0;letter-spacing:-.02em;color:var(--state-text)}
+.muted{color:var(--muted)}
+.text-soft{color:var(--text-soft)}
+.micro-badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.micro-badge{font-size:11px;font-weight:600}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi-card{
+  position:relative;padding:16px;border-radius:18px;border:1px solid rgba(var(--state-rgb),.16);background:rgba(255,255,255,.018);overflow:hidden
+}
+.kpi-card::after{
+  content:"";position:absolute;right:-18px;bottom:-18px;width:70px;height:70px;border-radius:999px;
+  background:radial-gradient(circle, rgba(var(--state-rgb),.16), transparent 72%)
+}
+.kpi-value{margin-top:10px;font-size:26px;font-weight:800;letter-spacing:-.04em;color:var(--state-text)}
+.kpi-sub{margin-top:6px;font-size:12px;color:var(--text-soft);line-height:1.4}
+.score-bar{margin-top:12px;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.score-bar-fill{
+  height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,rgba(var(--state-rgb),.55),rgba(var(--state-rgb),.98));
+  transition:width .25s ease;
+}
+.mode-head{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.mode-main{font-size:24px;font-weight:800;letter-spacing:-.04em;margin-top:4px;color:var(--state-text)}
+.mode-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mode-btn{
+  min-height:96px;padding:16px 14px;border-radius:18px;border:1px solid rgba(var(--state-rgb),.14);
+  background:rgba(255,255,255,.02);color:var(--text);text-align:left;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;
+}
+.mode-btn.active{
+  border-color:rgba(var(--state-rgb),.34);
+  background:linear-gradient(180deg,rgba(var(--state-rgb),.16),rgba(255,255,255,.03))
+}
+.mode-btn-title{font-size:16px;font-weight:700;letter-spacing:-.02em}
+.mode-btn-desc{font-size:12px;color:var(--text-soft);line-height:1.45;margin-top:8px}
+.agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.action-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.action-list,.history,.list{display:grid;gap:8px;margin-top:10px}
+.action-item,.mini-row,.history-item,.list li{
+  padding:10px 11px;border-radius:12px;border:1px solid rgba(var(--state-rgb),.08);background:rgba(255,255,255,.02);
+  line-height:1.45;color:var(--text-soft);font-size:13px;list-style:none;
+}
+.table-filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin-top:10px;margin-bottom:12px}
+.table-wrap{overflow-x:auto;margin-top:10px}
+.table-mini-summary{margin-top:12px;padding:12px 13px;border-radius:14px;border:1px solid rgba(var(--state-rgb),.12);background:rgba(255,255,255,.02)}
+table.exec-table{width:100%;border-collapse:collapse;min-width:1000px}
+.exec-table th,.exec-table td{text-align:left;padding:12px;border-bottom:1px solid rgba(var(--state-rgb),.08);vertical-align:top;font-size:13px}
+.exec-table th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.cell-strong{color:var(--text);font-weight:700;letter-spacing:-.01em}
+.pill.valid{color:var(--ok);border-color:rgba(125,255,179,.22);background:rgba(125,255,179,.08)}
+.pill.watch{color:var(--warn);border-color:rgba(255,211,110,.22);background:rgba(255,211,110,.08)}
+.pill.invalid{color:var(--danger);border-color:rgba(255,123,123,.22);background:rgba(255,123,123,.08)}
+.pill.info{color:var(--info);border-color:rgba(152,198,255,.22);background:rgba(152,198,255,.08)}
+.pill.best{color:var(--state-text);border-color:rgba(var(--state-rgb),.28);background:rgba(var(--state-rgb),.12);font-weight:700}
+.publication-stack,.memory-list,.memory-actions{display:grid;gap:12px;margin-top:14px}
+.publication-item,.publication-card{
+  padding:15px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.018));
+  border:1px solid rgba(var(--state-rgb),.12)
+}
+.publication-tag-row{display:flex;gap:8px;flex-wrap:wrap}
+.publication-title{display:inline-block;font-size:16px;line-height:1.35;margin-bottom:8px;color:var(--state-text);font-weight:700}
+.publication-meta{color:var(--muted);font-size:12px}
+.publication-open{
+  display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border-radius:12px;
+  border:1px solid rgba(var(--state-rgb),.16);background:rgba(255,255,255,.03);color:var(--text);font-size:12px;font-weight:600
+}
+.indicator-grid,.diagnostic-grid{display:grid;gap:16px}
+.indicator-grid{grid-template-columns:1fr 1fr}
+.diagnostic-grid{grid-template-columns:1fr 1fr;margin-top:14px}
+.memory-box,.indicator-card{
+  padding:16px;border-radius:18px;background:linear-gradient(180deg,rgba(24,24,24,.96),rgba(18,18,18,.96));
+  border:1px solid rgba(var(--state-rgb),.12)
+}
+.indicator-card label,.field label{
+  display:block;margin-bottom:8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)
+}
+input,select,textarea{
+  width:100%;border:1px solid rgba(var(--state-rgb),.16);background:rgba(0,0,0,.26);color:var(--text);
+  border-radius:14px;padding:12px 14px;font:inherit;outline:none;
+}
+input[type="range"]{accent-color:rgb(var(--state-rgb));padding:0;background:transparent;border:none}
+.range-row{display:grid;grid-template-columns:1fr 80px;gap:10px;align-items:center}
+.helper{margin-top:10px;font-size:12px;color:#cdb880}
+.footer-note{
+  margin-top:32px;padding:16px 0 22px;text-align:center;color:#ccb577;font-size:14px;letter-spacing:.015em;
+  border-top:1px solid rgba(var(--state-rgb),.10)
+}
+.glow-soft{box-shadow:0 0 18px rgba(var(--state-rgb),.10)}
+@keyframes pulseDot{
+  0%,100%{transform:scale(1);opacity:.8}
+  50%{transform:scale(1.18);opacity:1}
+}
+@keyframes panelReveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media (max-width:1280px){
+  .layout{grid-template-columns:1fr}
+  .floating-sidebar{position:static;min-height:auto;flex-direction:row;align-items:stretch;justify-content:space-between;padding:12px}
+  .sidebar-head{display:none}
+  .sidebar-nav{flex-direction:row;width:100%}
+  .side-tab{min-height:74px}
+}
+@media (max-width:1180px){
+  .main-grid,.master-grid{grid-template-columns:1fr}
+}
+@media (max-width:980px){
+  .saas-header-inner,.hero-top{flex-direction:column}
+  .hero-bar,.engine-journal-row,.onboarding-strip,.alerts-grid,.overview-grid,.kpi-grid,.mode-head,.mode-actions,.agent-grid,.action-columns,.indicator-grid,.diagnostic-grid,.table-filters,.top-tab-nav,.command-grid{grid-template-columns:1fr}
+  .sidebar-nav{flex-direction:column}
+  .header-actions{width:100%}
+  .hero-logo{position:relative;top:auto;right:auto;width:100%;height:210px;margin-top:18px;border-radius:20px}
+  .signal-narratif-main{font-size:20px}
+  .mantra-operationnel-main{font-size:16px}
+}
+</style>
+</head>
+<body data-state="Range">
+<div class="shell">
+<header class="saas-header">
+<div class="saas-header-inner">
+<div class="brand-wrap">
+<div class="brand-seal"></div>
+<div>
+<div class="brand-title">Caméléon Engine</div>
+<div class="brand-subtitle">Cockpit contextuel • lecture de marché • mémoire stratégique</div>
+</div>
+</div>
+<div class="header-actions">
+<div class="header-chip"><span class="header-dot"></span><strong>Live</strong></div>
+<div class="header-chip">État : <strong id="headerState">Range</strong></div>
+<div class="header-chip">Mode : <strong id="headerMode">Observer</strong></div>
+<div class="header-chip">Heure : <strong id="liveClockHeader">--:--:--</strong></div>
+</div>
+</div>
+</header>
+
+<div class="layout">
+<aside class="floating-sidebar">
+<div class="sidebar-head"><div class="sidebar-seal"></div></div>
+<div class="sidebar-nav">
+<button class="side-tab active" id="sideTabMoteur" type="button">
+<div class="side-tab-icon">⚙</div>
+<div class="side-tab-label">Moteur</div>
+<div class="side-tab-state" id="sideStateMoteur">Actif</div>
+</button>
+<button class="side-tab" id="sideTabArticles" type="button">
+<div class="side-tab-icon">📚</div>
+<div class="side-tab-label">Articles</div>
+<div class="side-tab-state" id="sideStateArticles">Prêt</div>
+</button>
+<button class="side-tab" id="sideTabMemoire" type="button">
+<div class="side-tab-icon">🧠</div>
+<div class="side-tab-label">Mémoire</div>
+<div class="side-tab-state" id="sideStateMemoire">Prêt</div>
+</button>
+</div>
+</aside>
+
+<div class="main-shell">
+<section class="hero">
+<div class="hero-top">
+<div>
+<div class="badge"><span class="badge-dot"></span> Caméléon Engine · V7.3.2e SAFE</div>
+<h1>Journal vivant + signal narratif + mantra opérationnel</h1>
+<p class="subtitle">Base 7.3.1 conservée. Textes nettoyés. Visuel légèrement renforcé. Zéro casse moteur.</p>
+</div>
+<div class="badge" id="liveClock">--:--:--</div>
+</div>
+
+<div class="hero-logo" aria-hidden="true">
+<img src="./cameleon-engine-logo.png" alt="Caméléon doré mécanique">
+</div>
+
+<div class="hero-bar">
+<div class="hero-chip market-badge glow-soft">
+<div class="hero-chip-label">État de marché dominant</div>
+<div class="hero-chip-value market-strong" id="heroMarketStrong">Range</div>
+</div>
+<div class="hero-chip">
+<div class="hero-chip-label">Version</div>
+<div class="hero-chip-value">V7.3.2e</div>
+</div>
+<div class="hero-chip">
+<div class="hero-chip-label">Confiance</div>
+<div class="hero-chip-value" id="confidenceHero">64%</div>
+</div>
+<div class="hero-chip">
+<div class="hero-chip-label">Mode</div>
+<div class="hero-chip-value" id="modeHero">Observer</div>
+</div>
+<div class="hero-chip">
+<div class="hero-chip-label">Snapshots</div>
+<div class="hero-chip-value" id="snapshotCountHero">0</div>
+</div>
+</div>
+
+<div class="engine-journal-live glow-soft">
+<div class="engine-journal-head">
+<div class="engine-journal-title">Journal du moteur</div>
+<div class="engine-journal-status"><span class="badge-dot"></span><span id="engineJournalStatus">Système vivant</span></div>
+</div>
+<div class="engine-journal-main" id="engineJournalMain">Structure stable : le moteur maintient un régime de lecture discipliné.</div>
+<div class="engine-journal-sub" id="engineJournalSub">Le moteur résume ici l’événement dominant pour éviter le bruit inutile.</div>
+<div class="engine-journal-row">
+<div class="engine-journal-mini">
+<div class="engine-journal-mini-label">Événement structure</div>
+<div class="engine-journal-mini-value" id="journalMiniStructure">Cadre exploitable</div>
+</div>
+<div class="engine-journal-mini">
+<div class="engine-journal-mini-label">Événement risque</div>
+<div class="engine-journal-mini-value" id="journalMiniRisk">Risque contenu</div>
+</div>
+<div class="engine-journal-mini">
+<div class="engine-journal-mini-label">Événement action</div>
+<div class="engine-journal-mini-value" id="journalMiniAction">Observation active</div>
+</div>
+</div>
+</div>
+
+<div class="signal-narratif glow-soft">
+<div class="signal-narratif-head">
+<div class="signal-narratif-title">Signal narratif</div>
+<div class="signal-narratif-pill" id="signalNarratifPill">Lecture active</div>
+</div>
+<div class="signal-narratif-main" id="signalNarratifMain">Le marché pousse peut-être à agir trop tôt.</div>
+<div class="signal-narratif-sub" id="signalNarratifSub">Le moteur traduit ici la situation en phrase simple pour recentrer la posture.</div>
+</div>
+
+<div class="mantra-operationnel glow-soft">
+<div class="mantra-operationnel-head">
+<div class="mantra-operationnel-title">Mantra opérationnel</div>
+<div class="mantra-operationnel-pill" id="mantraOperationnelPill">Direct</div>
+</div>
+<div class="mantra-operationnel-main" id="mantraOperationnelMain">Lire. Attendre. Agir proprement.</div>
+</div>
+
+<div class="onboarding-strip">
+<div class="onboarding-card">
+<div class="onboarding-step">1</div>
+<div class="onboarding-title">Lis le journal</div>
+<div class="onboarding-text">Le hero te donne d’abord l’événement moteur dominant.</div>
+</div>
+<div class="onboarding-card">
+<div class="onboarding-step">2</div>
+<div class="onboarding-title">Lis le signal</div>
+<div class="onboarding-text">Le bloc narratif traduit le contexte dans une phrase plus humaine.</div>
+</div>
+<div class="onboarding-card">
+<div class="onboarding-step">3</div>
+<div class="onboarding-title">Lis le mantra</div>
+<div class="onboarding-text">Le mantra donne la consigne ultra-courte à retenir tout de suite.</div>
+</div>
+</div>
+
+<div class="hero-status-row">
+<div class="badge"><span class="badge-dot"></span> Moteur actif</div>
+<div class="badge"><span class="badge-dot info"></span> Journal vivant</div>
+<div class="badge"><span class="badge-dot warn"></span> Mantra opérationnel</div>
+</div>
+</section>
+
+<div class="main-grid">
+<div class="stack">
+<section class="master-card">
+<div class="card-head">
+<div>
+<h2 class="card-title">Alertes premium</h2>
+<p class="card-desc">Lecture immédiate des quatre dimensions clés du contexte.</p>
+</div>
+<div class="state-pill" id="statePill">Range</div>
+</div>
+
+<div class="alerts-grid">
+<div class="alert-card">
+<div class="alert-label">Structure</div>
+<div class="alert-value" id="alertStructureValue">Exploitable</div>
+<div class="alert-sub" id="alertStructureSub">Le cadre reste lisible.</div>
+</div>
+<div class="alert-card">
+<div class="alert-label">Risque</div>
+<div class="alert-value" id="alertRiskValue">Contenu</div>
+<div class="alert-sub" id="alertRiskSub">Le terrain reste respirable.</div>
+</div>
+<div class="alert-card">
+<div class="alert-label">Opportunité</div>
+<div class="alert-value" id="alertOpportunityValue">Patiente</div>
+<div class="alert-sub" id="alertOpportunitySub">Une opportunité existe, mais pas n’importe où.</div>
+</div>
+<div class="alert-card">
+<div class="alert-label">Discipline</div>
+<div class="alert-value" id="alertDisciplineValue">Critique</div>
+<div class="alert-sub" id="alertDisciplineSub">Le moteur exige de rester fidèle au cadre.</div>
+</div>
+</div>
+
+<div class="master-grid">
+<div class="master-left">
+<div class="master-xxl">
+<div class="master-state-title">État maître</div>
+<div class="master-state-name" id="masterStateName">Range</div>
+<div class="master-state-note" id="masterStateNote">Respiration latérale. Priorité à la discipline et au placement.</div>
+<div class="master-badges">
+<span class="master-badge"><span class="dot blue"></span><span id="masterConfidenceText">Confiance stable</span></span>
+<span class="master-badge"><span class="dot warn"></span><span id="masterRiskText">Risque contenu</span></span>
+<span class="master-badge"><span class="dot green"></span><span id="masterModeText">Mode : Observer</span></span>
+</div>
+</div>
+
+<div class="insight-box">
+<div class="tiny-label">Insight moteur</div>
+<div class="insight-quote" id="insightQuote">Range propre : la patience bat le geste moyen.</div>
+<div class="insight-sub" id="insightSub">Le moteur synthétise ici la lecture opérationnelle du contexte.</div>
+</div>
+</div>
+
+<div class="master-right">
+<div class="command-box">
+<div class="tiny-label">Décision immédiate</div>
+<div class="command-grid">
+<div class="command-card"><h4>Autorisé maintenant</h4><div class="value" id="allowedNow">Observer les bornes</div></div>
+<div class="command-card"><h4>Interdit maintenant</h4><div class="value" id="blockedNow">Agir au milieu</div></div>
+<div class="command-card"><h4>À surveiller</h4><div class="value" id="watchNow">Validation de structure</div></div>
+<div class="command-card"><h4>Prochaine priorité</h4><div class="value" id="nextPriority">Attendre la bonne zone</div></div>
+</div>
+</div>
+<div class="next-step-box">
+<div class="tiny-label">Phrase directrice</div>
+<div class="insight-quote" style="font-size:20px;" id="directiveLine">Tiens la structure. Ignore la précipitation.</div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="card">
+<div class="card-head">
+<div>
+<h2 class="card-title">Navigation produit</h2>
+<p class="card-desc">Moteur, Articles et Mémoire.</p>
+</div>
+<div class="state-pill" id="navStatePill">Range</div>
+</div>
+
+<div class="tab-shell">
+<div class="top-tab-nav">
+<button class="tab-btn active" id="tabBtnMoteur" type="button">Moteur</button>
+<button class="tab-btn" id="tabBtnArticles" type="button">Articles</button>
+<button class="tab-btn" id="tabBtnMemoire" type="button">Mémoire</button>
+</div>
+
+<div class="tab-panel active" id="tabPanelMoteur">
+<div class="overview-grid">
+<div class="short-box">
+<div class="tiny-label">État du marché</div>
+<p class="big-state" id="marketStateText">Range</p>
+<p class="text-soft" id="marketStateNote">Respiration latérale. Priorité à la discipline et au placement.</p>
+<div class="micro-badge-row">
+<span class="micro-badge"><span class="dot blue"></span> <span id="microConfidence">Confiance stable</span></span>
+<span class="micro-badge"><span class="dot warn"></span> <span id="microRisk">Risque contenu</span></span>
+</div>
+</div>
+
+<div class="agent-box">
+<div class="tiny-label">Agent actif</div>
+<p class="agent-name" id="agentName">Gardien du Range</p>
+<div class="alert-badge" id="agentAlert">Alerte stable</div>
+<p class="text-soft" id="agentDesc">Travaille le marché au lieu de le prédire. Défend la structure, pas l’ego.</p>
+<div class="micro-badge-row">
+<span class="micro-badge"><span class="dot green"></span> <span id="agentModeBadge">Mode : lecture calme</span></span>
+</div>
+</div>
+</div>
+
+<div class="kpi-grid">
+<div class="kpi-card">
+<div class="kpi-label">Confiance</div>
+<div class="kpi-value" id="confidenceValue">64%</div>
+<div class="kpi-sub" id="confidenceSub">Hiérarchie moteur lisible</div>
+<div class="score-bar"><div class="score-bar-fill" id="confidenceBar"></div></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Momentum</div>
+<div class="kpi-value" id="momentumValue">48</div>
+<div class="kpi-sub" id="momentumSub">Énergie du contexte</div>
+<div class="score-bar"><div class="score-bar-fill" id="momentumBar"></div></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Pression risque</div>
+<div class="kpi-value" id="riskValue">41</div>
+<div class="kpi-sub" id="riskSub">Stress global du terrain</div>
+<div class="score-bar"><div class="score-bar-fill" id="riskBar"></div></div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Clarté structure</div>
+<div class="kpi-value" id="clarityValue">62</div>
+<div class="kpi-sub" id="claritySub">Lisibilité du cadre</div>
+<div class="score-bar"><div class="score-bar-fill" id="clarityBar"></div></div>
+</div>
+</div>
+
+<div class="mode-panel">
+<div class="tiny-label">Mode d’action principal</div>
+<div class="mode-head">
+<div class="mode-box">
+<div class="tiny-label">Verdict</div>
+<div class="mode-main" id="actionModeMain">Observer</div>
+<div class="mode-sub" id="actionModeReason">Le moteur voit un range exploitable, mais préfère encore la lecture avant densification.</div>
+</div>
+<div class="mode-box">
+<div class="tiny-label">Priorité</div>
+<div class="mode-main" id="actionPriority">Moyenne</div>
+<div class="mode-sub" id="actionPriorityNote">Le contexte demande discipline, patience et refus du milieu.</div>
+</div>
+<div class="mode-box">
+<div class="tiny-label">Cadre</div>
+<div class="mode-main" id="actionCadre">Lecture</div>
+<div class="mode-sub" id="actionCadreNote">Le moteur filtre le geste selon risque, clarté et confiance.</div>
+</div>
+</div>
+
+<div class="mode-actions">
+<button class="mode-btn" id="modeOrdreBtn" type="button">
+<div class="mode-btn-title">Ordre</div>
+<div class="mode-btn-desc">Placer / ajuster un ordre sur structure claire.</div>
+</button>
+<button class="mode-btn" id="modeAttendreBtn" type="button">
+<div class="mode-btn-title">Attendre</div>
+<div class="mode-btn-desc">Ne rien forcer tant que la preuve n’est pas là.</div>
+</button>
+<button class="mode-btn" id="modeReduireBtn" type="button">
+<div class="mode-btn-title">Réduire</div>
+<div class="mode-btn-desc">Baisser l’exposition et nettoyer le risque.</div>
+</button>
+<button class="mode-btn active" id="modeObserverBtn" type="button">
+<div class="mode-btn-title">Observer</div>
+<div class="mode-btn-desc">Lire, surveiller, préparer sans exécuter.</div>
+</button>
+</div>
+</div>
+
+<div class="agent-grid">
+<div class="agent-card">
+<div class="tiny-label">Mission</div>
+<div class="agent-role" id="agentRole">Maintenir le cadre de travail, éviter les gestes impulsifs et privilégier les placements propres sur zones.</div>
+<div class="action-columns">
+<div class="action-box">
+<h4>Actions autorisées</h4>
+<div class="action-list" id="allowedActions"></div>
+</div>
+<div class="action-box">
+<h4>Actions interdites</h4>
+<div class="action-list" id="blockedActions"></div>
+</div>
+</div>
+</div>
+<div class="agent-card">
+<div class="tiny-label">Cadre d’exécution</div>
+<div class="agent-role" id="executionFrame">Le Gardien du Range autorise le travail patient du marché et filtre les décisions prises au milieu du bruit.</div>
+<div class="action-columns">
+<div class="action-box">
+<h4>Posture recommandée</h4>
+<div class="action-list" id="postureActions"></div>
+</div>
+<div class="action-box">
+<h4>Priorités immédiates</h4>
+<div class="action-list" id="priorityActions"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="table-shell">
+<div class="tiny-label">Tableau des actions exécutables</div>
+<div class="table-filters">
+<div class="field">
+<label for="statusFilter">Statut</label>
+<select id="statusFilter">
+<option value="all">Tous</option>
+<option value="Validé">Validé</option>
+<option value="À surveiller">À surveiller</option>
+<option value="Non validé">Non validé</option>
+</select>
+</div>
+<div class="field">
+<label for="typeFilter">Type</label>
+<select id="typeFilter">
+<option value="all">Tous</option>
+<option value="Ordre">Ordre</option>
+<option value="Attente">Attente</option>
+<option value="Observation">Observation</option>
+<option value="Réduction">Réduction</option>
+</select>
+</div>
+<div class="field">
+<label for="priorityFilter">Priorité</label>
+<select id="priorityFilter">
+<option value="all">Toutes</option>
+<option value="Très haute">Très haute</option>
+<option value="Haute">Haute</option>
+<option value="Moyenne">Moyenne</option>
+<option value="Basse">Basse</option>
+</select>
+</div>
+<div class="field">
+<label>&nbsp;</label>
+<div class="state-pill" id="tableCount">0 ligne</div>
+</div>
+</div>
+<div class="table-wrap">
+<table class="exec-table">
+<thead>
+<tr>
+<th>Action</th><th>Type</th><th>Priorité</th><th>Statut</th><th>Validation moteur</th><th>Raison</th><th>Focus</th>
+</tr>
+</thead>
+<tbody id="execTableBody"></tbody>
+</table>
+</div>
+<div class="table-mini-summary" id="tableMiniSummary"></div>
+</div>
+</div>
+
+<div class="tab-panel" id="tabPanelArticles">
+<div class="card-head" style="margin-bottom:0;">
+<div>
+<h2 class="card-title">Articles contextuels</h2>
+<p class="card-desc">Le moteur sélectionne les lectures les plus cohérentes avec l’état dominant du marché.</p>
+</div>
+<div class="state-pill" id="publicationRotation">Paragraph · Range</div>
+</div>
+<div id="publicationList" class="publication-stack"></div>
+</div>
+
+<div class="tab-panel" id="tabPanelMemoire">
+<div class="card-head" style="margin-bottom:0;">
+<div>
+<h2 class="card-title">Mémoire du moteur</h2>
+<p class="card-desc">Snapshots locaux pour suivre l’évolution du contexte et de tes décisions.</p>
+</div>
+<div class="state-pill">Local</div>
+</div>
+
+<div class="memory-shell">
+<div class="memory-actions">
+<button id="saveSnapshotBtn" class="mode-btn" type="button">
+<div class="mode-btn-title">Sauvegarder</div>
+<div class="mode-btn-desc">Créer un snapshot du contexte actuel</div>
+</button>
+<button id="clearSnapshotBtn" class="mode-btn" type="button">
+<div class="mode-btn-title">Nettoyer</div>
+<div class="mode-btn-desc">Supprimer les snapshots locaux</div>
+</button>
+</div>
+<div class="memory-list" id="memoryList"></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="card">
+<div class="card-head">
+<div>
+<h2 class="card-title">Capteurs importants</h2>
+<p class="card-desc">Ces capteurs alimentent le moteur et mettent à jour le cockpit.</p>
+</div>
+</div>
+<div class="indicator-grid">
+<div class="indicator-card">
+<label for="btcPrice">BTC Price</label>
+<input id="btcPrice" type="number" placeholder="Ex. 90250">
+</div>
+<div class="indicator-card">
+<label for="btcDom">BTC Dominance %</label>
+<div class="range-row">
+<input id="btcDom" type="range" min="30" max="70" step="0.1">
+<input id="btcDomValue" type="number" min="30" max="70" step="0.1">
+</div>
+</div>
+<div class="indicator-card">
+<label for="dxy">DXY</label>
+<input id="dxy" type="number" placeholder="Ex. 103.8">
+</div>
+<div class="indicator-card">
+<label for="marketBias">Biais marché</label>
+<select id="marketBias">
+<option value="neutral">Neutre</option>
+<option value="risk-on">Risk-on</option>
+<option value="risk-off">Risk-off</option>
+<option value="compression">Compression</option>
+</select>
+</div>
+<div class="indicator-card">
+<label for="volatility">Volatilité perçue</label>
+<div class="range-row">
+<input id="volatility" type="range" min="0" max="100" step="1">
+<input id="volatilityValue" type="number" min="0" max="100" step="1">
+</div>
+</div>
+<div class="indicator-card">
+<label for="liquidityStress">Stress liquidité</label>
+<div class="range-row">
+<input id="liquidityStress" type="range" min="0" max="100" step="1">
+<input id="liquidityStressValue" type="number" min="0" max="100" step="1">
+</div>
+</div>
+</div>
+<div class="helper">Les curseurs font vivre le moteur localement.</div>
+</section>
+</div>
+
+<div class="side-panel">
+<section class="side-card">
+<div class="card-head">
+<div>
+<h2 class="card-title">Centre de décision</h2>
+<p class="card-desc">Le système automatise le contexte, l’humain garde la décision.</p>
+</div>
+</div>
+<div class="history">
+<div class="history-item"><strong>Priorité du jour</strong><div id="priorityPanel" class="muted">Préserver la structure</div></div>
+<div class="history-item"><strong>Décision du jour</strong><div id="decisionPanel" class="muted">Observer avant d’agir.</div></div>
+<div class="history-item"><strong>Timing</strong><div id="timingPanel" class="muted">Le timing doit confirmer la structure.</div></div>
+<div class="history-item"><strong>Lecture ultra-courte</strong><div id="ultraShortPanel" class="muted">Range propre · patience active</div></div>
+</div>
+</section>
+
+<section class="side-card">
+<div class="card-head">
+<div>
+<h2 class="card-title">Diagnostic mémoire</h2>
+<p class="card-desc">Contrôle du stockage local.</p>
+</div>
+</div>
+<div class="diagnostic-grid">
+<div class="diagnostic-item"><div class="tiny-label">Stockage</div><div id="storageStatus">Disponible</div></div>
+<div class="diagnostic-item"><div class="tiny-label">Taille estimée</div><div id="storageSize">0 KB</div></div>
+<div class="diagnostic-item"><div class="tiny-label">Dernière écriture</div><div id="lastSaved">—</div></div>
+<div class="diagnostic-item"><div class="tiny-label">Snapshots</div><div id="snapshotCount">0</div></div>
+</div>
+</section>
+
+<section class="side-card">
+<div class="card-head">
+<div>
+<h2 class="card-title">Sortie moteur</h2>
+<p class="card-desc">Résumé structuré prêt pour un futur branchement API / n8n.</p>
+</div>
+</div>
+<div class="memory-box">
+<pre id="engineJsonOutput" style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.55;color:var(--text-soft);"></pre>
+</div>
+</section>
+
+<section class="side-card">
+<div class="card-head">
+<div>
+<h2 class="card-title">Historique moteur</h2>
+<p class="card-desc">Les dernières variations de l’état et des scores.</p>
+</div>
+</div>
+<div class="history" id="engineHistoryList"></div>
+</section>
+</div>
+</div>
+
+<p class="footer-note">Caméléon Engine V7.3.2e · base 7.3.2c + logique enrichie + intégration BTC/DXY.</p>
+</div>
+</div>
+</div>
+
+<script>
+(function () {
+'use strict';
+const STORAGE_KEY = 'cameleon-engine-v732e';
+const SCORE_HISTORY_LIMIT = 30;
+const DEFAULT_FIELDS = {
+btcPrice: '',
+btcDom: 52.5,
+btcDomValue: 52.5,
+dxy: '',
+marketBias: 'neutral',
+volatility: 35,
+volatilityValue: 35,
+liquidityStress: 25,
+liquidityStressValue: 25
+};
+const DEFAULT_DATA = {
+version: '7.3.2d',
+lastSaved: null,
+fields: { ...DEFAULT_FIELDS },
+snapshots: [],
+score_history: [],
+prev_engine_state: null,
+active_tab: 'moteur'
+};
+const themeMap = {
+Range: { rgb: '212,175,55', text: '#fff0c8', pillText: '#f4ecd0' },
+Expansion: { rgb: '255,120,70', text: '#ffe4cf', pillText: '#fff1e8' },
+Compression: { rgb: '120,160,255', text: '#dfe7ff', pillText: '#eef3ff' },
+Defense: { rgb: '110,210,160', text: '#dffcef', pillText: '#effff8' },
+'Risk-off': { rgb: '255,95,120', text: '#ffe0e7', pillText: '#fff0f4' }
+};
+const stateConfig = {
+Range: {
+note: 'Respiration latérale. Priorité à la discipline et au placement.',
+priority: 'Préserver la structure',
+decision: 'Le marché essaie parfois de te faire agir avant la vraie zone.',
+timing: 'Le timing doit confirmer la structure, jamais l’ennui.',
+ultra: 'Pas au milieu.',
+insight: 'Range propre : la patience bat le geste moyen.',
+insightSub: 'Le moteur préfère les bornes, le calme et les ordres placés proprement.',
+directive: 'Tiens la structure. Ignore la précipitation.',
+allowedNow: 'Observer les bornes',
+blockedNow: 'Agir au milieu',
+watchNow: 'Validation de structure',
+nextPriority: 'Attendre la bonne zone',
+agent: 'Gardien du Range',
+alert: 'Alerte stable',
+desc: 'Travaille le marché au lieu de le prédire. Défend la structure, pas l’ego.',
+role: 'Maintenir le cadre de travail, éviter les gestes impulsifs et privilégier les placements propres sur zones.',
+exec: 'Le Gardien du Range autorise le travail patient du marché et filtre les décisions prises au milieu du bruit.',
+allowed: ['Placer des ordres limites sur zones claires', 'Alléger sur respiration haute', 'Racheter sur retour propre', 'Rester en observation active'],
+blocked: ['Poursuivre une mèche au milieu du range', 'Surpondérer sans nouvelle structure', 'Multiplier les entrées émotionnelles', 'Changer le plan trop vite'],
+posture: ['Patience active', 'Froid émotionnel', 'Cadre avant exécution'],
+priorities: ['Repérer les bornes', 'Éviter le milieu', 'Travailler la respiration'],
+rows: [
+{action:'Attendre hors du milieu', type:'Attente', priority:'Haute', status:'Validé', validation:'Oui', reason:'Le moteur privilégie la patience.', best:true},
+{action:'Observer les bornes du range', type:'Observation', priority:'Haute', status:'Validé', validation:'Oui', reason:'Les extrêmes restent la vraie zone utile.', best:false},
+{action:'Placer un ordre tactique', type:'Ordre', priority:'Moyenne', status:'À surveiller', validation:'Partielle', reason:'Possible uniquement sur zone claire.', best:false},
+{action:'Suivre une impulsion au marché', type:'Réduction', priority:'Basse', status:'Non validé', validation:'Non', reason:'Le moteur refuse la poursuite émotionnelle.', best:false}
+]
+},
+Expansion: {
+note: 'Le marché pousse. Il faut gérer la respiration sans courir derrière.',
+priority: 'Accompagner sans courir',
+decision: 'La force est là, mais l’euphorie reste un piège.',
+timing: 'Le timing se joue sur les respirations, pas sur l’excitation.',
+ultra: 'Suis. Ne poursuis pas.',
+insight: 'Expansion lisible : accompagne, ne chasse pas.',
+insightSub: 'Le moteur autorise l’accompagnement de tendance seulement si la respiration reste propre.',
+directive: 'Profite du flux. Refuse la poursuite.',
+allowedNow: 'Accompagner la continuation',
+blockedNow: 'Acheter l’euphorie',
+watchNow: 'Respiration de reprise',
+nextPriority: 'Gérer la force sans excès',
+agent: 'Rythme du Feu',
+alert: 'Alerte dynamique',
+desc: 'Accompagne l’impulsion avec mesure, sans FOMO et sans surcharger le capital.',
+role: 'Accompagner la force quand elle est réelle, tout en empêchant la poursuite désordonnée.',
+exec: 'Le Rythme du Feu autorise l’accompagnement de tendance, mais seulement sur structure confirmée.',
+allowed: ['Suivre une cassure confirmée', 'Monter les ordres sur respiration saine', 'Alléger partiellement dans la force'],
+blocked: ['Acheter en euphorie verticale', 'Recharger sans respiration', 'Ignorer le risque de retournement'],
+posture: ['Discipline mobile', 'Souplesse sans FOMO', 'Lecture de continuation'],
+priorities: ['Valider la continuation', 'Gérer les respirations', 'Protéger les gains'],
+rows: [
+{action:'Accompagner la continuation', type:'Ordre', priority:'Haute', status:'Validé', validation:'Oui', reason:'Le flux reste propre.', best:true},
+{action:'Attendre une respiration', type:'Attente', priority:'Haute', status:'Validé', validation:'Oui', reason:'Le moteur refuse la chasse verticale.', best:false},
+{action:'Alléger partiellement', type:'Réduction', priority:'Moyenne', status:'À surveiller', validation:'Partielle', reason:'Dépend de l’extension.', best:false}
+]
+},
+Compression: {
+note: 'Énergie contenue. Le marché prépare souvent une sortie de structure.',
+priority: 'Observer les seuils',
+decision: 'Le calme peut masquer un mouvement. La preuve manque encore.',
+timing: 'La cassure réelle compte plus que l’anticipation nerveuse.',
+ultra: 'Prépare. N’anticipe pas.',
+insight: 'Compression propre : la preuve manque encore.',
+insightSub: 'Le moteur privilégie la préparation, la surveillance des bornes et le refus de l’anticipation nerveuse.',
+directive: 'Prépare plus que tu ne prévois.',
+allowedNow: 'Préparer les scénarios',
+blockedNow: 'Entrer avant la preuve',
+watchNow: 'Seuil de sortie',
+nextPriority: 'Attendre la validation',
+agent: 'Veilleur des Seuils',
+alert: 'Alerte silencieuse',
+desc: 'Observe la pression, les faux signaux et les zones qui déclenchent le mouvement.',
+role: 'Accumuler de la lecture, surveiller les bornes et empêcher l’anticipation nerveuse.',
+exec: 'Le Veilleur des Seuils prépare le terrain avant la sortie réelle de structure.',
+allowed: ['Observer les zones de rupture', 'Préparer des scénarios', 'Attendre la preuve'],
+blocked: ['Suragir à chaque micro-mouvement', 'Confondre tension et signal', 'Entrer par ennui'],
+posture: ['Lucidité froide', 'Observation dense', 'Préparation calme'],
+priorities: ['Surveiller borne haute', 'Surveiller borne basse', 'Attendre la validation'],
+rows: [
+{action:'Attendre la preuve', type:'Attente', priority:'Très haute', status:'Validé', validation:'Oui', reason:'La compression prépare, elle ne valide pas encore.', best:true},
+{action:'Observer les seuils de sortie', type:'Observation', priority:'Haute', status:'Validé', validation:'Oui', reason:'Les bornes restent prioritaires.', best:false},
+{action:'Préparer un ordre conditionnel', type:'Ordre', priority:'Moyenne', status:'À surveiller', validation:'Partielle', reason:'Préparation OK, exécution suspendue.', best:false}
+]
+},
+Defense: {
+note: 'Contexte fragile. On protège le capital avant toute envie d’action.',
+priority: 'Protéger le capital',
+decision: 'Le terrain punit l’excès. Réduis avant toute relance.',
+timing: 'Le bon timing commence souvent par la non-action.',
+ultra: 'Réduis d’abord.',
+insight: 'Défense propre : protéger vaut mieux qu’espérer.',
+insightSub: 'Le moteur classe la protection du capital au-dessus de toute envie de compenser.',
+directive: 'Réduis. Respire. Reviens propre.',
+allowedNow: 'Alléger proprement',
+blockedNow: 'Se refaire vite',
+watchNow: 'Retour de clarté',
+nextPriority: 'Nettoyer le risque',
+agent: 'Bouclier du Capital',
+alert: 'Alerte défensive',
+desc: 'Réduit l’exposition mentale et financière. La préservation prime.',
+role: 'Protéger le capital, réduire le bruit et empêcher les gestes de compensation.',
+exec: 'Le Bouclier du Capital n’autorise que les actions de protection, de réduction et de recentrage.',
+allowed: ['Réduire l’exposition', 'Attendre sans culpabilité', 'Conserver du cash'],
+blocked: ['Forcer un trade pour se refaire', 'Multiplier les exceptions', 'Confondre activité et qualité'],
+posture: ['Sobriété active', 'Protection mentale', 'Réduction du bruit'],
+priorities: ['Préserver le capital', 'Ralentir la cadence', 'Revenir au cadre'],
+rows: [
+{action:'Réduire l’exposition', type:'Réduction', priority:'Très haute', status:'Validé', validation:'Oui', reason:'Le capital passe avant la performance.', best:true},
+{action:'Attendre un retour de clarté', type:'Attente', priority:'Haute', status:'Validé', validation:'Oui', reason:'L’inaction reste stratégique.', best:false},
+{action:'Placer un ordre offensif', type:'Ordre', priority:'Basse', status:'Non validé', validation:'Non', reason:'Le moteur défensif ne valide pas l’agression.', best:false}
+]
+},
+'Risk-off': {
+note: 'Le vent devient hostile. Les actifs risqués demandent une lecture froide.',
+priority: 'Tenir la ligne',
+decision: 'Le marché ne demande pas du courage. Il demande de survivre proprement.',
+timing: 'Le timing ne se chasse pas. Il revient quand le chaos baisse.',
+ultra: 'Reste propre.',
+insight: 'Risk-off : survivre proprement vaut mieux qu’avoir raison.',
+insightSub: 'Le moteur refuse les paris héroïques et favorise la survie stratégique.',
+directive: 'Ne prouve rien. Préserve tout.',
+allowedNow: 'Rester liquide ou alléger',
+blockedNow: 'Chasser le bottom',
+watchNow: 'Détente du chaos',
+nextPriority: 'Préserver l’intégrité stratégique',
+agent: 'Archiviste du Repli',
+alert: 'Alerte critique',
+desc: 'Fige l’impulsivité, archive le contexte, attend le moment opportun.',
+role: 'Empêcher les gestes d’urgence, préserver l’intégrité stratégique et attendre la baisse du chaos.',
+exec: 'L’Archiviste du Repli autorise la survie stratégique.',
+allowed: ['Alléger ou rester liquide', 'Observer froidement', 'Réduire les engagements'],
+blocked: ['Chercher un top ou un bottom exact', 'S’exposer sans confirmation', 'Prendre une revanche émotionnelle'],
+posture: ['Froideur défensive', 'Survie stratégique', 'Retenue maximale'],
+priorities: ['Rester propre', 'Éviter l’urgence', 'Attendre la détente'],
+rows: [
+{action:'Rester liquide ou alléger', type:'Réduction', priority:'Très haute', status:'Validé', validation:'Oui', reason:'La survie stratégique prime.', best:true},
+{action:'Observer sans exécuter', type:'Observation', priority:'Haute', status:'Validé', validation:'Oui', reason:'La lecture est permise, pas la prise de risque.', best:false},
+{action:'Chercher le point bas exact', type:'Ordre', priority:'Basse', status:'Non validé', validation:'Non', reason:'Le moteur rejette la chasse au bottom.', best:false}
+]
+}
+};
+const paragraphLibrary = {
+Range: [
+{ title: 'Le carnet d’ordres comme extension du cerveau', tag: 'Carnet', category: 'Structure', priority: 10, url: 'https://paragraph.com/@cameleon/le-carnet-dordres-comme-extension-du-cerveau', note: 'Pilier central pour un marché latéral : structure, patience et exécution passive.' },
+{ title: 'Le carnet d’ordres n’est pas une liste, c’est une stratégie', tag: 'Structure', category: 'Doctrine', priority: 9, url: 'https://paragraph.com/@cameleon/le-carnet-dordres-nest-pas-une-liste-cest-une-strategie', note: 'Très bon article pour rappeler que le carnet est une architecture.' },
+{ title: '⚠ Le milieu est un piège', tag: 'Discipline', category: 'Range', priority: 10, url: 'https://paragraph.com/@cameleon/⚠-le-milieu-est-un-piege', note: 'Parfait pour rappeler pourquoi le centre du range use la qualité.' },
+{ title: 'Travailler un marché plutôt que le prédire', tag: 'Doctrine', category: 'Posture', priority: 8, url: 'https://paragraph.com/@cameleon/travailler-un-marche-plutot-que-le-predire', note: 'Excellent rappel sur la posture Caméléon dans un marché neutre.' },
+{ title: 'Loi n°1 — la respiration du range', tag: 'Loi', category: 'Range', priority: 10, url: 'https://paragraph.com/@cameleon/loi-n°1-—-la-respiration-du-range', note: 'Texte parfaitement aligné avec les phases de respiration latérale.' },
+{ title: 'Loi X — survivre au range est plus difficile que survivre au crash', tag: 'Loi', category: 'Survie', priority: 8, url: 'https://paragraph.com/@cameleon/loi-x-—-survivre-au-range-est-plus-difficile-que-survivre-au-crash', note: 'Très utile pour rappeler que l’usure lente détruit souvent plus que la panique.' }
+],
+Expansion: [
+{ title: '📜 TAO — Notes d’un trading conscient', tag: 'TAO', category: 'Tendance', priority: 9, url: 'https://paragraph.com/@cameleon/📜-tao-—-notes-dun-trading-conscient', note: 'Très bon pour accompagner une phase de mouvement sans perdre la conscience structurelle.' },
+{ title: 'Travailler un marché plutôt que le prédire', tag: 'Doctrine', category: 'Posture', priority: 10, url: 'https://paragraph.com/@cameleon/travailler-un-marche-plutot-que-le-predire', note: 'Un des meilleurs textes pour cadrer l’expansion sans euphorie.' },
+{ title: '🦎 La rotation silencieuse du Caméléon', tag: 'Rotation', category: 'Flux', priority: 8, url: 'https://paragraph.com/@cameleon/🦎-la-rotation-silencieuse-du-cameleon', note: 'Très cohérent avec les mouvements d’accompagnement.' },
+{ title: '📐 Les pourcentages TAO sont bidirectionnels', tag: 'TAO', category: 'Lecture', priority: 7, url: 'https://paragraph.com/@cameleon/📐-les-pourcentages-tao-sont-bidirectionnels', note: 'Utile pour garder un regard structurel dans la poussée.' },
+{ title: '🎯 Le break-even est un faux refuge', tag: 'Risque', category: 'Posture', priority: 7, url: 'https://paragraph.com/@cameleon/🎯-le-break-even-est-un-faux-refuge', note: 'Aide à éviter les décisions médiocres pendant la force.' },
+{ title: '📈 Pourquoi accompagner vaut parfois mieux que sniper', tag: 'Trend', category: 'Continuation', priority: 8, url: 'https://paragraph.com/@cameleon/pourquoi-accompagner-vaut-parfois-mieux-que-sniper', note: 'Bon complément quand le flux devient lisible.' }
+],
+Compression: [
+{ title: '📐 Les pourcentages TAO sont bidirectionnels', tag: 'Compression', category: 'Lecture', priority: 9, url: 'https://paragraph.com/@cameleon/📐-les-pourcentages-tao-sont-bidirectionnels', note: 'Très bon pour casser les lectures simplistes avant sortie de structure.' },
+{ title: 'Quand ne rien comprendre est une information', tag: 'Lecture', category: 'Compression', priority: 10, url: 'https://paragraph.com/@cameleon/quand-ne-rien-comprendre-est-une-information', note: 'Excellent article pour une phase de tension confuse.' },
+{ title: 'Le timing n’existe pas, la préparation oui', tag: 'Préparation', category: 'Setup', priority: 10, url: 'https://paragraph.com/@cameleon/le-timing-nexiste-pas-la-preparation-oui', note: 'Parfait pour un état où l’on prépare plus qu’on n’exécute.' },
+{ title: 'Le carnet d’ordres comme extension du cerveau', tag: 'Carnet', category: 'Structure', priority: 7, url: 'https://paragraph.com/@cameleon/le-carnet-dordres-comme-extension-du-cerveau', note: 'Utile pour préparer des ordres sans forcer le déclenchement.' },
+{ title: 'Le marché te montre parfois son silence avant sa violence', tag: 'Compression', category: 'Lecture', priority: 8, url: 'https://paragraph.com/@cameleon/le-marche-te-montre-parfois-son-silence-avant-sa-violence', note: 'Très adapté aux contextes de tension comprimée.' },
+{ title: 'Préparer vaut plus que deviner', tag: 'Préparation', category: 'Posture', priority: 8, url: 'https://paragraph.com/@cameleon/preparer-vaut-plus-que-deviner', note: 'Texte court et utile pour ancrer la patience.' }
+],
+Defense: [
+{ title: 'Réduire l’exposition comme acte offensif', tag: 'Défense', category: 'Protection', priority: 10, url: 'https://paragraph.com/@cameleon/reduire-lexposition-comme-acte-offensif', note: 'Un des meilleurs textes pour un état défensif.' },
+{ title: 'Perdre petit est une compétence', tag: 'Risque', category: 'Protection', priority: 10, url: 'https://paragraph.com/@cameleon/perdre-petit-est-une-competence', note: 'Très utile pour défendre le capital sans ego.' },
+{ title: 'Pourquoi une bonne perte protège le futur', tag: 'Risque', category: 'Protection', priority: 9, url: 'https://paragraph.com/@cameleon/pourquoi-une-bonne-perte-protege-le-futur', note: 'Très cohérent avec le mode réduction.' },
+{ title: 'Rien à prouver au marché', tag: 'Posture', category: 'Ego', priority: 8, url: 'https://paragraph.com/@cameleon/rien-a-prouver-au-marche', note: 'Très utile dès que le terrain devient hostile ou nerveux.' },
+{ title: 'Loi n°3 — la loi du socle protégé', tag: 'Loi', category: 'Défense', priority: 9, url: 'https://paragraph.com/@cameleon/loi-n°3-—-la-loi-du-socle-protege', note: 'Pièce doctrinale solide pour préserver le noyau.' },
+{ title: 'Perdre du bruit, gagner du futur', tag: 'Défense', category: 'Sobriété', priority: 7, url: 'https://paragraph.com/@cameleon/perdre-du-bruit-gagner-du-futur', note: 'Bon rappel quand la protection devient la priorité.' }
+],
+'Risk-off': [
+{ title: 'Le marché est devenu darwinien', tag: 'Risk-off', category: 'Survie', priority: 10, url: 'https://paragraph.com/@cameleon/le-marche-est-devenu-darwinien', note: 'Très fort pour installer la gravité d’un environnement hostile.' },
+{ title: 'Rien à prouver au marché', tag: 'Posture', category: 'Ego', priority: 10, url: 'https://paragraph.com/@cameleon/rien-a-prouver-au-marche', note: 'Excellent pour couper l’ego dans les pires moments.' },
+{ title: 'Loi n°3 — la loi du socle protégé', tag: 'Loi', category: 'Défense', priority: 10, url: 'https://paragraph.com/@cameleon/loi-n°3-—-la-loi-du-socle-protege', note: 'Pièce doctrinale centrale pour les moments de défense maximale.' },
+{ title: 'Perdre petit est une compétence', tag: 'Risque', category: 'Protection', priority: 8, url: 'https://paragraph.com/@cameleon/perdre-petit-est-une-competence', note: 'Utile pour rester froid et modeste sous pression.' },
+{ title: 'Pourquoi une bonne perte protège le futur', tag: 'Risque', category: 'Protection', priority: 8, url: 'https://paragraph.com/@cameleon/pourquoi-une-bonne-perte-protege-le-futur', note: 'Important pour éviter l’escalade émotionnelle.' },
+{ title: 'Quand survivre est déjà une victoire', tag: 'Survie', category: 'Risk-off', priority: 9, url: 'https://paragraph.com/@cameleon/quand-survivre-est-deja-une-victoire', note: 'Très aligné avec le mode survie stratégique.' }
+]
+};
+const $ = (id) => document.getElementById(id);
+let currentRows = [];
+let autoSaveTimer = null;
+function cloneData(obj) { return JSON.parse(JSON.stringify(obj)); }
+function safeParse(value) { try { return JSON.parse(value); } catch { return null; } }
+function storageAvailable() {
+  try {
+    const key = '__ce_test__';
+    localStorage.setItem(key, '1');
+    localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+function loadData() {
+  if (!storageAvailable()) return cloneData(DEFAULT_DATA);
+  const raw = localStorage.getItem(STORAGE_KEY);
+  const parsed = raw ? safeParse(raw) : null;
+  if (!parsed || typeof parsed !== 'object') return cloneData(DEFAULT_DATA);
+  return {
+    ...cloneData(DEFAULT_DATA),
+    ...parsed,
+    fields: { ...cloneData(DEFAULT_FIELDS), ...(parsed.fields || {}) },
+    snapshots: Array.isArray(parsed.snapshots) ? parsed.snapshots : [],
+    score_history: Array.isArray(parsed.score_history) ? parsed.score_history : [],
+    prev_engine_state: parsed.prev_engine_state || null,
+    active_tab: parsed.active_tab || 'moteur'
+  };
+}
+function saveData(data) {
+  data.lastSaved = new Date().toISOString();
+  if (!storageAvailable()) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.error('Sauvegarde locale impossible :', error);
+  }
+}
+function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+function formatStorageSize(data) {
+  const text = JSON.stringify(data);
+  const bytes = new Blob([text]).size;
+  if (bytes < 1024) return `${bytes} B`;
+  return `${(bytes / 1024).toFixed(2)} KB`;
+}
+function updateClock() {
+  const time = new Date().toLocaleTimeString('fr-FR');
+  if ($('liveClock')) $('liveClock').textContent = time;
+  if ($('liveClockHeader')) $('liveClockHeader').textContent = time;
+}
+function applyTheme(state) {
+  const theme = themeMap[state] || themeMap.Range;
+  document.documentElement.style.setProperty('--state-rgb', theme.rgb);
+  document.documentElement.style.setProperty('--state-text', theme.text);
+  document.documentElement.style.setProperty('--state-pill-text', theme.pillText);
+}
+function computeMarketState(data) {
+  const f = data.fields;
+  const vol = Number(f.volatility || 0);
+  const stress = Number(f.liquidityStress || 0);
+  const bias = String(f.marketBias || 'neutral');
+  const dxy = Number(f.dxy || 0);
+  const btc = Number(f.btcPrice || 0);
+
+  const macroRiskOff = dxy > 105;
+  const macroRiskOn = dxy < 100;
+
+  if (bias === 'risk-off' || stress > 75 || macroRiskOff) return 'Risk-off';
+  if (stress > 55) return 'Defense';
+  if (bias === 'compression' || vol < 25) return 'Compression';
+  if (bias === 'risk-on' || (vol > 65 && stress < 40 && macroRiskOn)) return 'Expansion';
+  return 'Range';
+}
+function computeScores(data) {
+  const f = data.fields;
+  const volatility = Number(f.volatility || 0);
+  const stress = Number(f.liquidityStress || 0);
+  const dom = Number(f.btcDom || 50);
+  const confidence = clamp(70 - stress + (dom - 50), 10, 95);
+  const momentum = clamp(volatility, 0, 100);
+  const risk = clamp(stress, 0, 100);
+  const clarity = clamp(60 - volatility / 2 + (50 - stress / 2), 10, 90);
+  return {
+    confidence: Math.round(confidence),
+    momentum: Math.round(momentum),
+    risk: Math.round(risk),
+    clarity: Math.round(clarity)
+  };
+}
+function renderList(id, items) {
+  const el = $(id);
+  if (!el) return;
+  el.innerHTML = items.map(item => `<div class="action-item">${escapeHtml(item)}</div>`).join('');
+}
+function renderExecTable(state) {
+  const cfg = stateConfig[state] || stateConfig.Range;
+  currentRows = cfg.rows || [];
+  const statusFilter = $('statusFilter') ? $('statusFilter').value : 'all';
+  const typeFilter = $('typeFilter') ? $('typeFilter').value : 'all';
+  const priorityFilter = $('priorityFilter') ? $('priorityFilter').value : 'all';
+  const filtered = currentRows.filter(row => {
+    const okStatus = statusFilter === 'all' || row.status === statusFilter;
+    const okType = typeFilter === 'all' || row.type === typeFilter;
+    const okPriority = priorityFilter === 'all' || row.priority === priorityFilter;
+    return okStatus && okType && okPriority;
+  });
+  if ($('tableCount')) $('tableCount').textContent = `${filtered.length} ${filtered.length > 1 ? 'lignes' : 'ligne'}`;
+  const body = $('execTableBody');
+  if (!body) return;
+  if (!filtered.length) {
+    body.innerHTML = '<tr><td colspan="7">Aucun résultat.</td></tr>';
+    if ($('tableMiniSummary')) $('tableMiniSummary').textContent = 'Aucune ligne pour ce filtre.';
+    return;
+  }
+  body.innerHTML = filtered.map(row => `
+    <tr>
+      <td><span class="cell-strong">${escapeHtml(row.action)}</span></td>
+      <td><span class="pill info">${escapeHtml(row.type)}</span></td>
+      <td>${escapeHtml(row.priority)}</td>
+      <td><span class="pill ${row.status === 'Validé' ? 'valid' : row.status === 'À surveiller' ? 'watch' : 'invalid'}">${escapeHtml(row.status)}</span></td>
+      <td>${escapeHtml(row.validation)}</td>
+      <td>${escapeHtml(row.reason)}</td>
+      <td>${row.best ? '<span class="pill best">Meilleure</span>' : '<span class="pill">Secondaire</span>'}</td>
+    </tr>
+  `).join('');
+  const best = filtered.find(r => r.best) || filtered[0];
+  if ($('tableMiniSummary')) $('tableMiniSummary').textContent = `Focus moteur : ${best.action}. ${best.reason}`;
+}
+function renderPublications(state) {
+  const list = (paragraphLibrary[state] || []).slice().sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  const container = $('publicationList');
+  if (!container) return;
+  const visible = list.slice(0, 4);
+  container.innerHTML = visible.map(p => `
+    <div class="publication-item">
+      <div class="publication-top">
+        <div class="publication-tag-row">
+          <span class="publication-tag">${escapeHtml(p.tag)}</span>
+          <span class="publication-state">${escapeHtml(state)}</span>
+        </div>
+      </div>
+      <div class="publication-title">${escapeHtml(p.title)}</div>
+      <div class="publication-note">${escapeHtml(p.note)}</div>
+      <div class="publication-footer">
+        <div class="publication-meta">${escapeHtml(p.category || 'Doctrine')} · priorité ${escapeHtml(String(p.priority || 0))}</div>
+        <a class="publication-open" href="${p.url}" target="_blank" rel="noopener noreferrer">Ouvrir</a>
+      </div>
+    </div>
+  `).join('');
+}
+function renderDiagnostics(data) {
+  if ($('storageStatus')) $('storageStatus').textContent = storageAvailable() ? 'Disponible' : 'Indisponible';
+  if ($('storageSize')) $('storageSize').textContent = formatStorageSize(data);
+  if ($('lastSaved')) $('lastSaved').textContent = data.lastSaved ? new Date(data.lastSaved).toLocaleString('fr-FR') : '—';
+  if ($('snapshotCount')) $('snapshotCount').textContent = String((data.snapshots || []).length);
+  if ($('snapshotCountHero')) $('snapshotCountHero').textContent = String((data.snapshots || []).length);
+}
+function renderMemory(data) {
+  const memoryList = $('memoryList');
+  if (!memoryList) return;
+  const snapshots = Array.isArray(data.snapshots) ? data.snapshots : [];
+  if (!snapshots.length) {
+    memoryList.innerHTML = '<div class="action-item">Aucun snapshot local pour l’instant.</div>';
+    return;
+  }
+  memoryList.innerHTML = snapshots.slice().reverse().map((snap) => `
+    <div class="action-item">
+      <strong>${escapeHtml(snap.state || '—')}</strong><br>
+      <span>${escapeHtml(snap.dateLabel || '—')}</span><br>
+      <span>Confiance : ${escapeHtml(String(snap.confidence ?? '—'))}%</span>
+    </div>
+  `).join('');
+}
+
+function renderEngineOutput(data, state, cfg, scores) {
+  const previousState = data.prev_engine_state || null;
+  const changeDetected = previousState !== null && previousState !== state;
+  const alertNeeded = changeDetected || state === 'Risk-off' || state === 'Defense';
+  const payload = {
+    version: data.version || '7.3.2d',
+    engine_mode: state === 'Expansion' ? 'continuation'
+      : state === 'Compression' ? 'pre-breakout'
+      : state === 'Defense' ? 'capital-protection'
+      : state === 'Risk-off' ? 'survival'
+      : 'range',
+    data_source: 'manual_local',
+    api_ready: true,
+    market_state: state,
+    previous_state: previousState,
+    change_detected: changeDetected,
+    alert_needed: alertNeeded,
+    updated_at: new Date().toISOString(),
+    confidence: scores.confidence,
+    momentum: scores.momentum,
+    risk: scores.risk,
+    clarity: scores.clarity,
+    allowed_now: cfg.allowedNow,
+    blocked_now: cfg.blockedNow,
+    next_priority: cfg.nextPriority,
+    narrative: cfg.decision,
+    mantra: cfg.ultra
+  };
+  const out = $('engineJsonOutput');
+  if (out) out.textContent = JSON.stringify(payload, null, 2);
+}
+
+function renderEngineHistory(data) {
+  const box = $('engineHistoryList');
+  if (!box) return;
+  const history = Array.isArray(data.score_history) ? data.score_history.slice(0, 5) : [];
+  if (!history.length) {
+    box.innerHTML = '<div class="history-item">Aucun historique moteur pour l’instant.</div>';
+    return;
+  }
+  box.innerHTML = history.map((entry, index) => `
+    <div class="history-item">
+      <strong>${index + 1}. ${escapeHtml(entry.state || '—')}</strong><br>
+      <span>Confiance : ${escapeHtml(String(entry.confidence ?? '—'))}%</span><br>
+      <span>Momentum : ${escapeHtml(String(entry.momentum ?? '—'))}</span><br>
+      <span>Risque : ${escapeHtml(String(entry.risk ?? '—'))}</span><br>
+      <span>Clarté : ${escapeHtml(String(entry.clarity ?? '—'))}</span><br>
+      <span>Changement : ${entry.changed ? 'oui' : 'non'}</span>
+    </div>
+  `).join('');
+}
+
+function renderAll(data) {
+  const state = computeMarketState(data);
+  const cfg = stateConfig[state] || stateConfig.Range;
+  const scores = computeScores(data);
+  applyTheme(state);
+  document.body.setAttribute('data-state', state);
+  const textMap = {
+    heroMarketStrong: state,
+    headerState: state,
+    statePill: state,
+    navStatePill: state,
+    masterStateName: state,
+    marketStateText: state,
+    publicationRotation: `Paragraph · ${state}`,
+    masterStateNote: cfg.note,
+    marketStateNote: cfg.note,
+    insightQuote: cfg.insight,
+    insightSub: cfg.insightSub,
+    directiveLine: cfg.directive,
+    allowedNow: cfg.allowedNow,
+    blockedNow: cfg.blockedNow,
+    watchNow: cfg.watchNow,
+    nextPriority: cfg.nextPriority,
+    agentName: cfg.agent,
+    agentDesc: cfg.desc,
+    agentRole: cfg.role,
+    executionFrame: cfg.exec,
+    signalNarratifMain: cfg.decision,
+    signalNarratifSub: cfg.timing,
+    signalNarratifPill: state,
+    mantraOperationnelMain: cfg.ultra,
+    mantraOperationnelPill: state,
+    engineJournalMain: cfg.insight,
+    engineJournalSub: cfg.note,
+    engineJournalStatus: `${state} · actif`,
+    journalMiniStructure: cfg.priority,
+    journalMiniRisk: cfg.blockedNow,
+    journalMiniAction: cfg.allowedNow,
+    masterConfidenceText: scores.confidence >= 70 ? 'Confiance haute' : scores.confidence >= 50 ? 'Confiance stable' : 'Confiance fragile',
+    masterRiskText: scores.risk >= 70 ? 'Risque élevé' : scores.risk >= 45 ? 'Risque modéré' : 'Risque contenu',
+    masterModeText: `Mode : ${cfg.allowedNow}`,
+    microConfidence: scores.confidence >= 70 ? 'Confiance haute' : scores.confidence >= 50 ? 'Confiance stable' : 'Confiance fragile',
+    microRisk: scores.risk >= 70 ? 'Risque élevé' : scores.risk >= 45 ? 'Risque modéré' : 'Risque contenu',
+    priorityPanel: cfg.priority,
+    decisionPanel: cfg.decision,
+    timingPanel: cfg.timing,
+    ultraShortPanel: cfg.ultra,
+    alertStructureValue: scores.clarity >= 65 ? 'Claire' : scores.clarity >= 45 ? 'Exploitable' : 'Fragile',
+    alertRiskValue: scores.risk >= 70 ? 'Élevé' : scores.risk >= 45 ? 'Modéré' : 'Contenu',
+    alertOpportunityValue: state === 'Expansion' ? 'Active' : state === 'Risk-off' ? 'Faible' : 'Patiente',
+    alertDisciplineValue: state === 'Risk-off' ? 'Maximale' : 'Critique',
+    actionModeMain: state === 'Expansion' ? 'Ordre' : state === 'Defense' || state === 'Risk-off' ? 'Réduire' : state === 'Compression' ? 'Attendre' : 'Observer',
+    actionPriority: state === 'Risk-off' ? 'Très haute' : state === 'Defense' ? 'Haute' : 'Moyenne',
+    actionCadre: state === 'Expansion' ? 'Continuation' : state === 'Compression' ? 'Suspension' : state === 'Defense' || state === 'Risk-off' ? 'Protection' : 'Lecture',
+    actionModeReason: cfg.decision,
+    actionPriorityNote: cfg.priority,
+    actionCadreNote: cfg.timing,
+    agentAlert: cfg.alert,
+    agentModeBadge: `Mode : ${cfg.priority.toLowerCase()}`
+  };
+  Object.entries(textMap).forEach(([id, value]) => {
+    if ($(id)) $(id).textContent = value;
+  });
+  if ($('headerMode')) $('headerMode').textContent = textMap.actionModeMain;
+  if ($('modeHero')) $('modeHero').textContent = textMap.actionModeMain;
+  if ($('confidenceValue')) $('confidenceValue').textContent = `${scores.confidence}%`;
+  if ($('momentumValue')) $('momentumValue').textContent = `${scores.momentum}`;
+  if ($('riskValue')) $('riskValue').textContent = `${scores.risk}`;
+  if ($('clarityValue')) $('clarityValue').textContent = `${scores.clarity}`;
+  if ($('confidenceHero')) $('confidenceHero').textContent = `${scores.confidence}%`;
+  if ($('confidenceSub')) $('confidenceSub').textContent = scores.confidence >= 70 ? 'Hiérarchie moteur forte' : 'Hiérarchie moteur lisible';
+  if ($('momentumSub')) $('momentumSub').textContent = 'Énergie du contexte';
+  if ($('riskSub')) $('riskSub').textContent = 'Stress global du terrain';
+  if ($('claritySub')) $('claritySub').textContent = 'Lisibilité du cadre';
+  if ($('confidenceBar')) $('confidenceBar').style.width = `${scores.confidence}%`;
+  if ($('momentumBar')) $('momentumBar').style.width = `${scores.momentum}%`;
+  if ($('riskBar')) $('riskBar').style.width = `${scores.risk}%`;
+  if ($('clarityBar')) $('clarityBar').style.width = `${scores.clarity}%`;
+  ['modeOrdreBtn', 'modeAttendreBtn', 'modeReduireBtn', 'modeObserverBtn'].forEach(id => {
+    if ($(id)) $(id).classList.remove('active');
+  });
+  const activeModeId = textMap.actionModeMain === 'Ordre' ? 'modeOrdreBtn' :
+    textMap.actionModeMain === 'Attendre' ? 'modeAttendreBtn' :
+    textMap.actionModeMain === 'Réduire' ? 'modeReduireBtn' : 'modeObserverBtn';
+  if ($(activeModeId)) $(activeModeId).classList.add('active');
+  renderList('allowedActions', cfg.allowed);
+  renderList('blockedActions', cfg.blocked);
+  renderList('postureActions', cfg.posture);
+  renderList('priorityActions', cfg.priorities);
+  renderExecTable(state);
+  renderPublications(state);
+  renderDiagnostics(data);
+  renderMemory(data);
+  renderEngineOutput(data, state, cfg, scores);
+  renderEngineHistory(data);
+}
+function collectFields(data) {
+  const mapValue = (id) => ($(id) ? $(id).value : '');
+  data.fields.btcPrice = mapValue('btcPrice');
+  data.fields.btcDom = mapValue('btcDom');
+  data.fields.btcDomValue = mapValue('btcDomValue');
+  data.fields.dxy = mapValue('dxy');
+  data.fields.marketBias = mapValue('marketBias');
+  data.fields.volatility = mapValue('volatility');
+  data.fields.volatilityValue = mapValue('volatilityValue');
+  data.fields.liquidityStress = mapValue('liquidityStress');
+  data.fields.liquidityStressValue = mapValue('liquidityStressValue');
+  return data;
+}
+function fillFields(data) {
+  const setValue = (id, value) => { if ($(id)) $(id).value = value ?? ''; };
+  Object.entries(data.fields).forEach(([k, v]) => setValue(k, v));
+}
+function addScoreHistory(data) {
+  const state = computeMarketState(data);
+  const scores = computeScores(data);
+  const previousState = data.prev_engine_state || null;
+  const entry = {
+    state,
+    previous_state: previousState,
+    changed: previousState !== null && previousState !== state,
+    confidence: scores.confidence,
+    momentum: scores.momentum,
+    risk: scores.risk,
+    clarity: scores.clarity,
+    date: new Date().toISOString()
+  };
+  if (!Array.isArray(data.score_history)) data.score_history = [];
+  data.score_history.unshift(entry);
+  data.score_history = data.score_history.slice(0, SCORE_HISTORY_LIMIT);
+  data.prev_engine_state = state;
+}
+function autoSave() {
+  const data = collectFields(loadData());
+  addScoreHistory(data);
+  saveData(data);
+  renderAll(data);
+}
+function scheduleAutoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(autoSave, 180);
+}
+function saveSnapshot() {
+  const data = collectFields(loadData());
+  const state = computeMarketState(data);
+  const scores = computeScores(data);
+  if (!Array.isArray(data.snapshots)) data.snapshots = [];
+  data.snapshots.push({ state, confidence: scores.confidence, date: new Date().toISOString(), dateLabel: new Date().toLocaleString('fr-FR') });
+  saveData(data);
+  renderAll(data);
+}
+function clearSnapshots() {
+  const data = loadData();
+  data.snapshots = [];
+  saveData(data);
+  renderAll(data);
+}
+function bindField(id, events = ['input', 'change']) {
+  const el = $(id);
+  if (!el) return;
+  events.forEach((eventName) => el.addEventListener(eventName, scheduleAutoSave));
+}
+function bindMirroredPair(rangeId, numberId) {
+  const range = $(rangeId);
+  const number = $(numberId);
+  if (!range || !number) return;
+  range.addEventListener('input', () => {
+    number.value = range.value;
+    scheduleAutoSave();
+  });
+  number.addEventListener('input', () => {
+    let value = Number(number.value);
+    const min = Number(range.min);
+    const max = Number(range.max);
+    if (Number.isNaN(value)) value = min;
+    value = clamp(value, min, max);
+    number.value = String(value);
+    range.value = String(value);
+    scheduleAutoSave();
+  });
+}
+function syncSideTabStates(activeTab) {
+  const states = {
+    moteur: $('sideStateMoteur'),
+    articles: $('sideStateArticles'),
+    memoire: $('sideStateMemoire')
+  };
+  if (states.moteur) states.moteur.textContent = activeTab === 'moteur' ? 'Actif' : 'Prêt';
+  if (states.articles) states.articles.textContent = activeTab === 'articles' ? 'Actif' : 'Prêt';
+  if (states.memoire) states.memoire.textContent = activeTab === 'memoire' ? 'Actif' : 'Prêt';
+}
+
+function bindTabs() {
+  const pairs = [
+    ['tabBtnMoteur', 'tabPanelMoteur', 'sideTabMoteur'],
+    ['tabBtnArticles', 'tabPanelArticles', 'sideTabArticles'],
+    ['tabBtnMemoire', 'tabPanelMemoire', 'sideTabMemoire']
+  ];
+  function activate(buttonId, panelId, sideId) {
+    pairs.forEach(([btnId, pnlId, sId]) => {
+      if ($(btnId)) $(btnId).classList.toggle('active', btnId === buttonId);
+      if ($(pnlId)) $(pnlId).classList.toggle('active', pnlId === panelId);
+      if ($(sId)) $(sId).classList.toggle('active', sId === sideId);
+    });
+    const data = loadData();
+    data.active_tab = panelId === 'tabPanelArticles' ? 'articles' : panelId === 'tabPanelMemoire' ? 'memoire' : 'moteur';
+    syncSideTabStates(data.active_tab);
+    saveData(data);
+  }
+  pairs.forEach(([btnId, panelId, sideId]) => {
+    if ($(btnId)) $(btnId).addEventListener('click', () => activate(btnId, panelId, sideId));
+    if ($(sideId)) $(sideId).addEventListener('click', () => activate(btnId, panelId, sideId));
+  });
+}
+function restoreActiveTab(data) {
+  const map = {
+    moteur: ['tabBtnMoteur', 'tabPanelMoteur', 'sideTabMoteur'],
+    articles: ['tabBtnArticles', 'tabPanelArticles', 'sideTabArticles'],
+    memoire: ['tabBtnMemoire', 'tabPanelMemoire', 'sideTabMemoire']
+  };
+  Object.values(map).forEach(([btnId, panelId, sideId]) => {
+    if ($(btnId)) $(btnId).classList.remove('active');
+    if ($(panelId)) $(panelId).classList.remove('active');
+    if ($(sideId)) $(sideId).classList.remove('active');
+  });
+  const activeTab = data.active_tab || 'moteur';
+  const [btnId, panelId, sideId] = map[activeTab] || map.moteur;
+  if ($(btnId)) $(btnId).classList.add('active');
+  if ($(panelId)) $(panelId).classList.add('active');
+  if ($(sideId)) $(sideId).classList.add('active');
+  syncSideTabStates(activeTab);
+}
+function init() {
+  updateClock();
+  setInterval(updateClock, 1000);
+  if (storageAvailable() && !localStorage.getItem(STORAGE_KEY)) {
+    saveData(cloneData(DEFAULT_DATA));
+  }
+  const data = loadData();
+  if (!data.prev_engine_state) data.prev_engine_state = computeMarketState(data);
+  fillFields(data);
+  restoreActiveTab(data);
+  renderAll(data);
+  bindField('btcPrice');
+  bindField('dxy');
+  bindField('marketBias');
+  bindMirroredPair('btcDom', 'btcDomValue');
+  bindMirroredPair('volatility', 'volatilityValue');
+  bindMirroredPair('liquidityStress', 'liquidityStressValue');
+  ['statusFilter', 'typeFilter', 'priorityFilter'].forEach(id => {
+    if ($(id)) $(id).addEventListener('change', () => renderExecTable(computeMarketState(loadData())));
+  });
+  if ($('saveSnapshotBtn')) $('saveSnapshotBtn').addEventListener('click', saveSnapshot);
+  if ($('clearSnapshotBtn')) $('clearSnapshotBtn').addEventListener('click', clearSnapshots);
+  bindTabs();
+}
+init();
+})();
+</script>
+</body>
+</html>

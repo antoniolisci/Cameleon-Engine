@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Caméléon Engine — V4.5 Universel Adaptatif</title>
+<style>
+:root{
+  --bg:#0b0b0f; --panel:#14141c; --panel2:#101018; --border:#2a2a3a;
+  --gold:#d4af37; --text:#f4ecd0; --muted:#bba76b; --soft:#cfc6aa;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#09090d,#0f1016);color:var(--text);font-family:Arial,sans-serif}
+.container{max-width:1440px;margin:0 auto;padding:18px}
+.hero,.block,.card{background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.hero{padding:18px;margin-bottom:16px;background:linear-gradient(180deg,#161620,#12121a)}
+.hero-title{font-size:24px;font-weight:700;color:var(--gold);margin-bottom:6px}
+.hero-sub{font-size:14px;color:var(--soft);line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.block{padding:16px;margin-bottom:16px}
+.card{padding:12px;background:#111119}
+.title{font-size:16px;font-weight:700;color:var(--gold);margin-bottom:10px}
+label{display:block;margin:10px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.select,.textarea{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+  background:var(--panel2);color:var(--text)
+}
+.textarea{min-height:96px;resize:vertical}
+.kpi-label{font-size:12px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.kpi{font-size:22px;font-weight:700;color:var(--text)}
+.item{padding:10px 12px;border-radius:10px;background:#111119;border:1px solid var(--border);color:var(--soft);font-size:13px;line-height:1.45}
+.list{display:grid;gap:10px;margin-top:10px}
+.result{color:var(--soft);line-height:1.5}
+.alert-box{padding:14px;border-radius:12px;border:1px solid var(--border);background:#111119;font-weight:700}
+.tag{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#1a1a24;color:var(--text);font-size:12px;margin:8px 8px 0 0}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#1a1a24;color:var(--text);cursor:pointer}
+.btn.primary{background:linear-gradient(180deg,#d4af37,#b89220);color:#14110a;border:none;font-weight:700}
+.small{font-size:12px;color:var(--muted)}
+pre{white-space:pre-wrap;word-break:break-word;margin:0;color:var(--soft);font-size:12px;line-height:1.55}
+.footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 20px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{border-bottom:1px solid var(--border);padding:10px 8px;text-align:left;font-size:13px;color:var(--soft)}
+th{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.05em}
+@media (max-width:980px){.grid,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <div class="hero-title">🧬 Caméléon Engine — V4.5 Universel Adaptatif</div>
+    <div class="hero-sub">Moteur universel + matrice profil utilisateur. Le marché reste le même pour tous, mais la réaction du moteur s’adapte en live au profil choisi.</div>
+  </div>
+
+  <div class="grid">
+    <div class="block">
+      <div class="title">🧠 Saisie marché</div>
+      <label for="market">Market State</label>
+      <select id="market" class="select">
+        <option value="range">Range</option>
+        <option value="compression">Compression</option>
+        <option value="expansion">Expansion</option>
+        <option value="defense">Defense</option>
+        <option value="riskoff">Risk-off</option>
+      </select>
+
+      <label for="btc">BTC</label>
+      <select id="btc" class="select">
+        <option value="stable">Stable</option>
+        <option value="strong">Fort</option>
+        <option value="weak">Faible</option>
+      </select>
+
+      <label for="dxy">DXY</label>
+      <select id="dxy" class="select">
+        <option value="neutral">Neutre</option>
+        <option value="up">Hausse</option>
+        <option value="down">Baisse</option>
+      </select>
+
+      <label for="emotion">État émotionnel</label>
+      <select id="emotion" class="select">
+        <option value="calm">Calme</option>
+        <option value="neutral">Neutre</option>
+        <option value="stress">Stress</option>
+        <option value="fomo">FOMO</option>
+      </select>
+
+      <div class="btn-row">
+        <button class="btn primary" id="prefillBtn" type="button">Pré-remplir Constellium</button>
+      </div>
+      <div class="small">Lecture universelle du marché. Le moteur de base ne change pas.</div>
+    </div>
+
+    <div class="block">
+      <div class="title">🧬 Constellium</div>
+      <label for="ether">ÉTHER</label>
+      <select id="ether" class="select">
+        <option value="stable">Stable</option>
+        <option value="strong">Fort</option>
+        <option value="weak">Faible</option>
+      </select>
+      <label for="fire">FEU</label>
+      <select id="fire" class="select">
+        <option value="weak">Faible</option>
+        <option value="medium">Moyen</option>
+        <option value="strong">Fort</option>
+      </select>
+      <label for="air">AIR</label>
+      <select id="air" class="select">
+        <option value="weak">Faible</option>
+        <option value="emerging">Émergent</option>
+        <option value="strong">Fort</option>
+      </select>
+      <label for="earth">TERRE</label>
+      <select id="earth" class="select">
+        <option value="weak">Faible</option>
+        <option value="stable">Stable</option>
+        <option value="strong">Fort</option>
+      </select>
+      <label for="water">EAU</label>
+      <select id="water" class="select">
+        <option value="weak">Faible</option>
+        <option value="risk">Risque</option>
+        <option value="explosive">Explosif</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block">
+      <div class="title">👤 Profil utilisateur</div>
+      <label for="userProfile">Profil officiel</label>
+      <select id="userProfile" class="select">
+        <option value="PASSIVE">Passif structuré</option>
+        <option value="BALANCED">Équilibré</option>
+        <option value="ACTIVE">Actif discipliné</option>
+      </select>
+
+      <label for="coreOrders">Ordres CORE déjà en place</label>
+      <select id="coreOrders" class="select">
+        <option value="yes">Oui</option>
+        <option value="partial">Partiellement</option>
+        <option value="no">Non</option>
+      </select>
+
+      <label for="needAction">Besoin réel d’agir maintenant</label>
+      <select id="needAction" class="select">
+        <option value="no">Non</option>
+        <option value="maybe">Peut-être</option>
+        <option value="yes">Oui</option>
+      </select>
+
+      <div class="small">Le profil adapte la réaction du moteur, jamais le moteur de base.</div>
+    </div>
+
+    <div class="block">
+      <div class="title">🎯 Conditions setup</div>
+      <label for="structureSignal">Structure</label>
+      <select id="structureSignal" class="select">
+        <option value="none">Aucune</option>
+        <option value="compression_breakout">Sortie de compression</option>
+        <option value="real_breakout">Breakout réel</option>
+        <option value="sweep_reclaim">Sweep + reclaim</option>
+      </select>
+
+      <label for="momentumSignal">Momentum</label>
+      <select id="momentumSignal" class="select">
+        <option value="none">Aucun</option>
+        <option value="clean">Bougie propre</option>
+        <option value="strong">Volume + impulsion</option>
+      </select>
+
+      <label for="zoneSignal">Zone</label>
+      <select id="zoneSignal" class="select">
+        <option value="middle">Milieu</option>
+        <option value="low_range">Bas de range</option>
+        <option value="high_range">Haut de range</option>
+        <option value="breakout_level">Breakout level</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block">
+      <div class="title">📐 Matrice live du profil</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Variable</th><th>Passif</th><th>Équilibré</th><th>Actif</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CORE</td><td>Prioritaire absolu</td><td>Prioritaire</td><td>Flexible</td></tr>
+            <tr><td>ATTACK</td><td>Très rare</td><td>Modéré</td><td>Fréquent contrôlé</td></tr>
+            <tr><td>SNIPER</td><td>Ultra rare</td><td>Rare</td><td>Actif si validé</td></tr>
+            <tr><td>SIZE</td><td>Petite</td><td>Moyenne</td><td>Variable</td></tr>
+            <tr><td>FREQUENCY</td><td>Faible</td><td>Moyenne</td><td>Élevée</td></tr>
+            <tr><td>TOLERANCE</td><td>Faible</td><td>Moyenne</td><td>Élevée</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="item" id="profileReaction">Réaction profil : —</div>
+    </div>
+
+    <div class="block">
+      <div class="title">🤖 Proposition du moteur</div>
+      <div class="list">
+        <div class="item" id="autoMarket">Market proposé : —</div>
+        <div class="item" id="autoScore">Score proposé : —</div>
+        <div class="item" id="autoMode">Mode proposé : —</div>
+        <div class="item" id="autoAttack">ATTACK brut : —</div>
+        <div class="item" id="autoSniper">SNIPER brut : —</div>
+        <div class="item" id="profileFiltered">Réaction finale profil : —</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-5">
+    <div class="card"><div class="kpi-label">Score</div><div class="kpi" id="scoreValue">56</div></div>
+    <div class="card"><div class="kpi-label">Mode</div><div class="kpi" id="engineMode">range</div></div>
+    <div class="card"><div class="kpi-label">CORE</div><div class="kpi" id="coreStatus">ON</div></div>
+    <div class="card"><div class="kpi-label">ATTACK final</div><div class="kpi" id="attackStatus">OFF</div></div>
+    <div class="card"><div class="kpi-label">SNIPER</div><div class="kpi" id="sniperMode">OFF</div></div>
+  </div>
+
+  <div class="grid-4" style="margin-top:16px;">
+    <div class="card"><div class="kpi-label">Niveau d'alerte</div><div class="kpi" id="alertLevel">Faible</div></div>
+    <div class="card"><div class="kpi-label">Alignement</div><div class="kpi" id="alignmentScore">Bon</div></div>
+    <div class="card"><div class="kpi-label">Trading status</div><div class="kpi" id="tradingStatus">CORE ONLY</div></div>
+    <div class="card"><div class="kpi-label">Profil</div><div class="kpi" id="profileBadge">PASSIVE</div></div>
+  </div>
+
+  <div class="grid" style="margin-top:16px;">
+    <div class="block">
+      <div class="title">🚦 Alerte claire</div>
+      <div id="trafficLight" class="alert-box"></div>
+      <div id="actionTags"></div>
+    </div>
+    <div class="block">
+      <div class="title">🧠 Trigger intelligent</div>
+      <div id="triggerBox" class="alert-box"></div>
+      <div class="result" id="triggerReason"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block">
+      <div class="title">🪞 Adaptation live du profil</div>
+      <div id="profileFilterBox" class="alert-box"></div>
+      <div class="result" id="profileFilterReason"></div>
+    </div>
+    <div class="block">
+      <div class="title">⚠️ Détection d'incohérences</div>
+      <div id="inconsistencyBlock" class="list"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block">
+      <div class="title">❓ Pourquoi ?</div>
+      <div id="whyBlock" class="list"></div>
+    </div>
+    <div class="block">
+      <div class="title">🎯 Action recommandée</div>
+      <div id="action" class="result"></div>
+      <div class="title" style="margin-top:14px;">🧬 Synthèse</div>
+      <div id="summary" class="result"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block">
+      <div class="title">⚔️ Double couche</div>
+      <div class="list">
+        <div class="item" id="coreText"></div>
+        <div class="item" id="attackText"></div>
+        <div class="item" id="buyZone"></div>
+        <div class="item" id="sellZone"></div>
+        <div class="item" id="riskZone"></div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="title">✅ Validation humaine</div>
+      <label for="validationState">Validation</label>
+      <select id="validationState" class="select">
+        <option value="pending">En attente</option>
+        <option value="accepted">Je valide</option>
+        <option value="adjusted">J’ajuste</option>
+        <option value="rejected">Je rejette</option>
+      </select>
+      <label for="validationNote">Pourquoi ?</label>
+      <textarea id="validationNote" class="textarea" placeholder="Ex. Le moteur est cohérent mais mon profil passif garde CORE prioritaire."></textarea>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block">
+      <div class="title">📓 Journal du jour</div>
+      <label for="journalNote">Note rapide</label>
+      <textarea id="journalNote" class="textarea" placeholder="Ex. Profil passif : je garde mes ordres, pas d’ajout malgré la poussée."></textarea>
+      <div class="btn-row">
+        <button class="btn primary" id="saveBtn" type="button">Sauvegarder le jour</button>
+        <button class="btn" id="clearBtn" type="button">Vider l'historique</button>
+      </div>
+    </div>
+    <div class="block">
+      <div class="title">📚 Historique local</div>
+      <div id="historyList" class="list"></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="title">🧾 JSON smart</div>
+    <pre id="jsonOutput"></pre>
+  </div>
+
+  <div class="footer">Caméléon Engine V4.5 Universel Adaptatif · moteur fixe + filtre profil utilisateur.</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const STORAGE_KEY = 'cameleon-engine-v45-universal';
+  const IDS = ['market','btc','dxy','emotion','ether','fire','air','earth','water','userProfile','coreOrders','needAction','structureSignal','momentumSignal','zoneSignal','validationState','validationNote'];
+  const $ = (id) => document.getElementById(id);
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : { history: [], last_payload: null };
+    }catch(e){
+      return { history: [], last_payload: null };
+    }
+  }
+  function saveState(data){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){ console.error(e); }
+  }
+
+  function getValues(){
+    return {
+      market: $('market').value,
+      btc: $('btc').value,
+      dxy: $('dxy').value,
+      emotion: $('emotion').value,
+      ether: $('ether').value,
+      fire: $('fire').value,
+      air: $('air').value,
+      earth: $('earth').value,
+      water: $('water').value,
+      user_profile: $('userProfile').value,
+      core_orders: $('coreOrders').value,
+      need_action: $('needAction').value,
+      structure_signal: $('structureSignal').value,
+      momentum_signal: $('momentumSignal').value,
+      zone_signal: $('zoneSignal').value,
+      validation_state: $('validationState').value,
+      validation_note: $('validationNote').value.trim(),
+      note: $('journalNote').value.trim()
+    };
+  }
+
+  function prefillConstellium(){
+    const market = $('market').value;
+    if(market === 'range'){
+      $('ether').value = 'stable'; $('fire').value = 'medium'; $('air').value = 'weak'; $('earth').value = 'stable'; $('water').value = 'weak';
+    } else if(market === 'compression'){
+      $('ether').value = 'stable'; $('fire').value = 'medium'; $('air').value = 'emerging'; $('earth').value = 'stable'; $('water').value = 'weak';
+    } else if(market === 'expansion'){
+      $('ether').value = 'strong'; $('fire').value = 'strong'; $('air').value = 'strong'; $('earth').value = 'stable'; $('water').value = 'risk';
+    } else {
+      $('ether').value = 'strong'; $('fire').value = 'weak'; $('air').value = 'weak'; $('earth').value = 'strong'; $('water').value = 'weak';
+    }
+    updateAll();
+  }
+
+  function computeScore(v){
+    let score = 50;
+    if(v.market === 'expansion') score += 20;
+    if(v.market === 'compression') score += 8;
+    if(v.market === 'defense') score -= 20;
+    if(v.market === 'riskoff') score -= 35;
+    if(v.emotion === 'calm') score += 10;
+    if(v.emotion === 'stress') score -= 20;
+    if(v.emotion === 'fomo') score -= 30;
+    if(v.fire === 'strong') score += 12;
+    if(v.fire === 'medium') score += 6;
+    if(v.fire === 'weak') score -= 4;
+    if(v.air === 'strong') score += 8;
+    if(v.air === 'emerging') score += 4;
+    if(v.earth === 'strong') score += 5;
+    if(v.ether === 'strong') score += 5;
+    if(v.dxy === 'up') score -= 10;
+    if(v.dxy === 'down') score += 5;
+    if(v.btc === 'strong') score += 8;
+    if(v.btc === 'weak') score -= 12;
+    return Math.max(0, Math.min(100, score));
+  }
+
+  function baseEngine(v){
+    const score = computeScore(v);
+    let mode = 'range';
+    if(v.market === 'compression') mode = 'pre-breakout';
+    if(v.market === 'expansion') mode = 'continuation';
+    if(v.market === 'defense') mode = 'capital-protection';
+    if(v.market === 'riskoff') mode = 'survival';
+
+    const attackRaw = ((v.market === 'compression' || v.market === 'expansion') &&
+      v.emotion === 'calm' &&
+      v.btc !== 'weak' &&
+      (v.fire === 'medium' || v.fire === 'strong' || v.air === 'emerging' || v.air === 'strong')) ? 'ON' : 'OFF';
+
+    const sniperRaw = (
+      v.structure_signal !== 'none' &&
+      v.momentum_signal !== 'none' &&
+      ['low_range','high_range','breakout_level'].includes(v.zone_signal) &&
+      v.emotion === 'calm'
+    ) ? 'ON' : 'OFF';
+
+    return { score, mode, attackRaw, sniperRaw };
+  }
+
+  function profileMatrix(profile, engine, v){
+    let core = 'ON';
+    let attack = 'OFF';
+    let sniper = 'OFF';
+    let tradingStatus = 'CORE ONLY';
+    let traffic = '🟡 CORE ONLY — garde tes ordres structurels.';
+    let reaction = '';
+
+    if(profile === 'PASSIVE'){
+      reaction = 'Passif structuré : CORE prioritaire absolu, ATTACK très rare, SNIPER ultra rare.';
+      if(engine.sniperRaw === 'ON' && v.need_action === 'yes' && v.core_orders !== 'yes'){
+        sniper = 'ON';
+        attack = 'LIGHT';
+        tradingStatus = 'SNIPER LIGHT';
+        traffic = '🟡 SNIPER LÉGER — seulement si nécessité réelle.';
+      } else {
+        attack = 'OFF';
+        sniper = 'OFF';
+        tradingStatus = 'CORE ONLY';
+        traffic = '🟡 PASSIF — ne rien ajouter tant que CORE suffit.';
+      }
+    }
+
+    if(profile === 'BALANCED'){
+      reaction = 'Équilibré : CORE prioritaire, ATTACK modéré, SNIPER rare.';
+      if(engine.sniperRaw === 'ON'){
+        sniper = 'ON';
+        attack = 'ON';
+        tradingStatus = 'SNIPER READY';
+        traffic = '🟢 SNIPER PRÊT — taille modérée.';
+      } else if(engine.attackRaw === 'ON'){
+        attack = 'LIGHT';
+        tradingStatus = 'TRADE LIGHT';
+        traffic = '🟡 AJOUT LÉGER POSSIBLE.';
+      } else {
+        attack = 'OFF';
+        tradingStatus = 'CORE ONLY';
+        traffic = '🟡 CORE prioritaire.';
+      }
+    }
+
+    if(profile === 'ACTIVE'){
+      reaction = 'Actif discipliné : CORE flexible, ATTACK fréquent contrôlé, SNIPER actif si validé.';
+      if(engine.sniperRaw === 'ON'){
+        sniper = 'ON';
+        attack = 'ON';
+        tradingStatus = 'SNIPER READY';
+        traffic = '🟢 FENÊTRE OFFENSIVE OUVERTE.';
+      } else if(engine.attackRaw === 'ON'){
+        attack = 'ON';
+        tradingStatus = 'TRADE OK';
+        traffic = '🟢 ATTACK AUTORISÉ.';
+      } else {
+        attack = 'OFF';
+        tradingStatus = 'WAIT';
+        traffic = '🟡 ATTENDRE LE SETUP.';
+      }
+    }
+
+    if(v.emotion === 'stress' || v.emotion === 'fomo'){
+      attack = 'OFF';
+      sniper = 'OFF';
+      tradingStatus = 'NO TRADE';
+      traffic = '🔴 ÉMOTION DANGEREUSE — aucune action.';
+    }
+
+    return { core, attack, sniper, tradingStatus, traffic, reaction };
+  }
+
+  function detectInconsistencies(v, profileOut){
+    const issues = [];
+    if(v.market === 'expansion' && v.fire === 'weak') issues.push('Expansion déclarée mais FEU faible.');
+    if(v.market === 'range' && v.ether === 'weak') issues.push('Range déclaré mais ÉTHER faible.');
+    if(v.user_profile === 'PASSIVE' && profileOut.attack === 'ON') issues.push('Profil passif mais ATTACK final trop agressif.');
+    if(profileOut.sniper === 'ON' && v.zone_signal === 'middle') issues.push('SNIPER activé au milieu de range.');
+    return issues;
+  }
+
+  function buildPayload(v, previousPayload){
+    const engine = baseEngine(v);
+    const profileOut = profileMatrix(v.user_profile, engine, v);
+
+    let alertLevel = 'Faible';
+    if(engine.score < 35 || v.emotion === 'stress' || v.emotion === 'fomo' || v.market === 'riskoff') alertLevel = 'Élevé';
+    else if(engine.score < 60 || v.market === 'compression' || v.dxy === 'up' || profileOut.sniper === 'ON') alertLevel = 'Moyen';
+
+    let alignment = 'Bon';
+    if(v.market === 'expansion' && v.fire === 'weak') alignment = 'Fragile';
+    if(v.market === 'range' && v.ether === 'weak') alignment = 'Moyen';
+
+    let action = '⚖️ Range — garde tes ordres structurels, n’ajoute rien de plus.';
+    let summary = 'Le moteur protège le CORE. La réaction finale dépend du profil choisi.';
+    let tags = ['universel', v.user_profile.toLowerCase(), 'core'];
+
+    if(profileOut.sniper === 'ON'){
+      action = '🎯 SNIPER activé — opportunité réelle selon le profil.';
+      summary = 'Même setup, réaction adaptée au profil utilisateur.';
+      tags = ['sniper', v.user_profile.toLowerCase(), 'adaptatif'];
+    } else if(profileOut.attack === 'ON'){
+      action = '🔥 ATTACK autorisé — le profil permet une lecture offensive.';
+      summary = 'Le moteur autorise une couche offensive parce que le profil l’accepte.';
+      tags = ['attack', v.user_profile.toLowerCase(), 'adaptatif'];
+    } else if(profileOut.attack === 'LIGHT'){
+      action = '🟡 ATTACK léger — ajout réduit selon le profil.';
+      summary = 'Le moteur réduit l’agressivité pour rester aligné au profil.';
+      tags = ['attack-light', v.user_profile.toLowerCase(), 'filtre'];
+    }
+
+    const previousState = previousPayload ? previousPayload.market_state : null;
+    const trigger = !previousPayload
+      ? { level:'INIT', text:'✅ INIT OK — système stable', reasons:['Première lecture enregistrée.'] }
+      : previousState !== v.market || engine.attackRaw === 'ON' || engine.sniperRaw === 'ON' || v.emotion === 'stress' || v.emotion === 'fomo'
+        ? { level:'OUI', text:'🔔 OUI — recheck dashboard', reasons:['Changement ou setup détecté.'] }
+        : { level:'NON', text:'✅ NON — ne recheck pas juste pour une exécution d’ordre', reasons:['Aucune rupture de structure.'] };
+
+    const why = [
+      'Score système = ' + engine.score + '/100.',
+      'Moteur universel = ' + engine.mode + '.',
+      'ATTACK brut = ' + engine.attackRaw + '.',
+      'SNIPER brut = ' + engine.sniperRaw + '.',
+      'Réaction profil = ' + profileOut.reaction,
+      v.validation_state === 'accepted' ? 'Validation humaine : proposition acceptée.' :
+      v.validation_state === 'adjusted' ? 'Validation humaine : proposition ajustée.' :
+      v.validation_state === 'rejected' ? 'Validation humaine : proposition rejetée.' :
+      'Validation humaine : en attente.'
+    ];
+
+    return {
+      version:'4.5-universal',
+      market_state:v.market,
+      previous_state:previousState,
+      score:engine.score,
+      engine_mode:engine.mode,
+      core_mode:profileOut.core,
+      attack_mode_raw:engine.attackRaw,
+      sniper_mode_raw:engine.sniperRaw,
+      attack_mode_final:profileOut.attack,
+      sniper_mode_final:profileOut.sniper,
+      trading_status:profileOut.tradingStatus,
+      trigger_level:alertLevel,
+      traffic_light:profileOut.traffic,
+      alignment,
+      btc_state:v.btc,
+      dxy_state:v.dxy,
+      emotion_state:v.emotion,
+      user_profile:v.user_profile,
+      core_orders:v.core_orders,
+      need_action:v.need_action,
+      constellium:{ ether:v.ether, fire:v.fire, air:v.air, earth:v.earth, water:v.water },
+      setup_inputs:{ structure_signal:v.structure_signal, momentum_signal:v.momentum_signal, zone_signal:v.zone_signal },
+      action_recommended:action,
+      summary,
+      profile_reaction:profileOut.reaction,
+      why,
+      inconsistencies:detectInconsistencies(v, profileOut),
+      order_zones:{
+        buy:'CORE achats : zones basses structurelles ou setup confirmé.',
+        sell:'CORE ventes : zones hautes structurelles ou extension.',
+        risk:
+          profileOut.sniper === 'ON' ? 'SNIPER actif : taille légère, discipline stricte.' :
+          profileOut.attack === 'ON' ? 'ATTACK réel : taille contrôlée.' :
+          profileOut.attack === 'LIGHT' ? 'ATTACK léger : exposition réduite.' :
+          'ATTACK coupé : aucun ordre agressif supplémentaire.'
+      },
+      trigger_intelligent:trigger,
+      tags,
+      human_validation:{ state:v.validation_state, note:v.validation_note },
+      updated_at:new Date().toISOString()
+    };
+  }
+
+  function renderList(id, items, emptyText){
+    const el = $(id);
+    if(!items.length){
+      el.innerHTML = '<div class="item">'+emptyText+'</div>';
+      return;
+    }
+    el.innerHTML = items.map(x => '<div class="item">'+x+'</div>').join('');
+  }
+
+  function paint(payload){
+    $('autoMarket').textContent = 'Market proposé : ' + payload.market_state;
+    $('autoScore').textContent = 'Score proposé : ' + payload.score;
+    $('autoMode').textContent = 'Mode proposé : ' + payload.engine_mode;
+    $('autoAttack').textContent = 'ATTACK brut : ' + payload.attack_mode_raw;
+    $('autoSniper').textContent = 'SNIPER brut : ' + payload.sniper_mode_raw;
+    $('profileFiltered').textContent = 'Réaction finale profil : ' + payload.trading_status;
+
+    $('scoreValue').textContent = payload.score;
+    $('engineMode').textContent = payload.engine_mode;
+    $('coreStatus').textContent = payload.core_mode;
+    $('attackStatus').textContent = payload.attack_mode_final;
+    $('sniperMode').textContent = payload.sniper_mode_final;
+    $('alertLevel').textContent = payload.trigger_level;
+    $('alignmentScore').textContent = payload.alignment;
+    $('tradingStatus').textContent = payload.trading_status;
+    $('profileBadge').textContent = payload.user_profile;
+
+    $('trafficLight').textContent = payload.traffic_light;
+    $('triggerBox').textContent = payload.trigger_intelligent.text;
+    $('triggerReason').textContent = payload.trigger_intelligent.reasons.join(' · ');
+    $('profileFilterBox').textContent = '👤 ' + payload.profile_reaction;
+    $('profileFilterReason').textContent = 'Même moteur, réaction adaptée au profil utilisateur.';
+    $('action').textContent = payload.action_recommended;
+    $('summary').textContent = payload.summary;
+
+    $('coreText').textContent = payload.core_mode === 'ON' ? 'CORE ON → socle protégé pour ce profil.' : 'CORE flexible.';
+    $('attackText').textContent =
+      payload.attack_mode_final === 'ON' ? 'ATTACK ON → le profil autorise l’offensive.' :
+      payload.attack_mode_final === 'LIGHT' ? 'ATTACK LIGHT → le profil réduit la taille.' :
+      'ATTACK OFF → le profil coupe l’agression.';
+    $('buyZone').textContent = payload.order_zones.buy;
+    $('sellZone').textContent = payload.order_zones.sell;
+    $('riskZone').textContent = payload.order_zones.risk;
+
+    $('profileReaction').textContent = 'Réaction profil : ' + payload.profile_reaction;
+    $('actionTags').innerHTML = (payload.tags || []).map(tag => '<span class="tag">'+tag+'</span>').join('');
+    renderList('whyBlock', payload.why || [], 'Aucune explication.');
+    renderList('inconsistencyBlock', payload.inconsistencies || [], 'Aucune incohérence détectée.');
+    $('jsonOutput').textContent = JSON.stringify(payload, null, 2);
+  }
+
+  function renderHistory(history){
+    const box = $('historyList');
+    if(!history.length){
+      box.innerHTML = '<div class="item">Aucune entrée pour l’instant.</div>';
+      return;
+    }
+    box.innerHTML = history.slice().reverse().slice(0,10).map(item =>
+      '<div class="item"><strong>'+item.market_state+'</strong> · profil '+item.user_profile+
+      ' · score '+item.score+
+      ' · attack '+item.attack_mode_final+
+      ' · sniper '+item.sniper_mode_final+
+      '<br><span>'+new Date(item.updated_at).toLocaleString('fr-FR')+
+      '</span><br><span>'+item.action_recommended+
+      '</span><br><span>'+(item.note ? '📝 '+item.note : '')+'</span></div>'
+    ).join('');
+  }
+
+  function updateAll(){
+    const state = loadState();
+    const payload = buildPayload(getValues(), state.last_payload);
+    paint(payload);
+  }
+
+  function saveDay(){
+    const state = loadState();
+    const payload = buildPayload(getValues(), state.last_payload);
+    payload.note = $('journalNote').value.trim();
+    state.history = Array.isArray(state.history) ? state.history : [];
+    state.history.push(payload);
+    state.history = state.history.slice(-50);
+    state.last_payload = payload;
+    saveState(state);
+    paint(payload);
+    renderHistory(state.history);
+    $('journalNote').value = '';
+  }
+
+  function clearHistory(){
+    saveState({ history: [], last_payload: null });
+    renderHistory([]);
+    updateAll();
+  }
+
+  window.addEventListener('load', function(){
+    IDS.forEach(id => {
+      const el = $(id);
+      if(!el) return;
+      el.addEventListener('change', updateAll);
+      if(id === 'validationNote') el.addEventListener('input', updateAll);
+    });
+    $('prefillBtn').onclick = prefillConstellium;
+    $('saveBtn').onclick = saveDay;
+    $('clearBtn').onclick = clearHistory;
+
+    const state = loadState();
+    renderHistory(state.history || []);
+    updateAll();
+  });
+})();
+</script>
+</body>
+</html>
+
