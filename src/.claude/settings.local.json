@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"getArticlesForMarketState\\\\|normalizeArticleMarketState\\\\|MARKET_ARTICLE_CATEGORIES\" *.js)",
+      "Bash(node:*)"
+    ]
+  }
+}
