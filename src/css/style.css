@@ -5338,3 +5338,51 @@ body {
     font-size: clamp(36px, 10vw, 48px);
   }
 }
+
+/* ── Debug Brain ─────────────────────────────────────────────── */
+
+#debug-brain {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9999;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 10, 0.88);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.debug-brain__label {
+  margin-bottom: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(var(--state-rgb), 0.6);
+}
+
+.debug-brain__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.debug-brain__row:last-child {
+  border-bottom: none;
+}
+
+.debug-brain__row span {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.debug-brain__row strong {
+  color: rgba(var(--state-rgb), 0.9);
+  font-weight: 600;
+}
