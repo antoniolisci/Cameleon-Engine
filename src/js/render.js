@@ -19,7 +19,7 @@ import {
   getMarketStateConfig
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
-import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.js";
+import { canUseStorage, estimateStateSize, loadState, saveState, getMarketState, updateMarketState } from "./state.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1068,6 +1068,21 @@ function sanitizeVisibleText(root = document.body) {
   });
 }
 
+function renderMarketStateBrain() {
+  const ms = getMarketState();
+  setText("market-regime",  ms.state);
+  setText("market-score",   String(ms.confidence));
+  setText("market-context", ms.volatility);
+}
+
+function renderDebugBrain() {
+  const ms = getMarketState();
+  setText("db-state",      ms.state);
+  setText("db-confidence", String(ms.confidence));
+  setText("db-volatility", ms.volatility);
+  setText("db-trend",      ms.trend);
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -1078,6 +1093,8 @@ function render() {
   warnMissingPayloadData(currentPayload);
   document.body.dataset.shellState = getCockpitModel(currentPayload).marketKey.toLowerCase();
 
+  renderMarketStateBrain();
+  renderDebugBrain();
   renderHeader(currentPayload);
   renderHero(currentPayload);
   renderLightContext(currentPayload);
@@ -1103,6 +1120,17 @@ function buildCurrentPayload() {
       validation: payload.validation
     }));
   } catch (e) {}
+
+  // Sync cerveau marché avec le payload courant
+  const volatilityMap = { "Faible": "low", "Moyen": "medium", "Élevé": "high" };
+  const trendMap = { "range": "neutral", "pre-breakout": "neutral", "continuation": "bullish", "capital-protection": "defensive", "survival": "bearish" };
+  updateMarketState({
+    state:      (payload.market_state || "range").toUpperCase(),
+    confidence: payload.score ?? 50,
+    volatility: volatilityMap[payload.trigger_level] || "low",
+    trend:      trendMap[payload.engine_mode] || "neutral"
+  });
+
   return payload;
 }
 
