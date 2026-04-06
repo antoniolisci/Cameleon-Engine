@@ -47,6 +47,46 @@
             <div class="side-tab-state" id="sideStateMemoire">Prêt</div>
           </button>
         </div>
+
+        <div id="debug-brain">
+          <div class="debug-brain__label">Moteur Brut</div>
+          <div class="debug-brain__sublabel">Lecture système</div>
+
+          <div class="cerveau-core">
+            <div class="debug-brain__row"><span>State</span><strong id="db-state">—</strong></div>
+            <div class="debug-brain__row"><span>Posture</span><strong id="db-posture">—</strong></div>
+            <div class="debug-brain__row"><span>Decision</span><strong id="dp-primary">—</strong></div>
+            <div class="debug-brain__row"><span>Agent</span><strong id="active-agent">OBSERVER</strong></div>
+            <div class="debug-brain__row"><span>Action</span><strong id="active-agent-action">—</strong></div>
+          </div>
+
+          <div class="cerveau-rules">
+            <div class="cerveau-rules__block cerveau-rules__block--allowed">
+              <div class="cerveau-rules__title">Allowed</div>
+              <div id="rules-allowed" class="cerveau-rules__list">—</div>
+            </div>
+            <div class="cerveau-rules__block cerveau-rules__block--forbidden">
+              <div class="cerveau-rules__title">Forbidden</div>
+              <div id="rules-forbidden" class="cerveau-rules__list">—</div>
+            </div>
+          </div>
+
+          <div class="cerveau-synthesis-row">
+            <div id="cerveau-synthesis" class="cerveau-synthesis-text">—</div>
+          </div>
+
+          <!-- IDs conservés pour compatibilité JS — non affichés -->
+          <div class="cerveau-hidden" aria-hidden="true">
+            <span id="db-confidence"></span>
+            <span id="db-volatility"></span>
+            <span id="db-trend"></span>
+            <span id="db-reading"></span>
+            <span id="db-actions"></span>
+            <span id="db-risk-level"></span>
+            <span id="dp-best-alt"></span>
+          </div>
+        </div>
+
       </aside>
 
       <main class="main-shell">
@@ -116,8 +156,8 @@
                   <strong class="hero-decision-mini" id="heroDecisionVerdict">CORE prioritaire</strong>
                 </div>
                 <div class="hero-decision-card">
-                  <span class="hero-chip-label">Posture</span>
-                  <strong class="hero-decision-text" id="heroDecisionPosture">Le socle CORE reste la base à protéger.</strong>
+                  <span class="hero-chip-label">Agent</span>
+                  <strong class="hero-decision-text" id="heroDecisionAgent">OBSERVER</strong>
                 </div>
                 <div class="hero-decision-card primary">
                   <span class="hero-chip-label">Action du jour</span>
@@ -684,8 +724,8 @@
                 <div class="decision-summary-text" id="decisionSummaryText">Le cockpit condense ici la décision du moment.</div>
                 <div class="decision-rail">
                   <div class="decision-rail-item">
-                    <div class="tiny-label">Posture</div>
-                    <strong id="decisionPriorityText">Ne force rien.</strong>
+                    <div class="tiny-label">Agent</div>
+                    <strong id="decisionAgentText">OBSERVER</strong>
                   </div>
                   <div class="decision-rail-item warn">
                     <div class="tiny-label">Risque trop élevé</div>
@@ -872,13 +912,6 @@ function runCameleonEngine() {
 
 runCameleonEngine();
   </script>
-  <div id="debug-brain" aria-hidden="true">
-    <div class="debug-brain__label">cerveau</div>
-    <div class="debug-brain__row"><span>State</span><strong id="db-state">—</strong></div>
-    <div class="debug-brain__row"><span>Confidence</span><strong id="db-confidence">—</strong></div>
-    <div class="debug-brain__row"><span>Volatility</span><strong id="db-volatility">—</strong></div>
-    <div class="debug-brain__row"><span>Trend</span><strong id="db-trend">—</strong></div>
-    <div class="debug-brain__row"><span>Reading</span><strong id="db-reading">—</strong></div>
-  </div>
+
 </body>
 </html>
