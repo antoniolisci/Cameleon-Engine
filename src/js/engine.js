@@ -1,5 +1,6 @@
 import { ENGINE_MODE_LABELS, STATE_LABELS, STATUS_LABELS, TOKEN_LABELS, VALIDATION_TEXT } from "./data.js";
 import { assessMarket } from "./market-state.js";
+import { getDecision } from "./decision.js";
 
 // ─── Mapping ancien état formulaire → state/modifier ──────────
 // Séparé de assessMarket() — logique de traduction, pas logique métier.
@@ -184,6 +185,8 @@ export function buildPayload(v, previousPayload = null) {
   const filtered = applyValidation(profiled, v);
   const { state: mState, modifier: mModifier } = mapLegacyMarketState(v.market);
   const marketReading = assessMarket(mState, mModifier);
+  const decision = getDecision(marketReading);
+  const bestAlternative = decision.alternatives?.[0] || null;
 
   let alertLevel = "Faible";
   if (engine.score < 35 || v.emotion === "stress" || v.emotion === "fomo" || v.market === "riskoff") alertLevel = "Élevé";
@@ -275,7 +278,8 @@ export function buildPayload(v, previousPayload = null) {
     trigger_intelligent: trigger,
     tags,
     updated_at: new Date().toISOString(),
-    marketReading
+    marketReading,
+    decision: { ...decision, bestAlternative }
   };
 }
 

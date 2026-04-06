@@ -142,6 +142,77 @@ function formatEngineMode(value) {
   return ENGINE_MODE_LABELS[value] || asCleanText(value);
 }
 
+const HERO_MODE_READING = {
+  RANGE:       "Marché calme",
+  COMPRESSION: "Pression latente",
+  BREAKOUT:    "Impulsion",
+  TREND:       "Tendance confirmée",
+  CHAOS:       "Volatilité extrême",
+  DEFENSE:     "Risque contrôlé",
+  UNKNOWN:     "Lecture floue"
+};
+
+function formatHeroModeReading(marketKey) {
+  return HERO_MODE_READING[marketKey] || "—";
+}
+
+// ─── Labels FR pour affichage panneau brut ────────────────────
+
+const AGENT_LABELS_FR = {
+  EXECUTE:  "Exécution",
+  DEFENDER: "Défense",
+  ATTACKER: "Attaque",
+  OBSERVER: "Observation"
+};
+
+const POSTURE_LABELS_FR = {
+  ACTIVE:    "Active",
+  AGRESSIVE: "Agressive",
+  WAIT:      "Attente",
+  PROTECT:   "Protection",
+  PRUDENCE:  "Prudence"
+};
+
+const BRAIN_STATE_LABELS_FR = {
+  RANGE:       "Range",
+  COMPRESSION: "Compression",
+  EXPANSION:   "Expansion",
+  DEFENSE:     "Défense",
+  RISKOFF:     "Instable"
+};
+
+// ─── Agent par état marché ────────────────────────────────────
+
+const AGENT_BY_STATE = {
+  RANGE:       "OBSERVER",
+  COMPRESSION: "OBSERVER",
+  BREAKOUT:    "EXECUTE",
+  TREND:       "EXECUTE",
+  DEFENSE:     "DEFENDER",
+  CHAOS:       "DEFENDER",
+  UNKNOWN:     "OBSERVER"
+};
+
+function getStateAgent(marketKey) {
+  return AGENT_BY_STATE[marketKey] || "OBSERVER";
+}
+
+// ─── Synthèse automatique ─────────────────────────────────────
+
+const STATE_SYNTHESIS = {
+  RANGE:       "Marché calme → aucune action",
+  COMPRESSION: "Pression latente → attendre confirmation",
+  BREAKOUT:    "Impulsion → opportunité exploitable",
+  TREND:       "Tendance confirmée → suivre le mouvement",
+  CHAOS:       "Volatilité extrême → réduction immédiate",
+  DEFENSE:     "Risque contrôlé → protéger le capital",
+  UNKNOWN:     "Lecture floue → observer sans agir"
+};
+
+function getStateSynthesis(marketKey) {
+  return STATE_SYNTHESIS[marketKey] || "—";
+}
+
 function formatProfile(value) {
   if (value === null || value === undefined || value === "") return "Aucune donnée";
   return PROFILE_LABELS[value] || asCleanText(value);
@@ -712,13 +783,13 @@ function renderHero(payload) {
   // Hero bar
   setText("heroBarMarket",  cockpit.market.label);
   setText("heroBarScore",   String(payload.score));
-  setText("heroBarMode",    formatEngineMode(payload.engine_mode));
+  setText("heroBarMode",    formatHeroModeReading(cockpit.marketKey));
   setText("heroBarPosture", cockpit.market.posture);
   setText("heroBarCount",   String(Array.isArray(appState.history) ? appState.history.length : 0));
 
   // Hero decision grid
-  setText("heroDecisionVerdict", formatStatus(payload.trading_status));
-  setText("heroDecisionPosture", cockpit.market.posture);
+  setText("heroDecisionVerdict", cockpit.market.verdict);
+  setText("heroDecisionAgent",   AGENT_LABELS_FR[getStateAgent(cockpit.marketKey)] || getStateAgent(cockpit.marketKey));
   setText("heroDecisionAction",  cockpit.market.action);
   setText("heroDecisionAvoid",   cockpit.market.avoid);
 
@@ -899,7 +970,7 @@ function renderRightRail(payload) {
   const dictPosture = dict.posture || cockpit.market.posture;
   setText("decisionSummaryHeadline", dictDecision);
   setText("decisionSummaryText", dictRaison);
-  setText("decisionPriorityText", dictPosture);
+  setText("decisionAgentText", getActiveAgent(payload.decision));
   setText("decisionAvoidText", cockpit.market.avoid);
   setText("alertLevel", cockpit.market.label);
   setText("trafficLight", `Validation ${cockpit.validation}`);
@@ -1077,13 +1148,102 @@ function renderMarketStateBrain() {
 
 function renderDebugBrain() {
   const ms = getMarketState();
-  setText("db-state",      ms.state);
+  setText("db-state",      BRAIN_STATE_LABELS_FR[ms.state] || ms.state);
   setText("db-confidence", String(ms.confidence));
   setText("db-volatility", ms.volatility);
   setText("db-trend",      ms.trend);
   if (currentPayload?.marketReading) {
     setText("db-reading", `${currentPayload.marketReading.state}:${currentPayload.marketReading.modifier} [${currentPayload.marketReading.risk}]`);
   }
+  if (currentPayload?.decision) {
+    const d = currentPayload.decision.primary || currentPayload.decision;
+    setText("db-posture",    d.posture);
+    setText("db-actions",    d.actions);
+    setText("db-risk-level", d.riskLevel);
+  }
+}
+
+function getActiveAgent(decision) {
+  const posture = decision?.primary?.posture || "";
+  const MAP = {
+    PROTECT: "DEFENDER",
+    ATTACK:  "ATTACKER",
+    WAIT:    "OBSERVER"
+  };
+  return MAP[posture] || "OBSERVER";
+}
+
+const AGENT_ACTION_MAP = {
+  DEFENDER: "Réduire le risque / protéger le capital",
+  ATTACKER: "Augmenter l'exposition / entrées agressives",
+  EXECUTE:  "Suivre le signal / entrer avec confirmation",
+  OBSERVER: "Attendre / aucune action"
+};
+
+function getAgentAction(agent) {
+  return AGENT_ACTION_MAP[agent] || "Attendre / aucune action";
+}
+
+function renderActiveAgent() {
+  const marketKey = currentPayload ? getCockpitModel(currentPayload).marketKey : "UNKNOWN";
+  const agent  = getStateAgent(marketKey);
+  const action = getAgentAction(agent);
+  setText("active-agent",        AGENT_LABELS_FR[agent] || agent);
+  setText("active-agent-action", action);
+  setText("cerveau-synthesis",   getStateSynthesis(marketKey));
+}
+
+const RULES_MAP = {
+  DEFENDER: {
+    allowed:   ["réduire la position", "protéger le capital"],
+    forbidden: ["nouvelles entrées", "augmenter le risque"]
+  },
+  ATTACKER: {
+    allowed:   ["entrer en position", "augmenter l'exposition"],
+    forbidden: ["vente panique"]
+  },
+  EXECUTE: {
+    allowed:   ["entrer avec confirmation", "suivre le signal"],
+    forbidden: ["contre-tendance", "entrer sans confirmation"]
+  },
+  OBSERVER: {
+    allowed:   ["attendre"],
+    forbidden: ["tout trade"]
+  }
+};
+
+function getAgentRules(agent) {
+  return RULES_MAP[agent] || { allowed: ["wait"], forbidden: ["any trade"] };
+}
+
+function renderCerveauAgent() {
+  const marketKey = currentPayload ? getCockpitModel(currentPayload).marketKey : "UNKNOWN";
+  const agent = getStateAgent(marketKey);
+  const el = document.getElementById("debug-brain");
+  if (!el) return;
+  el.classList.remove("cerveau--defender", "cerveau--attacker", "cerveau--observer", "cerveau--execute");
+  const CLASS_MAP = {
+    DEFENDER: "cerveau--defender",
+    ATTACKER: "cerveau--attacker",
+    EXECUTE:  "cerveau--execute",
+    OBSERVER: "cerveau--observer"
+  };
+  el.classList.add(CLASS_MAP[agent] || "cerveau--observer");
+}
+
+function renderAgentRules() {
+  const agent = getActiveAgent(currentPayload?.decision);
+  const rules = getAgentRules(agent);
+  setText("rules-allowed",   rules.allowed.join(", "));
+  setText("rules-forbidden", rules.forbidden.join(", "));
+}
+
+function renderDecisionPanel() {
+  const dec = currentPayload?.decision;
+  if (!dec) return;
+  const posture = dec.primary?.posture || "";
+  setText("dp-primary",  POSTURE_LABELS_FR[posture] || posture || "—");
+  setText("dp-best-alt", dec.bestAlternative?.posture  || "—");
 }
 
 function render() {
@@ -1098,6 +1258,10 @@ function render() {
 
   renderMarketStateBrain();
   renderDebugBrain();
+  renderDecisionPanel();
+  renderActiveAgent();
+  renderAgentRules();
+  renderCerveauAgent();
   renderHeader(currentPayload);
   renderHero(currentPayload);
   renderLightContext(currentPayload);
