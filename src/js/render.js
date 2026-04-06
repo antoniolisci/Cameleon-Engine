@@ -1081,6 +1081,9 @@ function renderDebugBrain() {
   setText("db-confidence", String(ms.confidence));
   setText("db-volatility", ms.volatility);
   setText("db-trend",      ms.trend);
+  if (currentPayload?.marketReading) {
+    setText("db-reading", `${currentPayload.marketReading.state}:${currentPayload.marketReading.modifier} [${currentPayload.marketReading.risk}]`);
+  }
 }
 
 function render() {

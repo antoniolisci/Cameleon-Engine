@@ -1,4 +1,19 @@
 import { ENGINE_MODE_LABELS, STATE_LABELS, STATUS_LABELS, TOKEN_LABELS, VALIDATION_TEXT } from "./data.js";
+import { assessMarket } from "./market-state.js";
+
+// ─── Mapping ancien état formulaire → state/modifier ──────────
+// Séparé de assessMarket() — logique de traduction, pas logique métier.
+
+function mapLegacyMarketState(marketValue) {
+  const MAP = {
+    range:       { state: "range",       modifier: "stable"   },
+    compression: { state: "compression", modifier: "stable"   },
+    expansion:   { state: "expansion",   modifier: "stable"   },
+    defense:     { state: "defense",     modifier: "stable"   },
+    riskoff:     { state: "defense",     modifier: "unstable" }
+  };
+  return MAP[String(marketValue || "range").toLowerCase()] || { state: "range", modifier: "stable" };
+}
 
 function tokenLabel(value) {
   return TOKEN_LABELS[value] || value;
@@ -167,6 +182,8 @@ export function buildPayload(v, previousPayload = null) {
   const engine = baseEngine(v);
   const profiled = profileMatrix(v.userProfile, engine, v);
   const filtered = applyValidation(profiled, v);
+  const { state: mState, modifier: mModifier } = mapLegacyMarketState(v.market);
+  const marketReading = assessMarket(mState, mModifier);
 
   let alertLevel = "Faible";
   if (engine.score < 35 || v.emotion === "stress" || v.emotion === "fomo" || v.market === "riskoff") alertLevel = "Élevé";
@@ -257,7 +274,8 @@ export function buildPayload(v, previousPayload = null) {
     },
     trigger_intelligent: trigger,
     tags,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    marketReading
   };
 }
 
