@@ -822,9 +822,12 @@ h1 {
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.8fr) minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 0.8fr);
 }
 
+/* Fix : la colonne AGENT (2e) ne doit pas être trop compressée.         */
+/* Valeur 0.72fr insuffisante — certains labels comme "Observation"       */
+/* cassaient visuellement. Corrigé à 0.92fr pour garantir la lisibilité. */
 .hero-decision-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr) minmax(0, 1.36fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr) minmax(0, 1.36fr) minmax(0, 1fr);
   gap: 14px;
 }
 
@@ -5603,3 +5606,82 @@ body {
   word-break: break-word;
   white-space: normal;
 }
+
+/* ── Overview grid — espace réel pour la colonne agent ──────── */
+/* Override ciblé : minmax(0,1fr) autorise la colonne à descendre */
+/* à 0 — on donne à la 2e colonne un minimum = son contenu réel. */
+
+.overview-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(min-content, 1fr);
+}
+
+/* ── Agent box — agent-name fix ─────────────────────────────── */
+/* Priorité : ne jamais couper un mot au milieu.                 */
+/* keep-all tient les mots entiers ; break-word n'intervient     */
+/* qu'en dernier recours sur les mots vraiment trop longs.       */
+
+.agent-box .agent-name {
+  font-size: 18px;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+  line-height: 1.25;
+  /* pas de overflow:hidden ni line-clamp : ils empêchent le calcul  */
+  /* min-content de la colonne grid et causent la coupure mid-mot.  */
+}
+
+/* ── Confidence Panel — strength flag ───────────────────────── */
+
+.confidence-panel[data-strength="strong"] {
+  border-color: rgba(125, 255, 179, 0.22);
+  background: linear-gradient(160deg, rgba(125, 255, 179, 0.05), rgba(255, 255, 255, 0.012));
+  box-shadow: 0 0 18px rgba(125, 255, 179, 0.06);
+}
+
+.confidence-panel[data-strength="medium"] {
+  border-color: rgba(255, 211, 110, 0.22);
+  background: linear-gradient(160deg, rgba(255, 211, 110, 0.05), rgba(255, 255, 255, 0.012));
+  box-shadow: 0 0 18px rgba(255, 211, 110, 0.06);
+}
+
+.confidence-panel[data-strength="weak"] {
+  border-color: rgba(255, 123, 123, 0.22);
+  background: linear-gradient(160deg, rgba(255, 123, 123, 0.05), rgba(255, 255, 255, 0.012));
+  box-shadow: 0 0 18px rgba(255, 123, 123, 0.06);
+}
+
+/* ── Confidence Panel — barre vivante ────────────────────────── */
+
+#cs-bar {
+  transition: width 0.6s ease, box-shadow 0.6s ease;
+}
+
+.confidence-panel[data-strength="weak"]   #cs-bar { box-shadow: 0 0 6px rgba(255, 123, 123, 0.25); }
+.confidence-panel[data-strength="medium"] #cs-bar { box-shadow: 0 0 6px rgba(255, 211, 110, 0.20); }
+.confidence-panel[data-strength="strong"] #cs-bar { box-shadow: 0 0 10px rgba(125, 255, 179, 0.35); }
+
+/* ── Confidence Panel — pulse (strong only) ─────────────────── */
+
+@keyframes pulseGlow {
+  0%   { box-shadow: 0 0 0px  rgba(125, 255, 179, 0.06); }
+  50%  { box-shadow: 0 0 22px rgba(125, 255, 179, 0.18); }
+  100% { box-shadow: 0 0 0px  rgba(125, 255, 179, 0.06); }
+}
+
+.confidence-panel.pulse-strong {
+  animation: pulseGlow 2.4s ease-in-out infinite;
+}
+
+/* ── Confidence Panel — action block par strength ───────────── */
+
+.confidence-panel[data-strength="weak"] #cs-action {
+  opacity: 0.45;
+}
+
+.confidence-panel[data-strength="strong"] #cs-action {
+  opacity: 1;
+  transform: scale(1.02);
+  transform-origin: left center;
+}
+
