@@ -161,14 +161,36 @@ export function computeTradingPolicy(posture, marketState, score = 50) {
   const posturePolicy = getPosturePolicy(posture);
   const marketPolicy  = getMarketPolicy(marketState);
   const merged        = mergePolicies(posturePolicy, marketPolicy);
+  const state         = (marketState || "").toLowerCase();
 
   // Score très faible (< 35) : restriction au strict minimum défensif
   if (score < 35) {
-    const safeActions  = ["Observe", "Protect Capital", "Reduce Risk", "Exit Partial", "Wait Setup"];
-    merged.allowed     = merged.allowed.filter(a => safeActions.includes(a));
+    const safeActions = ["Observe", "Protect Capital", "Reduce Risk", "Exit Partial", "Wait Setup"];
+    merged.allowed    = merged.allowed.filter(a => safeActions.includes(a));
     if (merged.allowed.length === 0) merged.allowed = ["Observe"];
-    merged.rationale  += " — Low confidence: actions restricted to safety";
+    merged.rationale  = "Low confidence — actions restricted to capital protection";
+    return merged;
   }
+
+  // Rationale contextuelle, lisible pour un trader
+  if (state === "defense" || state === "riskoff") {
+    merged.rationale = "Defense mode — risk exposure reduced";
+  } else if (state === "compression") {
+    merged.rationale = "Compression phase — standby, prepare orders only";
+  } else if (state === "expansion" && (posture === "ACTIVE" || posture === "AGRESSIVE")) {
+    merged.rationale = "Expansion detected — controlled execution allowed";
+  } else if (state === "expansion") {
+    merged.rationale = "Expansion phase — posture limits full exposure";
+  } else if (posture === "PROTECT" || posture === "REDUCE_PARTIAL") {
+    merged.rationale = "Protection mode — capital preservation is the priority";
+  } else if (posture === "WAIT") {
+    merged.rationale = "No valid setup — observation only";
+  } else if (posture === "PRUDENCE") {
+    merged.rationale = "Caution required — reduced size, no aggressive entry";
+  } else if (merged.rationale === "Protective priority applied — market context overrides posture") {
+    merged.rationale = "Market context overrides posture — protective priority applied";
+  }
+  // else: "Posture and market state aligned" (set by mergePolicies)
 
   return merged;
 }

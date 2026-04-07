@@ -1389,6 +1389,7 @@ function renderAgentRules() {
 
   setText("rules-allowed",   policy.allowed.join(", "));
   setText("rules-forbidden", policy.forbidden.join(", "));
+  if (policy.rationale) setText("cerveau-synthesis", policy.rationale);
 }
 
 function renderDecisionPanel() {
