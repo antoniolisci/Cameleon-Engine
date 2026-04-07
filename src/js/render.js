@@ -20,6 +20,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, estimateStateSize, loadState, saveState, getMarketState, updateMarketState } from "./state.js";
+import { computeTradingPolicy } from "./trading-policy.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1370,10 +1371,24 @@ function renderCerveauAgent() {
 }
 
 function renderAgentRules() {
-  const agent = getActiveAgent(currentPayload?.decision);
-  const rules = getAgentRules(agent);
-  setText("rules-allowed",   rules.allowed.join(", "));
-  setText("rules-forbidden", rules.forbidden.join(", "));
+  const posture     = currentPayload?.decision?.primary?.posture || "WAIT";
+  const marketState = currentPayload?.market_state || "range";
+  const score       = currentPayload?.score ?? 50;
+  const policy      = computeTradingPolicy(posture, marketState, score);
+
+  console.log("[TradingPolicy]", {
+    score,
+    posture,
+    action:      currentPayload?.action_recommended,
+    agent:       getActiveAgent(currentPayload?.decision),
+    marketState,
+    allowed:     policy.allowed,
+    forbidden:   policy.forbidden,
+    rationale:   policy.rationale
+  });
+
+  setText("rules-allowed",   policy.allowed.join(", "));
+  setText("rules-forbidden", policy.forbidden.join(", "));
 }
 
 function renderDecisionPanel() {
