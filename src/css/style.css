@@ -5685,3 +5685,81 @@ body {
   transform-origin: left center;
 }
 
+/* ── Score card — confidence strength flag ───────────────────── */
+/* data-strength posé par render.js sur #scoreCard               */
+
+.kpi-card[data-strength] {
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, opacity 0.25s ease;
+}
+
+.kpi-card[data-strength="weak"] {
+  border-color: rgba(var(--state-rgb), 0.10);
+}
+
+.kpi-card[data-strength="medium"] {
+  border-color: rgba(var(--state-rgb), 0.18);
+}
+
+.kpi-card[data-strength="strong"] {
+  border-color: rgba(var(--state-rgb), 0.28);
+  box-shadow: 0 0 14px rgba(var(--state-rgb), 0.06);
+}
+
+/* Score card — micro pulse au changement de strength */
+@keyframes strengthPulse {
+  0%   { box-shadow: 0 0 0px  rgba(var(--state-rgb), 0.06); }
+  50%  { box-shadow: 0 0 18px rgba(var(--state-rgb), 0.16); }
+  100% { box-shadow: 0 0 0px  rgba(var(--state-rgb), 0.06); }
+}
+
+#scoreCard.strength-pulse {
+  animation: strengthPulse 0.42s ease-out forwards;
+}
+
+/* Barre de score — transition + intensité par strength */
+.score-bar-fill {
+  transition: width 0.4s ease, opacity 0.3s ease;
+}
+
+.kpi-card[data-strength="weak"]   .score-bar-fill { opacity: 0.4; }
+.kpi-card[data-strength="medium"] .score-bar-fill { opacity: 0.7; }
+.kpi-card[data-strength="strong"] .score-bar-fill { opacity: 1; }
+
+/* Confidence flag label */
+.confidence-flag {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  color: rgba(var(--state-rgb), 0.9);
+  transition: opacity 0.3s ease;
+}
+
+.kpi-card[data-strength="strong"] .confidence-flag { opacity: 0.7; }
+
+/* ── Score card — decision row (posture · agent · action) ─────── */
+.score-decision-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.score-decision-row span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(var(--state-rgb), 0.75);
+  transition: color 0.3s ease;
+}
+
+.score-decision-sep {
+  opacity: 0.3;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
