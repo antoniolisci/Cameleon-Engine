@@ -3946,7 +3946,7 @@ pre {
   right: 0;
   bottom: 0;
   width: min(42%, 560px);
-  background: url("../assets/images/cameleon-logo.png") right center / contain no-repeat;
+  background: url("../../assets/images/cameleon-logo.png") right center / contain no-repeat;
   opacity: var(--hero-logo-opacity, 0.14);
   pointer-events: none;
   z-index: 0;
