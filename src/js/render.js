@@ -60,6 +60,110 @@ function setWidth(id, value) {
   if (element) element.style.width = value;
 }
 
+// ─── Score animation ──────────────────────────────────────────
+
+let _scoreAnimTimer = null;
+
+function animateScore(el, to, duration = 600) {
+  if (!el) return;
+  const from  = parseInt(el.textContent, 10) || 0;
+  if (from === to) return;
+  const start = performance.now();
+  function frame(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    el.textContent = Math.round(from + (to - from) * eased);
+    if (progress < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+// ─── Confidence Score — moteur de calcul ─────────────────────
+
+/**
+ * Calcule le Confidence Score à partir du contexte moteur.
+ * Formule : structure(35%) + alignment(30%) + volatility(variable) - risk(40%)
+ * + bonus/malus par état de marché.
+ */
+function computeConfidence({ marketState, volatility, structure, risk, alignment }) {
+  let base = 0;
+  base += structure  * 0.35;
+  base += alignment  * 0.30;
+  if (marketState === "Expansion") {
+    base += volatility * 0.20;
+  } else if (marketState === "Compression") {
+    base += volatility * 0.10;
+  } else {
+    base += volatility * 0.15;
+  }
+  base -= risk * 0.40;
+  if (marketState === "Defense") base -= 10;
+  if (marketState === "Expansion") base += 5;
+  return Math.max(0, Math.min(100, Math.round(base)));
+}
+
+function mapStrength(score) {
+  if (score >= 70) return "strong";
+  if (score >= 40) return "medium";
+  return "weak";
+}
+
+function mapFlag(score) {
+  if (score >= 70) return "High Confidence";
+  if (score >= 40) return "Moderate Confidence";
+  return "Low Confidence";
+}
+
+function computePosture(score, marketState) {
+  if (marketState === "Defense") return "Protection";
+  if (score < 30) return "No Trade";
+  if (score < 50) return "Patience";
+  if (score < 70) return "Observation";
+  return "Execution";
+}
+
+function computeAction(score, marketState) {
+  if (marketState === "Defense") return "Reduce Risk";
+  if (score < 30) return "Do Nothing";
+  if (score < 50) return "Wait Setup";
+  if (score < 70) return "Monitor";
+  return "Execute Trade";
+}
+
+function computeAgent(score, marketState) {
+  if (marketState === "Compression") return "Sniper";
+  if (marketState === "Expansion")   return "Rider";
+  if (marketState === "Defense")     return "Guardian";
+  if (score < 50)                    return "Observer";
+  return "Executor";
+}
+
+/**
+ * Extrait et normalise les inputs de confiance depuis le payload moteur.
+ * Chaque variable du payload est convertie en valeur 0–100.
+ */
+function extractConfidenceCtx(payload) {
+  const STATE_MAP = {
+    range: "Range", compression: "Compression",
+    expansion: "Expansion", defense: "Defense", riskoff: "Defense"
+  };
+  const FIRE_MAP      = { strong: 80, medium: 50, weak: 20 };
+  const STRUCTURE_MAP = {
+    hh_hl: 85, lh_ll: 75, breakout: 70, retest: 75,
+    high_range: 60, low_range: 60, breakout_level: 65, middle: 30, none: 10
+  };
+  const RISK_MAP      = { "Élevé": 80, "Moyen": 50, "Faible": 20 };
+  const ALIGNMENT_MAP = { "Bon": 85, "Moyen": 55, "Fragile": 35, "Veto humain": 10 };
+
+  const marketState = STATE_MAP[payload.market_state]                        ?? "Range";
+  const volatility  = FIRE_MAP[payload.constellium?.fire]                    ?? 40;
+  const structure   = STRUCTURE_MAP[payload.setup_inputs?.structure_signal]  ?? 30;
+  const risk        = RISK_MAP[payload.trigger_level]                        ?? 50;
+  const alignment   = ALIGNMENT_MAP[payload.alignment]                       ?? 40;
+
+  return { marketState, volatility, structure, risk, alignment };
+}
+
 function setHidden(target, hidden) {
   const element = typeof target === "string" ? document.querySelector(target) : target;
   if (element) element.hidden = Boolean(hidden);
@@ -879,9 +983,43 @@ function renderNavigation(payload) {
   setText("agentAlert", formatStatus(payload.trading_status));
   setText("agentDesc", simplifyText(payload.profile_reaction));
   setText("agentModeBadge", `Mode : ${cockpit.actionMode.label.toLowerCase()}`);
-  setText("scoreValue", String(payload.score));
-  setText("scoreSub", payload.score >= 70 ? "Contexte puissant" : payload.score >= 50 ? "Contexte exploitable" : "Contexte fragile");
-  setWidth("scoreBar", `${payload.score}%`);
+  const _ctx      = extractConfidenceCtx(payload);
+  const _safeScore = computeConfidence(_ctx);
+  const _strength  = mapStrength(_safeScore);
+  const _flag      = mapFlag(_safeScore);
+
+  const _posture = computePosture(_safeScore, _ctx.marketState);
+  const _action  = computeAction(_safeScore, _ctx.marketState);
+  const _agent   = computeAgent(_safeScore, _ctx.marketState);
+
+  console.log("[ConfidenceScore]", { score: _safeScore, posture: _posture, action: _action, agent: _agent, ..._ctx });
+
+  // Mises à jour immédiates
+  setWidth("scoreBar", `${_safeScore}%`);
+  setText("scoreSub",       _safeScore >= 70 ? "Contexte puissant" : _safeScore >= 40 ? "Contexte exploitable" : "Contexte fragile");
+  setText("confidenceFlag", _flag);
+  setText("score-posture",  _posture);
+  setText("score-action",   _action);
+  setText("score-agent",    _agent);
+
+  // Score animé — debounce 150ms pour absorber les updates rapides
+  clearTimeout(_scoreAnimTimer);
+  _scoreAnimTimer = setTimeout(() => animateScore($("scoreValue"), _safeScore), 150);
+
+  const _scoreCard = document.getElementById("scoreCard");
+  if (_scoreCard) {
+    const _prev = _scoreCard.dataset.strength || "";
+    if (_prev !== _strength) {
+      _scoreCard.classList.remove("strength-pulse");
+      void _scoreCard.offsetWidth;
+      _scoreCard.classList.add("strength-pulse");
+      clearTimeout(_scoreCard._pulseTimer);
+      _scoreCard._pulseTimer = setTimeout(() => {
+        _scoreCard.classList.remove("strength-pulse");
+      }, 420);
+    }
+    _scoreCard.dataset.strength = _strength;
+  }
   setText("engineMode", formatEngineMode(payload.engine_mode));
   setText("engineModeSub", cockpit.market.description);
   setText("attackStatus", formatStatus(payload.attack_mode_final));
