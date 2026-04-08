@@ -343,6 +343,24 @@ img {
   color: var(--state-text);
 }
 
+/* ── Trading Policy — visual gate ──────────────────────────── */
+.policy-action-allowed {
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.28);
+}
+
+.policy-action-forbidden {
+  box-shadow: 0 0 0 1px rgba(255, 68, 68, 0.22);
+}
+
+.policy-message {
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.38);
+  font-style: italic;
+  line-height: 1.45;
+  min-height: 16px;
+}
+
 .side-tab.active::before {
   content: "";
   position: absolute;
@@ -5147,8 +5165,11 @@ body {
   opacity: 1;
 }
 
-.status-aligned { color: #00ff88; }
+.status-aligned  { color: #00ff88; }
+.status-ready    { color: #4fa8ff; }
 .status-tension  { color: #ffaa00; }
+.status-protect  { color: #ff8c42; }
+.status-wait     { color: rgba(180, 180, 220, 0.75); }
 .status-block    { color: #ff4444; }
 
 /* ── P4 Snapshot history ───────────────────────────────── */
