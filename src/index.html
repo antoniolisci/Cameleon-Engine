@@ -530,23 +530,24 @@
                       </div>
                     </div>
                     <div class="mode-actions">
-                      <button class="mode-btn" type="button" id="modeCoreBtn">
+                      <button class="mode-btn" type="button" id="modeCoreBtn" data-action="Protect Capital">
                         <div class="mode-btn-title">Socle</div>
                         <div class="mode-btn-desc">On protège le capital avant tout.</div>
                       </button>
-                      <button class="mode-btn" type="button" id="modeAttackBtn">
+                      <button class="mode-btn" type="button" id="modeAttackBtn" data-action="Execute Trade">
                         <div class="mode-btn-title">Attaque</div>
                         <div class="mode-btn-desc">On profite d'un mouvement clair.</div>
                       </button>
-                      <button class="mode-btn" type="button" id="modeSniperBtn">
+                      <button class="mode-btn" type="button" id="modeSniperBtn" data-action="Scale In">
                         <div class="mode-btn-title">Sniper</div>
                         <div class="mode-btn-desc">On agit seulement sur signal parfait.</div>
                       </button>
-                      <button class="mode-btn active" type="button" id="modeWaitBtn">
+                      <button class="mode-btn active" type="button" id="modeWaitBtn" data-action="Prepare Entry">
                         <div class="mode-btn-title">Attente</div>
                         <div class="mode-btn-desc">Ne rien faire est parfois la meilleure décision.</div>
                       </button>
                     </div>
+                    <div id="policy-message" class="policy-message"></div>
                   </div>
 
                   <div class="agent-grid">

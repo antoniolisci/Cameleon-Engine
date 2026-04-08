@@ -20,7 +20,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, estimateStateSize, loadState, saveState, getMarketState, updateMarketState } from "./state.js";
-import { computeTradingPolicy } from "./trading-policy.js";
+import { computeTradingPolicy, getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -768,17 +768,154 @@ function applyMarketVisual(payload) {
 
 }
 
-// ── P3 ── tension indicator ───────────────────────────────
+// ── P3 ── decision state ─────────────────────────────────
+//
+// Distingue 5 états mutuellement exclusifs :
+//   BLOCKED  — veto réel (validation refusée, NO TRADE)
+//   PROTECT  — défense cohérente (defense, riskoff, posture PROTECT)
+//   WAIT     — attente structurée (compression, WAIT, PRUDENCE)
+//   ALIGNED  — offensive active et favorable
+//   TENSION  — favorable mais non offensif
+//
+// Règle de priorité : BLOCKED > PROTECT > WAIT > ALIGNED > TENSION
+
+// ── Helpers décision ─────────────────────────────────────────
+function isProtectContext(state)  { return state === "defense" || state === "riskoff"; }
+function isExpansionContext(state){ return state === "expansion"; }
+function isCompressionContext(s)  { return s === "compression"; }
+function isAcceptedValidation(v)  { return v === "accepted"; }
+
+function computeDecisionState(payload) {
+  const status  = (payload.trading_status || "").toUpperCase();
+  const state   = (payload.market_state   || "").toLowerCase();
+  const posture = (payload.decision?.primary?.posture || "").toUpperCase();
+  const valid   = (payload.validation?.state || "").toLowerCase();
+  const score   = payload.score ?? 50;
+
+  const defensive  = isProtectContext(state);
+  const expansion  = isExpansionContext(state);
+  const accepted   = isAcceptedValidation(valid);
+
+  // ── 1. BLOCKED ───────────────────────────────────────────────
+  // Veto humain explicite uniquement.
+  if (valid === "rejected") {
+    return {
+      state:   "BLOCKED",
+      label:   "BLOCAGE",
+      cls:     "status-block",
+      message: "Validation refusée — exécution bloquée"
+    };
+  }
+
+  // ── 2. PROTECT ───────────────────────────────────────────────
+  // Réservé aux marchés structurellement défensifs.
+  // score faible, NO TRADE, VALIDATION BLOCK → WAIT (pas PROTECT).
+  if (defensive || posture === "PROTECT" || posture === "REDUCE_PARTIAL") {
+    return {
+      state:   "PROTECT",
+      label:   "PROTECTION",
+      cls:     "status-protect",
+      message: "Conditions risquées — priorité à la réduction du risque"
+    };
+  }
+
+  // ── 3. READY ─────────────────────────────────────────────────
+  // Expansion favorable + score suffisant + validation non encore confirmée.
+  // Priorité sur WAIT : le signal marché prime sur le statut profil.
+  if (expansion && score >= 55 && !accepted) {
+    return {
+      state:   "READY",
+      label:   "SETUP PRÊT",
+      cls:     "status-ready",
+      message: "Conditions favorables détectées — attendre confirmation avant exécution"
+    };
+  }
+
+  // ── 4. ALIGNED ───────────────────────────────────────────────
+  // Expansion + validé + score fort → exécution autorisée.
+  if (expansion && accepted && score >= 65) {
+    return {
+      state:   "ALIGNED",
+      label:   "ALIGNÉ",
+      cls:     "status-aligned",
+      message: "Contexte favorable — exécution contrôlée autorisée"
+    };
+  }
+
+  // ── 5. WAIT ──────────────────────────────────────────────────
+  // Attente structurée : compression, score faible, contraintes profil/émotion.
+  // Absorbe NO TRADE et VALIDATION BLOCK en contexte non-défensif.
+  const isWait =
+    isCompressionContext(state)    ||
+    score   <  35                  ||
+    status.includes("WAIT")        ||
+    status  === "CORE ONLY"        ||
+    status  === "NO TRADE"         ||
+    status  === "VALIDATION BLOCK" ||
+    posture === "WAIT"             ||
+    posture === "PRUDENCE";
+
+  if (isWait) {
+    const msg = isCompressionContext(state)
+      ? "Compression — attente breakout, pas d'entrée précipitée"
+      : score < 35
+        ? "Score insuffisant — observation active requise"
+        : "Attente structurée — setup non confirmé";
+    return {
+      state:   "WAIT",
+      label:   "ATTENTE",
+      cls:     "status-wait",
+      message: msg
+    };
+  }
+
+  // ── 6. TENSION / ALIGNED (marchés non-expansion) ─────────────
+  // Pour les contextes favorables restants (range actif, breakout partiel).
+  const cockpit   = getCockpitModel(payload);
+  const verdict   = (cockpit.market.verdict || "").toLowerCase();
+  const favorable = cockpit.market.exploitable ??
+    (verdict.includes("exploitable") || verdict.includes("sortie") ||
+     verdict.includes("tendance")    || verdict.includes("confirmé") ||
+     verdict.includes("expansion"));
+
+  const isOffensive = status === "TRADE OK" || status === "SNIPER READY";
+
+  if (isOffensive && score >= 65 && favorable) {
+    return {
+      state:   "ALIGNED",
+      label:   "ALIGNÉ",
+      cls:     "status-aligned",
+      message: "Contexte favorable — exécution contrôlée autorisée"
+    };
+  }
+
+  if (favorable || score >= 45) {
+    return {
+      state:   "TENSION",
+      label:   "TENSION",
+      cls:     "status-tension",
+      message: "Opportunité visible — exposition limitée, prudence requise"
+    };
+  }
+
+  // Fallback
+  return {
+    state:   "WAIT",
+    label:   "ATTENTE",
+    cls:     "status-wait",
+    message: "Lecture insuffisante — observation prioritaire"
+  };
+}
+
+// Conservé pour compatibilité snapshot history
 function getHeroState(cockpit, tradingStatus) {
   const decision = tradingStatus.toLowerCase();
-  const favorable = typeof cockpit.market.exploitable === "boolean"
-    ? cockpit.market.exploitable
-    : (() => {
-        const v = (cockpit.market.verdict || "").toLowerCase();
-        return v.includes("exploitable") || v.includes("sortie") ||
-          v.includes("tendance") || v.includes("confirmé") || v.includes("expansion");
-      })();
-
+  const favorable = cockpit.market.exploitable ??
+    (() => {
+      const v = (cockpit.market.verdict || "").toLowerCase();
+      return v.includes("exploitable") || v.includes("sortie") ||
+        v.includes("tendance") || v.includes("confirmé") || v.includes("expansion");
+    })();
   if (favorable && decision === "attaque") return "ALIGNED";
   if (favorable && decision !== "attaque") return "TENSION";
   return "BLOCK";
@@ -837,11 +974,14 @@ function analyzeHistory(history) {
     return acc;
   }, {});
 
-  const blockRate   = (counts.BLOCK   || 0) / total;
+  // Compat: anciens snapshots "BLOCK", nouveaux "BLOCKED" / "PROTECT" / "WAIT"
+  const blockRate   = ((counts.BLOCK || 0) + (counts.BLOCKED || 0)) / total;
+  const waitRate    = ((counts.WAIT  || 0) + (counts.PROTECT || 0)) / total;
   const tensionRate = (counts.TENSION || 0) / total;
   const alignedRate = (counts.ALIGNED || 0) / total;
 
   if (blockRate   >= 0.5) return { status: "BLOCK",       message: "Marché bloqué" };
+  if (waitRate    >= 0.6) return { status: "TENSION",     message: "Phase d'attente prolongée" };
   if (tensionRate >= 0.5) return { status: "TENSION",     message: "Marché sous tension" };
   if (alignedRate <= 0.2) return { status: "LOW_ALIGNED", message: "Peu d'opportunités claires" };
   return { status: "NORMAL", message: "Conditions normales" };
@@ -910,14 +1050,21 @@ function renderHero(payload) {
   setText("decision-risk",       cockpit.market.avoid);
   setText("decision-validation", getValidationLabel(payload));
 
-  const heroState = getHeroState(cockpit, tradingStatusFormatted);
+  const decisionState = computeDecisionState(payload);
+
+  console.log("[DecisionState]", {
+    marketState:     payload.market_state,
+    score:           payload.score,
+    posture:         payload.decision?.primary?.posture,
+    validationState: payload.validation?.state,
+    tradingStatus:   payload.trading_status,
+    result:          decisionState.state
+  });
+
   const heroStatusEl = $("hero-status");
   if (heroStatusEl) {
-    heroStatusEl.className = "hero-status";
-    const stateMap = { ALIGNED: ["ALIGNÉ", "status-aligned"], TENSION: ["TENSION", "status-tension"], BLOCK: ["BLOCAGE", "status-block"] };
-    const [label, cls] = stateMap[heroState] || ["–", ""];
-    heroStatusEl.textContent = label;
-    if (cls) heroStatusEl.classList.add(cls);
+    heroStatusEl.className = `hero-status ${decisionState.cls}`;
+    heroStatusEl.textContent = decisionState.label;
   }
 
   // P4 — sauvegarde snapshot
@@ -926,7 +1073,7 @@ function renderHero(payload) {
     regime:   cockpit.market.label,
     verdict:  cockpit.market.verdict,
     decision: tradingStatusFormatted,
-    state:    heroState
+    state:    decisionState.state
   });
   renderSnapshotHistory();
   renderHistoryInsight();
@@ -1370,26 +1517,40 @@ function renderCerveauAgent() {
   el.classList.add(CLASS_MAP[agent] || "cerveau--observer");
 }
 
-function renderAgentRules() {
-  const posture     = currentPayload?.decision?.primary?.posture || "WAIT";
-  const marketState = currentPayload?.market_state || "range";
-  const score       = currentPayload?.score ?? 50;
-  const policy      = computeTradingPolicy(posture, marketState, score);
+// Applique la policy aux boutons [data-action] du cockpit.
+// Indique visuellement les actions autorisées / interdites.
+// Ne désactive jamais les boutons : ce sont des contrôles de navigation.
+function applyPolicyToUI(policy) {
+  document.querySelectorAll("[data-action]").forEach(btn => {
+    const action  = btn.dataset.action || "";
+    const allowed = canExecuteAction(action, policy);
 
-  console.log("[TradingPolicy]", {
-    score,
-    posture,
-    action:      currentPayload?.action_recommended,
-    agent:       getActiveAgent(currentPayload?.decision),
-    marketState,
-    allowed:     policy.allowed,
-    forbidden:   policy.forbidden,
-    rationale:   policy.rationale
+    btn.style.opacity  = allowed ? "1" : "0.45";
+    btn.style.cursor   = "pointer";
+
+    btn.classList.remove("policy-action-allowed", "policy-action-forbidden");
+    btn.classList.add(allowed ? "policy-action-allowed" : "policy-action-forbidden");
   });
+}
+
+// Injecte le message de la policy dans #policy-message.
+function renderPolicyMessage(policy) {
+  const el = document.getElementById("policy-message");
+  if (!el) return;
+  el.textContent = policy.message || "";
+}
+
+function renderAgentRules() {
+  // Source d'autorité : DecisionState (pas posture seule)
+  const decisionState = currentPayload ? computeDecisionState(currentPayload) : { state: "WAIT", message: "" };
+  const policy        = getTradingPolicy(decisionState.state);
 
   setText("rules-allowed",   policy.allowed.join(", "));
   setText("rules-forbidden", policy.forbidden.join(", "));
-  if (policy.rationale) setText("cerveau-synthesis", policy.rationale);
+  if (decisionState.message) setText("cerveau-synthesis", decisionState.message);
+
+  applyPolicyToUI(policy);
+  renderPolicyMessage(policy);
 }
 
 function renderDecisionPanel() {
