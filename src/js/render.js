@@ -1878,6 +1878,53 @@ function setPlanCardState(tone) {
   el.classList.add(PLAN_CLASS_MAP[tone] || "plan-neutral");
 }
 
+function getExecutionLevel(payload) {
+  const ds = computeDecisionState(payload);
+
+  if (ds.state === "BLOCKED") return {
+    permission: "Interdit",
+    actionType: "Aucune exécution",
+    intensity:  "Nulle",
+    risk:       "Élevé"
+  };
+
+  if (ds.state === "PROTECT") return {
+    permission: "Défensif uniquement",
+    actionType: "Réduire / protéger",
+    intensity:  "Faible",
+    risk:       "Élevé"
+  };
+
+  if (ds.state === "WAIT") return {
+    permission: "Préparation uniquement",
+    actionType: "Observer / préparer",
+    intensity:  "Faible",
+    risk:       "Moyen"
+  };
+
+  if (ds.state === "READY" || ds.state === "TENSION") return {
+    permission: "Exécution sous condition",
+    actionType: "Préparer / surveiller entrée",
+    intensity:  "Mesurée",
+    risk:       "Moyen"
+  };
+
+  return {
+    permission: "Exécutable",
+    actionType: "Entrée / gestion active",
+    intensity:  "Active",
+    risk:       "Contrôlé"
+  };
+}
+
+function renderExecutionLevel(payload) {
+  const level = getExecutionLevel(payload);
+  setText("execPermission", level.permission);
+  setText("execActionType", level.actionType);
+  setText("execIntensity",  level.intensity);
+  setText("execRisk",       level.risk);
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -1904,6 +1951,7 @@ function render() {
   renderPilotage(currentPayload);
   renderRightRail(currentPayload);
   renderActionPlan(currentPayload);
+  renderExecutionLevel(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
