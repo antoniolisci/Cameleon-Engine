@@ -1925,6 +1925,74 @@ function renderExecutionLevel(payload) {
   setText("execRisk",       level.risk);
 }
 
+function getPositionManagement(payload) {
+  const ds = computeDecisionState(payload);
+
+  if (ds.state === "BLOCKED") return {
+    size:    "0%",
+    mode:    "Flat uniquement",
+    entry:   "Aucune entrée",
+    exit:    "Aucune gestion active",
+    maxRisk: "Élevé",
+    status:  "Marché bloqué"
+  };
+
+  if (ds.state === "PROTECT") return {
+    size:    "Très faible",
+    mode:    "Défensif",
+    entry:   "Pas de nouvelle position",
+    exit:    "Allègement / protection",
+    maxRisk: "Élevé",
+    status:  "Protection du capital"
+  };
+
+  if (ds.state === "WAIT") return {
+    size:    "Faible",
+    mode:    "Observation active",
+    entry:   "Entrée non confirmée",
+    exit:    "Pas d'allègement offensif",
+    maxRisk: "Moyen",
+    status:  "Préparation uniquement"
+  };
+
+  if (ds.state === "READY") return {
+    size:    "Légère",
+    mode:    "Sous condition",
+    entry:   "Entrée possible si validation",
+    exit:    "Préparer allègement partiel",
+    maxRisk: "Moyen",
+    status:  "Setup proche"
+  };
+
+  if (ds.state === "TENSION") return {
+    size:    "Mesurée",
+    mode:    "Exécution surveillée",
+    entry:   "Entrée possible avec discipline",
+    exit:    "Sortie rapide si rejet",
+    maxRisk: "Moyen",
+    status:  "Fenêtre fragile"
+  };
+
+  return {
+    size:    "Active mais contrôlée",
+    mode:    "Gestion active",
+    entry:   "Entrée autorisée",
+    exit:    "Allègement progressif possible",
+    maxRisk: "Contrôlé",
+    status:  "Contexte exploitable"
+  };
+}
+
+function renderPositionManagement(payload) {
+  const pm = getPositionManagement(payload);
+  setText("pmSize",    pm.size);
+  setText("pmMode",    pm.mode);
+  setText("pmEntry",   pm.entry);
+  setText("pmExit",    pm.exit);
+  setText("pmMaxRisk", pm.maxRisk);
+  setText("pmStatus",  pm.status);
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -1952,6 +2020,7 @@ function render() {
   renderRightRail(currentPayload);
   renderActionPlan(currentPayload);
   renderExecutionLevel(currentPayload);
+  renderPositionManagement(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
