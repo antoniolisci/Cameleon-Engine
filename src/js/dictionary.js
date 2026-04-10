@@ -12,7 +12,7 @@ export const MARKET_DICTIONARY = {
       sub: "Du bruit."
     },
     decision: {
-      centrale: "Pas de signal = pas de position",
+      centrale: "Pas de signal — pas de position",
       raison: "Du bruit. Tu paies."
     },
     posture: "Zéro initiative",
@@ -44,7 +44,7 @@ export const MARKET_DICTIONARY = {
       sub: "Pas de cassure."
     },
     decision: {
-      centrale: "Pas de cassure = pas d'entrée",
+      centrale: "Pas de cassure — pas d'entrée",
       raison: "Aucun edge. Juste du risque."
     },
     posture: "Prêt. Pas actif.",
@@ -76,7 +76,7 @@ export const MARKET_DICTIONARY = {
       sub: "S'aligner proprement ou rester dehors."
     },
     decision: {
-      centrale: "Pas de retracement propre = pas d'entrée",
+      centrale: "Pas de retracement propre — pas d'entrée",
       raison: "Tu poursuis. Tu paies."
     },
     posture: "Sélectif ou dehors",
@@ -108,7 +108,7 @@ export const MARKET_DICTIONARY = {
       sub: "Attends le retest."
     },
     decision: {
-      centrale: "Pas de retest = pas d'entrée",
+      centrale: "Pas de retest — pas d'entrée",
       raison: "Pas de retest. Tu paies."
     },
     posture: "Alerte. Pas d'action.",
@@ -140,7 +140,7 @@ export const MARKET_DICTIONARY = {
       sub: "Aucune entrée ici."
     },
     decision: {
-      centrale: "Risque présent = réduction immédiate",
+      centrale: "Risque présent — réduction immédiate",
       raison: "Exposé ici. Tu perds."
     },
     posture: "Capital d'abord. Rien d'autre.",
@@ -172,7 +172,7 @@ export const MARKET_DICTIONARY = {
       sub: "Aucun trade ne vaut ce contexte."
     },
     decision: {
-      centrale: "Contexte instable = hors marché",
+      centrale: "Contexte instable — hors marché",
       raison: "Plus d'edge. Chaque position est un pari."
     },
     posture: "Cash. Rien d'autre.",
@@ -204,7 +204,7 @@ export const MARKET_DICTIONARY = {
       sub: "Ce n'est pas un marché."
     },
     decision: {
-      centrale: "Pas de structure = pas de trade",
+      centrale: "Pas de structure — pas de trade",
       raison: "Tu inventes un signal. L'erreur est déjà là."
     },
     posture: "Observation uniquement",

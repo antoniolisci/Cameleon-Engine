@@ -5784,3 +5784,26 @@ body {
   letter-spacing: 0 !important;
 }
 
+
+/* ─── Secondary line — Centre de décision ───────────────────── */
+.secondary-line {
+  display: block;
+  font-size: 0.82em;
+  margin-top: 3px;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+.risk-low    { color: rgba(110, 231, 183, 0.85); }
+.risk-medium { color: rgba(251, 191,  36, 0.85); }
+.risk-high   { color: rgba(248, 113, 113, 0.85); }
+
+/* ─── Intent classes — 2e ligne Centre de décision ─────────── */
+.intent-neutral { color: rgba(156, 163, 175, 0.80); }
+.intent-wait    { color: rgba(251, 191,  36, 0.85); }
+.intent-danger  { color: rgba(248, 113, 113, 0.85); }
+
+/* ─── Intent — couleur lignes panneau Moteur Brut ────────────── */
+#debug-brain.intent-neutral .debug-brain__row strong { color: rgba(156, 163, 175, 0.80); }
+#debug-brain.intent-wait    .debug-brain__row strong { color: rgba(251, 191,  36, 0.85); }
+#debug-brain.intent-danger  .debug-brain__row strong { color: rgba(248, 113, 113, 0.85); }
