@@ -5807,3 +5807,24 @@ body {
 #debug-brain.intent-neutral .debug-brain__row strong { color: rgba(156, 163, 175, 0.80); }
 #debug-brain.intent-wait    .debug-brain__row strong { color: rgba(251, 191,  36, 0.85); }
 #debug-brain.intent-danger  .debug-brain__row strong { color: rgba(248, 113, 113, 0.85); }
+
+/* ─── Plan d'action — card dynamique ────────────────────────── */
+.plan-card {
+  border-left: 2px solid rgba(255, 255, 255, 0.06);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.plan-card.plan-neutral {
+  background: linear-gradient(160deg, rgba(152, 198, 255, 0.04), rgba(255, 255, 255, 0.008));
+  border-color: rgba(152, 198, 255, 0.14);
+}
+
+.plan-card.plan-wait {
+  background: linear-gradient(160deg, rgba(251, 191, 36, 0.04), rgba(255, 255, 255, 0.008));
+  border-color: rgba(251, 191, 36, 0.16);
+}
+
+.plan-card.plan-danger {
+  background: linear-gradient(160deg, rgba(248, 113, 113, 0.05), rgba(255, 255, 255, 0.008));
+  border-color: rgba(248, 113, 113, 0.16);
+}

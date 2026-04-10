@@ -1690,6 +1690,136 @@ function renderWhyDecision(payload) {
   });
 }
 
+function getActionPlan(marketKey) {
+  const MAP = {
+    RANGE: {
+      now: [
+        "Observer le range",
+        "Ne pas forcer d'entrée"
+      ],
+      prepare: [
+        "Travailler les zones",
+        "Placer achats bas / ventes hautes",
+        "Préparer la rotation"
+      ]
+    },
+    COMPRESSION: {
+      now: [
+        "Attendre la cassure",
+        "Ne pas anticiper trop tôt"
+      ],
+      prepare: [
+        "Préparer les ordres",
+        "Surveiller cassure ou rejet",
+        "Définir les niveaux clés"
+      ]
+    },
+    BREAKOUT: {
+      now: [
+        "Attendre confirmation ou retest",
+        "Éviter la poursuite aveugle"
+      ],
+      prepare: [
+        "Préparer le niveau d'entrée",
+        "Préparer le scénario de validation"
+      ]
+    },
+    TREND: {
+      now: [
+        "Gérer la position proprement",
+        "Prendre bénéfices partiels si nécessaire"
+      ],
+      prepare: [
+        "Laisser courir si le mouvement reste propre",
+        "Préparer l'allègement suivant"
+      ]
+    },
+    DEFENSE: {
+      now: [
+        "Réduire exposition",
+        "Protéger le capital"
+      ],
+      prepare: [
+        "Identifier les zones plus basses",
+        "Préparer un rechargement défensif"
+      ]
+    },
+    CHAOS: {
+      now: [
+        "Rester défensif",
+        "Protéger le capital"
+      ],
+      prepare: [
+        "Attendre un retour de structure",
+        "Identifier les zones fortes plus bas"
+      ]
+    },
+    UNKNOWN: {
+      now: [
+        "Observer"
+      ],
+      prepare: [
+        "Attendre plus de clarté"
+      ]
+    }
+  };
+  return MAP[marketKey] || MAP.UNKNOWN;
+}
+
+function renderActionPlan(payload) {
+  const container = $("actionPlan");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const marketKey = getCockpitModel(payload).marketKey;
+  const plan = getActionPlan(marketKey);
+
+  const nowTitle = document.createElement("div");
+  nowTitle.className = "plan-section-title";
+  nowTitle.textContent = "Maintenant";
+
+  const nowList = document.createElement("ul");
+  plan.now.forEach((a) => {
+    const li = document.createElement("li");
+    li.textContent = a;
+    nowList.appendChild(li);
+  });
+
+  const prepTitle = document.createElement("div");
+  prepTitle.className = "plan-section-title";
+  prepTitle.textContent = "Préparer";
+
+  const prepList = document.createElement("ul");
+  plan.prepare.forEach((a) => {
+    const li = document.createElement("li");
+    li.textContent = a;
+    prepList.appendChild(li);
+  });
+
+  container.appendChild(nowTitle);
+  container.appendChild(nowList);
+  container.appendChild(prepTitle);
+  container.appendChild(prepList);
+}
+
+function setPlanCardState(payload) {
+  const el = $("actionPlanCard");
+  if (!el) return;
+  el.classList.remove("plan-neutral", "plan-wait", "plan-danger");
+  const PLAN_CLASS_MAP = {
+    RANGE:       "plan-neutral",
+    UNKNOWN:     "plan-neutral",
+    COMPRESSION: "plan-wait",
+    BREAKOUT:    "plan-wait",
+    TREND:       "plan-wait",
+    DEFENSE:     "plan-danger",
+    CHAOS:       "plan-danger"
+  };
+  const marketKey = getCockpitModel(payload).marketKey;
+  el.classList.add(PLAN_CLASS_MAP[marketKey] || "plan-neutral");
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -1715,6 +1845,8 @@ function render() {
   renderPublications(currentPayload);
   renderPilotage(currentPayload);
   renderRightRail(currentPayload);
+  renderActionPlan(currentPayload);
+  setPlanCardState(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
