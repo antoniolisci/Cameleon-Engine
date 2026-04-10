@@ -2040,6 +2040,60 @@ function renderTradeScenarios(payload) {
   setText("scIfStagnation", sc.ifStagnation);
 }
 
+function getRiskManagement(payload) {
+  const ds = computeDecisionState(payload);
+
+  if (ds.state === "BLOCKED") return {
+    riskPerTrade: "0%",
+    positionSize: "0",
+    maxExposure:  "0",
+    rrMinimum:    "N/A"
+  };
+
+  if (ds.state === "PROTECT") return {
+    riskPerTrade: "0.25%",
+    positionSize: "Très faible",
+    maxExposure:  "Minimale",
+    rrMinimum:    "Élevé uniquement"
+  };
+
+  if (ds.state === "WAIT") return {
+    riskPerTrade: "0.5%",
+    positionSize: "Faible",
+    maxExposure:  "Contrôlée",
+    rrMinimum:    "≥ 2"
+  };
+
+  if (ds.state === "READY") return {
+    riskPerTrade: "1%",
+    positionSize: "Normale",
+    maxExposure:  "Standard",
+    rrMinimum:    "≥ 2"
+  };
+
+  if (ds.state === "TENSION") return {
+    riskPerTrade: "0.75%",
+    positionSize: "Modérée",
+    maxExposure:  "Prudente",
+    rrMinimum:    "≥ 2.5"
+  };
+
+  return {
+    riskPerTrade: "1% - 2%",
+    positionSize: "Active",
+    maxExposure:  "Optimisée",
+    rrMinimum:    "≥ 3"
+  };
+}
+
+function renderRiskManagement(payload) {
+  const rm = getRiskManagement(payload);
+  setText("rmRiskPerTrade", rm.riskPerTrade);
+  setText("rmPositionSize", rm.positionSize);
+  setText("rmMaxExposure",  rm.maxExposure);
+  setText("rmRrMinimum",    rm.rrMinimum);
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -2069,6 +2123,7 @@ function render() {
   renderExecutionLevel(currentPayload);
   renderPositionManagement(currentPayload);
   renderTradeScenarios(currentPayload);
+  renderRiskManagement(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
