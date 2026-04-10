@@ -46,6 +46,27 @@ function setText(id, value) {
   if (element) element.textContent = repairMojibake(value ?? "");
 }
 
+function setTextTwoLines(id, value, riskClass = "") {
+  const element = $(id);
+  if (!element) return;
+  const clean = repairMojibake(value ?? "");
+  const parts = clean.split(" — ");
+  if (parts.length < 2) {
+    element.textContent = clean;
+    return;
+  }
+  element.textContent = "";
+  const first = document.createTextNode(parts[0]);
+  const br    = document.createElement("br");
+  const second = document.createElement("span");
+  const secondText = parts.slice(1).join(" — ");
+  second.className = "secondary-line" + (riskClass ? " " + riskClass : "");
+  second.textContent = secondText.charAt(0).toUpperCase() + secondText.slice(1);
+  element.appendChild(first);
+  element.appendChild(br);
+  element.appendChild(second);
+}
+
 function setHtml(id, value) {
   const element = $(id);
   if (element) element.innerHTML = repairMojibake(value ?? "");
@@ -1003,6 +1024,17 @@ function renderHeader(payload) {
   setText("headerMode", cockpit.actionMode.label);
 }
 
+const OFFENSIVE_BLOCKING_STATES = new Set(["compression", "defense", "riskoff"]);
+
+function resolveVerdictLabel(payload) {
+  const raw = formatStatus(payload.trading_status);
+  const stateKey = (payload.market_state || "").toLowerCase();
+  if (raw === "Attaque" && OFFENSIVE_BLOCKING_STATES.has(stateKey)) {
+    return getCockpitModel(payload).market.verdict;
+  }
+  return raw;
+}
+
 function renderHero(payload) {
   const heroCopy = getHeroCopy(payload);
   const cockpit = getCockpitModel(payload);
@@ -1013,7 +1045,7 @@ function renderHero(payload) {
   setText("lectureDaySub", heroCopy.subtitle);
 
   // P1 — Verdict shell
-  setText("verdictImmediate", formatStatus(payload.trading_status));
+  setText("verdictImmediate", resolveVerdictLabel(payload));
   setText("verdictAllowed",   cockpit.market.posture);
   setText("verdictNext",      cockpit.market.action);
   setText("verdictBlocked",   cockpit.market.avoid);
@@ -1254,13 +1286,23 @@ function renderRightRail(payload) {
   const toneMsg = getAdaptiveMessage(payload.market_state, payload.emotion_state);
   const dictRaison = toneMsg || dict.decision?.raison || decisionCopy.subtitle;
   const dictPosture = dict.posture || cockpit.market.posture;
-  setText("decisionSummaryHeadline", dictDecision);
+  const INTENT_CLASS_MAP = {
+    RANGE:       "intent-neutral",
+    COMPRESSION: "intent-wait",
+    BREAKOUT:    "intent-wait",
+    TREND:       "intent-wait",
+    DEFENSE:     "intent-danger",
+    CHAOS:       "intent-danger",
+    UNKNOWN:     "intent-neutral"
+  };
+  const intentClass = INTENT_CLASS_MAP[cockpit.marketKey] || "intent-neutral";
+  setTextTwoLines("decisionSummaryHeadline", dictDecision, intentClass);
   setText("decisionSummaryText", dictRaison);
   setText("decisionAgentText", getActiveAgent(payload.decision));
   setText("decisionAvoidText", cockpit.market.avoid);
   setText("alertLevel", cockpit.market.label);
   setText("trafficLight", `Validation ${cockpit.validation}`);
-  setText("decisionPanel", dictDecision);
+  setTextTwoLines("decisionPanel", dictDecision, intentClass);
   setText("ultraShortPanel", dictRaison);
 
   setQueryText(".structured-shell .card-desc", "Trois repères pour cadrer l'écran sans relire la décision.");
@@ -1443,7 +1485,7 @@ function renderDebugBrain() {
   }
   if (currentPayload?.decision) {
     const d = currentPayload.decision.primary || currentPayload.decision;
-    setText("db-posture",    d.posture);
+    setText("db-posture",    POSTURE_LABELS_FR[d.posture] || d.posture || "—");
     setText("db-actions",    d.actions);
     setText("db-risk-level", d.riskLevel);
   }
@@ -1471,12 +1513,11 @@ function getAgentAction(agent) {
 }
 
 function renderActiveAgent() {
-  const marketKey = currentPayload ? getCockpitModel(currentPayload).marketKey : "UNKNOWN";
-  const agent  = getStateAgent(marketKey);
+  const agent  = currentPayload ? getActiveAgent(currentPayload.decision) : "OBSERVER";
   const action = getAgentAction(agent);
   setText("active-agent",        AGENT_LABELS_FR[agent] || agent);
   setText("active-agent-action", action);
-  setText("cerveau-synthesis",   getStateSynthesis(marketKey));
+  setText("cerveau-synthesis",   getStateSynthesis(getCockpitModel(currentPayload)?.marketKey || "UNKNOWN"));
 }
 
 const RULES_MAP = {
@@ -1503,8 +1544,7 @@ function getAgentRules(agent) {
 }
 
 function renderCerveauAgent() {
-  const marketKey = currentPayload ? getCockpitModel(currentPayload).marketKey : "UNKNOWN";
-  const agent = getStateAgent(marketKey);
+  const agent = currentPayload ? getActiveAgent(currentPayload.decision) : "OBSERVER";
   const el = document.getElementById("debug-brain");
   if (!el) return;
   el.classList.remove("cerveau--defender", "cerveau--attacker", "cerveau--observer", "cerveau--execute");
@@ -1515,6 +1555,19 @@ function renderCerveauAgent() {
     OBSERVER: "cerveau--observer"
   };
   el.classList.add(CLASS_MAP[agent] || "cerveau--observer");
+
+  el.classList.remove("intent-neutral", "intent-wait", "intent-danger");
+  const marketKey = currentPayload ? getCockpitModel(currentPayload).marketKey : "UNKNOWN";
+  const INTENT_MAP = {
+    RANGE:       "intent-neutral",
+    COMPRESSION: "intent-wait",
+    BREAKOUT:    "intent-wait",
+    TREND:       "intent-wait",
+    DEFENSE:     "intent-danger",
+    CHAOS:       "intent-danger",
+    UNKNOWN:     "intent-neutral"
+  };
+  el.classList.add(INTENT_MAP[marketKey] || "intent-neutral");
 }
 
 // Applique la policy aux boutons [data-action] du cockpit.
@@ -1561,6 +1614,82 @@ function renderDecisionPanel() {
   setText("dp-best-alt", dec.bestAlternative?.posture  || "—");
 }
 
+function buildWhyReasons(payload) {
+  const candidates = [];
+
+  if (payload.validation?.state === "rejected")
+    candidates.push({ key: "validation", priority: 100, text: "Validation rejetée → décision bloquée par le filtre final" });
+
+  const alignment = payload.alignment || "";
+  if (alignment === "Veto humain")
+    candidates.push({ key: "veto", priority: 95, text: "Veto humain actif → décision manuelle prioritaire → moteur suspendu" });
+
+  const stateLabels = {
+    range:       "Range détecté → marché sans direction → posture CORE",
+    compression: "Compression détectée → marché bloqué → attente d'un déclencheur",
+    expansion:   "Expansion détectée → momentum présent → fenêtre offensive possible",
+    defense:     "Mode défense activé → marché hostile → réduction du risque prioritaire",
+    riskoff:     "Risk-off détecté → contexte dangereux → protection du capital"
+  };
+  const stateKey = (payload.market_state || "range").toLowerCase();
+  if (stateLabels[stateKey])
+    candidates.push({ key: "state", priority: 80, text: stateLabels[stateKey] });
+
+  const risk = payload.trigger_level || "";
+  if (risk === "Élevé")
+    candidates.push({ key: "risk", priority: 70, text: "Risque élevé → exposition réduite → aucune entrée agressive" });
+  else if (risk === "Moyen")
+    candidates.push({ key: "risk", priority: 60, text: "Risque moyen → gestion normale → taille de position standard" });
+
+  const score = payload.score ?? 50;
+  if (score < 30)
+    candidates.push({ key: "score", priority: 55, text: "Score très faible → contexte fragile → aucune entrée justifiée" });
+  else if (score < 50)
+    candidates.push({ key: "score", priority: 50, text: "Score modéré → confiance insuffisante → prudence recommandée" });
+  else if (score < 70)
+    candidates.push({ key: "score", priority: 45, text: "Score correct → conditions acceptables → surveiller sans forcer" });
+  else
+    candidates.push({ key: "score", priority: 40, text: "Score élevé → contexte solide → décision méritée" });
+
+  const emotion = payload.emotion_state || "";
+  if (emotion === "stress")
+    candidates.push({ key: "emotion", priority: 35, text: "Émotion : stress → blocage des positions offensives" });
+  else if (emotion === "fomo")
+    candidates.push({ key: "emotion", priority: 35, text: "Émotion : FOMO détecté → risque d'entrée impulsive → blocage" });
+  else if (emotion === "calm")
+    candidates.push({ key: "emotion", priority: 10, text: "Émotion : calme → filtre émotionnel validé" });
+
+  if (alignment === "Fragile")
+    candidates.push({ key: "alignment", priority: 30, text: "Alignement fragile → signal peu fiable → observation seule" });
+
+  const fire = payload.constellium?.fire || "";
+  if (fire === "weak")
+    candidates.push({ key: "btc", priority: 20, text: "Constellium faible → manque de confirmation BTC → signal non validé" });
+
+  return candidates.sort((a, b) => b.priority - a.priority).slice(0, 3);
+}
+
+function renderWhyDecision(payload) {
+  const primary   = $("whyDecisionPrimary");
+  const secondary = $("whyDecisionSecondary");
+  if (!primary || !secondary) return;
+
+  primary.textContent = "";
+  secondary.innerHTML = "";
+
+  const reasons = buildWhyReasons(payload);
+  if (!reasons.length) return;
+
+  primary.textContent = reasons[0].text;
+
+  reasons.slice(1).forEach((r) => {
+    const li = document.createElement("li");
+    li.className = "why-decision-item";
+    li.textContent = r.text;
+    secondary.appendChild(li);
+  });
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -1579,6 +1708,7 @@ function render() {
   renderCerveauAgent();
   renderHeader(currentPayload);
   renderHero(currentPayload);
+  renderWhyDecision(currentPayload);
   renderLightContext(currentPayload);
   renderStructuredReading(currentPayload);
   renderNavigation(currentPayload);
