@@ -1993,6 +1993,53 @@ function renderPositionManagement(payload) {
   setText("pmStatus",  pm.status);
 }
 
+function getTradeScenarios(payload) {
+  const ds = computeDecisionState(payload);
+
+  if (ds.state === "BLOCKED") return {
+    ifValidation: "Aucune action tant que le blocage n'est pas levé",
+    ifRejection:  "Rester hors marché",
+    ifStagnation: "Observer uniquement"
+  };
+
+  if (ds.state === "PROTECT") return {
+    ifValidation: "Allègement ou protection prioritaire",
+    ifRejection:  "Réduire encore si nécessaire",
+    ifStagnation: "Ne pas relancer de position"
+  };
+
+  if (ds.state === "WAIT") return {
+    ifValidation: "Préparer une entrée légère si confirmation",
+    ifRejection:  "Rester en observation",
+    ifStagnation: "Continuer à attendre sans anticiper"
+  };
+
+  if (ds.state === "READY") return {
+    ifValidation: "Entrée possible sous condition",
+    ifRejection:  "Annuler l'idée d'entrée",
+    ifStagnation: "Conserver le plan sans forcer"
+  };
+
+  if (ds.state === "TENSION") return {
+    ifValidation: "Exécution possible avec discipline",
+    ifRejection:  "Sortie rapide ou retour en attente",
+    ifStagnation: "Ne pas sur-engager"
+  };
+
+  return {
+    ifValidation: "Laisser vivre le setup et gérer la position",
+    ifRejection:  "Réduire ou couper rapidement",
+    ifStagnation: "Gérer sans sur-ajouter"
+  };
+}
+
+function renderTradeScenarios(payload) {
+  const sc = getTradeScenarios(payload);
+  setText("scIfValidation", sc.ifValidation);
+  setText("scIfRejection",  sc.ifRejection);
+  setText("scIfStagnation", sc.ifStagnation);
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -2021,6 +2068,7 @@ function render() {
   renderActionPlan(currentPayload);
   renderExecutionLevel(currentPayload);
   renderPositionManagement(currentPayload);
+  renderTradeScenarios(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
