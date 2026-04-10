@@ -2094,6 +2094,128 @@ function renderRiskManagement(payload) {
   setText("rmRrMinimum",    rm.rrMinimum);
 }
 
+function getTradeSetup(payload) {
+  const ds = computeDecisionState(payload);
+
+  if (ds.state === "BLOCKED") return {
+    entryPoint:          "Aucune entrée",
+    validationCondition: "Blocage à lever",
+    invalidation:        "Marché non tradable",
+    timing:              "Aucun timing actif"
+  };
+
+  if (ds.state === "PROTECT") return {
+    entryPoint:          "Pas de nouvelle entrée",
+    validationCondition: "Retour d'un contexte plus propre",
+    invalidation:        "Nouvelle dégradation",
+    timing:              "Défensif"
+  };
+
+  if (ds.state === "WAIT") return {
+    entryPoint:          "Zone à préparer",
+    validationCondition: "Confirmation propre",
+    invalidation:        "Absence de signal",
+    timing:              "Patience"
+  };
+
+  if (ds.state === "READY") return {
+    entryPoint:          "Entrée sous condition",
+    validationCondition: "Validation du setup",
+    invalidation:        "Rejet immédiat",
+    timing:              "Pré-exécution"
+  };
+
+  if (ds.state === "TENSION") return {
+    entryPoint:          "Entrée possible mais surveillée",
+    validationCondition: "Signal net sans ambiguïté",
+    invalidation:        "Reprise contraire rapide",
+    timing:              "Fenêtre fragile"
+  };
+
+  return {
+    entryPoint:          "Entrée autorisée",
+    validationCondition: "Structure confirmée",
+    invalidation:        "Cassure invalide / rejet",
+    timing:              "Exécution active"
+  };
+}
+
+function renderTradeSetup(payload) {
+  const ts = getTradeSetup(payload);
+  setText("tsEntryPoint",          ts.entryPoint);
+  setText("tsValidationCondition", ts.validationCondition);
+  setText("tsInvalidation",        ts.invalidation);
+  setText("tsTiming",              ts.timing);
+}
+
+function getLiveTradeManagement(payload) {
+  const ds = computeDecisionState(payload);
+
+  if (ds.state === "BLOCKED") return {
+    tradeStatus:     "Hors trade",
+    immediateAction: "Aucune action",
+    ifContinuation:  "Ne pas poursuivre",
+    ifRejection:     "Rester flat",
+    protection:      "Maximale",
+    gainManagement:  "Non concerné"
+  };
+
+  if (ds.state === "PROTECT") return {
+    tradeStatus:     "Position défensive",
+    immediateAction: "Réduire / protéger",
+    ifContinuation:  "Ne pas recharger agressivement",
+    ifRejection:     "Couper encore si nécessaire",
+    protection:      "Prioritaire",
+    gainManagement:  "Sécuriser ce qui peut l'être"
+  };
+
+  if (ds.state === "WAIT") return {
+    tradeStatus:     "Attente active",
+    immediateAction: "Observer seulement",
+    ifContinuation:  "Ne pas chasser le mouvement",
+    ifRejection:     "Rester neutre",
+    protection:      "Aucun engagement inutile",
+    gainManagement:  "Non concerné"
+  };
+
+  if (ds.state === "READY") return {
+    tradeStatus:     "Setup proche",
+    immediateAction: "Surveiller le déclenchement",
+    ifContinuation:  "Entrer seulement si validation",
+    ifRejection:     "Annuler l'idée",
+    protection:      "Engagement léger",
+    gainManagement:  "Préparer un allègement"
+  };
+
+  if (ds.state === "TENSION") return {
+    tradeStatus:     "Trade fragile",
+    immediateAction: "Gérer serré",
+    ifContinuation:  "Laisser vivre sans surcharger",
+    ifRejection:     "Sortie rapide",
+    protection:      "Rapprochée",
+    gainManagement:  "Prendre partiel vite si nécessaire"
+  };
+
+  return {
+    tradeStatus:     "Trade actif",
+    immediateAction: "Accompagner le mouvement",
+    ifContinuation:  "Laisser courir proprement",
+    ifRejection:     "Alléger ou couper selon violence",
+    protection:      "Remonter la sécurité",
+    gainManagement:  "Allègement progressif possible"
+  };
+}
+
+function renderLiveTradeManagement(payload) {
+  const lt = getLiveTradeManagement(payload);
+  setText("ltTradeStatus",     lt.tradeStatus);
+  setText("ltImmediateAction", lt.immediateAction);
+  setText("ltIfContinuation",  lt.ifContinuation);
+  setText("ltIfRejection",     lt.ifRejection);
+  setText("ltProtection",      lt.protection);
+  setText("ltGainManagement",  lt.gainManagement);
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -2124,6 +2246,8 @@ function render() {
   renderPositionManagement(currentPayload);
   renderTradeScenarios(currentPayload);
   renderRiskManagement(currentPayload);
+  renderTradeSetup(currentPayload);
+  renderLiveTradeManagement(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
