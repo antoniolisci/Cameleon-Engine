@@ -5828,3 +5828,8 @@ body {
   background: linear-gradient(160deg, rgba(248, 113, 113, 0.05), rgba(255, 255, 255, 0.008));
   border-color: rgba(248, 113, 113, 0.16);
 }
+
+.plan-card.plan-active {
+  background: linear-gradient(160deg, rgba(110, 231, 183, 0.04), rgba(255, 255, 255, 0.008));
+  border-color: rgba(110, 231, 183, 0.14);
+}
