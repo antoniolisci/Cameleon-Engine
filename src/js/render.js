@@ -1766,14 +1766,76 @@ function getActionPlan(marketKey) {
   return MAP[marketKey] || MAP.UNKNOWN;
 }
 
+function getDecisionAwareActionPlan(payload) {
+  const ds = computeDecisionState(payload);
+
+  if (ds.state === "BLOCKED" || ds.state === "PROTECT") {
+    return {
+      tone: "danger",
+      now: [
+        "Réduire exposition",
+        "Protéger le capital",
+        "Ne pas ouvrir de nouvelle position"
+      ],
+      prepare: [
+        "Identifier les zones plus basses",
+        "Préparer un rechargement défensif",
+        "Attendre un retour de structure"
+      ]
+    };
+  }
+
+  if (ds.state === "WAIT") {
+    return {
+      tone: "wait",
+      now: [
+        "Observer sans forcer",
+        "Ne pas anticiper"
+      ],
+      prepare: [
+        "Travailler les zones clés",
+        "Préparer les niveaux",
+        "Attendre le signal de confirmation"
+      ]
+    };
+  }
+
+  if (ds.state === "READY" || ds.state === "TENSION") {
+    return {
+      tone: "wait",
+      now: [
+        "Attendre confirmation avant d'entrer",
+        "Éviter l'anticipation"
+      ],
+      prepare: [
+        "Préparer le niveau d'entrée",
+        "Préparer le scénario de validation",
+        "Définir le stop et la taille"
+      ]
+    };
+  }
+
+  return {
+    tone: "active",
+    now: [
+      "Exécuter proprement si setup valide",
+      "Gérer le risque dès l'entrée"
+    ],
+    prepare: [
+      "Préparer l'allègement partiel",
+      "Préparer le scénario suivant"
+    ]
+  };
+}
+
 function renderActionPlan(payload) {
   const container = $("actionPlan");
   if (!container) return;
 
   container.innerHTML = "";
 
-  const marketKey = getCockpitModel(payload).marketKey;
-  const plan = getActionPlan(marketKey);
+  const plan = getDecisionAwareActionPlan(payload);
+  setPlanCardState(plan.tone);
 
   const nowTitle = document.createElement("div");
   nowTitle.className = "plan-section-title";
@@ -1803,21 +1865,17 @@ function renderActionPlan(payload) {
   container.appendChild(prepList);
 }
 
-function setPlanCardState(payload) {
+function setPlanCardState(tone) {
   const el = $("actionPlanCard");
   if (!el) return;
-  el.classList.remove("plan-neutral", "plan-wait", "plan-danger");
+  el.classList.remove("plan-neutral", "plan-wait", "plan-danger", "plan-active");
   const PLAN_CLASS_MAP = {
-    RANGE:       "plan-neutral",
-    UNKNOWN:     "plan-neutral",
-    COMPRESSION: "plan-wait",
-    BREAKOUT:    "plan-wait",
-    TREND:       "plan-wait",
-    DEFENSE:     "plan-danger",
-    CHAOS:       "plan-danger"
+    neutral: "plan-neutral",
+    wait:    "plan-wait",
+    danger:  "plan-danger",
+    active:  "plan-active"
   };
-  const marketKey = getCockpitModel(payload).marketKey;
-  el.classList.add(PLAN_CLASS_MAP[marketKey] || "plan-neutral");
+  el.classList.add(PLAN_CLASS_MAP[tone] || "plan-neutral");
 }
 
 function render() {
@@ -1846,7 +1904,6 @@ function render() {
   renderPilotage(currentPayload);
   renderRightRail(currentPayload);
   renderActionPlan(currentPayload);
-  setPlanCardState(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
