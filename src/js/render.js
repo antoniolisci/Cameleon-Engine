@@ -2126,7 +2126,45 @@ function getTradeScenarios(payload) {
 }
 
 function renderTradeScenarios(payload) {
-  const sc = getTradeScenarios(payload);
+  // PRIORITÉ ABSOLUE — validation rejetée
+  if (payload.validation?.state === "rejected") {
+    setText("scIfValidation", "Aucune entrée • Éviter toute exposition");
+    setText("scIfRejection",  "Couper rapidement • Protéger le capital");
+    setText("scIfStagnation", "Rester flat • Attendre nouveau signal");
+    return;
+  }
+
+  // PRIORITÉ 2 — engagement_level (filtre adaptatif)
+  const ENGAGEMENT_SCENARIOS = {
+    NONE: {
+      ifValidation: "Ne pas intervenir • Laisser passer",
+      ifRejection:  "Ignorer le mouvement • Aucun impact",
+      ifStagnation: "Observer uniquement"
+    },
+    MINIMAL: {
+      ifValidation: "Observation active • Pas d'entrée immédiate",
+      ifRejection:  "Rester en dehors • Confirmer faiblesse",
+      ifStagnation: "Attendre confirmation"
+    },
+    REDUCED: {
+      ifValidation: "Entrée légère possible • Tester le mouvement",
+      ifRejection:  "Réduire rapidement • Limiter perte",
+      ifStagnation: "Réduire exposition"
+    },
+    NEUTRAL: {
+      ifValidation: "Attendre confirmation • Préparer entrée",
+      ifRejection:  "Sortie partielle • Réévaluer",
+      ifStagnation: "Maintenir sans renforcer"
+    },
+    FULL: {
+      ifValidation: "Renforcer position • Suivre le momentum",
+      ifRejection:  "Sortie rapide • Protéger gains",
+      ifStagnation: "Alléger partiellement"
+    }
+  };
+
+  // FALLBACK — engagement_level absent ou inconnu : comportement actuel conservé
+  const sc = ENGAGEMENT_SCENARIOS[payload.engagement_level] ?? getTradeScenarios(payload);
   setText("scIfValidation", sc.ifValidation);
   setText("scIfRejection",  sc.ifRejection);
   setText("scIfStagnation", sc.ifStagnation);
