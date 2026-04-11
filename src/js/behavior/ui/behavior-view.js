@@ -86,13 +86,16 @@ function buildAnalysis(state) {
   const { metrics, patterns, trades, tradeTags, score, coaching } = state;
   if (!metrics) return '';
   return `
-    <div class="bhv-analysis">
-      ${score ? buildScoreCard(score) : ''}
-      ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
-      ${buildSummaryCard(metrics)}
-      ${buildReadingCard(metrics, patterns)}
-      ${buildPatternsCard(patterns)}
-      ${buildJournalCard(trades, tradeTags)}
+    <div class="bhv-layout">
+      <div class="bhv-analysis">
+        ${score ? buildScoreCard(score) : ''}
+        ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
+        ${buildSummaryCard(metrics)}
+        ${buildReadingCard(metrics, patterns)}
+        ${buildPatternsCard(patterns)}
+        ${buildJournalCard(trades, tradeTags)}
+      </div>
+      ${buildSidebar(metrics, patterns, score, trades)}
     </div>`;
 }
 
@@ -195,10 +198,6 @@ function buildSummaryCard(m) {
         ${metric('Heures actives',    m.activeHours + ' / 24')}
       </div>
 
-      <div class="bhv-hour-section">
-        <div class="bhv-metric-label">Distribution horaire (UTC)</div>
-        <div class="bhv-hour-chart">${buildHourBars(m.hourDist)}</div>
-      </div>
     </div>`;
 }
 
@@ -351,6 +350,108 @@ function buildJournalCard(trades, tradeTags) {
         </table>
       </div>
     </div>`;
+}
+
+// ── Sidebar droite ────────────────────────────────────────────────────────────
+
+function buildSidebar(metrics, patterns, score, trades) {
+  return `
+    <div class="bhv-sidebar">
+      ${buildStatCard(metrics, patterns, score)}
+      ${buildActivityCard(metrics)}
+      ${buildSizeCard(trades, metrics)}
+    </div>`;
+}
+
+function buildStatCard(metrics, patterns, score) {
+  const patCount  = patterns ? patterns.length : 0;
+  const patMod    = patCount >= 3 ? 'danger' : patCount >= 1 ? 'warn' : '';
+  const scoreMod  = score ? score.profile.color : '';
+  const scoreVal  = score ? score.score : '—';
+  const risk      = score?.dominantRisk || '—';
+
+  return `
+    <div class="bhv-card">
+      <div class="bhv-card-head">
+        <span class="bhv-card-title">Vue rapide</span>
+      </div>
+      <div class="bhv-stat-grid">
+        <div class="bhv-stat">
+          <div class="bhv-stat-label">Trades</div>
+          <div class="bhv-stat-value">${metrics.totalTrades}</div>
+        </div>
+        <div class="bhv-stat">
+          <div class="bhv-stat-label">Score</div>
+          <div class="bhv-stat-value${scoreMod ? ' bhv-stat-value--' + scoreMod : ''}">${scoreVal}</div>
+        </div>
+        <div class="bhv-stat">
+          <div class="bhv-stat-label">Patterns</div>
+          <div class="bhv-stat-value${patMod ? ' bhv-stat-value--' + patMod : ''}">${patCount}</div>
+        </div>
+        <div class="bhv-stat bhv-stat--full">
+          <div class="bhv-stat-label">Risque dominant</div>
+          <div class="bhv-stat-risk">${escHtml(risk)}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildActivityCard(metrics) {
+  return `
+    <div class="bhv-card">
+      <div class="bhv-card-head">
+        <span class="bhv-card-title">Activité</span>
+        <span class="bhv-card-desc">UTC</span>
+      </div>
+      <div class="bhv-hour-chart">${buildHourBars(metrics.hourDist)}</div>
+    </div>`;
+}
+
+function buildSizeCard(trades, metrics) {
+  return `
+    <div class="bhv-card">
+      <div class="bhv-card-head">
+        <span class="bhv-card-title">Taille</span>
+        <span class="bhv-card-desc">Distribution · $</span>
+      </div>
+      ${buildSizeChart(trades, metrics)}
+    </div>`;
+}
+
+function buildSizeChart(trades, metrics) {
+  const sizes = trades.map(t => t.quote_quantity).filter(q => q > 0);
+  if (sizes.length < 2) return '<p class="bhv-empty">Données insuffisantes.</p>';
+
+  const min  = Math.min(...sizes);
+  const max  = Math.max(...sizes);
+  const N    = 8;
+  const step = (max - min) / N || 1;
+
+  const counts = new Array(N).fill(0);
+  sizes.forEach(s => {
+    const idx = Math.min(Math.floor((s - min) / step), N - 1);
+    counts[idx]++;
+  });
+
+  const peak = Math.max(...counts, 1);
+
+  const bars = counts.map((count, i) => {
+    const lo    = Math.round(min + i * step);
+    const hi    = Math.round(min + (i + 1) * step);
+    const h     = Math.round((count / peak) * 100);
+    const label = i % 2 === 0 ? fmtK(lo) : '';
+    return `
+      <div class="bhv-size-col" title="${lo}–${hi}$ · ${count} trade${count !== 1 ? 's' : ''}">
+        <div class="bhv-size-bar" style="height:${h}%"></div>
+        <div class="bhv-size-label">${label}</div>
+      </div>`;
+  }).join('');
+
+  return `<div class="bhv-size-chart">${bars}</div>`;
+}
+
+function fmtK(n) {
+  return n >= 1000 ? Math.round(n / 1000) + 'k' : String(n);
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────

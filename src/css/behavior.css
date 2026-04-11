@@ -22,7 +22,7 @@ body.bhv-panel-open .main-shell {
 /* ── Shell ──────────────────────────────────────────────────────────────────── */
 
 .bhv-shell {
-  max-width: 960px;
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -539,4 +539,118 @@ body.bhv-panel-open .main-shell {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* ── Two-column layout ───────────────────────────────────────────────────────── */
+
+.bhv-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .bhv-layout         { grid-template-columns: 1fr; }
+  .bhv-sidebar        { display: none; }
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────────── */
+
+.bhv-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Stat grid (compteurs de lecture rapide) ─────────────────────────────────── */
+
+.bhv-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bhv-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Risque dominant : pleine largeur + séparateur */
+.bhv-stat--full {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  padding-top: 10px;
+}
+
+.bhv-stat-label {
+  font-size: 0.64rem;
+  color: var(--muted, #bba76b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bhv-stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text, #f4ecd0);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bhv-stat-value--ok     { color: var(--ok,     #7dffb3); }
+.bhv-stat-value--gold   { color: var(--gold,   #d4af37); }
+.bhv-stat-value--warn   { color: var(--warn,   #ffd36e); }
+.bhv-stat-value--danger { color: var(--danger, #ff7b7b); }
+
+/* Risque dominant — 2 lignes max, ellipsis si débordement */
+.bhv-stat-risk {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft, #e9ddb7);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Size distribution chart ─────────────────────────────────────────────────── */
+
+.bhv-size-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 60px;
+}
+
+.bhv-size-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 2px;
+  cursor: default;
+}
+
+.bhv-size-bar {
+  width: 100%;
+  min-height: 2px;
+  background: var(--ok, #7dffb3);
+  opacity: 0.65;
+  border-radius: 2px 2px 0 0;
+  transition: opacity 0.15s;
+}
+
+.bhv-size-col:hover .bhv-size-bar { opacity: 1; }
+
+.bhv-size-label {
+  font-size: 0.54rem;
+  color: var(--muted, #bba76b);
+  height: 14px;
+  line-height: 14px;
+  white-space: nowrap;
 }
