@@ -2497,6 +2497,46 @@ function renderDecisionHistory() {
   ).join("");
 }
 
+function computeDecisionPattern() {
+  if (decisionHistory.length < 3) return "Pas assez de données";
+
+  const last   = decisionHistory.slice(0, 3);
+  const states = last.map(d => (d.engagement || "").toUpperCase());
+
+  if (states.every(s => s === "WAIT VALIDATION"))
+    return "Tu hésites — validation répétée sans action";
+
+  if (states[0] === "NONE" && states[1] === "REDUCED" && states[2] === "FULL")
+    return "Tu réduis progressivement ton engagement";
+
+  if (states[0] === "FULL" && states[1] === "FULL")
+    return "Engagement fort maintenu";
+
+  return "Comportement neutre";
+}
+
+function computeDecisionScore() {
+  if (decisionHistory.length === 0) return 0;
+
+  const scoreMap = { "FULL": 2, "REDUCED": 1, "NONE": 0, "WAIT VALIDATION": 0 };
+
+  let total = 0;
+  decisionHistory.forEach(d => {
+    const engagement = (d.engagement || "").toUpperCase();
+    const validation = (d.validation || "").toUpperCase();
+    let base = scoreMap[engagement] ?? 0;
+    if (validation === "REJECTED") base -= 1;
+    total += base;
+  });
+
+  return (total / decisionHistory.length).toFixed(1);
+}
+
+function renderDecisionInsights() {
+  setText("jdPattern", computeDecisionPattern());
+  setText("jdScore",   computeDecisionScore());
+}
+
 function renderJournalDecision(payload) {
   const STATE_LABELS = {
     pending:  "En attente",
@@ -2559,6 +2599,7 @@ function render() {
   renderLiveTradeManagement(currentPayload);
   renderJournalDecision(currentPayload);
   renderDecisionHistory();
+  renderDecisionInsights();
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
