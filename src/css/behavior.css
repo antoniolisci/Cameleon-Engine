@@ -528,3 +528,15 @@ body.bhv-panel-open .main-shell {
   margin-top: 7px;
   opacity: 0.8;
 }
+
+.bhv-coaching-bullet--plan {
+  background: var(--gold, #d4af37);
+}
+
+.bhv-coaching-plan {
+  border-top: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

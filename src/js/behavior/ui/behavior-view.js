@@ -128,9 +128,9 @@ function buildScoreCard(s) {
 // ── Coaching card ─────────────────────────────────────────────────────────────
 
 function buildCoachingCard(coaching) {
-  const { priority, tips } = coaching;
+  const { priority, tips, plan } = coaching;
 
-  const items = tips.map(tip => `
+  const tipItems = tips.map(tip => `
     <div class="bhv-coaching-tip">
       <span class="bhv-coaching-bullet"></span>
       <span>${escHtml(tip)}</span>
@@ -142,6 +142,21 @@ function buildCoachingCard(coaching) {
         <span class="bhv-card-title">Coaching</span>
         <span class="bhv-card-desc">${escHtml(priority)}</span>
       </div>
+      <div class="bhv-coaching-tips">${tipItems}</div>
+      ${plan && plan.length ? buildCoachingPlan(plan) : ''}
+    </div>`;
+}
+
+function buildCoachingPlan(plan) {
+  const items = plan.map(step => `
+    <div class="bhv-coaching-tip">
+      <span class="bhv-coaching-bullet bhv-coaching-bullet--plan"></span>
+      <span>${escHtml(step)}</span>
+    </div>`).join('');
+
+  return `
+    <div class="bhv-coaching-plan">
+      <div class="bhv-metric-label">Plan d'action</div>
       <div class="bhv-coaching-tips">${items}</div>
     </div>`;
 }
