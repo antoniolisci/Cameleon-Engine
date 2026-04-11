@@ -1834,7 +1834,47 @@ function renderActionPlan(payload) {
 
   container.innerHTML = "";
 
-  const plan = getDecisionAwareActionPlan(payload);
+  // PRIORITÉ ABSOLUE — validation rejetée
+  let plan;
+  if (payload.validation?.state === "rejected") {
+    plan = {
+      tone:    "danger",
+      now:     ["Aucune action autorisée"],
+      prepare: ["Revoir le contexte", "Attendre nouvelle validation"]
+    };
+  } else {
+    // PRIORITÉ 2 — engagement_level (filtre adaptatif)
+    const ENGAGEMENT_PLANS = {
+      NONE: {
+        tone:    "danger",
+        now:     ["Ne pas intervenir", "Laisser passer le setup"],
+        prepare: ["Observer sans biais", "Attendre un nouveau contexte"]
+      },
+      MINIMAL: {
+        tone:    "danger",
+        now:     ["Observer uniquement", "Ne pas anticiper"],
+        prepare: ["Clarifier le niveau clé", "Attendre validation nette"]
+      },
+      REDUCED: {
+        tone:    "wait",
+        now:     ["Entrée prudente possible", "Éviter toute surexposition"],
+        prepare: ["Définir un risque réduit", "Prévoir un scénario de sortie rapide"]
+      },
+      NEUTRAL: {
+        tone:    "wait",
+        now:     ["Attendre confirmation claire", "Rester en observation active"],
+        prepare: ["Identifier le trigger précis", "Préparer le plan d'entrée"]
+      },
+      FULL: {
+        tone:    "active",
+        now:     ["Exécution possible", "Suivre le plan sans hésitation"],
+        prepare: ["Définir niveau d'entrée précis", "Valider le stop et le sizing"]
+      }
+    };
+    // FALLBACK — engagement_level absent ou inconnu : comportement actuel conservé
+    plan = ENGAGEMENT_PLANS[payload.engagement_level] ?? getDecisionAwareActionPlan(payload);
+  }
+
   setPlanCardState(plan.tone);
 
   const nowTitle = document.createElement("div");
