@@ -2157,10 +2157,30 @@ function getRiskManagement(payload) {
 }
 
 function renderRiskManagement(payload) {
+  // PRIORITÉ ABSOLUE — engagement nul
+  if (payload.engagement_level === "NONE") {
+    setText("rmRiskPerTrade", "0%");
+    setText("rmPositionSize", "0 — aucun engagement");
+    setText("rmMaxExposure",  "0% — aucun engagement");
+    setText("rmRrMinimum",    "N/A");
+    return;
+  }
+
   const rm = getRiskManagement(payload);
+
+  // Suffixe adaptatif selon sizing_factor
+  const sf = payload.sizing_factor;
+  let suffix = "";
+  if      (sf === 0.75) suffix = " (léger ajustement)";
+  else if (sf === 0.5)  suffix = " (réduit)";
+  else if (sf === 0.25) suffix = " (minimal)";
+
+  // Applique le suffixe uniquement si sizing_factor présent et valeur non nulle
+  const addSuffix = (base) => (sf != null && base !== "0") ? base + suffix : base;
+
   setText("rmRiskPerTrade", rm.riskPerTrade);
-  setText("rmPositionSize", rm.positionSize);
-  setText("rmMaxExposure",  rm.maxExposure);
+  setText("rmPositionSize", addSuffix(rm.positionSize));
+  setText("rmMaxExposure",  addSuffix(rm.maxExposure));
   setText("rmRrMinimum",    rm.rrMinimum);
 }
 
