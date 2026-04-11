@@ -2291,7 +2291,51 @@ function getTradeSetup(payload) {
 }
 
 function renderTradeSetup(payload) {
-  const ts = getTradeSetup(payload);
+  // PRIORITÉ ABSOLUE — validation rejetée
+  if (payload.validation?.state === "rejected") {
+    setText("tsEntryPoint",          "Aucune entrée");
+    setText("tsValidationCondition", "Blocage à lever");
+    setText("tsInvalidation",        "Marché non tradable");
+    setText("tsTiming",              "Aucun timing actif");
+    return;
+  }
+
+  // PRIORITÉ 2 — engagement_level (filtre adaptatif)
+  const ENGAGEMENT_SETUP = {
+    NONE: {
+      entryPoint:          "Aucune entrée",
+      validationCondition: "Pas de setup exploitable",
+      invalidation:        "Contexte insuffisant",
+      timing:              "Attente passive"
+    },
+    MINIMAL: {
+      entryPoint:          "Zone à observer",
+      validationCondition: "Confirmation nette requise",
+      invalidation:        "Signal trop faible",
+      timing:              "Patience"
+    },
+    REDUCED: {
+      entryPoint:          "Entrée prudente possible",
+      validationCondition: "Setup propre mais réduit",
+      invalidation:        "Rejet rapide",
+      timing:              "Fenêtre courte"
+    },
+    NEUTRAL: {
+      entryPoint:          "Entrée sous condition",
+      validationCondition: "Confirmation structurelle",
+      invalidation:        "Absence de suivi",
+      timing:              "Pré-exécution"
+    },
+    FULL: {
+      entryPoint:          "Entrée autorisée",
+      validationCondition: "Structure confirmée",
+      invalidation:        "Cassure invalide / rejet",
+      timing:              "Exécution active"
+    }
+  };
+
+  // FALLBACK — engagement_level absent ou inconnu : comportement actuel conservé
+  const ts = ENGAGEMENT_SETUP[payload.engagement_level] ?? getTradeSetup(payload);
   setText("tsEntryPoint",          ts.entryPoint);
   setText("tsValidationCondition", ts.validationCondition);
   setText("tsInvalidation",        ts.invalidation);
