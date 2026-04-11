@@ -2466,6 +2466,32 @@ function renderLiveTradeManagement(payload) {
   setText("ltGainManagement",  lt.gainManagement);
 }
 
+function renderJournalDecision(payload) {
+  const STATE_LABELS = {
+    pending:  "En attente",
+    accepted: "Validée",
+    adjusted: "Validée sous contrainte",
+    rejected: "Refusée"
+  };
+
+  // Validation state traduit
+  setText("jdValidationState", STATE_LABELS[payload.validation?.state] || "—");
+
+  // Note de validation (depuis le payload)
+  const note = (payload.validation?.note || "").trim();
+  setText("jdValidationNote", note || "Aucune note saisie");
+
+  // Note de session (depuis le formulaire — hors moteur)
+  const journal = (appState.form?.journalNote || "").trim();
+  setText("jdJournalNote", journal || "Aucune note de session");
+
+  // Résumé moteur court
+  const status = payload.trading_status   || "—";
+  const el     = payload.engagement_level || "—";
+  const sf     = payload.sizing_factor != null ? payload.sizing_factor : "—";
+  setText("jdMoteurSummary", `${status} · engagement ${el} · sizing ${sf}`);
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -2498,6 +2524,7 @@ function render() {
   renderRiskManagement(currentPayload);
   renderTradeSetup(currentPayload);
   renderLiveTradeManagement(currentPayload);
+  renderJournalDecision(currentPayload);
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
