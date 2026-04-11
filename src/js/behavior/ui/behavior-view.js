@@ -90,9 +90,9 @@ function buildAnalysis(state) {
       <div class="bhv-analysis">
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
-        ${buildSummaryCard(metrics)}
-        ${buildReadingCard(metrics, patterns)}
         ${buildPatternsCard(patterns)}
+        ${buildReadingCard(metrics, patterns)}
+        ${buildSummaryCard(metrics)}
         ${buildJournalCard(trades, tradeTags)}
       </div>
       ${buildSidebar(metrics, patterns, score, trades)}
@@ -159,7 +159,7 @@ function buildCoachingPlan(plan) {
 
   return `
     <div class="bhv-coaching-plan">
-      <div class="bhv-metric-label">Plan d'action</div>
+      <div class="bhv-metric-label bhv-plan-label">Plan d'action</div>
       <div class="bhv-coaching-tips">${items}</div>
     </div>`;
 }
@@ -192,10 +192,10 @@ function buildSummaryCard(m) {
       </div>
 
       <div class="bhv-metrics-grid bhv-metrics-grid--secondary">
-        ${metric('Délai moy.',        m.avgTimeBetween  !== null ? m.avgTimeBetween  + ' min' : '—')}
-        ${metric('Après achat',       delayAfterBuy)}
-        ${metric('Après vente',       delayAfterSell)}
-        ${metric('Heures actives',    m.activeHours + ' / 24')}
+        ${metric('Délai moy.',     m.avgTimeBetween !== null ? m.avgTimeBetween + ' min' : '—', m.avgTimeBetween !== null && m.avgTimeBetween < 15 ? 'warn' : '')}
+        ${metric('Après achat',   delayAfterBuy)}
+        ${metric('Après vente',   delayAfterSell)}
+        ${metric('Heures actives', m.activeHours + ' / 24', m.activeHours <= 5 ? 'warn' : '')}
       </div>
 
     </div>`;
@@ -313,15 +313,19 @@ function buildPatternsCard(patterns) {
 
 // ── Journal card ──────────────────────────────────────────────────────────────
 
+const JOURNAL_LIMIT = 15;
+
 function buildJournalCard(trades, tradeTags) {
-  const sorted = [...trades].sort((a, b) => b.timestamp - a.timestamp).slice(0, 100);
-  const rows = sorted.map(t => {
-    const date   = new Date(t.timestamp).toISOString().replace('T', ' ').slice(0, 16);
-    const stored = tradeTags.get(t.timestamp);
-    const tags   = stored && stored.length ? stored.join(', ') : '—';
+  const sorted = [...trades].sort((a, b) => b.timestamp - a.timestamp).slice(0, 200);
+
+  const buildRow = (t, hidden = false) => {
+    const date     = new Date(t.timestamp).toISOString().replace('T', ' ').slice(0, 16);
+    const stored   = tradeTags.get(t.timestamp);
+    const tags     = stored && stored.length ? stored.join(', ') : '—';
     const tagClass = stored && stored.length ? ' bhv-tags--flagged' : '';
+    const attr     = hidden ? ' class="bhv-row-extra" hidden' : '';
     return `
-      <tr>
+      <tr${attr}>
         <td>${date}</td>
         <td>${escHtml(t.symbol)}</td>
         <td class="bhv-side bhv-side--${t.side.toLowerCase()}">${t.side}</td>
@@ -330,7 +334,16 @@ function buildJournalCard(trades, tradeTags) {
         <td>${t.quote_quantity}</td>
         <td class="bhv-tags${tagClass}">${escHtml(tags)}</td>
       </tr>`;
-  }).join('');
+  };
+
+  const rows = sorted.map((t, i) => buildRow(t, i >= JOURNAL_LIMIT)).join('');
+
+  const expandBtn = sorted.length > JOURNAL_LIMIT ? `
+    <div class="bhv-journal-expand" id="bhvJournalExpandWrap">
+      <button class="bhv-journal-btn" id="bhvJournalExpandBtn" type="button">
+        Voir tout (${trades.length})
+      </button>
+    </div>` : '';
 
   return `
     <div class="bhv-card">
@@ -349,6 +362,7 @@ function buildJournalCard(trades, tradeTags) {
           <tbody>${rows}</tbody>
         </table>
       </div>
+      ${expandBtn}
     </div>`;
 }
 
@@ -489,6 +503,14 @@ function bindEvents(root, state) {
     clearBtn.addEventListener('click', () => {
       behaviorRepo.clear();
       mount(root);
+    });
+  }
+
+  const expandBtn = root.querySelector('#bhvJournalExpandBtn');
+  if (expandBtn) {
+    expandBtn.addEventListener('click', () => {
+      root.querySelectorAll('.bhv-row-extra').forEach(r => r.removeAttribute('hidden'));
+      root.querySelector('#bhvJournalExpandWrap').hidden = true;
     });
   }
 }

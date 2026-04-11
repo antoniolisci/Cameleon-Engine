@@ -737,3 +737,34 @@ body.bhv-panel-open .main-shell {
 #behavior-root::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.18);
 }
+
+/* ── Plan d'action — label plus lisible ─────────────────────────────────────── */
+
+.bhv-plan-label {
+  color: var(--text-soft, #e9ddb7);
+  font-size: 0.75rem;
+}
+
+/* ── Journal — bouton "Voir tout" ────────────────────────────────────────────── */
+
+.bhv-journal-expand {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.bhv-journal-btn {
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.bhv-journal-btn:hover {
+  color: var(--gold, #d4af37);
+  background: rgba(212, 175, 55, 0.06);
+}
