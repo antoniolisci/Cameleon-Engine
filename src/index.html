@@ -6,6 +6,7 @@
   <title>Cameleon Engine</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/behavior.css">
 </head>
 <body data-shell-state="range">
   <div class="shell">
@@ -46,6 +47,11 @@
             <div class="side-tab-icon">H</div>
             <div class="side-tab-label">Mémoire</div>
             <div class="side-tab-state" id="sideStateMemoire">Prêt</div>
+          </button>
+          <button class="side-tab" id="behaviorTabBtn" type="button">
+            <div class="side-tab-icon">C</div>
+            <div class="side-tab-label">Comportement</div>
+            <div class="side-tab-state">Import CSV</div>
           </button>
         </div>
 
@@ -1039,6 +1045,7 @@
 
         <p class="footer-note">Cameleon Engine · identité V7.3.2e préservée · moteur adaptatif V4.5 modularisé</p>
       </main>
+      <section id="behavior-root" hidden></section>
     </div>
   </div>
   <dialog class="help-dialog" id="helpDialog" aria-labelledby="helpTitle">
@@ -1106,6 +1113,7 @@
     </div>
   </dialog>
   <script type="module" src="./js/render.js"></script>
+  <script type="module" src="./js/behavior/behavior-main.js"></script>
   <script>
 function getUserProfile() {
   return "NORMAL";
