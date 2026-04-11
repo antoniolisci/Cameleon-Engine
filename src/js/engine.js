@@ -142,6 +142,46 @@ export function profileMatrix(profile, engine, v) {
   return { core, attack, sniper, tradingStatus, traffic, reaction };
 }
 
+export function applyAdaptiveFilter(result, v) {
+  const out = { ...result };
+
+  // ── needAction : filtre d'engagement ─────────────────────────
+  if (v.needAction === "no") {
+    if (out.attack === "ON")  out.attack = "LIGHT";
+    if (out.sniper === "ON")  out.sniper = "WATCH";
+    out.traffic = out.traffic + " · Pas de nécessité d'agir identifiée.";
+    out.engagement_level = "REDUCED";
+  } else if (v.needAction === "maybe") {
+    out.engagement_level = "NEUTRAL";
+  } else {
+    out.engagement_level = "FULL";
+  }
+
+  // ── coreOrders : modulateur de sizing ────────────────────────
+  if (v.coreOrders === "yes")          out.sizing_factor = 1.0;
+  else if (v.coreOrders === "partial") out.sizing_factor = 0.75;
+  else                                 out.sizing_factor = 0.5;
+
+  // ── Combinaison spéciale : nécessité nulle + pas de socle ────
+  if (v.needAction === "no" && v.coreOrders === "no") {
+    out.sizing_factor    = 0.25;
+    out.engagement_level = "MINIMAL";
+  }
+
+  // ── Moteur déjà bloqué (émotion) : aucun engagement possible ─
+  if (out.tradingStatus === "NO TRADE") {
+    out.engagement_level = "NONE";
+    out.sizing_factor    = 0.0;
+  }
+
+  // ── Normalisation de cohérence ────────────────────────────────
+  if (out.engagement_level === "FULL"  && out.sizing_factor < 0.5)        out.sizing_factor = 0.5;
+  if (out.engagement_level === "NONE"  && out.sizing_factor !== 0.0)       out.sizing_factor = 0.0;
+  if (out.sizing_factor === 0.25       && out.engagement_level === "FULL") out.engagement_level = "REDUCED";
+
+  return out;
+}
+
 export function applyValidation(profileOut, v) {
   const result = { ...profileOut };
   let validationSummary = VALIDATION_TEXT[v.validationState];
@@ -182,7 +222,8 @@ export function detectInconsistencies(v, profileOut) {
 export function buildPayload(v, previousPayload = null) {
   const engine = baseEngine(v);
   const profiled = profileMatrix(v.userProfile, engine, v);
-  const filtered = applyValidation(profiled, v);
+  const adaptive = applyAdaptiveFilter(profiled, v);
+  const filtered = applyValidation(adaptive, v);
   const { state: mState, modifier: mModifier } = mapLegacyMarketState(v.market);
   const marketReading = assessMarket(mState, mModifier);
   const decision = getDecision(marketReading);
@@ -257,7 +298,9 @@ export function buildPayload(v, previousPayload = null) {
     emotion_state: v.emotion,
     user_profile: v.userProfile,
     core_orders: v.coreOrders,
-    need_action: v.needAction,
+    need_action:      v.needAction,
+    engagement_level: adaptive.engagement_level,
+    sizing_factor:    adaptive.sizing_factor,
     constellium: { ether: v.ether, fire: v.fire, air: v.air, earth: v.earth, water: v.water },
     setup_inputs: { structure_signal: v.structureSignal, momentum_signal: v.momentumSignal, zone_signal: v.zoneSignal },
     validation: { state: v.validationState, note: v.validationNote.trim(), summary: filtered.validationSummary },
