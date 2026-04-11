@@ -65,10 +65,12 @@ function computeCoaching(patterns, metrics, scoreData) {
   // 3. Ordre de traitement : dominant en tête, puis par poids × intensité décroissant
   const orderedTypes = buildOrderedTypes(dominantType, pats);
 
-  // 4. Génération des conseils
+  // 4. Génération des conseils + plan d'action
   // Pré-résoudre le type de délai à conserver si les deux sont présents.
   const keepDelayType = resolveDelayType(pats);
   const tips          = [];
+  const plan          = [];
+  let   planPatCount  = 0;   // max 2 patterns contribuent au plan
 
   for (const type of orderedTypes) {
     if (tips.length >= 5) break;
@@ -82,9 +84,18 @@ function computeCoaching(patterns, metrics, scoreData) {
     if (!tip) continue;
 
     tips.push(tip);
+
+    // Plan : les 2 premiers patterns actifs contribuent, cap à 5 étapes au total
+    if (planPatCount < 2 && plan.length < 5) {
+      const steps = getPatternPlan(type, metrics, pat);
+      if (steps) {
+        steps.forEach(s => { if (plan.length < 5) plan.push(s); });
+        planPatCount++;
+      }
+    }
   }
 
-  // 5. Conseils complémentaires basés sur les métriques
+  // 5. Conseils complémentaires basés sur les métriques (pas de contribution au plan)
   // Cadence globale — seulement si aucun conseil de délai pattern n'a déjà été ajouté
   // (keepDelayType !== null = au moins un type délai était présent et son conseil a été émis)
   if (tips.length < 5 && keepDelayType === null && metrics.avgTimeBetween !== null && metrics.avgTimeBetween < 15) {
@@ -101,7 +112,7 @@ function computeCoaching(patterns, metrics, scoreData) {
     tips.push('Évite de concentrer toute ton activité sur une fenêtre trop courte.');
   }
 
-  return { priority, tips };
+  return { priority, tips, plan };
 }
 
 // ── Résolution du type dominant ────────────────────────────────────────────────
@@ -171,26 +182,102 @@ function buildOrderedTypes(dominantType, pats) {
 }
 
 // ── Texte du conseil par type ──────────────────────────────────────────────────
-// Le pattern `pat` est passé pour permettre l'ajustement selon l'intensité :
-//   - overtrading       : count >= 5 → ton renforcé
-//   - size_inconsistency: cv >= 1    → ton renforcé
+// Trois niveaux d'intensité par pattern :
+//   overtrading       : count < 5 / >= 5 / >= 10
+//   loss_chasing      : count < 3 / >= 3
+//   size_inconsistency: cv < 0.5 (défensif) / 0.5–1 / >= 1
+//   revenge_trading, rapid_reentry : conseil fixe (délai post-sortie)
 
 function getPatternTip(type, metrics, pat) {
+  const count = pat?.count ?? 0;
+  const cv    = pat?.cv    ?? 0;
+
   switch (type) {
     case 'overtrading':
-      return (pat?.count ?? 0) >= 5
-        ? 'Réduis fortement ton nombre de trades : pas plus de 3 par heure.'
-        : 'Limite ton nombre de trades à 3 maximum par heure.';
+      if (count >= 10) return 'Stoppe temporairement ton activité — rythme excessif détecté.';
+      if (count >= 5)  return 'Réduis fortement ton nombre de trades : pas plus de 3 par heure.';
+      return 'Limite ton nombre de trades à 3 maximum par heure.';
+
     case 'revenge_trading':
       return 'Après une vente, impose un délai minimum de 20 minutes avant toute nouvelle entrée.';
+
     case 'rapid_reentry':
       return 'Après une sortie, attends au moins 30 minutes avant de reprendre position.';
+
     case 'size_inconsistency':
-      return (pat?.cv ?? 0) >= 1
-        ? `Stabilise strictement ta taille autour de ta moyenne (${metrics.avgSize}$ ±20%).`
-        : `Fixe une taille de position proche de ta moyenne (${metrics.avgSize}$ ±20%).`;
+      // cv < 0.5 : défensif — le pattern ne peut être détecté en dessous de ce seuil
+      if (cv < 0.5) return null;
+      if (cv >= 1)  return `Stabilise strictement ta taille autour de ta moyenne (${metrics.avgSize}$ ±20%).`;
+      return `Fixe une taille de position proche de ta moyenne (${metrics.avgSize}$ ±20%).`;
+
     case 'loss_chasing':
-      return 'Interdis toute augmentation de taille sur 3 trades consécutifs.';
+      if (count >= 3) return 'Interdis toute augmentation de taille sur 3 trades consécutifs.';
+      return 'Évite d\'augmenter ta taille sur des trades rapprochés.';
+
+    default:
+      return null;
+  }
+}
+
+// ── Plan d'action par type ────────────────────────────────────────────────────
+// Retourne 2–3 étapes concrètes et exécutables, adaptées à l'intensité réelle.
+// Basé uniquement sur des données observables — zéro psychologie, zéro P&L.
+
+function getPatternPlan(type, metrics, pat) {
+  const count = pat?.count ?? 0;
+  const cv    = pat?.cv    ?? 0;
+
+  switch (type) {
+    case 'overtrading':
+      if (count >= 10) return [
+        'Aujourd\'hui : zéro trade.',
+        'Reprendre demain avec une limite stricte de 3 trades maximum.',
+        'Respecter un délai de 20 minutes minimum entre chaque trade.',
+      ];
+      if (count >= 5) return [
+        'Maximum 3 trades par heure, sans exception.',
+        'Poser un minuteur de 20 minutes après chaque trade exécuté.',
+        'Stopper la session dès que la limite horaire est atteinte.',
+      ];
+      return [
+        'Maximum 3 trades par heure.',
+        'Attendre au moins 15 minutes entre deux trades.',
+      ];
+
+    case 'revenge_trading':
+      return [
+        'Après chaque vente, imposer un délai minimum de 20 minutes avant toute nouvelle entrée.',
+        'Ne pas dépasser ta taille moyenne sur le trade suivant une vente.',
+      ];
+
+    case 'rapid_reentry':
+      return [
+        'Après une sortie, attendre au moins 30 minutes avant toute nouvelle entrée.',
+        'Vérifier la configuration du marché avant de réintégrer la même paire.',
+      ];
+
+    case 'size_inconsistency':
+      if (cv >= 1) return [
+        `Taille fixe : ${metrics.avgSize}$ par trade, ±20% maximum.`,
+        'Ne pas exécuter un trade dont la taille s\'écarte de ce cadre.',
+        'Vérifier la taille avant chaque entrée en position.',
+      ];
+      return [
+        `Taille cible : ${metrics.avgSize}$ par trade.`,
+        'Vérifier la taille avant chaque entrée.',
+      ];
+
+    case 'loss_chasing':
+      if (count >= 3) return [
+        'Même taille ou taille inférieure sur chaque nouveau trade — jamais supérieure.',
+        'Interdire toute augmentation de taille sur 3 trades consécutifs.',
+        'Réinitialiser la taille à ta moyenne dès la fin d\'une séquence rapprochée.',
+      ];
+      return [
+        'Maintenir une taille constante sur les séquences de trades rapprochés.',
+        'Règle : taille identique ou inférieure sur le trade suivant.',
+      ];
+
     default:
       return null;
   }
