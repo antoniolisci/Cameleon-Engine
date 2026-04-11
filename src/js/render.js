@@ -1918,6 +1918,36 @@ function getExecutionLevel(payload) {
 }
 
 function renderExecutionLevel(payload) {
+  // PRIORITÉ ABSOLUE — verrou validation rejetée
+  if (payload.validation?.state === "rejected") {
+    setText("execPermission", "❌ Interdit — validation refusée");
+    setText("execActionType", "Aucune exécution");
+    setText("execIntensity",  "Nulle");
+    setText("execRisk",       "Élevé");
+    return;
+  }
+
+  // PRIORITÉ 2 — engagement_level (filtre adaptatif)
+  const el = payload.engagement_level;
+  if (el) {
+    const MAP = {
+      NONE:    { permission: "❌ Interdit — aucune exécution autorisée", actionType: "Aucune exécution",        intensity: "Nulle",    risk: "Élevé"    },
+      MINIMAL: { permission: "⚠️ Très limité — observation uniquement",  actionType: "Observer uniquement",     intensity: "Nulle",    risk: "Élevé"    },
+      REDUCED: { permission: "⚠️ Réduit — exécution prudente",           actionType: "Exécution réduite",       intensity: "Faible",   risk: "Moyen"    },
+      NEUTRAL: { permission: "👁 Observation — attendre confirmation",   actionType: "Observer / préparer",     intensity: "Faible",   risk: "Moyen"    },
+      FULL:    { permission: "✅ Autorisé — exécution possible",         actionType: "Entrée / gestion active", intensity: "Active",   risk: "Contrôlé" },
+    };
+    const level = MAP[el];
+    if (level) {
+      setText("execPermission", level.permission);
+      setText("execActionType", level.actionType);
+      setText("execIntensity",  level.intensity);
+      setText("execRisk",       level.risk);
+      return;
+    }
+  }
+
+  // FALLBACK — engagement_level absent : comportement actuel conservé
   const level = getExecutionLevel(payload);
   setText("execPermission", level.permission);
   setText("execActionType", level.actionType);
