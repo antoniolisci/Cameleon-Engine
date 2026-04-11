@@ -28,6 +28,7 @@ const $$ = (selector) => [...document.querySelectorAll(selector)];
 let appState = loadState();
 let currentPayload = null;
 let initialized = false;
+let decisionHistory = [];
 let fieldEventsBound = false;
 let controlEventsBound = false;
 let clockTimer = null;
@@ -2466,6 +2467,36 @@ function renderLiveTradeManagement(payload) {
   setText("ltGainManagement",  lt.gainManagement);
 }
 
+function pushDecisionSnapshot(payload) {
+  const snapshot = {
+    time:           new Date().toLocaleTimeString(),
+    status:         payload.trading_status,
+    engagement:     payload.engagement_level,
+    sizing:         payload.sizing_factor,
+    validation:     payload.validation?.state,
+    validationNote: payload.validation?.note || "",
+    journalNote:    appState.form?.journalNote || ""
+  };
+
+  // Ne push que si la décision a changé
+  const key = (s) => `${s.status}|${s.engagement}|${s.sizing}|${s.validation}`;
+  if (decisionHistory.length > 0 && key(decisionHistory[0]) === key(snapshot)) return;
+
+  decisionHistory.unshift(snapshot);
+  if (decisionHistory.length > 5) decisionHistory.pop();
+}
+
+function renderDecisionHistory() {
+  const container = document.getElementById("jdHistory");
+  if (!container) return;
+  container.innerHTML = decisionHistory.map(d =>
+    `<div class="history-item">
+       <strong>${d.time}</strong>
+       <div class="muted">${d.status} · ${d.engagement} · ${d.sizing}</div>
+     </div>`
+  ).join("");
+}
+
 function renderJournalDecision(payload) {
   const STATE_LABELS = {
     pending:  "En attente",
@@ -2499,6 +2530,8 @@ function render() {
     appState.lastPayload = currentPayload;
   }
 
+  pushDecisionSnapshot(currentPayload);
+
   warnMissingPayloadData(currentPayload);
   document.body.dataset.shellState = getCockpitModel(currentPayload).marketKey.toLowerCase();
 
@@ -2525,6 +2558,7 @@ function render() {
   renderTradeSetup(currentPayload);
   renderLiveTradeManagement(currentPayload);
   renderJournalDecision(currentPayload);
+  renderDecisionHistory();
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
