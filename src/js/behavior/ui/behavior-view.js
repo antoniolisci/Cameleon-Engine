@@ -55,7 +55,7 @@ function buildShell(state) {
 
 function buildImportCard(state) {
   return `
-    <div class="bhv-card bhv-import-card">
+    <div class="bhv-card bhv-import-card${state.importInfo ? ' bhv-pulse-ok' : ''}">
       <div class="bhv-card-head">
         <span class="bhv-card-title">Import CSV</span>
         <span class="bhv-card-desc">Export Binance Spot · colonnes : Date(UTC), Pair, Side, Price, Executed, Amount, Fee</span>
@@ -86,7 +86,7 @@ function buildAnalysis(state) {
   const { metrics, patterns, trades, tradeTags, score, coaching } = state;
   if (!metrics) return '';
   return `
-    <div class="bhv-layout">
+    <div class="bhv-layout bhv-fade-in">
       <div class="bhv-analysis">
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
@@ -369,6 +369,7 @@ function buildStatCard(metrics, patterns, score) {
   const scoreMod  = score ? score.profile.color : '';
   const scoreVal  = score ? score.score : '—';
   const risk      = score?.dominantRisk || '—';
+  const riskMod   = patCount >= 3 ? 'danger' : patCount >= 1 ? 'warn' : 'gold';
 
   return `
     <div class="bhv-card">
@@ -390,7 +391,7 @@ function buildStatCard(metrics, patterns, score) {
         </div>
         <div class="bhv-stat bhv-stat--full">
           <div class="bhv-stat-label">Risque dominant</div>
-          <div class="bhv-stat-risk">${escHtml(risk)}</div>
+          <div class="bhv-stat-risk bhv-stat-risk--${riskMod}">${escHtml(risk)}</div>
         </div>
       </div>
     </div>`;
