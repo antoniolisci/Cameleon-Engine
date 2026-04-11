@@ -2503,8 +2503,8 @@ function computeDecisionPattern() {
   const last   = decisionHistory.slice(0, 3);
   const states = last.map(d => (d.engagement || "").toUpperCase());
 
-  if (states.every(s => s === "WAIT VALIDATION"))
-    return "Tu hésites — validation répétée sans action";
+  if (states.every(s => s === "NONE" || s === "MINIMAL"))
+    return "Tu hésites — aucune décision claire sur les 3 derniers états";
 
   if (states[0] === "NONE" && states[1] === "REDUCED" && states[2] === "FULL")
     return "Tu réduis progressivement ton engagement";
@@ -2518,7 +2518,7 @@ function computeDecisionPattern() {
 function computeDecisionScore() {
   if (decisionHistory.length === 0) return 0;
 
-  const scoreMap = { "FULL": 2, "REDUCED": 1, "NONE": 0, "WAIT VALIDATION": 0 };
+  const scoreMap = { "FULL": 2, "REDUCED": 1, "NEUTRAL": 0, "MINIMAL": 0, "NONE": 0 };
 
   let total = 0;
   decisionHistory.forEach(d => {
@@ -2548,7 +2548,7 @@ function computeBehaviorAlert() {
     return "⚠️ Tu sur-réagis — instabilité forte";
 
   // 2. Hésitation
-  if (states.every(s => s === "NONE" || s === "WAIT VALIDATION"))
+  if (states.every(s => s === "NONE" || s === "MINIMAL"))
     return "⚠️ Tu hésites trop — aucune décision claire";
 
   // 3. Instabilité simple
@@ -2567,7 +2567,7 @@ function computeAlertStats() {
 
   decisionHistory.forEach(d => {
     const e = (d.engagement || "").toUpperCase();
-    if (e === "NONE" || e === "WAIT VALIDATION") stats.hesitation++;
+    if (e === "NONE" || e === "MINIMAL") stats.hesitation++;
   });
 
   for (let i = 0; i < decisionHistory.length - 2; i++) {
