@@ -2562,6 +2562,45 @@ function renderBehaviorAlert() {
   setText("jdAlert", computeBehaviorAlert() || "Aucune alerte");
 }
 
+function computeAlertStats() {
+  const stats = { hesitation: 0, overreaction: 0, instability: 0 };
+
+  decisionHistory.forEach(d => {
+    const e = (d.engagement || "").toUpperCase();
+    if (e === "NONE" || e === "WAIT VALIDATION") stats.hesitation++;
+  });
+
+  for (let i = 0; i < decisionHistory.length - 2; i++) {
+    const s1 = (decisionHistory[i].engagement   || "").toUpperCase();
+    const s2 = (decisionHistory[i+1].engagement || "").toUpperCase();
+    const s3 = (decisionHistory[i+2].engagement || "").toUpperCase();
+    if (s1 === "FULL" && s2 === "NONE" && s3 === "FULL") stats.overreaction++;
+    if (new Set([s1, s2, s3]).size >= 3) stats.instability++;
+  }
+
+  return stats;
+}
+
+function computeMetaMessage(stats) {
+  if (stats.overreaction >= 2) return "⚠️ Tu sur-réagis régulièrement";
+  if (stats.hesitation   >= 3) return "⚠️ Tu hésites souvent";
+  if (stats.instability  >= 2) return "⚠️ Comportement instable";
+  return "Comportement global stable";
+}
+
+function computeBehaviorBadge(stats) {
+  const total = stats.hesitation + stats.overreaction + stats.instability;
+  if (total <= 1) return "🟢 Stable";
+  if (total <= 3) return "🟡 À surveiller";
+  return "🔴 Instable";
+}
+
+function renderMetaLayer() {
+  const stats = computeAlertStats();
+  setText("jdMetaMessage", computeMetaMessage(stats));
+  setText("jdMetaBadge",   computeBehaviorBadge(stats));
+}
+
 function renderJournalDecision(payload) {
   const STATE_LABELS = {
     pending:  "En attente",
@@ -2626,6 +2665,7 @@ function render() {
   renderDecisionHistory();
   renderDecisionInsights();
   renderBehaviorAlert();
+  renderMetaLayer();
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
