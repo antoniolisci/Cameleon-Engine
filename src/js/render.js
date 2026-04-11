@@ -2054,11 +2054,33 @@ function getPositionManagement(payload) {
 }
 
 function renderPositionManagement(payload) {
+  // PRIORITÉ ABSOLUE — validation rejetée ou engagement nul
+  if (payload.validation?.state === "rejected" || payload.engagement_level === "NONE") {
+    setText("pmSize",    "0 — aucun engagement");
+    setText("pmMode",    "Flat uniquement");
+    setText("pmEntry",   "Aucune entrée");
+    setText("pmExit",    "Aucune gestion active");
+    setText("pmMaxRisk", "Élevé");
+    setText("pmStatus",  "Marché bloqué");
+    return;
+  }
+
   const pm = getPositionManagement(payload);
-  setText("pmSize",    pm.size);
-  setText("pmMode",    pm.mode);
-  setText("pmEntry",   pm.entry);
-  setText("pmExit",    pm.exit);
+
+  // Suffixe adaptatif selon sizing_factor
+  const sf = payload.sizing_factor;
+  let suffix = "";
+  if      (sf === 0.75) suffix = " (léger ajustement)";
+  else if (sf === 0.5)  suffix = " (réduit)";
+  else if (sf === 0.25) suffix = " (minimal)";
+
+  // Applique le suffixe sur les champs modulables uniquement (guard sur valeurs nulles)
+  const addSuffix = (base) => (sf != null && base !== "0" && base !== "0%") ? base + suffix : base;
+
+  setText("pmSize",    addSuffix(pm.size));
+  setText("pmMode",    addSuffix(pm.mode));
+  setText("pmEntry",   addSuffix(pm.entry));
+  setText("pmExit",    addSuffix(pm.exit));
   setText("pmMaxRisk", pm.maxRisk);
   setText("pmStatus",  pm.status);
 }
