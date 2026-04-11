@@ -2401,7 +2401,63 @@ function getLiveTradeManagement(payload) {
 }
 
 function renderLiveTradeManagement(payload) {
-  const lt = getLiveTradeManagement(payload);
+  // PRIORITÉ ABSOLUE — validation rejetée
+  if (payload.validation?.state === "rejected") {
+    setText("ltTradeStatus",     "Hors trade");
+    setText("ltImmediateAction", "Aucune action");
+    setText("ltIfContinuation",  "Ne pas poursuivre");
+    setText("ltIfRejection",     "Rester flat");
+    setText("ltProtection",      "Maximale");
+    setText("ltGainManagement",  "Non concerné");
+    return;
+  }
+
+  // PRIORITÉ 2 — engagement_level (filtre adaptatif)
+  const ENGAGEMENT_LIVE = {
+    NONE: {
+      tradeStatus:     "Hors trade",
+      immediateAction: "Ne pas intervenir",
+      ifContinuation:  "Laisser passer",
+      ifRejection:     "Aucun impact",
+      protection:      "Aucune exposition",
+      gainManagement:  "Non concerné"
+    },
+    MINIMAL: {
+      tradeStatus:     "Observation active",
+      immediateAction: "Observer seulement",
+      ifContinuation:  "Ne pas chasser",
+      ifRejection:     "Rester dehors",
+      protection:      "Très prudente",
+      gainManagement:  "Non concerné"
+    },
+    REDUCED: {
+      tradeStatus:     "Trade léger",
+      immediateAction: "Entrée prudente",
+      ifContinuation:  "Accompagner sans surcharger",
+      ifRejection:     "Réduire vite",
+      protection:      "Serrée",
+      gainManagement:  "Prendre partiel vite"
+    },
+    NEUTRAL: {
+      tradeStatus:     "Trade préparatoire",
+      immediateAction: "Attendre validation claire",
+      ifContinuation:  "Entrer si confirmation",
+      ifRejection:     "Réévaluer",
+      protection:      "Contrôlée",
+      gainManagement:  "Préparer allègement"
+    },
+    FULL: {
+      tradeStatus:     "Trade actif",
+      immediateAction: "Accompagner le mouvement",
+      ifContinuation:  "Laisser courir proprement",
+      ifRejection:     "Alléger ou couper",
+      protection:      "Remonter la sécurité",
+      gainManagement:  "Allègement progressif"
+    }
+  };
+
+  // FALLBACK — engagement_level absent ou inconnu : comportement actuel conservé
+  const lt = ENGAGEMENT_LIVE[payload.engagement_level] ?? getLiveTradeManagement(payload);
   setText("ltTradeStatus",     lt.tradeStatus);
   setText("ltImmediateAction", lt.immediateAction);
   setText("ltIfContinuation",  lt.ifContinuation);
