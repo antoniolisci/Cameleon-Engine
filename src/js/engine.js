@@ -206,6 +206,12 @@ export function applyValidation(profileOut, v) {
     validationSummary = "Le setup est visible, mais la validation humaine manque encore pour ouvrir franchement la fenêtre.";
   }
 
+  // Semi-verrou contextuel : accepté sans note → sniper en observation
+  if (v.validationState === "accepted" && !(v.validationNote || "").trim()) {
+    if (result.sniper === "ON") result.sniper = "WATCH";
+    validationSummary = "Validation acceptée sans contexte écrit.";
+  }
+
   return { ...result, validationSummary };
 }
 
