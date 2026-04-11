@@ -654,3 +654,86 @@ body.bhv-panel-open .main-shell {
   line-height: 14px;
   white-space: nowrap;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   UX — Micro-interactions & animations
+   Toutes les règles ci-dessous s'ajoutent aux existantes sans les remplacer.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Card hover ───────────────────────────────────────────────────────────── */
+
+.bhv-card {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bhv-card:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.07), 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* ── 2. Pattern hover — lift + ombre ─────────────────────────────────────────── */
+
+.bhv-pattern {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bhv-pattern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+/* ── 3. Animation d'apparition ───────────────────────────────────────────────── */
+
+@keyframes bhv-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.bhv-fade-in {
+  animation: bhv-fade-in 0.35s ease both;
+}
+
+/* ── 4. Risque dominant — bordure gauche colorée ────────────────────────────── */
+
+.bhv-stat-risk {
+  border-left: 2px solid transparent;
+  padding-left: 8px;
+}
+
+.bhv-stat-risk--gold   { border-left-color: var(--gold,   #d4af37); }
+.bhv-stat-risk--warn   { border-left-color: var(--warn,   #ffd36e); }
+.bhv-stat-risk--danger { border-left-color: var(--danger, #ff7b7b); }
+
+/* ── 5. Compteurs — scale au hover ──────────────────────────────────────────── */
+
+.bhv-stat-value {
+  transition: transform 0.15s ease;
+}
+
+.bhv-stat:hover .bhv-stat-value {
+  transform: scale(1.06);
+}
+
+/* ── 6. Pulse vert après import réussi ──────────────────────────────────────── */
+
+@keyframes bhv-pulse-ok {
+  0%   { box-shadow: 0 0 0 0   rgba(125, 255, 179, 0.35); }
+  60%  { box-shadow: 0 0 0 10px rgba(125, 255, 179, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(125, 255, 179, 0);    }
+}
+
+.bhv-pulse-ok {
+  animation: bhv-pulse-ok 0.55s ease-out;
+}
+
+/* ── 7. Scrollbar discrète ───────────────────────────────────────────────────── */
+
+#behavior-root::-webkit-scrollbar       { width: 6px; }
+#behavior-root::-webkit-scrollbar-track { background: transparent; }
+#behavior-root::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+#behavior-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
