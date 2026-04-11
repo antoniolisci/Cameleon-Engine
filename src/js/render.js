@@ -2537,6 +2537,31 @@ function renderDecisionInsights() {
   setText("jdScore",   computeDecisionScore());
 }
 
+function computeBehaviorAlert() {
+  if (decisionHistory.length < 3) return "";
+
+  const last   = decisionHistory.slice(0, 3);
+  const states = last.map(d => (d.engagement || "").toUpperCase());
+
+  // 1. Sur-réaction (priorité max)
+  if (states[0] === "FULL" && states[1] === "NONE" && states[2] === "FULL")
+    return "⚠️ Tu sur-réagis — instabilité forte";
+
+  // 2. Hésitation
+  if (states.every(s => s === "NONE" || s === "WAIT VALIDATION"))
+    return "⚠️ Tu hésites trop — aucune décision claire";
+
+  // 3. Instabilité simple
+  if (new Set(states).size >= 3)
+    return "⚠️ Instabilité décisionnelle";
+
+  return "";
+}
+
+function renderBehaviorAlert() {
+  setText("jdAlert", computeBehaviorAlert() || "Aucune alerte");
+}
+
 function renderJournalDecision(payload) {
   const STATE_LABELS = {
     pending:  "En attente",
@@ -2600,6 +2625,7 @@ function render() {
   renderJournalDecision(currentPayload);
   renderDecisionHistory();
   renderDecisionInsights();
+  renderBehaviorAlert();
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
