@@ -69,11 +69,11 @@
 
           <div class="cerveau-rules">
             <div class="cerveau-rules__block cerveau-rules__block--allowed">
-              <div class="cerveau-rules__title">Allowed</div>
+              <div class="cerveau-rules__title">Autorisé</div>
               <div id="rules-allowed" class="cerveau-rules__list">—</div>
             </div>
             <div class="cerveau-rules__block cerveau-rules__block--forbidden">
-              <div class="cerveau-rules__title">Forbidden</div>
+              <div class="cerveau-rules__title">Interdit</div>
               <div id="rules-forbidden" class="cerveau-rules__list">—</div>
             </div>
           </div>
@@ -525,6 +525,32 @@
                       <div class="kpi-value" id="sniperMode">Inactif</div>
                       <div class="kpi-sub" id="sniperSub">N'apparaît qu'avec une validation suffisante</div>
                     </div>
+                  </div>
+
+                  <div class="confidence-panel" data-tone="warning" data-mode="wait" data-strength="weak" data-score="0">
+                    <div class="kpi-grid confidence-kpi-grid">
+                      <div class="kpi-card">
+                        <div class="kpi-label">Lisibilité</div>
+                        <div class="kpi-value" id="cs-score">—</div>
+                        <div class="kpi-sub" id="cs-label">En attente</div>
+                        <div class="score-bar">
+                          <div class="score-bar-fill" id="cs-bar" style="width: 0%"></div>
+                        </div>
+                      </div>
+                      <div class="kpi-card">
+                        <div class="kpi-label">Mode opérationnel</div>
+                        <div class="kpi-value" id="cs-mode">—</div>
+                        <div class="kpi-sub" id="cs-action">—</div>
+                      </div>
+                    </div>
+                    <div class="mode-panel" style="margin-top: 0.5rem;">
+                      <div class="tiny-label">Lecture contextuelle</div>
+                      <p class="text-soft" id="cs-message">Le moteur attend une lecture complète.</p>
+                    </div>
+                    <p class="text-soft" style="margin-top:0.5rem;">
+                      Ce panneau guide la lecture du marché et le niveau d'engagement recommandé.
+                      Il n'influence pas la décision finale du moteur.
+                    </p>
                   </div>
 
                   <div class="mode-panel">

@@ -21,6 +21,7 @@ import {
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, estimateStateSize, loadState, saveState, getMarketState, updateMarketState } from "./state.js";
 import { computeTradingPolicy, getTradingPolicy, canExecuteAction } from "./trading-policy.js";
+import { buildMarketContext } from "./confidence-score.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -132,17 +133,17 @@ function mapStrength(score) {
 }
 
 function mapFlag(score) {
-  if (score >= 70) return "High Confidence";
-  if (score >= 40) return "Moderate Confidence";
-  return "Low Confidence";
+  if (score >= 70) return "Confiance élevée";
+  if (score >= 40) return "Confiance modérée";
+  return "Confiance faible";
 }
 
 function computePosture(score, marketState) {
-  if (marketState === "Defense") return "Protection";
-  if (score < 30) return "No Trade";
+  if (marketState === "Defense") return "Protection du capital";
+  if (score < 30) return "Hors marché";
   if (score < 50) return "Patience";
-  if (score < 70) return "Observation";
-  return "Execution";
+  if (score < 70) return "Observation active";
+  return "Exécution";
 }
 
 function computeAction(score, marketState) {
@@ -155,10 +156,10 @@ function computeAction(score, marketState) {
 
 function computeAgent(score, marketState) {
   if (marketState === "Compression") return "Sniper";
-  if (marketState === "Expansion")   return "Rider";
-  if (marketState === "Defense")     return "Guardian";
-  if (score < 50)                    return "Observer";
-  return "Executor";
+  if (marketState === "Expansion")   return "Suiveur";
+  if (marketState === "Defense")     return "Gardien";
+  if (score < 50)                    return "Observateur";
+  return "Exécuteur";
 }
 
 /**
@@ -293,20 +294,146 @@ const AGENT_LABELS_FR = {
 };
 
 const POSTURE_LABELS_FR = {
-  ACTIVE:    "Active",
-  AGRESSIVE: "Agressive",
-  WAIT:      "Attente",
-  PROTECT:   "Protection",
-  PRUDENCE:  "Prudence"
+  ACTIVE:    "Engagement actif",
+  AGRESSIVE: "Engagement agressif",
+  WAIT:      "Attente structurée",
+  PROTECT:   "Protection du capital",
+  PRUDENCE:  "Prudence structurée"
 };
 
 const BRAIN_STATE_LABELS_FR = {
-  RANGE:       "Range",
-  COMPRESSION: "Compression",
-  EXPANSION:   "Expansion",
-  DEFENSE:     "Défense",
-  RISKOFF:     "Instable"
+  RANGE:       "Range (équilibre marché)",
+  COMPRESSION: "Compression (pré-mouvement)",
+  EXPANSION:   "Expansion en cours",
+  DEFENSE:     "Mode défensif",
+  RISKOFF:     "Marché instable"
 };
+
+// ─── Override labels venant de data.js ───────────────────────
+// data.js est hors scope — on intercepte ici pour l'affichage uniquement.
+
+const MARKET_LABEL_OVERRIDE_FR = {
+  "Breakout":    "Cassure en cours",
+  "Range":       "Range (équilibre marché)",
+  "Compression": "Compression (pré-mouvement)",
+  "Instable":    "Marché instable"
+};
+
+const MARKET_DECISION_OVERRIDE_FR = {
+  "Marché en attente — pas de signal exploitable": "Aucun signal exploitable — rester en observation active"
+};
+
+// ─── Labels FR confidence panel ───────────────────────────────
+// Traduit les valeurs internes de confidence-score.js pour l'affichage uniquement.
+// Les valeurs du payload et de ctx ne sont jamais modifiées.
+
+const CONFIDENCE_MODE_FR = {
+  WAIT:    "Attente structurée",
+  CAUTION: "Prudence structurée",
+  ACTIVE:  "Engagement actif"
+};
+
+const CONFIDENCE_ACTION_FR = {
+  NO_TRADE:        "Aucune initiative",
+  LIMITED_ENTRIES: "Entrées limitées",
+  FULL_SETUP:      "Setup exploitable"
+};
+
+function translateMode(mode) {
+  return CONFIDENCE_MODE_FR[mode] || mode;
+}
+
+function translateAction(action) {
+  return CONFIDENCE_ACTION_FR[action] || action;
+}
+
+// ─── Labels FR actions trading policy ────────────────────────
+// Traduit les actions allowed/forbidden pour l'affichage uniquement.
+// Les valeurs internes de trading-policy.js restent inchangées.
+// Fallback : valeur brute si action inconnue.
+
+const POLICY_ACTION_FR = {
+  // ── Actions autorisées ────────────────────────────────────
+  "Observe":              "Observer sans intervenir",
+  "Wait Setup":           "Attendre un setup validé",
+  "Prepare":              "Préparer le plan",
+  "Define Levels":        "Définir les niveaux clés",
+  "Update Watchlist":     "Mettre à jour les opportunités",
+  "Buy":                  "Entrée acheteuse",
+  "Sell":                 "Entrée vendeuse",
+  "Scale In":             "Renforcer progressivement",
+  "Manage Position":      "Gérer la position active",
+  "Execute Trade":        "Exécuter le trade",
+  "Manage Winner":        "Gérer la position gagnante",
+  "Reduce Size":          "Réduire la taille",
+  "Reduce Risk":          "Réduire l'exposition immédiatement",
+  "Exit Partial":         "Alléger la position",
+  "Partial Exit":         "Alléger la position",
+  "Protect Capital":      "Protéger le capital prioritairement",
+  "Tighten Risk":         "Resserrer le risque",
+  "Hedge":                "Couvrir la position",
+  "Stay Flat":            "Rester hors marché",
+  "Quick Scalp":          "Scalp rapide",
+  "Take Partial Profit":  "Sécuriser des gains partiels",
+  "Hold Position":        "Tenir la position",
+  "Range Trade":          "Trader le range",
+  "Step Back":            "Prendre du recul",
+  "Review Context":       "Réévaluer le contexte",
+  "Prepare Entry":        "Préparer l'entrée",
+  "Set Alert":            "Poser une alerte",
+  "Wait Confirmation":    "Attendre confirmation",
+  "Define Entry":         "Définir l'entrée",
+  "Build Plan":           "Construire le plan",
+  "Pre-Position Light":   "Pré-positionner léger",
+  "Wait Breakout":        "Attendre la cassure",
+  "Trail Risk":           "Suivre le risque (trailing)",
+  // ── Actions interdites ────────────────────────────────────
+  "Impulsive Sell":         "Vente impulsive",
+  "Aggressive Entry":       "Entrée agressive non validée",
+  "Forced Entry":           "Entrée forcée",
+  "FOMO Entry":             "Entrée émotionnelle (FOMO)",
+  "Overtrade":              "Suractivité / sur-trading",
+  "Chase Move":             "Poursuite du mouvement",
+  "Add Size":               "Augmenter la taille",
+  "Full Risk":              "Risque maximal",
+  "Oversize":               "Sur-exposition (danger)",
+  "Revenge Trade":          "Trade de revanche (interdit)",
+  "Late Entry":             "Entrée tardive",
+  "Increase Risk":          "Augmenter le risque",
+  "Hold Through Noise":     "Tenir malgré le bruit",
+  "Breakout Chase":         "Poursuite de cassure",
+  "Any Trade":              "Tout trade",
+  "Enter":                  "Entrer",
+  "Override Rules":         "Ignorer les règles",
+  "Full Position":          "Position complète",
+  "Blind Entry":            "Entrée sans validation (interdite)",
+  "Execute Now":            "Exécuter immédiatement",
+  "Aggressive Add Size":    "Renforcement agressif",
+  "Blind Market Order":     "Ordre au marché aveugle",
+  "Full Risk Without Plan": "Risque total sans plan",
+  // ── Depuis computeAction (score-action) ───────────────────
+  "Do Nothing":   "Ne rien faire",
+  "Monitor":      "Observer le marché"
+};
+
+function translatePolicyAction(action) {
+  return POLICY_ACTION_FR[action] || action;
+}
+
+// ─── Labels FR messages de policy ────────────────────────────
+// policy.message est en anglais dans trading-policy.js (hors scope).
+// Traduction ici pour #policy-message uniquement.
+
+const POLICY_MESSAGE_FR = {
+  "Validation rejected or risk unacceptable. No execution allowed.":  "Validation refusée ou risque inacceptable. Aucune exécution autorisée.",
+  "Defensive context. Capital preservation takes priority.":          "Contexte défensif. Protection du capital prioritaire.",
+  "No clean execution window yet.":                                   "Pas encore de fenêtre d'exécution propre.",
+  "Context is becoming actionable, but still incomplete.":            "Le contexte devient exploitable, mais reste incomplet.",
+  "Favorable setup detected. Wait for confirmation before execution.":"Setup favorable détecté. Attendre confirmation avant d'exécuter.",
+  "Context validated. Controlled execution allowed.":                 "Contexte validé. Exécution contrôlée autorisée."
+};
+
+const VOLATILITY_FR = { low: "Faible", medium: "Moyen", high: "Élevé" };
 
 // ─── Agent par état marché ────────────────────────────────────
 
@@ -388,6 +515,10 @@ function getCockpitModel(payload) {
   const actionKey = deriveActionModeKey(payload);
   const market = { ...getMarketStateConfig(payload) };
   const actionMode = getActionModeConfig(payload);
+
+  // Correction d'affichage : data.js hors scope — overrides label et decision ici uniquement
+  market.label    = MARKET_LABEL_OVERRIDE_FR[market.label] || market.label;
+  market.decision = MARKET_DECISION_OVERRIDE_FR[market.decision] || market.decision;
 
   // P6 — signal moteur propre
   const v = (market.verdict || "").toLowerCase();
@@ -1155,7 +1286,8 @@ function renderNavigation(payload) {
   const cockpit = getCockpitModel(payload);
 
   syncTabs(appState.activeTab || "moteur");
-  setText("marketStateTinyLabel", `Ton contexte : ${STATE_LABELS[payload.market_state] || payload.market_state}`);
+  const _stateDisplayFR = { expansion: "Cassure / Tendance" };
+  setText("marketStateTinyLabel", `Ton contexte : ${_stateDisplayFR[payload.market_state] || STATE_LABELS[payload.market_state] || payload.market_state}`);
   setText("marketStateText", `Lecture moteur : ${cockpit.market.label}`);
   setText("marketStateNote", "Le moteur intègre l'ensemble des variables.");
   setText("microConfidence", `${payload.score}/100`);
@@ -1180,7 +1312,7 @@ function renderNavigation(payload) {
   setText("scoreSub",       _safeScore >= 70 ? "Contexte puissant" : _safeScore >= 40 ? "Contexte exploitable" : "Contexte fragile");
   setText("confidenceFlag", _flag);
   setText("score-posture",  _posture);
-  setText("score-action",   _action);
+  setText("score-action",   translatePolicyAction(_action));
   setText("score-agent",    _agent);
 
   // Score animé — debounce 150ms pour absorber les updates rapides
@@ -1271,7 +1403,7 @@ function renderPilotage(payload) {
 
   setText("action", simplifyText(payload.action_recommended) || cockpit.market.action);
   setText("summary", simplifyText(payload.summary) || simplifyText(payload.validation?.summary) || cockpit.market.description);
-  setText("coreText", "Socle : on protège le capital avant tout.");
+  setText("coreText", "Priorité à la préservation du capital — engagement limité.");
   setText("attackText", `Filtre adaptatif : ${cockpit.actionMode.description}`);
   setText("buyZone", simplifyText(payload.order_zones.buy));
   setText("sellZone", simplifyText(payload.order_zones.sell));
@@ -1470,9 +1602,9 @@ function sanitizeVisibleText(root = document.body) {
 
 function renderMarketStateBrain() {
   const ms = getMarketState();
-  setText("market-regime",  ms.state);
+  setText("market-regime",  BRAIN_STATE_LABELS_FR[ms.state] || ms.state);
   setText("market-score",   String(ms.confidence));
-  setText("market-context", ms.volatility);
+  setText("market-context", VOLATILITY_FR[ms.volatility] || ms.volatility);
 }
 
 function renderDebugBrain() {
@@ -1591,7 +1723,7 @@ function applyPolicyToUI(policy) {
 function renderPolicyMessage(policy) {
   const el = document.getElementById("policy-message");
   if (!el) return;
-  el.textContent = policy.message || "";
+  el.textContent = POLICY_MESSAGE_FR[policy.message] || policy.message || "";
 }
 
 function renderAgentRules() {
@@ -1599,8 +1731,8 @@ function renderAgentRules() {
   const decisionState = currentPayload ? computeDecisionState(currentPayload) : { state: "WAIT", message: "" };
   const policy        = getTradingPolicy(decisionState.state);
 
-  setText("rules-allowed",   policy.allowed.join(", "));
-  setText("rules-forbidden", policy.forbidden.join(", "));
+  setText("rules-allowed",   policy.allowed.map(translatePolicyAction).join(", "));
+  setText("rules-forbidden", policy.forbidden.map(translatePolicyAction).join(", "));
   if (decisionState.message) setText("cerveau-synthesis", decisionState.message);
 
   applyPolicyToUI(policy);
@@ -2627,6 +2759,68 @@ function renderJournalDecision(payload) {
   setText("jdMoteurSummary", `${status} · engagement ${el} · sizing ${sf}`);
 }
 
+function renderConfidenceContext(payload) {
+  const panel = document.querySelector(".confidence-panel");
+  if (!panel) return;
+
+  const qual = (v) => v === "strong" ? 80 : v === "medium" ? 50 : v === "weak" ? 20 : 50;
+
+  const inputs = {
+    trend: Math.min(100, Math.max(0,
+      (payload.market_state === "expansion"   ? 75 :
+       payload.market_state === "compression" ? 50 :
+       payload.market_state === "defense"     ? 15 :
+       payload.market_state === "riskoff"     ? 5  : 40)
+      + (payload.btc_state === "strong" ? 10 : payload.btc_state === "weak" ? -10 : 0)
+      + (qual(payload.constellium?.fire) - 50) * 0.3
+    )),
+
+    structure: payload.setup_inputs?.structure_signal === "compression_breakout" ? 90 :
+               payload.setup_inputs?.structure_signal === "real_breakout"         ? 90 :
+               payload.setup_inputs?.structure_signal === "sweep_reclaim"         ? 70 :
+               payload.setup_inputs?.structure_signal === "none"                  ? 20 : 50,
+
+    volatility: payload.market_state === "riskoff"     ? 90 :
+                payload.market_state === "defense"     ? 80 :
+                payload.market_state === "expansion"   ? 65 :
+                payload.market_state === "compression" ? 45 : 40,
+
+    volume: payload.setup_inputs?.momentum_signal === "none" ? 20 :
+            payload.btc_state === "strong"                   ? 75 :
+            payload.btc_state === "weak"                     ? 30 : 50,
+  };
+
+  const ctx = buildMarketContext(inputs, payload.market_state);
+  if (!ctx || typeof ctx.score !== "number") return;
+
+  const safeScore = Math.max(0, Math.min(100, ctx.score));
+  const strength  = safeScore >= 70 ? "strong" : safeScore >= 50 ? "medium" : "weak";
+  const el        = (id) => document.getElementById(id);
+
+  // Affichage — valeurs internes jamais modifiées, traduction à l'écriture DOM uniquement
+  const elScore   = el("cs-score");
+  const elLabel   = el("cs-label");
+  const elBar     = el("cs-bar");
+  const elMode    = el("cs-mode");
+  const elAction  = el("cs-action");
+  const elMessage = el("cs-message");
+
+  if (elScore)   elScore.textContent   = safeScore;
+  if (elLabel)   elLabel.textContent   = ctx.label;
+  if (elBar)     elBar.style.width     = `${safeScore}%`;
+  if (elMode)    elMode.textContent    = translateMode(ctx.mode);
+  if (elAction)  elAction.textContent  = translateAction(ctx.action);
+  if (elMessage) elMessage.textContent = ctx.message;
+
+  panel.dataset.tone     = ctx.tone  || "neutral";
+  panel.dataset.mode     = (ctx.mode || "unknown").toLowerCase();
+  panel.dataset.strength = strength;
+  panel.dataset.score    = safeScore;
+
+  if (strength === "strong") panel.classList.add("pulse-strong");
+  else                       panel.classList.remove("pulse-strong");
+}
+
 function render() {
   if (!currentPayload) {
     appState.form = collectForm();
@@ -2647,6 +2841,7 @@ function render() {
   renderCerveauAgent();
   renderHeader(currentPayload);
   renderHero(currentPayload);
+  renderConfidenceContext(currentPayload);
   renderWhyDecision(currentPayload);
   renderLightContext(currentPayload);
   renderStructuredReading(currentPayload);
