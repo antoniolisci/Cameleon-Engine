@@ -2,6 +2,8 @@
 // Self-contained: reads from behaviorRepo, writes to behaviorRepo, re-renders on changes.
 
 import { behaviorRepo     } from '../storage/behavior-repo.js';
+import { getAll as getSessions, save as saveSession, remove as removeSession, clearAll as clearAllSessions } from '../storage/session-repo.js';
+import { analyzeSessions } from '../analytics/behavior-analyzer.js';
 import { importBinanceSpot } from '../import/uploader.js';
 import { computeMetrics   } from '../analytics/metrics.js';
 import { detectPatterns, tagTrades } from '../analytics/patterns.js';
@@ -47,6 +49,7 @@ function buildShell(state) {
         <p class="bhv-subtitle">Import CSV Binance Spot · V3</p>
       </div>
       ${buildImportCard(state)}
+      ${buildSessionsCard(state)}
       ${state.trades ? buildAnalysis(state) : ''}
     </div>`;
 }
@@ -80,6 +83,103 @@ function buildImportCard(state) {
     </div>`;
 }
 
+// ── Sessions card ─────────────────────────────────────────────────────────────
+
+function buildSessionsCard(state) {
+  const sessions  = getSessions();
+  const hasTrades = !!(state.trades && state.trades.length);
+
+  if (!hasTrades && !sessions.length) return '';
+
+  const analysis = sessions.length > 0 ? analyzeSessions(sessions) : null;
+
+  // Score par session (id → { score, profile }) depuis l'évolution
+  const scoreMap = analysis
+    ? new Map(analysis.evolution.map(s => [s.id, { score: s.score, profile: s.profile }]))
+    : new Map();
+
+  const saveBtn = hasTrades
+    ? `<button class="bhv-btn bhv-btn--save" id="bhvSaveSessionBtn" type="button">Sauvegarder</button>`
+    : '';
+
+  const clearBtn = sessions.length
+    ? `<button class="bhv-btn bhv-btn--clear-sessions" id="bhvClearSessionsBtn" type="button">Effacer</button>`
+    : '';
+
+  const listItems = sessions.map(s => {
+    const d    = new Date(s.createdAt);
+    const date = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const sc   = scoreMap.get(s.id);
+    const scoreBadge = sc
+      ? `<span class="bhv-session-score bhv-session-score--${sc.profile.color}">${sc.score} / 100</span>`
+      : '';
+    return `
+      <div class="bhv-session">
+        <div class="bhv-session-info">
+          <span class="bhv-session-name">${escHtml(s.name)}</span>
+          <span class="bhv-session-meta">${date} · ${s.trades.length} trade${s.trades.length !== 1 ? 's' : ''}</span>
+        </div>
+        ${scoreBadge}
+        <div class="bhv-session-actions">
+          <button class="bhv-session-btn bhv-session-btn--load" data-id="${escHtml(s.id)}" type="button">Charger</button>
+          <button class="bhv-session-btn bhv-session-btn--delete" data-id="${escHtml(s.id)}" type="button">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="bhv-card bhv-sessions-card">
+      <div class="bhv-card-head">
+        <span class="bhv-card-title">Sessions</span>
+        <div class="bhv-sessions-head-actions">${saveBtn}${clearBtn}</div>
+      </div>
+      <div class="bhv-sessions-tip">Conseil : conserve tes sessions pour suivre ton évolution.</div>
+      ${sessions.length
+        ? `<div class="bhv-session-list">${listItems}</div>`
+        : `<div class="bhv-sessions-empty">Aucune session sauvegardée.</div>`
+      }
+      ${analysis ? buildSessionsSynthesis(analysis) : ''}
+    </div>`;
+}
+
+function buildSessionsSynthesis(analysis) {
+  const { bestSession, worstSession, globalStats, evolution } = analysis;
+  if (globalStats.sessionsCount < 2) return '';
+
+  const bars = evolution.map(s => {
+    const h     = s.score;
+    const color = s.profile.color;
+    return `<div class="bhv-synth-bar-col" title="${escHtml(s.name)} · ${s.score}">
+      <div class="bhv-synth-bar bhv-synth-bar--${color}" style="height:${h}%"></div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="bhv-sessions-synthesis">
+      <div class="bhv-synth-stats">
+        <div class="bhv-synth-stat">
+          <span class="bhv-synth-label">Score moyen</span>
+          <span class="bhv-synth-value">${globalStats.avgScore}</span>
+        </div>
+        <div class="bhv-synth-stat">
+          <span class="bhv-synth-label">Meilleure</span>
+          <span class="bhv-synth-value bhv-synth-value--ok">${bestSession.score}</span>
+        </div>
+        <div class="bhv-synth-stat">
+          <span class="bhv-synth-label">Pire</span>
+          <span class="bhv-synth-value bhv-synth-value--danger">${worstSession.score}</span>
+        </div>
+        <div class="bhv-synth-stat">
+          <span class="bhv-synth-label">Trades total</span>
+          <span class="bhv-synth-value">${globalStats.totalTrades}</span>
+        </div>
+      </div>
+      <div class="bhv-synth-chart">${bars}</div>
+      ${(() => { const d = getDisciplineLabel(globalStats.avgScore); return `<div class="bhv-synth-reading bhv-synth-reading--${d.mod}">Lecture comportementale : ${d.label}</div>`; })()}
+      <div class="bhv-synth-insight">Interprétation : ${getDisciplineInsight(globalStats.avgScore)}</div>
+    </div>`;
+}
+
 // ── Analysis section ──────────────────────────────────────────────────────────
 
 function buildAnalysis(state) {
@@ -110,12 +210,19 @@ function buildScoreCard(s) {
       <span>${escHtml(line)}</span>
     </div>`).join('');
 
+  const dominantBanner = dominantRisk ? `
+    <div class="bhv-dominant-banner bhv-dominant-banner--${profile.color}">
+      <span class="bhv-dominant-label">⚠ Comportement dominant</span>
+      <span class="bhv-dominant-value">${escHtml(dominantRisk)}</span>
+    </div>` : '';
+
   return `
     <div class="bhv-card bhv-score-card">
       <div class="bhv-card-head">
         <span class="bhv-card-title">Score comportemental</span>
         <span class="bhv-card-desc">Sur 100 · basé sur patterns et intensité</span>
       </div>
+      ${dominantBanner}
       <div class="bhv-score-body">
         <div class="bhv-score-num bhv-score-num--${profile.color}">${score}</div>
         <div class="bhv-score-meta">
@@ -132,12 +239,33 @@ function buildScoreCard(s) {
 
 function buildCoachingCard(coaching) {
   const { priority, tips, plan } = coaching;
+  if (!tips.length) return '';
 
-  const tipItems = tips.map(tip => `
+  // tips[0] → action prioritaire (mise en évidence)
+  // tips[1..2] → visibles
+  // tips[3..] → collapsibles
+  const actionTip    = tips[0];
+  const visibleTips  = tips.slice(1, 3);
+  const hiddenTips   = tips.slice(3);
+
+  const visibleItems = visibleTips.map(tip => `
     <div class="bhv-coaching-tip">
       <span class="bhv-coaching-bullet"></span>
       <span>${escHtml(tip)}</span>
     </div>`).join('');
+
+  const hiddenItems = hiddenTips.map(tip => `
+    <div class="bhv-coaching-tip bhv-tip-extra" hidden>
+      <span class="bhv-coaching-bullet"></span>
+      <span>${escHtml(tip)}</span>
+    </div>`).join('');
+
+  const expandWrap = hiddenTips.length ? `
+    <div id="bhvCoachingExpandWrap" class="bhv-journal-expand">
+      <button class="bhv-journal-btn" id="bhvCoachingExpandBtn" type="button">
+        +${hiddenTips.length} règle${hiddenTips.length > 1 ? 's' : ''}
+      </button>
+    </div>` : '';
 
   return `
     <div class="bhv-card bhv-coaching-card">
@@ -145,7 +273,12 @@ function buildCoachingCard(coaching) {
         <span class="bhv-card-title">Coaching</span>
         <span class="bhv-card-desc">${escHtml(priority)}</span>
       </div>
-      <div class="bhv-coaching-tips">${tipItems}</div>
+      <div class="bhv-action-priority">
+        <span class="bhv-action-priority-label">Action prioritaire</span>
+        <span class="bhv-action-priority-text">${escHtml(actionTip)}</span>
+      </div>
+      ${visibleItems ? `<div class="bhv-coaching-tips">${visibleItems}${hiddenItems}</div>` : ''}
+      ${expandWrap}
       ${plan && plan.length ? buildCoachingPlan(plan) : ''}
     </div>`;
 }
@@ -302,8 +435,19 @@ function buildPatternsCard(patterns) {
     return `<div class="bhv-card">${head}<p class="bhv-empty">Aucun pattern détecté sur ce fichier.</p></div>`;
   }
 
-  const items = patterns.map(p => `
-    <div class="bhv-pattern bhv-pattern--${p.severity}">
+  // Trier : high en premier, medium ensuite
+  const sorted = [...patterns].sort((a, b) =>
+    a.severity === b.severity ? 0 : a.severity === 'high' ? -1 : 1
+  );
+
+  const tier = (p, i) => {
+    if (p.severity === 'high' && i < 2) return 'critical';
+    if (i < 4)                          return 'secondary';
+    return 'tertiary';
+  };
+
+  const items = sorted.map((p, i) => `
+    <div class="bhv-pattern bhv-pattern--${tier(p, i)}">
       <div class="bhv-pattern-name">${escHtml(p.label)}</div>
       <div class="bhv-pattern-desc">${escHtml(p.description)}</div>
     </div>`).join('');
@@ -321,7 +465,7 @@ function buildJournalCard(trades, tradeTags) {
   const buildRow = (t, hidden = false) => {
     const date     = new Date(t.timestamp).toISOString().replace('T', ' ').slice(0, 16);
     const stored   = tradeTags.get(t.timestamp);
-    const tags     = stored && stored.length ? stored.join(', ') : '—';
+    const tags     = stored && stored.length ? formatTags(stored) : '—';
     const tagClass = stored && stored.length ? ' bhv-tags--flagged' : '';
     const attr     = hidden ? ' class="bhv-row-extra" hidden' : '';
     return `
@@ -506,6 +650,54 @@ function bindEvents(root, state) {
     });
   }
 
+  const clearSessionsBtn = root.querySelector('#bhvClearSessionsBtn');
+  if (clearSessionsBtn) {
+    clearSessionsBtn.addEventListener('click', () => {
+      if (confirm('Supprimer toutes les sessions ? Cette action est irréversible.')) {
+        clearAllSessions();
+        mount(root);
+      }
+    });
+  }
+
+  const saveSessionBtn = root.querySelector('#bhvSaveSessionBtn');
+  if (saveSessionBtn) {
+    saveSessionBtn.addEventListener('click', () => {
+      const trades = behaviorRepo.get('trades');
+      if (trades && trades.length) {
+        saveSession(trades);
+        mount(root);
+      }
+    });
+  }
+
+  root.querySelectorAll('.bhv-session-btn--load').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id      = btn.dataset.id;
+      const session = getSessions().find(s => s.id === id);
+      if (!session) return;
+      behaviorRepo.set('trades',      session.trades);
+      behaviorRepo.set('importError', null);
+      behaviorRepo.set('importInfo',  `Session "${session.name}" chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''}`);
+      mount(root);
+    });
+  });
+
+  root.querySelectorAll('.bhv-session-btn--delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      removeSession(btn.dataset.id);
+      mount(root);
+    });
+  });
+
+  const coachingExpandBtn = root.querySelector('#bhvCoachingExpandBtn');
+  if (coachingExpandBtn) {
+    coachingExpandBtn.addEventListener('click', () => {
+      root.querySelectorAll('.bhv-tip-extra').forEach(r => r.removeAttribute('hidden'));
+      root.querySelector('#bhvCoachingExpandWrap').hidden = true;
+    });
+  }
+
   const expandBtn = root.querySelector('#bhvJournalExpandBtn');
   if (expandBtn) {
     expandBtn.addEventListener('click', () => {
@@ -534,6 +726,31 @@ async function handleImport(file, root) {
 }
 
 // ── Utility ───────────────────────────────────────────────────────────────────
+
+function formatTags(tags) {
+  const counts = new Map();
+  const order  = [];
+  for (const tag of tags) {
+    if (!counts.has(tag)) { counts.set(tag, 0); order.push(tag); }
+    counts.set(tag, counts.get(tag) + 1);
+  }
+  return order.map(tag => {
+    const n = counts.get(tag);
+    return n > 1 ? `${tag} ×${n}` : tag;
+  }).join(', ');
+}
+
+function getDisciplineInsight(score) {
+  if (score >= 70) return 'Tu contrôles ton exécution dans la majorité des cas.';
+  if (score >= 40) return 'Tu alternes entre discipline et impulsivité.';
+  return                  'Ton comportement est dominé par des réactions.';
+}
+
+function getDisciplineLabel(score) {
+  if (score >= 70) return { label: 'Discipline solide', mod: 'solid' };
+  if (score >= 40) return { label: 'Irrégulier',        mod: 'irregular' };
+  return                  { label: 'Instable',           mod: 'unstable' };
+}
 
 function escHtml(str) {
   return String(str ?? '')
