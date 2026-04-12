@@ -354,66 +354,66 @@ function translateAction(action) {
 
 const POLICY_ACTION_FR = {
   // ── Actions autorisées ────────────────────────────────────
-  "Observe":              "Observer sans intervenir",
-  "Wait Setup":           "Attendre un setup validé",
-  "Prepare":              "Préparer le plan",
-  "Define Levels":        "Définir les niveaux clés",
-  "Update Watchlist":     "Mettre à jour les opportunités",
+  "Observe":              "Observer",
+  "Wait Setup":           "Attendre setup",
+  "Prepare":              "Préparer",
+  "Define Levels":        "Définir les niveaux",
+  "Update Watchlist":     "Actualiser watchlist",
   "Buy":                  "Entrée acheteuse",
   "Sell":                 "Entrée vendeuse",
   "Scale In":             "Renforcer progressivement",
-  "Manage Position":      "Gérer la position active",
-  "Execute Trade":        "Exécuter le trade",
-  "Manage Winner":        "Gérer la position gagnante",
-  "Reduce Size":          "Réduire la taille",
-  "Reduce Risk":          "Réduire l'exposition immédiatement",
-  "Exit Partial":         "Alléger la position",
-  "Partial Exit":         "Alléger la position",
-  "Protect Capital":      "Protéger le capital prioritairement",
-  "Tighten Risk":         "Resserrer le risque",
-  "Hedge":                "Couvrir la position",
+  "Manage Position":      "Gérer position active",
+  "Execute Trade":        "Exécuter trade",
+  "Manage Winner":        "Gérer position gagnante",
+  "Reduce Size":          "Réduire taille",
+  "Reduce Risk":          "Réduire exposition",
+  "Exit Partial":         "Alléger position",
+  "Partial Exit":         "Alléger position",
+  "Protect Capital":      "Protéger capital",
+  "Tighten Risk":         "Resserrer risque",
+  "Hedge":                "Couvrir position",
   "Stay Flat":            "Rester hors marché",
   "Quick Scalp":          "Scalp rapide",
-  "Take Partial Profit":  "Sécuriser des gains partiels",
-  "Hold Position":        "Tenir la position",
+  "Take Partial Profit":  "Sécuriser gains partiels",
+  "Hold Position":        "Tenir position",
   "Range Trade":          "Trader le range",
-  "Step Back":            "Prendre du recul",
-  "Review Context":       "Réévaluer le contexte",
-  "Prepare Entry":        "Préparer l'entrée",
-  "Set Alert":            "Poser une alerte",
+  "Step Back":            "Prendre recul",
+  "Review Context":       "Réévaluer contexte",
+  "Prepare Entry":        "Préparer entrée",
+  "Set Alert":            "Poser alerte",
   "Wait Confirmation":    "Attendre confirmation",
-  "Define Entry":         "Définir l'entrée",
-  "Build Plan":           "Construire le plan",
+  "Define Entry":         "Définir entrée",
+  "Build Plan":           "Construire plan",
   "Pre-Position Light":   "Pré-positionner léger",
-  "Wait Breakout":        "Attendre la cassure",
-  "Trail Risk":           "Suivre le risque (trailing)",
+  "Wait Breakout":        "Attendre cassure",
+  "Trail Risk":           "Trailing actif",
   // ── Actions interdites ────────────────────────────────────
   "Impulsive Sell":         "Vente impulsive",
-  "Aggressive Entry":       "Entrée agressive non validée",
+  "Aggressive Entry":       "Entrée agressive",
   "Forced Entry":           "Entrée forcée",
-  "FOMO Entry":             "Entrée émotionnelle (FOMO)",
-  "Overtrade":              "Suractivité / sur-trading",
-  "Chase Move":             "Poursuite du mouvement",
-  "Add Size":               "Augmenter la taille",
+  "FOMO Entry":             "Entrée FOMO",
+  "Overtrade":              "Sur-trading",
+  "Chase Move":             "Poursuite mouvement",
+  "Add Size":               "Augmenter taille",
   "Full Risk":              "Risque maximal",
-  "Oversize":               "Sur-exposition (danger)",
-  "Revenge Trade":          "Trade de revanche (interdit)",
+  "Oversize":               "Sur-exposition",
+  "Revenge Trade":          "Trade de revanche",
   "Late Entry":             "Entrée tardive",
-  "Increase Risk":          "Augmenter le risque",
-  "Hold Through Noise":     "Tenir malgré le bruit",
-  "Breakout Chase":         "Poursuite de cassure",
+  "Increase Risk":          "Augmenter risque",
+  "Hold Through Noise":     "Tenir malgré bruit",
+  "Breakout Chase":         "Poursuite cassure",
   "Any Trade":              "Tout trade",
   "Enter":                  "Entrer",
-  "Override Rules":         "Ignorer les règles",
+  "Override Rules":         "Ignorer règles",
   "Full Position":          "Position complète",
-  "Blind Entry":            "Entrée sans validation (interdite)",
+  "Blind Entry":            "Entrée non validée",
   "Execute Now":            "Exécuter immédiatement",
   "Aggressive Add Size":    "Renforcement agressif",
-  "Blind Market Order":     "Ordre au marché aveugle",
-  "Full Risk Without Plan": "Risque total sans plan",
+  "Blind Market Order":     "Ordre aveugle",
+  "Full Risk Without Plan": "Risque sans plan",
   // ── Depuis computeAction (score-action) ───────────────────
   "Do Nothing":   "Ne rien faire",
-  "Monitor":      "Observer le marché"
+  "Monitor":      "Observer marché"
 };
 
 function translatePolicyAction(action) {
@@ -425,12 +425,12 @@ function translatePolicyAction(action) {
 // Traduction ici pour #policy-message uniquement.
 
 const POLICY_MESSAGE_FR = {
-  "Validation rejected or risk unacceptable. No execution allowed.":  "Validation refusée ou risque inacceptable. Aucune exécution autorisée.",
-  "Defensive context. Capital preservation takes priority.":          "Contexte défensif. Protection du capital prioritaire.",
-  "No clean execution window yet.":                                   "Pas encore de fenêtre d'exécution propre.",
-  "Context is becoming actionable, but still incomplete.":            "Le contexte devient exploitable, mais reste incomplet.",
-  "Favorable setup detected. Wait for confirmation before execution.":"Setup favorable détecté. Attendre confirmation avant d'exécuter.",
-  "Context validated. Controlled execution allowed.":                 "Contexte validé. Exécution contrôlée autorisée."
+  "Validation rejected or risk unacceptable. No execution allowed.":  "La validation est refusée. Sans signal propre, ne pas entrer — le capital vient en premier.",
+  "Defensive context. Capital preservation takes priority.":          "Contexte défensif. Le risque impose une réduction d'exposition. Pas de nouvelle entrée.",
+  "No clean execution window yet.":                                   "Pas encore de fenêtre exploitable. Attendre est souvent la meilleure décision.",
+  "Context is becoming actionable, but still incomplete.":            "Le contexte s'améliore. Attendre confirmation avant d'agir pour ne pas forcer.",
+  "Favorable setup detected. Wait for confirmation before execution.":"Setup favorable détecté. Une opportunité n'existe que si elle est validée.",
+  "Context validated. Controlled execution allowed.":                 "Contexte validé. L'exécution est autorisée dans le cadre défini."
 };
 
 const VOLATILITY_FR = { low: "Faible", medium: "Moyen", high: "Élevé" };
@@ -454,13 +454,13 @@ function getStateAgent(marketKey) {
 // ─── Synthèse automatique ─────────────────────────────────────
 
 const STATE_SYNTHESIS = {
-  RANGE:       "Marché calme → aucune action",
-  COMPRESSION: "Pression latente → attendre confirmation",
+  RANGE:       "Range → aucune action",
+  COMPRESSION: "Compression → attendre signal",
   BREAKOUT:    "Impulsion → opportunité exploitable",
-  TREND:       "Tendance confirmée → suivre le mouvement",
-  CHAOS:       "Volatilité extrême → réduction immédiate",
-  DEFENSE:     "Risque contrôlé → protéger le capital",
-  UNKNOWN:     "Lecture floue → observer sans agir"
+  TREND:       "Tendance → suivre le mouvement",
+  CHAOS:       "Chaos → rester hors marché",
+  DEFENSE:     "Défense → protéger capital",
+  UNKNOWN:     "Lecture floue → observer"
 };
 
 function getStateSynthesis(marketKey) {
@@ -760,32 +760,32 @@ function describeDiscipline(payload) {
 
 const HERO_COPY_MAP = {
   RANGE: {
-    title: "Aucune entrée",
-    subtitle: "Le marché reste bloqué tant qu'aucune structure propre n'apparaît."
+    title: "⛔ Aucune entrée",
+    subtitle: "Sans direction. Attendre structure propre."
   },
   COMPRESSION: {
-    title: "Attente obligatoire",
-    subtitle: "Le mouvement se prépare, mais aucune entrée n'est encore validée."
+    title: "Attente structurée",
+    subtitle: "Setup en cours. Ne pas anticiper."
   },
   BREAKOUT: {
-    title: "Validation requise",
-    subtitle: "La cassure démarre, mais l'exécution attend encore une confirmation."
+    title: "Confirmation requise",
+    subtitle: "Cassure détectée. Attendre signal propre."
   },
   TREND: {
-    title: "Tendance exploitable",
-    subtitle: "La direction est lisible, mais l'entrée doit rester sélective."
+    title: "✅ Tendance exploitable",
+    subtitle: "Direction lisible. Entrée sélective."
   },
   CHAOS: {
-    title: "Marché inexploitable",
-    subtitle: "Le contexte reste instable, aucune entrée prudente n'existe."
+    title: "⛔ Aucune entrée",
+    subtitle: "Marché instable. Rester hors marché."
   },
   DEFENSE: {
-    title: "Exposition réduite",
-    subtitle: "Le capital prime, rester léger jusqu'à validation complète."
+    title: "⚠️ Réduire immédiatement",
+    subtitle: "Capital prioritaire. Rester léger."
   },
   UNKNOWN: {
     title: "Lecture incomplète",
-    subtitle: "Le contexte manque encore de clarté pour décider."
+    subtitle: "Insuffisant. Observer sans agir."
   }
 };
 
@@ -797,36 +797,36 @@ function getHeroCopy(payload) {
 
   if (validationState === "rejected") {
     return {
-      title: "Entrée interdite",
-      subtitle: "La validation finale bloque toute exécution offensive."
+      title: "⛔ Exécution bloquée",
+      subtitle: "Validation refusée. Aucune entrée."
     };
   }
 
   if (emotionState === "stress" || emotionState === "fomo") {
     return {
-      title: "Risque émotionnel",
-      subtitle: "L'état émotionnel impose une pause avant toute entrée."
+      title: "⚠️ Pause obligatoire",
+      subtitle: "État instable. Ne pas agir."
     };
   }
 
   if ((marketKey === "BREAKOUT" || marketKey === "TREND") && validationState === "adjusted") {
     return {
-      title: "Entrée réduite",
-      subtitle: "Le signal existe, mais l'exposition doit rester strictement réduite."
+      title: "Exposition réduite",
+      subtitle: "Signal présent. Taille limitée."
     };
   }
 
   if (marketKey === "BREAKOUT" && validationState === "accepted") {
     return {
-      title: "Entrée validée",
-      subtitle: "La cassure est confirmée, agir uniquement sur déclenchement propre."
+      title: "✅ Entrée validée",
+      subtitle: "Cassure confirmée. Agir sur signal."
     };
   }
 
   if (marketKey === "TREND" && validationState === "accepted") {
     return {
-      title: "Tendance confirmée",
-      subtitle: "La direction tient, privilégier un point d'entrée propre et discipliné."
+      title: "✅ Tendance confirmée",
+      subtitle: "Direction tenue. Entrée propre."
     };
   }
 
@@ -835,32 +835,32 @@ function getHeroCopy(payload) {
 
 const DECISION_COPY_MAP = {
   RANGE: {
-    title: "Attends confirmation",
-    subtitle: "Le prix tourne sans direction claire."
+    title: "Attendre confirmation",
+    subtitle: "Pas de direction."
   },
   COMPRESSION: {
-    title: "Prépare-toi",
-    subtitle: "Un mouvement se prépare, mais aucun signal n'est validé."
+    title: "Setup en cours",
+    subtitle: "Signal pas validé. Ne pas anticiper."
   },
   BREAKOUT: {
-    title: "Entre avec confirmation",
-    subtitle: "Le prix sort d'une zone, mais le signal doit être confirmé."
+    title: "Entrée sur confirmation",
+    subtitle: "Cassure en cours. Confirmer signal."
   },
   TREND: {
-    title: "Opportunité en cours",
-    subtitle: "Le prix suit une direction claire."
+    title: "✅ Opportunité en cours",
+    subtitle: "Direction claire. Entrée sélective."
   },
   CHAOS: {
-    title: "Aucune position à prendre",
-    subtitle: "Le contexte reste trop flou pour agir."
+    title: "⛔ Aucune position",
+    subtitle: "Marché instable. Rester hors marché."
   },
   DEFENSE: {
-    title: "Risque trop élevé",
-    subtitle: "Le contexte ne permet pas une entrée propre."
+    title: "⚠️ Réduire le risque",
+    subtitle: "Défensif. Aucune entrée propre."
   },
   UNKNOWN: {
-    title: "Aucune position à prendre",
-    subtitle: "Le contexte reste trop flou pour agir."
+    title: "⛔ Aucune position",
+    subtitle: "Insuffisant. Décision impossible."
   }
 };
 
@@ -956,7 +956,7 @@ function computeDecisionState(payload) {
       state:   "BLOCKED",
       label:   "BLOCAGE",
       cls:     "status-block",
-      message: "Validation refusée — exécution bloquée"
+      message: "⛔ Validation refusée — aucune exécution"
     };
   }
 
@@ -968,7 +968,7 @@ function computeDecisionState(payload) {
       state:   "PROTECT",
       label:   "PROTECTION",
       cls:     "status-protect",
-      message: "Conditions risquées — priorité à la réduction du risque"
+      message: "⚠️ Contexte risqué — réduire immédiatement"
     };
   }
 
@@ -980,7 +980,7 @@ function computeDecisionState(payload) {
       state:   "READY",
       label:   "SETUP PRÊT",
       cls:     "status-ready",
-      message: "Conditions favorables détectées — attendre confirmation avant exécution"
+      message: "👀 Setup favorable — attendre confirmation"
     };
   }
 
@@ -991,7 +991,7 @@ function computeDecisionState(payload) {
       state:   "ALIGNED",
       label:   "ALIGNÉ",
       cls:     "status-aligned",
-      message: "Contexte favorable — exécution contrôlée autorisée"
+      message: "✅ Exécution autorisée"
     };
   }
 
@@ -1010,10 +1010,10 @@ function computeDecisionState(payload) {
 
   if (isWait) {
     const msg = isCompressionContext(state)
-      ? "Compression — attente breakout, pas d'entrée précipitée"
+      ? "👀 Compression — attendre la cassure"
       : score < 35
-        ? "Score insuffisant — observation active requise"
-        : "Attente structurée — setup non confirmé";
+        ? "Score insuffisant — observation uniquement"
+        : "Setup non confirmé";
     return {
       state:   "WAIT",
       label:   "ATTENTE",
@@ -1038,7 +1038,7 @@ function computeDecisionState(payload) {
       state:   "ALIGNED",
       label:   "ALIGNÉ",
       cls:     "status-aligned",
-      message: "Contexte favorable — exécution contrôlée autorisée"
+      message: "✅ Exécution autorisée"
     };
   }
 
@@ -1047,7 +1047,7 @@ function computeDecisionState(payload) {
       state:   "TENSION",
       label:   "TENSION",
       cls:     "status-tension",
-      message: "Opportunité visible — exposition limitée, prudence requise"
+      message: "Opportunité visible — exposition limitée"
     };
   }
 
@@ -1056,7 +1056,7 @@ function computeDecisionState(payload) {
     state:   "WAIT",
     label:   "ATTENTE",
     cls:     "status-wait",
-    message: "Lecture insuffisante — observation prioritaire"
+    message: "Lecture insuffisante — observer sans agir"
   };
 }
 
@@ -1289,7 +1289,7 @@ function renderNavigation(payload) {
   const _stateDisplayFR = { expansion: "Cassure / Tendance" };
   setText("marketStateTinyLabel", `Ton contexte : ${_stateDisplayFR[payload.market_state] || STATE_LABELS[payload.market_state] || payload.market_state}`);
   setText("marketStateText", `Lecture moteur : ${cockpit.market.label}`);
-  setText("marketStateNote", "Le moteur intègre l'ensemble des variables.");
+  setText("marketStateNote", "Lecture moteur intégrée.");
   setText("microConfidence", `${payload.score}/100`);
   setText("microRisk", `Risque ${payload.trigger_level.toLowerCase()}`);
   setText("agentName", payload.sniper_mode_final === "ON" ? "Sniper" : payload.attack_mode_final === "ON" ? "Attaque" : "Socle");
@@ -1438,15 +1438,15 @@ function renderRightRail(payload) {
   setTextTwoLines("decisionPanel", dictDecision, intentClass);
   setText("ultraShortPanel", dictRaison);
 
-  setQueryText(".structured-shell .card-desc", "Trois repères pour cadrer l'écran sans relire la décision.");
-  setQueryText(".master-card .card-desc", "Le cadre utile seulement : état, risque, mode et validation.");
-  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(1) .card-desc", "Lecture courte des signaux qui imposent une réévaluation.");
-  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(2) .card-desc", "Le profil, la validation et le contexte modulent la lecture opérateur.");
+  setQueryText(".structured-shell .card-desc", "Trois repères. Lecture immédiate.");
+  setQueryText(".master-card .card-desc", "État, risque, mode, validation.");
+  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(1) .card-desc", "Signaux imposant réévaluation.");
+  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(2) .card-desc", "Profil et validation modulés.");
   setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(4) .card-title", "Incohérences");
-  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(4) .card-desc", "Détection des frottements entre setup, régime et validation.");
+  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(4) .card-desc", "Frottements setup / régime / validation.");
   setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(5) .card-title", "Validation opérationnelle");
-  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(5) .card-desc", "Statut de validation et rappel court avant exécution.");
-  setQueryText(".side-panel .side-card:first-child .card-desc", "Résumé structuré unique de la décision, de la posture et du risque.");
+  setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(5) .card-desc", "Statut avant exécution.");
+  setQueryText(".side-panel .side-card:first-child .card-desc", "Décision. Posture. Risque.");
   setQueryText(".side-panel .side-card:first-child .decision-summary-card .tiny-label", "Décision centrale");
   setQueryText(".side-panel .side-card:first-child .history-item:nth-child(1) strong", "Régime");
   setQueryText(".side-panel .side-card:first-child .history-item:nth-child(2) strong", "Validation");
@@ -1635,10 +1635,10 @@ function getActiveAgent(decision) {
 }
 
 const AGENT_ACTION_MAP = {
-  DEFENDER: "Réduire le risque / protéger le capital",
-  ATTACKER: "Augmenter l'exposition / entrées agressives",
-  EXECUTE:  "Suivre le signal / entrer avec confirmation",
-  OBSERVER: "Attendre / aucune action"
+  DEFENDER: "Le risque doit être réduit sans délai.",
+  ATTACKER: "Une opportunité n'existe que si elle est validée.",
+  EXECUTE:  "L'exécution suit le signal, jamais l'inverse.",
+  OBSERVER: "L'absence de signal est une information en soi."
 };
 
 function getAgentAction(agent) {
@@ -1751,18 +1751,18 @@ function buildWhyReasons(payload) {
   const candidates = [];
 
   if (payload.validation?.state === "rejected")
-    candidates.push({ key: "validation", priority: 100, text: "Validation rejetée → décision bloquée par le filtre final" });
+    candidates.push({ key: "validation", priority: 100, text: "Validation refusée. Aucune entrée n'est méritée dans ce contexte." });
 
   const alignment = payload.alignment || "";
   if (alignment === "Veto humain")
-    candidates.push({ key: "veto", priority: 95, text: "Veto humain actif → décision manuelle prioritaire → moteur suspendu" });
+    candidates.push({ key: "veto", priority: 95, text: "Veto humain actif. La décision manuelle prend le dessus sur le moteur." });
 
   const stateLabels = {
-    range:       "Range détecté → marché sans direction → posture CORE",
-    compression: "Compression détectée → marché bloqué → attente d'un déclencheur",
-    expansion:   "Expansion détectée → momentum présent → fenêtre offensive possible",
-    defense:     "Mode défense activé → marché hostile → réduction du risque prioritaire",
-    riskoff:     "Risk-off détecté → contexte dangereux → protection du capital"
+    range:       "Pas de signal exploitable. Sans direction claire, ne pas entrer.",
+    compression: "Le marché se construit en silence. Attendre est parfois la meilleure décision.",
+    expansion:   "Momentum présent. Entrer uniquement sur signal propre et validé.",
+    defense:     "Contexte risqué. Le risque impose une réduction d'exposition immédiate.",
+    riskoff:     "Marché hostile. Le capital doit être protégé en priorité absolue."
   };
   const stateKey = (payload.market_state || "range").toLowerCase();
   if (stateLabels[stateKey])
@@ -1770,34 +1770,34 @@ function buildWhyReasons(payload) {
 
   const risk = payload.trigger_level || "";
   if (risk === "Élevé")
-    candidates.push({ key: "risk", priority: 70, text: "Risque élevé → exposition réduite → aucune entrée agressive" });
+    candidates.push({ key: "risk", priority: 70, text: "Risque élevé. L'exposition doit être réduite, pas augmentée." });
   else if (risk === "Moyen")
-    candidates.push({ key: "risk", priority: 60, text: "Risque moyen → gestion normale → taille de position standard" });
+    candidates.push({ key: "risk", priority: 60, text: "Risque moyen. Taille normale, aucune prise de risque supplémentaire." });
 
   const score = payload.score ?? 50;
   if (score < 30)
-    candidates.push({ key: "score", priority: 55, text: "Score très faible → contexte fragile → aucune entrée justifiée" });
+    candidates.push({ key: "score", priority: 55, text: "Score insuffisant. Sans signal clair, aucune entrée n'est justifiée." });
   else if (score < 50)
-    candidates.push({ key: "score", priority: 50, text: "Score modéré → confiance insuffisante → prudence recommandée" });
+    candidates.push({ key: "score", priority: 50, text: "Confiance modérée. Forcer une position dans ce contexte augmente le risque." });
   else if (score < 70)
-    candidates.push({ key: "score", priority: 45, text: "Score correct → conditions acceptables → surveiller sans forcer" });
+    candidates.push({ key: "score", priority: 45, text: "Score acceptable. Observer sans précipiter la décision." });
   else
-    candidates.push({ key: "score", priority: 40, text: "Score élevé → contexte solide → décision méritée" });
+    candidates.push({ key: "score", priority: 40, text: "Score solide. Le contexte mérite une décision structurée." });
 
   const emotion = payload.emotion_state || "";
   if (emotion === "stress")
-    candidates.push({ key: "emotion", priority: 35, text: "Émotion : stress → blocage des positions offensives" });
+    candidates.push({ key: "emotion", priority: 35, text: "État de stress détecté. Agir sous pression augmente le risque de mauvaise décision." });
   else if (emotion === "fomo")
-    candidates.push({ key: "emotion", priority: 35, text: "Émotion : FOMO détecté → risque d'entrée impulsive → blocage" });
+    candidates.push({ key: "emotion", priority: 35, text: "FOMO détecté. Forcer une entrée émotionnelle est la pire des décisions." });
   else if (emotion === "calm")
-    candidates.push({ key: "emotion", priority: 10, text: "Émotion : calme → filtre émotionnel validé" });
+    candidates.push({ key: "emotion", priority: 10, text: "État calme. Le filtre émotionnel est validé." });
 
   if (alignment === "Fragile")
-    candidates.push({ key: "alignment", priority: 30, text: "Alignement fragile → signal peu fiable → observation seule" });
+    candidates.push({ key: "alignment", priority: 30, text: "Alignement fragile. Le signal est peu fiable — observer seulement." });
 
   const fire = payload.constellium?.fire || "";
   if (fire === "weak")
-    candidates.push({ key: "btc", priority: 20, text: "Constellium faible → manque de confirmation BTC → signal non validé" });
+    candidates.push({ key: "btc", priority: 20, text: "Constellium faible. La confirmation est insuffisante pour agir." });
 
   return candidates.sort((a, b) => b.priority - a.priority).slice(0, 3);
 }
@@ -1828,63 +1828,63 @@ function getActionPlan(marketKey) {
     RANGE: {
       now: [
         "Observer le range",
-        "Ne pas forcer d'entrée"
+        "Ne pas forcer entrée"
       ],
       prepare: [
         "Travailler les zones",
-        "Placer achats bas / ventes hautes",
-        "Préparer la rotation"
+        "Ordres limites aux bornes",
+        "Préparer rotation"
       ]
     },
     COMPRESSION: {
       now: [
         "Attendre la cassure",
-        "Ne pas anticiper trop tôt"
+        "Ne pas anticiper"
       ],
       prepare: [
         "Préparer les ordres",
         "Surveiller cassure ou rejet",
-        "Définir les niveaux clés"
+        "Définir niveaux clés"
       ]
     },
     BREAKOUT: {
       now: [
         "Attendre confirmation ou retest",
-        "Éviter la poursuite aveugle"
+        "Éviter poursuite aveugle"
       ],
       prepare: [
-        "Préparer le niveau d'entrée",
-        "Préparer le scénario de validation"
+        "Préparer niveau d'entrée",
+        "Préparer scénario validation"
       ]
     },
     TREND: {
       now: [
-        "Gérer la position proprement",
-        "Prendre bénéfices partiels si nécessaire"
+        "Gérer position proprement",
+        "Sécuriser bénéfices partiels"
       ],
       prepare: [
-        "Laisser courir si le mouvement reste propre",
-        "Préparer l'allègement suivant"
+        "Laisser courir proprement",
+        "Préparer allègement suivant"
       ]
     },
     DEFENSE: {
       now: [
         "Réduire exposition",
-        "Protéger le capital"
+        "Protéger capital"
       ],
       prepare: [
-        "Identifier les zones plus basses",
-        "Préparer un rechargement défensif"
+        "Identifier zones plus basses",
+        "Préparer rechargement défensif"
       ]
     },
     CHAOS: {
       now: [
         "Rester défensif",
-        "Protéger le capital"
+        "Protéger capital"
       ],
       prepare: [
-        "Attendre un retour de structure",
-        "Identifier les zones fortes plus bas"
+        "Attendre retour de structure",
+        "Identifier zones fortes"
       ]
     },
     UNKNOWN: {
@@ -1907,13 +1907,13 @@ function getDecisionAwareActionPlan(payload) {
       tone: "danger",
       now: [
         "Réduire exposition",
-        "Protéger le capital",
-        "Ne pas ouvrir de nouvelle position"
+        "Protéger capital",
+        "Aucune nouvelle position"
       ],
       prepare: [
-        "Identifier les zones plus basses",
-        "Préparer un rechargement défensif",
-        "Attendre un retour de structure"
+        "Identifier zones plus basses",
+        "Préparer rechargement défensif",
+        "Attendre retour de structure"
       ]
     };
   }
@@ -1926,9 +1926,9 @@ function getDecisionAwareActionPlan(payload) {
         "Ne pas anticiper"
       ],
       prepare: [
-        "Travailler les zones clés",
+        "Travailler zones clés",
         "Préparer les niveaux",
-        "Attendre le signal de confirmation"
+        "Attendre signal propre"
       ]
     };
   }
@@ -1937,13 +1937,13 @@ function getDecisionAwareActionPlan(payload) {
     return {
       tone: "wait",
       now: [
-        "Attendre confirmation avant d'entrer",
-        "Éviter l'anticipation"
+        "Attendre confirmation avant entrée",
+        "Éviter anticipation"
       ],
       prepare: [
-        "Préparer le niveau d'entrée",
-        "Préparer le scénario de validation",
-        "Définir le stop et la taille"
+        "Préparer niveau d'entrée",
+        "Préparer scénario validation",
+        "Définir stop et taille"
       ]
     };
   }
@@ -1951,12 +1951,12 @@ function getDecisionAwareActionPlan(payload) {
   return {
     tone: "active",
     now: [
-      "Exécuter proprement si setup valide",
-      "Gérer le risque dès l'entrée"
+      "Exécuter sur signal valide",
+      "Gérer risque dès entrée"
     ],
     prepare: [
-      "Préparer l'allègement partiel",
-      "Préparer le scénario suivant"
+      "Préparer allègement partiel",
+      "Préparer scénario suivant"
     ]
   };
 }
@@ -1980,28 +1980,28 @@ function renderActionPlan(payload) {
     const ENGAGEMENT_PLANS = {
       NONE: {
         tone:    "danger",
-        now:     ["Ne pas intervenir", "Laisser passer le setup"],
-        prepare: ["Observer sans biais", "Attendre un nouveau contexte"]
+        now:     ["Ne pas intervenir", "Laisser passer setup"],
+        prepare: ["Observer sans biais", "Attendre nouveau signal"]
       },
       MINIMAL: {
         tone:    "danger",
         now:     ["Observer uniquement", "Ne pas anticiper"],
-        prepare: ["Clarifier le niveau clé", "Attendre validation nette"]
+        prepare: ["Clarifier niveau clé", "Attendre validation nette"]
       },
       REDUCED: {
         tone:    "wait",
-        now:     ["Entrée prudente possible", "Éviter toute surexposition"],
-        prepare: ["Définir un risque réduit", "Prévoir un scénario de sortie rapide"]
+        now:     ["Entrée prudente possible", "Éviter surexposition"],
+        prepare: ["Définir risque réduit", "Prévoir sortie rapide"]
       },
       NEUTRAL: {
         tone:    "wait",
-        now:     ["Attendre confirmation claire", "Rester en observation active"],
-        prepare: ["Identifier le trigger précis", "Préparer le plan d'entrée"]
+        now:     ["Attendre confirmation claire", "Observer activement"],
+        prepare: ["Identifier trigger précis", "Préparer plan entrée"]
       },
       FULL: {
         tone:    "active",
-        now:     ["Exécution possible", "Suivre le plan sans hésitation"],
-        prepare: ["Définir niveau d'entrée précis", "Valider le stop et le sizing"]
+        now:     ["Exécution possible", "Suivre plan sans hésitation"],
+        prepare: ["Définir niveau d'entrée", "Valider stop et sizing"]
       }
     };
     // FALLBACK — engagement_level absent ou inconnu : comportement actuel conservé
@@ -2093,7 +2093,7 @@ function getExecutionLevel(payload) {
 function renderExecutionLevel(payload) {
   // PRIORITÉ ABSOLUE — verrou validation rejetée
   if (payload.validation?.state === "rejected") {
-    setText("execPermission", "❌ Interdit — validation refusée");
+    setText("execPermission", "❌ Validation refusée");
     setText("execActionType", "Aucune exécution");
     setText("execIntensity",  "Nulle");
     setText("execRisk",       "Élevé");
@@ -2104,11 +2104,11 @@ function renderExecutionLevel(payload) {
   const el = payload.engagement_level;
   if (el) {
     const MAP = {
-      NONE:    { permission: "❌ Interdit — aucune exécution autorisée", actionType: "Aucune exécution",        intensity: "Nulle",    risk: "Élevé"    },
-      MINIMAL: { permission: "⚠️ Très limité — observation uniquement",  actionType: "Observer uniquement",     intensity: "Nulle",    risk: "Élevé"    },
-      REDUCED: { permission: "⚠️ Réduit — exécution prudente",           actionType: "Exécution réduite",       intensity: "Faible",   risk: "Moyen"    },
-      NEUTRAL: { permission: "👁 Observation — attendre confirmation",   actionType: "Observer / préparer",     intensity: "Faible",   risk: "Moyen"    },
-      FULL:    { permission: "✅ Autorisé — exécution possible",         actionType: "Entrée / gestion active", intensity: "Active",   risk: "Contrôlé" },
+      NONE:    { permission: "❌ Aucune exécution",     actionType: "Aucune exécution",  intensity: "Nulle",  risk: "Élevé"    },
+      MINIMAL: { permission: "⚠️ Observer uniquement",  actionType: "Observer",          intensity: "Nulle",  risk: "Élevé"    },
+      REDUCED: { permission: "⚠️ Exécution réduite",    actionType: "Exécution réduite", intensity: "Faible", risk: "Moyen"    },
+      NEUTRAL: { permission: "👁 Attendre confirmation", actionType: "Observer / préparer", intensity: "Faible", risk: "Moyen"    },
+      FULL:    { permission: "✅ Exécution autorisée",   actionType: "Entrée / gestion",  intensity: "Active", risk: "Contrôlé" },
     };
     const level = MAP[el];
     if (level) {
