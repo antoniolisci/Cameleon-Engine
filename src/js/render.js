@@ -425,11 +425,11 @@ function translatePolicyAction(action) {
 // Traduction ici pour #policy-message uniquement.
 
 const POLICY_MESSAGE_FR = {
-  "Validation rejected or risk unacceptable. No execution allowed.":  "La validation est refusée. Sans signal propre, ne pas entrer — le capital vient en premier.",
-  "Defensive context. Capital preservation takes priority.":          "Contexte défensif. Le risque impose une réduction d'exposition. Pas de nouvelle entrée.",
-  "No clean execution window yet.":                                   "Pas encore de fenêtre exploitable. Attendre est souvent la meilleure décision.",
-  "Context is becoming actionable, but still incomplete.":            "Le contexte s'améliore. Attendre confirmation avant d'agir pour ne pas forcer.",
-  "Favorable setup detected. Wait for confirmation before execution.":"Setup favorable détecté. Une opportunité n'existe que si elle est validée.",
+  "Validation rejected or risk unacceptable. No execution allowed.":  "Validation refusée. Ne pas entrer. Le capital passe avant tout.",
+  "Defensive context. Capital preservation takes priority.":          "Contexte défensif. Le risque impose de réduire l'exposition. Aucune nouvelle entrée.",
+  "No clean execution window yet.":                                   "Pas de fenêtre exploitable. Attendre est souvent la meilleure décision.",
+  "Context is becoming actionable, but still incomplete.":            "Setup incomplet. Attendre confirmation évite de forcer une position.",
+  "Favorable setup detected. Wait for confirmation before execution.":"Setup favorable. Une opportunité n'existe que si elle est validée.",
   "Context validated. Controlled execution allowed.":                 "Contexte validé. L'exécution est autorisée dans le cadre défini."
 };
 
@@ -1638,7 +1638,7 @@ const AGENT_ACTION_MAP = {
   DEFENDER: "Le risque doit être réduit sans délai.",
   ATTACKER: "Une opportunité n'existe que si elle est validée.",
   EXECUTE:  "L'exécution suit le signal, jamais l'inverse.",
-  OBSERVER: "L'absence de signal est une information en soi."
+  OBSERVER: "L'absence de signal est une information."
 };
 
 function getAgentAction(agent) {
@@ -1751,18 +1751,18 @@ function buildWhyReasons(payload) {
   const candidates = [];
 
   if (payload.validation?.state === "rejected")
-    candidates.push({ key: "validation", priority: 100, text: "Validation refusée. Aucune entrée n'est méritée dans ce contexte." });
+    candidates.push({ key: "validation", priority: 100, text: "Validation refusée. Aucune entrée n'est méritée." });
 
   const alignment = payload.alignment || "";
   if (alignment === "Veto humain")
-    candidates.push({ key: "veto", priority: 95, text: "Veto humain actif. La décision manuelle prend le dessus sur le moteur." });
+    candidates.push({ key: "veto", priority: 95, text: "Veto humain actif. La décision revient au trader." });
 
   const stateLabels = {
-    range:       "Pas de signal exploitable. Sans direction claire, ne pas entrer.",
-    compression: "Le marché se construit en silence. Attendre est parfois la meilleure décision.",
+    range:       "Pas de signal exploitable. Rester en dehors évite un risque inutile.",
+    compression: "Le marché se construit. Attendre est parfois la meilleure décision.",
     expansion:   "Momentum présent. Entrer uniquement sur signal propre et validé.",
     defense:     "Contexte risqué. Le risque impose une réduction d'exposition immédiate.",
-    riskoff:     "Marché hostile. Le capital doit être protégé en priorité absolue."
+    riskoff:     "Marché hostile. Le capital doit être protégé en priorité."
   };
   const stateKey = (payload.market_state || "range").toLowerCase();
   if (stateLabels[stateKey])
@@ -1778,7 +1778,7 @@ function buildWhyReasons(payload) {
   if (score < 30)
     candidates.push({ key: "score", priority: 55, text: "Score insuffisant. Sans signal clair, aucune entrée n'est justifiée." });
   else if (score < 50)
-    candidates.push({ key: "score", priority: 50, text: "Confiance modérée. Forcer une position dans ce contexte augmente le risque." });
+    candidates.push({ key: "score", priority: 50, text: "Confiance modérée. Forcer une position augmente le risque inutilement." });
   else if (score < 70)
     candidates.push({ key: "score", priority: 45, text: "Score acceptable. Observer sans précipiter la décision." });
   else
@@ -1786,14 +1786,14 @@ function buildWhyReasons(payload) {
 
   const emotion = payload.emotion_state || "";
   if (emotion === "stress")
-    candidates.push({ key: "emotion", priority: 35, text: "État de stress détecté. Agir sous pression augmente le risque de mauvaise décision." });
+    candidates.push({ key: "emotion", priority: 35, text: "État de stress. Agir sous pression augmente le risque d'erreur." });
   else if (emotion === "fomo")
-    candidates.push({ key: "emotion", priority: 35, text: "FOMO détecté. Forcer une entrée émotionnelle est la pire des décisions." });
+    candidates.push({ key: "emotion", priority: 35, text: "FOMO détecté. Forcer une entrée émotionnelle est risqué." });
   else if (emotion === "calm")
     candidates.push({ key: "emotion", priority: 10, text: "État calme. Le filtre émotionnel est validé." });
 
   if (alignment === "Fragile")
-    candidates.push({ key: "alignment", priority: 30, text: "Alignement fragile. Le signal est peu fiable — observer seulement." });
+    candidates.push({ key: "alignment", priority: 30, text: "Alignement fragile. Signal peu fiable, observer seulement." });
 
   const fire = payload.constellium?.fire || "";
   if (fire === "weak")
