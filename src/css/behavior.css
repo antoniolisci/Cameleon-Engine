@@ -768,3 +768,343 @@ body.bhv-panel-open .main-shell {
   color: var(--gold, #d4af37);
   background: rgba(212, 175, 55, 0.06);
 }
+
+/* ── Sessions card ───────────────────────────────────────────────────────────── */
+
+.bhv-sessions-card .bhv-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bhv-sessions-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bhv-sessions-tip {
+  font-size: 0.68rem;
+  color: var(--muted, #bba76b);
+  margin-top: 4px;
+  margin-bottom: 2px;
+  opacity: 0.75;
+}
+
+.bhv-btn--clear-sessions {
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 123, 123, 0.2);
+  background: transparent;
+  color: var(--muted, #bba76b);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.bhv-btn--clear-sessions:hover {
+  color: var(--danger, #ff7b7b);
+  border-color: rgba(255, 123, 123, 0.45);
+}
+
+.bhv-btn--save {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--gold, #d4af37);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.bhv-btn--save:hover {
+  background: rgba(212, 175, 55, 0.16);
+  border-color: rgba(212, 175, 55, 0.6);
+}
+
+.bhv-session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.bhv-session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  transition: border-color 0.15s;
+}
+
+.bhv-session:hover {
+  border-color: rgba(212, 175, 55, 0.22);
+}
+
+.bhv-session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bhv-session-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text, #f4ecd0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bhv-session-meta {
+  font-size: 0.68rem;
+  color: var(--muted, #bba76b);
+}
+
+.bhv-session-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bhv-session-btn {
+  font-size: 0.72rem;
+  padding: 3px 9px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.bhv-session-btn--load {
+  background: rgba(125, 255, 179, 0.07);
+  border-color: rgba(125, 255, 179, 0.25);
+  color: var(--ok, #7dffb3);
+}
+
+.bhv-session-btn--load:hover {
+  background: rgba(125, 255, 179, 0.15);
+  border-color: rgba(125, 255, 179, 0.5);
+}
+
+.bhv-session-btn--delete {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted, #bba76b);
+  padding: 3px 6px;
+}
+
+.bhv-session-btn--delete:hover {
+  color: var(--danger, #ff7b7b);
+  background: rgba(255, 123, 123, 0.08);
+}
+
+.bhv-sessions-empty {
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  padding: 6px 0 2px;
+}
+
+/* ── Score badge inline dans la liste des sessions ───────────────────────────── */
+
+.bhv-session-score {
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-right: 12px;
+  min-width: 70px;
+  text-align: right;
+  opacity: 0.95;
+  white-space: nowrap;
+}
+
+.bhv-session-score--ok     { color: var(--ok,     #7dffb3); }
+.bhv-session-score--gold   { color: var(--gold,   #d4af37); }
+.bhv-session-score--warn   { color: var(--warn,   #ffd36e); }
+.bhv-session-score--danger { color: var(--danger, #ff7b7b); }
+
+/* ── Bloc de synthèse comparative ────────────────────────────────────────────── */
+
+.bhv-sessions-synthesis {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 175, 55, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bhv-synth-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.bhv-synth-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bhv-synth-label {
+  font-size: 0.62rem;
+  color: var(--muted, #bba76b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bhv-synth-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text, #f4ecd0);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.bhv-synth-value--ok     { color: var(--ok,     #7dffb3); }
+.bhv-synth-value--danger { color: var(--danger, #ff7b7b); }
+
+/* ── Mini graphe d'évolution ─────────────────────────────────────────────────── */
+
+.bhv-synth-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+}
+
+.bhv-synth-bar-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  cursor: default;
+}
+
+.bhv-synth-bar {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.bhv-synth-bar-col:hover .bhv-synth-bar { opacity: 1; }
+
+.bhv-synth-bar--ok     { background: var(--ok,     #7dffb3); }
+.bhv-synth-bar--gold   { background: var(--gold,   #d4af37); }
+.bhv-synth-bar--warn   { background: var(--warn,   #ffd36e); }
+.bhv-synth-bar--danger { background: var(--danger, #ff7b7b); }
+
+/* ── Lecture comportementale — synthèse sessions ─────────────────────────────── */
+
+.bhv-synth-reading {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.bhv-synth-reading--solid     { color: var(--ok,     #7dffb3); }
+.bhv-synth-reading--irregular { color: var(--warn,   #ffd36e); }
+.bhv-synth-reading--unstable  { color: var(--danger, #ff7b7b); }
+
+.bhv-synth-insight {
+  font-size: 0.72rem;
+  color: var(--muted, #bba76b);
+  line-height: 1.4;
+}
+
+/* ── Comportement dominant — banner score card ───────────────────────────────── */
+
+.bhv-dominant-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  border-left: 4px solid transparent;
+}
+
+.bhv-dominant-banner--ok     { border-left-color: var(--ok,     #7dffb3); background: rgba(125, 255, 179, 0.11); }
+.bhv-dominant-banner--gold   { border-left-color: var(--gold,   #d4af37); background: rgba(212, 175,  55, 0.11); }
+.bhv-dominant-banner--warn   { border-left-color: var(--warn,   #ffd36e); background: rgba(255, 211, 110, 0.11); }
+.bhv-dominant-banner--danger { border-left-color: var(--danger, #ff7b7b); background: rgba(255, 123, 123, 0.11); }
+
+.bhv-dominant-label {
+  font-size: 0.65rem;
+  color: var(--text-soft, #e9ddb7);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.bhv-dominant-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text, #f4ecd0);
+}
+
+/* ── Action prioritaire — coaching card ─────────────────────────────────────── */
+
+.bhv-action-priority {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.07);
+  border-left: 3px solid var(--gold, #d4af37);
+  margin-bottom: 12px;
+}
+
+.bhv-action-priority-label {
+  font-size: 0.62rem;
+  color: var(--gold, #d4af37);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bhv-action-priority-text {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text, #f4ecd0);
+  line-height: 1.45;
+}
+
+/* ── Patterns — hiérarchie des niveaux ──────────────────────────────────────── */
+
+.bhv-pattern--critical {
+  border-color: rgba(255, 123, 123, 0.45);
+  background:   rgba(255, 123, 123, 0.06);
+}
+
+.bhv-pattern--critical .bhv-pattern-name {
+  color: var(--danger, #ff7b7b);
+}
+
+.bhv-pattern--secondary {
+  border-color: rgba(255, 211, 110, 0.35);
+  background:   rgba(255, 211, 110, 0.04);
+}
+
+.bhv-pattern--secondary .bhv-pattern-name {
+  color: var(--warn, #ffd36e);
+}
+
+.bhv-pattern--tertiary {
+  border-color: rgba(255, 255, 255, 0.07);
+  background:   transparent;
+}
+
+.bhv-pattern--tertiary .bhv-pattern-name {
+  color: var(--muted, #bba76b);
+}
