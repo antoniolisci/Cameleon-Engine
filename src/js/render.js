@@ -19,8 +19,8 @@ import {
   getMarketStateConfig
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
-import { canUseStorage, estimateStateSize, loadState, saveState, getMarketState, updateMarketState } from "./state.js";
-import { computeTradingPolicy, getTradingPolicy, canExecuteAction } from "./trading-policy.js";
+import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.js";
+import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 
 const $ = (id) => document.getElementById(id);
@@ -434,6 +434,9 @@ const POLICY_MESSAGE_FR = {
 };
 
 const VOLATILITY_FR = { low: "Faible", medium: "Moyen", high: "Élevé" };
+
+const VOLATILITY_MAP = { "Faible": "low", "Moyen": "medium", "Élevé": "high" };
+const TREND_MAP = { "range": "neutral", "pre-breakout": "neutral", "continuation": "bullish", "capital-protection": "defensive", "survival": "bearish" };
 
 // ─── Agent par état marché ────────────────────────────────────
 
@@ -1214,7 +1217,7 @@ function renderHero(payload) {
   setText("decision-risk",       cockpit.market.avoid);
   setText("decision-validation", getValidationLabel(payload));
 
-  const decisionState = computeDecisionState(payload);
+  const decisionState = payload.decisionState;
 
   console.log("[DecisionState]", {
     marketState:     payload.market_state,
@@ -1601,18 +1604,23 @@ function sanitizeVisibleText(root = document.body) {
 }
 
 function renderMarketStateBrain() {
-  const ms = getMarketState();
-  setText("market-regime",  BRAIN_STATE_LABELS_FR[ms.state] || ms.state);
-  setText("market-score",   String(ms.confidence));
-  setText("market-context", VOLATILITY_FR[ms.volatility] || ms.volatility);
+  const state      = (currentPayload?.market_state || "range").toUpperCase();
+  const confidence = String(currentPayload?.score ?? 50);
+  const volatility = VOLATILITY_MAP[currentPayload?.trigger_level] || "low";
+  setText("market-regime",  BRAIN_STATE_LABELS_FR[state] || state);
+  setText("market-score",   confidence);
+  setText("market-context", VOLATILITY_FR[volatility] || volatility);
 }
 
 function renderDebugBrain() {
-  const ms = getMarketState();
-  setText("db-state",      BRAIN_STATE_LABELS_FR[ms.state] || ms.state);
-  setText("db-confidence", String(ms.confidence));
-  setText("db-volatility", ms.volatility);
-  setText("db-trend",      ms.trend);
+  const state      = (currentPayload?.market_state || "range").toUpperCase();
+  const confidence = String(currentPayload?.score ?? 50);
+  const volatility = VOLATILITY_MAP[currentPayload?.trigger_level] || "low";
+  const trend      = TREND_MAP[currentPayload?.engine_mode] || "neutral";
+  setText("db-state",      BRAIN_STATE_LABELS_FR[state] || state);
+  setText("db-confidence", confidence);
+  setText("db-volatility", volatility);
+  setText("db-trend",      trend);
   if (currentPayload?.marketReading) {
     setText("db-reading", `${currentPayload.marketReading.state}:${currentPayload.marketReading.modifier} [${currentPayload.marketReading.risk}]`);
   }
@@ -1728,7 +1736,7 @@ function renderPolicyMessage(policy) {
 
 function renderAgentRules() {
   // Source d'autorité : DecisionState (pas posture seule)
-  const decisionState = currentPayload ? computeDecisionState(currentPayload) : { state: "WAIT", message: "" };
+  const decisionState = currentPayload?.decisionState ?? { state: "WAIT", message: "" };
   const policy        = getTradingPolicy(decisionState.state);
 
   setText("rules-allowed",   policy.allowed.map(translatePolicyAction).join(", "));
@@ -1906,14 +1914,14 @@ function getDecisionAwareActionPlan(payload) {
     return {
       tone: "danger",
       now: [
-        "Réduire exposition",
-        "Protéger capital",
-        "Aucune nouvelle position"
+        "Réduire l'exposition",
+        "Protéger le capital",
+        "Pas de nouvelle position"
       ],
       prepare: [
-        "Identifier zones plus basses",
-        "Préparer rechargement défensif",
-        "Attendre retour de structure"
+        "Identifier zones de support",
+        "Préparer position défensive",
+        "Attendre stabilisation"
       ]
     };
   }
@@ -1926,9 +1934,9 @@ function getDecisionAwareActionPlan(payload) {
         "Ne pas anticiper"
       ],
       prepare: [
-        "Travailler zones clés",
+        "Identifier zones clés",
         "Préparer les niveaux",
-        "Attendre signal propre"
+        "Attendre signal clair"
       ]
     };
   }
@@ -1937,12 +1945,12 @@ function getDecisionAwareActionPlan(payload) {
     return {
       tone: "wait",
       now: [
-        "Attendre confirmation avant entrée",
-        "Éviter anticipation"
+        "Attendre confirmation",
+        "Ne pas anticiper"
       ],
       prepare: [
-        "Préparer niveau d'entrée",
-        "Préparer scénario validation",
+        "Préparer l'entrée",
+        "Préparer scénario de validation",
         "Définir stop et taille"
       ]
     };
@@ -1972,7 +1980,7 @@ function renderActionPlan(payload) {
   if (payload.validation?.state === "rejected") {
     plan = {
       tone:    "danger",
-      now:     ["Aucune action autorisée"],
+      now:     ["Aucune action"],
       prepare: ["Revoir le contexte", "Attendre nouvelle validation"]
     };
   } else {
@@ -1980,27 +1988,27 @@ function renderActionPlan(payload) {
     const ENGAGEMENT_PLANS = {
       NONE: {
         tone:    "danger",
-        now:     ["Ne pas intervenir", "Laisser passer setup"],
-        prepare: ["Observer sans biais", "Attendre nouveau signal"]
+        now:     ["Ne pas intervenir", "Ne pas agir"],
+        prepare: ["Observer le marché", "Attendre nouveau signal"]
       },
       MINIMAL: {
         tone:    "danger",
         now:     ["Observer uniquement", "Ne pas anticiper"],
-        prepare: ["Clarifier niveau clé", "Attendre validation nette"]
+        prepare: ["Identifier niveau clé", "Attendre confirmation"]
       },
       REDUCED: {
         tone:    "wait",
-        now:     ["Entrée prudente possible", "Éviter surexposition"],
-        prepare: ["Définir risque réduit", "Prévoir sortie rapide"]
+        now:     ["Entrée légère possible", "Éviter surexposition"],
+        prepare: ["Limiter le risque", "Prévoir sortie rapide"]
       },
       NEUTRAL: {
         tone:    "wait",
-        now:     ["Attendre confirmation claire", "Observer activement"],
+        now:     ["Attendre confirmation", "Observer activement"],
         prepare: ["Identifier trigger précis", "Préparer plan entrée"]
       },
       FULL: {
         tone:    "active",
-        now:     ["Exécution possible", "Suivre plan sans hésitation"],
+        now:     ["Exécuter le plan", "Rester discipliné"],
         prepare: ["Définir niveau d'entrée", "Valider stop et sizing"]
       }
     };
@@ -2052,76 +2060,68 @@ function setPlanCardState(tone) {
 }
 
 function getExecutionLevel(payload) {
-  const ds = computeDecisionState(payload);
+  const ds = payload.decisionState;
 
   if (ds.state === "BLOCKED") return {
-    permission: "Interdit",
+    permission: "❌ Bloqué",
     actionType: "Aucune exécution",
     intensity:  "Nulle",
     risk:       "Élevé"
   };
 
   if (ds.state === "PROTECT") return {
-    permission: "Défensif uniquement",
-    actionType: "Réduire / protéger",
+    permission: "Protéger",
+    actionType: "Réduire l'exposition",
     intensity:  "Faible",
     risk:       "Élevé"
   };
 
   if (ds.state === "WAIT") return {
-    permission: "Préparation uniquement",
-    actionType: "Observer / préparer",
+    permission: "Attendre",
+    actionType: "Observer et préparer",
     intensity:  "Faible",
     risk:       "Moyen"
   };
 
   if (ds.state === "READY" || ds.state === "TENSION") return {
-    permission: "Exécution sous condition",
-    actionType: "Préparer / surveiller entrée",
+    permission: "Préparer",
+    actionType: "Surveiller l'entrée",
     intensity:  "Mesurée",
     risk:       "Moyen"
   };
 
   return {
-    permission: "Exécutable",
-    actionType: "Entrée / gestion active",
+    permission: "Agir",
+    actionType: "Entrer et gérer",
     intensity:  "Active",
     risk:       "Contrôlé"
   };
 }
 
 function renderExecutionLevel(payload) {
-  // PRIORITÉ ABSOLUE — verrou validation rejetée
-  if (payload.validation?.state === "rejected") {
-    setText("execPermission", "❌ Validation refusée");
+  // PRIORITÉ ABSOLUE — verrou décisionnel
+  if (payload.decisionState?.state === "BLOCKED") {
+    setText("execPermission", "❌ Bloqué");
     setText("execActionType", "Aucune exécution");
     setText("execIntensity",  "Nulle");
     setText("execRisk",       "Élevé");
     return;
   }
 
-  // PRIORITÉ 2 — engagement_level (filtre adaptatif)
-  const el = payload.engagement_level;
-  if (el) {
-    const MAP = {
-      NONE:    { permission: "❌ Aucune exécution",     actionType: "Aucune exécution",  intensity: "Nulle",  risk: "Élevé"    },
-      MINIMAL: { permission: "⚠️ Observer uniquement",  actionType: "Observer",          intensity: "Nulle",  risk: "Élevé"    },
-      REDUCED: { permission: "⚠️ Exécution réduite",    actionType: "Exécution réduite", intensity: "Faible", risk: "Moyen"    },
-      NEUTRAL: { permission: "👁 Attendre confirmation", actionType: "Observer / préparer", intensity: "Faible", risk: "Moyen"    },
-      FULL:    { permission: "✅ Exécution autorisée",   actionType: "Entrée / gestion",  intensity: "Active", risk: "Contrôlé" },
-    };
-    const level = MAP[el];
-    if (level) {
-      setText("execPermission", level.permission);
-      setText("execActionType", level.actionType);
-      setText("execIntensity",  level.intensity);
-      setText("execRisk",       level.risk);
-      return;
-    }
-  }
-
-  // FALLBACK — engagement_level absent : comportement actuel conservé
+  // Base depuis decisionState
   const level = getExecutionLevel(payload);
+
+  // Modulation par engagement_level — wording + intensité uniquement (jamais en hausse)
+  const el = payload.engagement_level;
+  if (el === "NONE" || el === "MINIMAL") {
+    level.permission = el === "NONE" ? "❌ Suspendu" : "⚠️ Observer";
+    level.actionType = "Observer";
+    level.intensity  = "Nulle";
+  } else if (el === "REDUCED") {
+    level.permission = "⚠️ Réduit";
+  }
+  // NEUTRAL, FULL : base decisionState conservée
+
   setText("execPermission", level.permission);
   setText("execActionType", level.actionType);
   setText("execIntensity",  level.intensity);
@@ -2129,7 +2129,7 @@ function renderExecutionLevel(payload) {
 }
 
 function getPositionManagement(payload) {
-  const ds = computeDecisionState(payload);
+  const ds = payload.decisionState;
 
   if (ds.state === "BLOCKED") return {
     size:    "0%",
@@ -2144,7 +2144,7 @@ function getPositionManagement(payload) {
     size:    "Très faible",
     mode:    "Défensif",
     entry:   "Pas de nouvelle position",
-    exit:    "Allègement / protection",
+    exit:    "Réduire ou protéger",
     maxRisk: "Élevé",
     status:  "Protection du capital"
   };
@@ -2152,8 +2152,8 @@ function getPositionManagement(payload) {
   if (ds.state === "WAIT") return {
     size:    "Faible",
     mode:    "Observation active",
-    entry:   "Entrée non confirmée",
-    exit:    "Pas d'allègement offensif",
+    entry:   "Attendre signal",
+    exit:    "Conserver position",
     maxRisk: "Moyen",
     status:  "Préparation uniquement"
   };
@@ -2161,8 +2161,8 @@ function getPositionManagement(payload) {
   if (ds.state === "READY") return {
     size:    "Légère",
     mode:    "Sous condition",
-    entry:   "Entrée possible si validation",
-    exit:    "Préparer allègement partiel",
+    entry:   "Sur validation",
+    exit:    "Préparer sortie partielle",
     maxRisk: "Moyen",
     status:  "Setup proche"
   };
@@ -2170,31 +2170,42 @@ function getPositionManagement(payload) {
   if (ds.state === "TENSION") return {
     size:    "Mesurée",
     mode:    "Exécution surveillée",
-    entry:   "Entrée possible avec discipline",
-    exit:    "Sortie rapide si rejet",
+    entry:   "Entrée disciplinée",
+    exit:    "Couper si rejet",
     maxRisk: "Moyen",
     status:  "Fenêtre fragile"
   };
 
   return {
-    size:    "Active mais contrôlée",
+    size:    "Normale",
     mode:    "Gestion active",
     entry:   "Entrée autorisée",
-    exit:    "Allègement progressif possible",
+    exit:    "Allègement progressif",
     maxRisk: "Contrôlé",
-    status:  "Contexte exploitable"
+    status:  "Fenêtre ouverte"
   };
 }
 
 function renderPositionManagement(payload) {
   // PRIORITÉ ABSOLUE — validation rejetée ou engagement nul
-  if (payload.validation?.state === "rejected" || payload.engagement_level === "NONE") {
-    setText("pmSize",    "0 — aucun engagement");
+  if (payload.decisionState?.state === "BLOCKED" || payload.engagement_level === "NONE") {
+    setText("pmSize",    "0%");
     setText("pmMode",    "Flat uniquement");
     setText("pmEntry",   "Aucune entrée");
     setText("pmExit",    "Aucune gestion active");
     setText("pmMaxRisk", "Élevé");
     setText("pmStatus",  "Marché bloqué");
+    return;
+  }
+
+  // Engagement minimal : aligner avec Niveau d'exécution (observation uniquement)
+  if (payload.engagement_level === "MINIMAL") {
+    setText("pmSize",    "Faible");
+    setText("pmMode",    "Observation active");
+    setText("pmEntry",   "Attendre signal");
+    setText("pmExit",    "Conserver position");
+    setText("pmMaxRisk", "Moyen");
+    setText("pmStatus",  "Préparation uniquement");
     return;
   }
 
@@ -2879,15 +2890,7 @@ function buildCurrentPayload() {
     }));
   } catch (e) {}
 
-  // Sync cerveau marché avec le payload courant
-  const volatilityMap = { "Faible": "low", "Moyen": "medium", "Élevé": "high" };
-  const trendMap = { "range": "neutral", "pre-breakout": "neutral", "continuation": "bullish", "capital-protection": "defensive", "survival": "bearish" };
-  updateMarketState({
-    state:      (payload.market_state || "range").toUpperCase(),
-    confidence: payload.score ?? 50,
-    volatility: volatilityMap[payload.trigger_level] || "low",
-    trend:      trendMap[payload.engine_mode] || "neutral"
-  });
+  payload.decisionState = computeDecisionState(payload);
 
   return payload;
 }
