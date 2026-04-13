@@ -182,6 +182,12 @@ export function applyAdaptiveFilter(result, v) {
   return out;
 }
 
+// Profile-aware sniper rule: on adjusted validation, ACTIVE profile keeps sniper.
+// Placed here (not in profileMatrix) because it only applies when validationState === "adjusted".
+function _downgradeSniper_adjusted(result, userProfile) {
+  if (result.sniper === "ON" && userProfile !== "ACTIVE") result.sniper = "OFF";
+}
+
 export function applyValidation(profileOut, v) {
   const result = { ...profileOut };
   let validationSummary = VALIDATION_TEXT[v.validationState];
@@ -195,7 +201,7 @@ export function applyValidation(profileOut, v) {
 
   if (v.validationState === "adjusted") {
     if (result.attack === "ON") result.attack = "LIGHT";
-    if (result.sniper === "ON" && v.userProfile !== "ACTIVE") result.sniper = "OFF";
+    _downgradeSniper_adjusted(result, v.userProfile);
     if (result.tradingStatus !== "NO TRADE") result.tradingStatus = "ADJUSTED";
   }
 
@@ -219,8 +225,7 @@ export function detectInconsistencies(v, profileOut) {
   const issues = [];
   if (v.market === "expansion" && v.fire === "weak") issues.push("Expansion déclarée, mais FEU reste faible.");
   if (v.market === "range" && v.ether === "weak") issues.push("Range déclaré, mais ÉTHER reste faible.");
-  if (v.userProfile === "PASSIVE" && profileOut.attack === "ON") issues.push("Profil passif, mais offensive finale encore trop agressive.");
-  if ((profileOut.sniper === "ON" || profileOut.sniper === "WATCH") && v.zoneSignal === "middle") issues.push("Lecture SNIPER activée au milieu du range.");
+if ((profileOut.sniper === "ON" || profileOut.sniper === "WATCH") && v.zoneSignal === "middle") issues.push("Lecture SNIPER activée au milieu du range.");
   if (v.validationState === "accepted" && !v.validationNote.trim()) issues.push("Validation acceptée sans note de contexte.");
   return issues;
 }

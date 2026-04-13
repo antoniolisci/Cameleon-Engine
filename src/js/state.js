@@ -59,20 +59,3 @@ export function canUseStorage() {
     return false;
   }
 }
-
-// ── Cerveau marché — source de vérité du moteur ───────────────
-
-export const marketState = {
-  state: "RANGE",
-  confidence: 72,
-  volatility: "low",
-  trend: "neutral"
-};
-
-export function getMarketState() {
-  return marketState;
-}
-
-export function updateMarketState(newState) {
-  Object.assign(marketState, newState);
-}
