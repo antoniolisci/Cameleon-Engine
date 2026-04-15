@@ -33,6 +33,9 @@ const SIZE_MIN_TRADES          = 5;
 // FENÊTRE ÉLARGIE v2 : 60 min était trop court pour capturer l'escalade réelle.
 const LC_WINDOW_MIN            = 120;  // fenêtre pour détecter l'escalade de taille
 const LC_MIN_SEQUENCE          = 3;    // BUYs croissants consécutifs
+// SEUIL v3 : le 3e BUY doit dépasser 1.8× la taille du 1er pour qualifier d'escalade réelle.
+// Élimine les DCA à progression légère (100→110→120$) qui sont des stratégies planifiées.
+const LC_ESCALATION_FACTOR     = 1.8;
 
 // ── Détection principale ──────────────────────────────────────────────────────
 
@@ -73,12 +76,13 @@ function tagTrades(trades, metrics) {
     tagMap.get(ts).push(label);
   };
 
-  // Revenge
+  // Revenge — v3 : même symbole requis (aligné sur detectRevenge)
   const revengeGapMs = REVENGE_MAX_GAP_MIN * 60000;
   for (let i = 1; i < sorted.length; i++) {
     const prev = sorted[i - 1]; const curr = sorted[i];
     if (
       prev.side === 'SELL' && curr.side === 'BUY' &&
+      prev.symbol === curr.symbol &&
       curr.timestamp - prev.timestamp <= revengeGapMs &&
       curr.quote_quantity > metrics.avgSize * REVENGE_SIZE_FACTOR
     ) {
@@ -93,19 +97,23 @@ function tagTrades(trades, metrics) {
     addTag(nextBuy.timestamp, 'reentry');
   });
 
-  // Loss chasing
-  const buysList = sorted.filter(t => t.side === 'BUY');
+  // Loss chasing — v3 : par symbole + seuil d'escalade significatif (aligné sur detectLossChasing)
   const lcMs     = LC_WINDOW_MIN * 60000;
-  for (let i = 2; i < buysList.length; i++) {
-    const a = buysList[i - 2]; const b = buysList[i - 1]; const c = buysList[i];
-    if (
-      c.timestamp - a.timestamp <= lcMs &&
-      b.quote_quantity > a.quote_quantity &&
-      c.quote_quantity > b.quote_quantity
-    ) {
-      addTag(a.timestamp, 'escalade');
-      addTag(b.timestamp, 'escalade');
-      addTag(c.timestamp, 'escalade');
+  const tagSymbols = [...new Set(sorted.map(t => t.symbol))];
+  for (const sym of tagSymbols) {
+    const buysList = sorted.filter(t => t.side === 'BUY' && t.symbol === sym);
+    for (let i = 2; i < buysList.length; i++) {
+      const a = buysList[i - 2]; const b = buysList[i - 1]; const c = buysList[i];
+      if (
+        c.timestamp - a.timestamp <= lcMs &&
+        b.quote_quantity > a.quote_quantity &&
+        c.quote_quantity > b.quote_quantity &&
+        c.quote_quantity > a.quote_quantity * LC_ESCALATION_FACTOR
+      ) {
+        addTag(a.timestamp, 'escalade');
+        addTag(b.timestamp, 'escalade');
+        addTag(c.timestamp, 'escalade');
+      }
     }
   }
 
@@ -119,10 +127,13 @@ function detectOvertrading(sorted) {
   let count = 0;
 
   for (let i = 0; i < sorted.length; i++) {
+    const sym = sorted[i].symbol;
     const end = sorted[i].timestamp + windowMs;
+    // v3 : filtre par symbole — plusieurs trades sur des paires différentes
+    // dans la même fenêtre ne constituent pas de l'overtrading.
     let inWindow = 0;
     for (let j = i; j < sorted.length && sorted[j].timestamp <= end; j++) {
-      inWindow++;
+      if (sorted[j].symbol === sym) inWindow++;
     }
     if (inWindow >= OVERTRADING_MIN_TRADES) count++;
   }
@@ -132,7 +143,7 @@ function detectOvertrading(sorted) {
   return {
     type:        'overtrading',
     label:       'Overtrading',
-    description: `${count} fenêtre(s) avec ${OVERTRADING_MIN_TRADES}+ trades en ${OVERTRADING_WINDOW_MIN} min.`,
+    description: `${count} fenêtre(s) avec ${OVERTRADING_MIN_TRADES}+ trades en ${OVERTRADING_WINDOW_MIN} min sur le même symbole.`,
     severity:    count >= 5 ? 'high' : 'medium',
     count
   };
@@ -146,13 +157,17 @@ function detectRevenge(sorted, metrics) {
     const prev = sorted[i - 1]; const curr = sorted[i];
     if (
       prev.side === 'SELL' && curr.side === 'BUY' &&
+      // v3 : même symbole requis — un BUY sur une autre paire après un SELL
+      // n'est pas une réaction émotionnelle à ce SELL.
+      prev.symbol === curr.symbol &&
       curr.timestamp - prev.timestamp <= gapMs &&
       curr.quote_quantity > metrics.avgSize * REVENGE_SIZE_FACTOR
     ) {
       dbg('revenge — instance :', {
+        symbol:  curr.symbol,
         gap_min: Math.round((curr.timestamp - prev.timestamp) / 60000),
-        taille: curr.quote_quantity,
-        seuil: Math.round(metrics.avgSize * REVENGE_SIZE_FACTOR)
+        taille:  curr.quote_quantity,
+        seuil:   Math.round(metrics.avgSize * REVENGE_SIZE_FACTOR)
       });
       count++;
     }
@@ -163,7 +178,7 @@ function detectRevenge(sorted, metrics) {
   return {
     type:        'revenge_trading',
     label:       'Revenge trading',
-    description: `${count} entrée(s) rapide(s) après vente avec taille > ${REVENGE_SIZE_FACTOR}× la moyenne (${metrics.avgSize} $).`,
+    description: `${count} entrée(s) rapide(s) après vente sur le même symbole avec taille > ${REVENGE_SIZE_FACTOR}× la moyenne (${metrics.avgSize} $).`,
     severity:    count >= 3 ? 'high' : 'medium',
     count
   };
@@ -192,6 +207,8 @@ function detectRapidReentry(sorted) {
 // Helper partagé entre detectRapidReentry et tagTrades.
 // Pour chaque SELL, cherche le BUY le plus récent avant lui (dans la fenêtre hold)
 // et le prochain BUY après lui (dans la fenêtre reentry).
+// v3 : toutes les recherches sont restreintes au même symbole que le SELL.
+// Un BUY sur une paire différente ne constitue pas une réentrée rapide.
 function findRapidReentryInstances(sorted) {
   const holdMs    = RR_HOLD_MAX_MIN    * 60000;
   const reentryMs = RR_REENTRY_MAX_MIN * 60000;
@@ -201,18 +218,22 @@ function findRapidReentryInstances(sorted) {
     const sell = sorted[i];
     if (sell.side !== 'SELL') continue;
 
-    // BUY le plus récent AVANT ce SELL
+    // BUY le plus récent AVANT ce SELL — même symbole
     let prevBuy = null;
     for (let j = i - 1; j >= 0; j--) {
-      if (sorted[j].side === 'BUY') { prevBuy = sorted[j]; break; }
+      if (sorted[j].side === 'BUY' && sorted[j].symbol === sell.symbol) {
+        prevBuy = sorted[j]; break;
+      }
     }
     if (!prevBuy) continue;
     if (sell.timestamp - prevBuy.timestamp > holdMs) continue;
 
-    // Prochain BUY APRÈS ce SELL
+    // Prochain BUY APRÈS ce SELL — même symbole
     let nextBuy = null;
     for (let j = i + 1; j < sorted.length; j++) {
-      if (sorted[j].side === 'BUY') { nextBuy = sorted[j]; break; }
+      if (sorted[j].side === 'BUY' && sorted[j].symbol === sell.symbol) {
+        nextBuy = sorted[j]; break;
+      }
     }
     if (!nextBuy) continue;
     if (nextBuy.timestamp - sell.timestamp > reentryMs) continue;
@@ -248,22 +269,34 @@ function detectSizeInconsistency(sorted, metrics) {
 }
 
 function detectLossChasing(sorted) {
-  const buysList = sorted.filter(t => t.side === 'BUY');
-  const lcMs     = LC_WINDOW_MIN * 60000;
-  let count      = 0;
+  // v3 : on travaille par symbole — une séquence d'escalade n'a de sens que si
+  // les 3 BUYs concernent le même actif.
+  const symbols = [...new Set(sorted.map(t => t.symbol))];
+  const lcMs    = LC_WINDOW_MIN * 60000;
+  let count     = 0;
 
-  for (let i = 2; i < buysList.length; i++) {
-    const a = buysList[i - 2]; const b = buysList[i - 1]; const c = buysList[i];
-    const windowOk = c.timestamp - a.timestamp <= lcMs;
-    const sizeOk   = b.quote_quantity > a.quote_quantity && c.quote_quantity > b.quote_quantity;
+  for (const sym of symbols) {
+    const buysList = sorted.filter(t => t.side === 'BUY' && t.symbol === sym);
 
-    dbg('loss_chasing — triplet BUY :', {
-      A: Math.round(a.quote_quantity), B: Math.round(b.quote_quantity), C: Math.round(c.quote_quantity),
-      window_min: Math.round((c.timestamp - a.timestamp) / 60000),
-      window_ok: windowOk, size_ok: sizeOk
-    });
+    for (let i = 2; i < buysList.length; i++) {
+      const a = buysList[i - 2]; const b = buysList[i - 1]; const c = buysList[i];
+      const windowOk = c.timestamp - a.timestamp <= lcMs;
+      // v3 : exige que C soit > LC_ESCALATION_FACTOR × A (pas juste légèrement supérieur).
+      // Un DCA planifié à progression légère (100→110→120$) ne doit pas être signalé.
+      // Seule une vraie escalade (100→130→180$) déclenche le pattern.
+      const sizeOk   = b.quote_quantity > a.quote_quantity
+                    && c.quote_quantity > b.quote_quantity
+                    && c.quote_quantity > a.quote_quantity * LC_ESCALATION_FACTOR;
 
-    if (windowOk && sizeOk) count++;
+      dbg('loss_chasing — triplet BUY :', {
+        symbol: sym,
+        A: Math.round(a.quote_quantity), B: Math.round(b.quote_quantity), C: Math.round(c.quote_quantity),
+        window_min: Math.round((c.timestamp - a.timestamp) / 60000),
+        window_ok: windowOk, size_ok: sizeOk
+      });
+
+      if (windowOk && sizeOk) count++;
+    }
   }
 
   dbg('loss_chasing — séquences détectées :', count);
@@ -271,7 +304,7 @@ function detectLossChasing(sorted) {
   return {
     type:        'loss_chasing',
     label:       'Escalade de position',
-    description: `${count} séquence(s) de ${LC_MIN_SEQUENCE} achats consécutifs avec taille croissante en ${LC_WINDOW_MIN} min.`,
+    description: `${count} séquence(s) de ${LC_MIN_SEQUENCE} achats consécutifs avec escalade significative (>${Math.round(LC_ESCALATION_FACTOR * 100)}% du 1er) en ${LC_WINDOW_MIN} min.`,
     severity:    count >= 3 ? 'high' : 'medium',
     count
   };
