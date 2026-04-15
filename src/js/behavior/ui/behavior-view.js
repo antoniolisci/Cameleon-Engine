@@ -35,6 +35,17 @@ function mount(root) {
     coaching    = computeCoaching(patterns, metrics, score);
     style       = detectStyle(trades, metrics);
     transitions = detectStyleTransitions(trades, style?.key);
+
+    // Expose le niveau de cohérence au moteur principal (lecture seule via localStorage)
+    if (transitions && transitions.localStyles.length > 0) {
+      const r   = transitions.transitionsCount / transitions.localStyles.length;
+      const lvl = r === 0 ? 'Élevée' : r <= 0.2 ? 'Bonne' : r <= 0.4 ? 'Moyenne' : 'Faible';
+      behaviorRepo.set('coherenceLevel', lvl);
+    } else {
+      behaviorRepo.set('coherenceLevel', null);
+    }
+  } else {
+    behaviorRepo.set('coherenceLevel', null);
   }
 
   render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult });

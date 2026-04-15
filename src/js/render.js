@@ -2705,6 +2705,24 @@ function renderBehaviorAlert() {
   setText("jdAlert", computeBehaviorAlert() || "Aucune alerte");
 }
 
+function renderBehaviorInfluence() {
+  const BHV_KEY = 'cameleon.behavior.v1.coherenceLevel';
+  let level = null;
+  try { level = JSON.parse(localStorage.getItem(BHV_KEY)); } catch {}
+  const TEXT = {
+    'Élevée':  'Cadre respecté. Aucune influence comportementale particulière.',
+    'Bonne':   'Discipline correcte. Éviter d\'accélérer inutilement.',
+    'Moyenne': 'Vigilance : ralentir légèrement et revenir au cadre habituel.',
+    'Faible':  'Prudence renforcée : risque de dérive comportementale.'
+  };
+  const panel = $('bhvInfluencePanel');
+  if (!panel) return;
+  if (!level || !TEXT[level]) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  setText('bhvInfluenceLevel', level);
+  setText('bhvInfluenceText',  TEXT[level]);
+}
+
 function computeAlertStats() {
   const stats = { hesitation: 0, overreaction: 0, instability: 0 };
 
@@ -2871,6 +2889,7 @@ function render() {
   renderDecisionHistory();
   renderDecisionInsights();
   renderBehaviorAlert();
+  renderBehaviorInfluence();
   renderMetaLayer();
   renderHistory();
   renderDiagnostics();
