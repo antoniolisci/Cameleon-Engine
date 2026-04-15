@@ -491,6 +491,7 @@ function buildReadingCard(metrics, patterns, style, transitions) {
   }
 
   let coherenceLine = '';
+  let postureLine   = '';
   if (transitions && transitions.localStyles.length > 0) {
     const ratio    = transitions.transitionsCount / transitions.localStyles.length;
     const cohLabel = ratio === 0  ? 'Élevée'
@@ -506,6 +507,16 @@ function buildReadingCard(metrics, patterns, style, transitions) {
       <span class="bhv-style-label">Cohérence</span>
       <span class="bhv-style-value">${escHtml(cohLabel)} · ${escHtml(cohText)}</span>
     </div>`;
+
+    const postureText = ratio === 0  ? 'Cadre respecté. Tu peux continuer à exécuter normalement.'
+                      : ratio <= 0.2 ? 'Rester discipliné. Pas besoin d\'accélérer.'
+                      : ratio <= 0.4 ? 'Ralentir légèrement et revenir à ton cadre habituel.'
+                      :                'Réduire l\'intensité. Risque de dérive comportementale.';
+    postureLine = `
+    <div class="bhv-style-context">
+      <span class="bhv-style-label">Posture recommandée</span>
+      <span class="bhv-style-value">${escHtml(postureText)}</span>
+    </div>`;
   }
 
   return `
@@ -517,6 +528,7 @@ function buildReadingCard(metrics, patterns, style, transitions) {
       ${styleLine}
       ${transitionLine}
       ${coherenceLine}
+      ${postureLine}
       <div class="bhv-reading-list">${items}</div>
     </div>`;
 }
