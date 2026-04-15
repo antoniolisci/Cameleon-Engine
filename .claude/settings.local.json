@@ -4,7 +4,8 @@
       "Bash(git init:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(wc -l src/js/*.js src/js/behavior/**/*.js)"
+      "Bash(wc -l src/js/*.js src/js/behavior/**/*.js)",
+      "Bash(node --input-type=module)"
     ]
   }
 }

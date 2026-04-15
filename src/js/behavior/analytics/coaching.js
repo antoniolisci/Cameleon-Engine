@@ -98,8 +98,10 @@ function computeCoaching(patterns, metrics, scoreData) {
   // 5. Conseils complémentaires basés sur les métriques (pas de contribution au plan)
   // Cadence globale — seulement si aucun conseil de délai pattern n'a déjà été ajouté
   // (keepDelayType !== null = au moins un type délai était présent et son conseil a été émis)
-  if (tips.length < 5 && keepDelayType === null && metrics.avgTimeBetween !== null && metrics.avgTimeBetween < 15) {
-    tips.push('Ralentis ton rythme : impose un délai minimum de 15 minutes entre deux trades.');
+  // v3 : même logique que scoring.js — délai par symbole en priorité
+  const paceDelay = metrics.avgTimeBetweenSameSymbol ?? metrics.avgTimeBetween;
+  if (tips.length < 5 && keepDelayType === null && paceDelay !== null && paceDelay < 15) {
+    tips.push('Ralentis ton rythme : impose un délai minimum de 15 minutes entre deux trades sur le même symbole.');
   }
 
   // Trades surdimensionnés

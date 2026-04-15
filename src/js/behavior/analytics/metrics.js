@@ -18,16 +18,18 @@ function computeMetrics(trades) {
   const buyCount  = buys.length;
   const sellCount = sells.length;
 
-  const avgBuySize  = buyCount  > 0 ? avg(buys.map(t  => t.quote_quantity)) : 0;
-  const avgSellSize = sellCount > 0 ? avg(sells.map(t => t.quote_quantity)) : 0;
+  const avgBuySize  = buyCount  > 0 ? avg(buys.map(t  => tradeSize(t))) : 0;
+  const avgSellSize = sellCount > 0 ? avg(sells.map(t => tradeSize(t))) : 0;
 
   // ── Taille globale moyenne ───────────────────────────────────────────────────
-  const avgSize = avg(sorted.map(t => t.quote_quantity || 0));
+  // tradeSize() : utilise quote_quantity si disponible, sinon price * quantity.
+  // Évite que les trades avec Amount manquant (quote_quantity = 0) faussent la moyenne.
+  const avgSize = avg(sorted.map(t => tradeSize(t)));
 
   // ── Trades surdimensionnés (> 2× la moyenne) ─────────────────────────────────
   const OVERSIZE_FACTOR = 2;
   const oversizedTradesCount = sorted.filter(
-    t => t.quote_quantity > avgSize * OVERSIZE_FACTOR
+    t => tradeSize(t) > avgSize * OVERSIZE_FACTOR
   ).length;
 
   // ── Distribution horaire UTC (0–23) ──────────────────────────────────────────
@@ -57,6 +59,18 @@ function computeMetrics(trades) {
   const lastTs   = sorted[sorted.length - 1].timestamp;
   const spanDays = Math.round(((lastTs - firstTs) / 86400000) * 10) / 10;
 
+  // ── Délai moyen par symbole ───────────────────────────────────────────────────
+  // v3 : le délai global (avgTimeBetween) ne reflète pas le rythme réel du trader
+  // quand il opère sur plusieurs paires en parallèle. On calcule le délai par symbole
+  // et on retourne le minimum (le symbole où le trader va le plus vite).
+  const avgTimeBetweenSameSymbol = computeAvgTimeBetweenSameSymbol(sorted);
+
+  // ── CV de taille par symbole ──────────────────────────────────────────────────
+  // v3 : un trader qui met 200$ sur BTC et 50$ sur un altcoin a un CV global élevé
+  // par design (allocation différente par actif). On calcule le CV par symbole
+  // et on retourne le plus élevé parmi ceux ayant assez de trades.
+  const maxSizeCVBySymbol = computeMaxSizeCVBySymbol(sorted, SIZE_MIN_TRADES_PER_SYMBOL);
+
   return {
     // existants
     totalTrades:    total,
@@ -66,7 +80,7 @@ function computeMetrics(trades) {
     spanDays,
     firstTs,
     lastTs,
-    // nouveaux
+    // nouveaux (v2)
     buyCount,
     sellCount,
     avgBuySize:            round2(avgBuySize),
@@ -74,11 +88,27 @@ function computeMetrics(trades) {
     avgDelayAfterBuy,
     avgDelayAfterSell,
     oversizedTradesCount,
-    activeHours
+    activeHours,
+    // nouveaux (v3) — métriques par symbole
+    avgTimeBetweenSameSymbol,
+    maxSizeCVBySymbol
   };
 }
 
+// ── Constantes ────────────────────────────────────────────────────────────────
+
+// Nombre minimum de trades sur un symbole pour que le CV de ce symbole soit significatif.
+const SIZE_MIN_TRADES_PER_SYMBOL = 3;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+// Taille réelle d'un trade en valeur monétaire (quote asset, ex : USDT).
+// Utilise systématiquement price × quantity — cohérent avec l'affichage du journal.
+// quote_quantity n'est pas utilisé : sur certains exports, il contient la quantité
+// base asset au lieu de la valeur USDT, ce qui fausse les moyennes.
+function tradeSize(t) {
+  return (t.price || 0) * (t.quantity || 0);
+}
 
 function avg(values) {
   if (!values.length) return 0;
@@ -109,4 +139,46 @@ function computeAvgDelayAfter(sorted, side) {
   return Math.round(avg(gaps) / 60000);
 }
 
-export { computeMetrics };
+// v3 : délai moyen entre trades consécutifs sur le MÊME symbole.
+// Retourne le minimum parmi tous les symboles (le rythme le plus rapide du trader).
+// null si aucun symbole n'a au moins 2 trades.
+function computeAvgTimeBetweenSameSymbol(sorted) {
+  const bySymbol = {};
+  sorted.forEach(t => {
+    if (!bySymbol[t.symbol]) bySymbol[t.symbol] = [];
+    bySymbol[t.symbol].push(t);
+  });
+
+  let minDelay = null;
+  for (const trades of Object.values(bySymbol)) {
+    if (trades.length < 2) continue;
+    const delay = Math.round(sumGaps(trades) / (trades.length - 1) / 60000);
+    if (minDelay === null || delay < minDelay) minDelay = delay;
+  }
+  return minDelay;
+}
+
+// v3 : coefficient de variation de taille calculé par symbole.
+// Retourne le CV le plus élevé parmi les symboles ayant au moins minTrades trades.
+// null si aucun symbole n'atteint le seuil minimum.
+function computeMaxSizeCVBySymbol(sorted, minTrades) {
+  const bySymbol = {};
+  sorted.forEach(t => {
+    if (!bySymbol[t.symbol]) bySymbol[t.symbol] = [];
+    // tradeSize() pour cohérence avec avgSize et les autres métriques de taille
+    bySymbol[t.symbol].push(tradeSize(t));
+  });
+
+  let maxCV = null;
+  for (const sizes of Object.values(bySymbol)) {
+    if (sizes.length < minTrades) continue;
+    const mean = avg(sizes);
+    if (mean === 0) continue;
+    const variance = sizes.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / sizes.length;
+    const cv = Math.sqrt(variance) / mean;
+    if (maxCV === null || cv > maxCV) maxCV = Math.round(cv * 100) / 100;
+  }
+  return maxCV;
+}
+
+export { computeMetrics, tradeSize };

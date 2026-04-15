@@ -6,6 +6,8 @@
 // Principe :
 //   - score initial = 100
 //   - pénalités graduées selon l'intensité réelle (count ou cv)
+//   - overtrading modulé par le rythme réel (paceDelay) et le contexte global
+//   - pénalités patterns plafonnées à 65 pts pour éviter l'effondrement brutal
 //   - risque dominant = weight × intensity, le plus fort l'emporte
 //   - profil déduit du score final
 
@@ -22,20 +24,39 @@ const PATTERN_WEIGHTS = {
 
 // ── Paliers de pénalité ────────────────────────────────────────────────────────
 // Une seule occurrence = signal. Plusieurs = habitude. La pénalité croît en conséquence.
+//
+// ctx (optionnel, pour overtrading uniquement) :
+//   paceDelay   — délai moyen entre trades sur le même symbole (minutes)
+//   isIsolated  — true si overtrading est le seul pattern détecté
 
-function getPenalty(pattern) {
+function getPenalty(pattern, ctx) {
   const n  = pattern.count || 1;
   const cv = pattern.cv    || 0;
 
   switch (pattern.type) {
 
-    case 'overtrading':
+    case 'overtrading': {
+      // Base selon la fréquence des fenêtres déclenchées
       // 1–2 fenêtres : activation ponctuelle
       // 3–5 : tendance réelle
       // >5  : comportement ancré
-      if (n > 5)  return 20;
-      if (n >= 3) return 15;
-      return 10;
+      let base = n > 5 ? 20 : n >= 3 ? 15 : 10;
+
+      // Modulation par le rythme réel sur le même symbole.
+      // Un délai ≥ 10 min entre trades = activité élevée mais pas frénétique.
+      // La fréquence seule ne suffit pas à qualifier d'impulsivité.
+      if (ctx?.paceDelay != null && ctx.paceDelay >= 10) {
+        base = Math.ceil(base * 0.5);
+      }
+
+      // Signal isolé : overtrading sans aucun autre pattern associé.
+      // L'activité est élevée, mais sizing et comportement restent cohérents.
+      if (ctx?.isIsolated) {
+        base = Math.ceil(base * 0.7);
+      }
+
+      return base;
+    }
 
     case 'revenge_trading':
       // 1–2 : signal émotionnel
@@ -86,11 +107,41 @@ function computeScore(patterns, metrics) {
   if (!metrics) return null;
   const pats = patterns || [];
 
-  // 1. Score avec pénalités graduées
-  let score = 100;
-  pats.forEach(p => { score -= getPenalty(p); });
-  if (metrics.oversizedTradesCount >= 3)                               score -= 10;
-  if (metrics.avgTimeBetween !== null && metrics.avgTimeBetween < 15)  score -= 10;
+  // Délai de rythme : par symbole en priorité (v3), fallback global
+  const paceDelay = metrics.avgTimeBetweenSameSymbol ?? metrics.avgTimeBetween;
+
+  // Overtrading est-il le seul pattern ? Si oui, contexte "actif mais cohérent".
+  const hasOtherPatterns = pats.some(p => p.type !== 'overtrading');
+
+  // 1. Pénalités patterns avec contexte
+  let patternPenalty = 0;
+  pats.forEach(p => {
+    const ctx = {
+      paceDelay,
+      isIsolated: p.type === 'overtrading' && !hasOtherPatterns
+    };
+    patternPenalty += getPenalty(p, ctx);
+  });
+
+  // Plafond à 65 pts de pénalités patterns : empêche l'effondrement brutal du score
+  // quand plusieurs patterns modérés s'accumulent. Un score ≥ 35 reste atteignable
+  // sans patterns graves dominants. Les cas extrêmes (loss_chasing + revenge élevés)
+  // atteignent naturellement ce plafond et tombent en zone Agressif.
+  patternPenalty = Math.min(patternPenalty, 65);
+
+  let score = 100 - patternPenalty;
+
+  // 2. Pénalités métriques (sur-exposition, rythme)
+  if (metrics.oversizedTradesCount >= 3) score -= 10;
+
+  // Rythme gradué : une cadence rapide mais non frénétique (10–14 min) est moins
+  // pénalisante qu'un rythme très court (< 5 min). Remplace le palier binaire < 15 → -10.
+  if (paceDelay !== null) {
+    if      (paceDelay < 5)  score -= 10;
+    else if (paceDelay < 10) score -= 7;
+    else if (paceDelay < 15) score -= 4;
+  }
+
   score = Math.max(0, Math.min(100, score));
 
   // 2. Profil
@@ -111,6 +162,7 @@ function computeScore(patterns, metrics) {
 // → le signal le plus lourd l'emporte, quelle que soit la priorité arbitraire
 
 function computeDominantRisk(pats, metrics) {
+  const paceDelay = metrics.avgTimeBetweenSameSymbol ?? metrics.avgTimeBetween;
   const candidates = [];
 
   pats.forEach(p => {
@@ -120,15 +172,27 @@ function computeDominantRisk(pats, metrics) {
     const intensity = p.type === 'size_inconsistency'
       ? (p.cv    || 0.5)
       : (p.count || 1);
-    candidates.push({ label: p.label, score: weight * intensity });
+
+    // Overtrading : ne peut être dominant global que si le rythme global est réellement dense.
+    // paceDelay >= 30 min → activité globale espacée → exclu de la sélection dominante.
+    // paceDelay >= 10 min → élevé mais pas frénétique → poids réduit de moitié.
+    let effectiveWeight = weight;
+    if (p.type === 'overtrading') {
+      if (paceDelay != null && paceDelay >= 30) return;  // exclu — pas un comportement dominant global
+      if (paceDelay != null && paceDelay >= 10) effectiveWeight = Math.ceil(weight * 0.5);
+    }
+
+    candidates.push({ label: p.label, score: effectiveWeight * intensity });
   });
 
-  // Signaux métriques (intensité = 1, ils sont binaires)
+  // Signaux métriques
   if (metrics.oversizedTradesCount >= 3) {
     candidates.push({ label: 'Surexposition ponctuelle', score: 10 });
   }
-  if (metrics.avgTimeBetween !== null && metrics.avgTimeBetween < 15) {
-    candidates.push({ label: 'Rythme trop rapide', score: 10 });
+  // Rythme gradué — score proportionnel à la sévérité (cohérent avec computeScore)
+  if (paceDelay !== null && paceDelay < 15) {
+    const paceScore = paceDelay < 5 ? 10 : paceDelay < 10 ? 7 : 4;
+    candidates.push({ label: 'Rythme trop rapide', score: paceScore });
   }
 
   if (!candidates.length) return null;

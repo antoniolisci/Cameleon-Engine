@@ -5,7 +5,8 @@ import { behaviorRepo     } from '../storage/behavior-repo.js';
 import { getAll as getSessions, save as saveSession, remove as removeSession, clearAll as clearAllSessions } from '../storage/session-repo.js';
 import { analyzeSessions } from '../analytics/behavior-analyzer.js';
 import { importBinanceSpot } from '../import/uploader.js';
-import { computeMetrics   } from '../analytics/metrics.js';
+import { computeMetrics, tradeSize } from '../analytics/metrics.js';
+import { detectStyle, detectStyleTransitions, isShiftMoreAggressive } from '../analytics/style.js';
 import { detectPatterns, tagTrades } from '../analytics/patterns.js';
 import { computeScore     } from '../analytics/scoring.js';
 import { computeCoaching  } from '../analytics/coaching.js';
@@ -13,25 +14,30 @@ import { computeCoaching  } from '../analytics/coaching.js';
 // ── Public entry point ────────────────────────────────────────────────────────
 
 function mount(root) {
-  const trades      = behaviorRepo.get('trades');
-  const importError = behaviorRepo.get('importError');
-  const importInfo  = behaviorRepo.get('importInfo');
+  const trades       = behaviorRepo.get('trades');
+  const importError  = behaviorRepo.get('importError');
+  const importInfo   = behaviorRepo.get('importInfo');
+  const walletResult = behaviorRepo.get('walletResult');
 
   let metrics   = null;
   let patterns  = null;
   let tradeTags = new Map();
   let score     = null;
   let coaching  = null;
+  let style       = null;
+  let transitions = null;
 
   if (trades && trades.length > 0) {
-    metrics   = computeMetrics(trades);
-    patterns  = detectPatterns(trades, metrics);
-    tradeTags = tagTrades(trades, metrics);
-    score     = computeScore(patterns, metrics);
-    coaching  = computeCoaching(patterns, metrics, score);
+    metrics     = computeMetrics(trades);
+    patterns    = detectPatterns(trades, metrics);
+    tradeTags   = tagTrades(trades, metrics);
+    score       = computeScore(patterns, metrics);
+    coaching    = computeCoaching(patterns, metrics, score);
+    style       = detectStyle(trades, metrics);
+    transitions = detectStyleTransitions(trades, style?.key);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, importError, importInfo });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -50,7 +56,9 @@ function buildShell(state) {
       </div>
       ${buildImportCard(state)}
       ${buildSessionsCard(state)}
-      ${state.trades ? buildAnalysis(state) : ''}
+      ${state.trades       ? buildAnalysis(state)
+          : state.walletResult ? buildWalletAnalysis(state.walletResult)
+          : ''}
     </div>`;
 }
 
@@ -65,7 +73,7 @@ function buildImportCard(state) {
       </div>
 
       <div class="bhv-drop-zone" id="bhvDropZone">
-        <input type="file" id="bhvFileInput" accept=".csv" class="bhv-file-input">
+        <input type="file" id="bhvFileInput" accept=".csv,.xlsx,.xls" class="bhv-file-input">
         <label for="bhvFileInput" class="bhv-drop-label">
           <span class="bhv-drop-icon">↑</span>
           <span class="bhv-drop-text">Sélectionner un fichier CSV</span>
@@ -76,7 +84,7 @@ function buildImportCard(state) {
       ${state.importError ? `<div class="bhv-msg bhv-msg--error">${escHtml(state.importError)}</div>` : ''}
       ${state.importInfo  ? `<div class="bhv-msg bhv-msg--info">${escHtml(state.importInfo)}</div>`  : ''}
 
-      ${state.trades ? `
+      ${(state.trades || state.walletResult) ? `
         <div class="bhv-import-actions">
           <button class="bhv-btn bhv-btn--danger" id="bhvClearBtn" type="button">Effacer les données</button>
         </div>` : ''}
@@ -88,8 +96,9 @@ function buildImportCard(state) {
 function buildSessionsCard(state) {
   const sessions  = getSessions();
   const hasTrades = !!(state.trades && state.trades.length);
+  const hasData   = hasTrades || !!state.walletResult;
 
-  if (!hasTrades && !sessions.length) return '';
+  if (!hasData && !sessions.length) return '';
 
   const analysis = sessions.length > 0 ? analyzeSessions(sessions) : null;
 
@@ -183,7 +192,7 @@ function buildSessionsSynthesis(analysis) {
 // ── Analysis section ──────────────────────────────────────────────────────────
 
 function buildAnalysis(state) {
-  const { metrics, patterns, trades, tradeTags, score, coaching } = state;
+  const { metrics, patterns, trades, tradeTags, score, coaching, style, transitions } = state;
   if (!metrics) return '';
   return `
     <div class="bhv-layout bhv-fade-in">
@@ -191,11 +200,107 @@ function buildAnalysis(state) {
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
         ${buildPatternsCard(patterns)}
-        ${buildReadingCard(metrics, patterns)}
+        ${buildReadingCard(metrics, patterns, style, transitions)}
         ${buildSummaryCard(metrics)}
         ${buildJournalCard(trades, tradeTags)}
       </div>
       ${buildSidebar(metrics, patterns, score, trades)}
+    </div>`;
+}
+
+// ── Wallet analysis panel ─────────────────────────────────────────────────────
+// Rendered when the imported file is a wallet history (type === 'wallet').
+// Completely separate from the trading analysis — no score, no patterns.
+
+function buildWalletAnalysis(result) {
+  const { metrics: m, summary: s } = result;
+  if (!m || !s) return '';
+
+  const levelColor = lvl => lvl === 'high' ? 'danger' : lvl === 'medium' ? 'warn' : 'ok';
+  const levelLabel = lvl => lvl === 'high' ? 'Élevé'  : lvl === 'medium' ? 'Modéré' : 'Faible';
+
+  const actColor = levelColor(s.activityLevel);
+  const feeColor = levelColor(s.feeIntensity);
+
+  const coinsDisplay = m.uniqueCoins.length > 5
+    ? `${m.uniqueCoins.slice(0, 5).join(', ')} +${m.uniqueCoins.length - 5}`
+    : m.uniqueCoins.join(', ') || '—';
+
+  const convColor = m.totalConvert > 10 ? ' bhv-stat-value--warn' : '';
+
+  return `
+    <div class="bhv-analysis bhv-fade-in">
+
+      <div class="bhv-card">
+        <div class="bhv-card-head">
+          <span class="bhv-card-title">Analyse comportementale financière</span>
+          <span class="bhv-card-desc">Wallet · historique d'opérations</span>
+        </div>
+        <div class="bhv-dominant-banner bhv-dominant-banner--gold">
+          <span class="bhv-dominant-label">Fichier détecté</span>
+          <span class="bhv-dominant-value">Historique wallet — pas de données trading exploitables</span>
+        </div>
+        <div class="bhv-stat-grid">
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Opérations</div>
+            <div class="bhv-stat-value">${m.totalOperations}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Coins actifs</div>
+            <div class="bhv-stat-value">${m.uniqueCoins.length}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Ops / jour</div>
+            <div class="bhv-stat-value bhv-stat-value--${actColor}">${m.avgOperationPerDay}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Pic journalier</div>
+            <div class="bhv-stat-value">${m.maxOperationsInOneDay}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Frais (nb)</div>
+            <div class="bhv-stat-value bhv-stat-value--${feeColor}">${m.totalFees}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Frais (valeur)</div>
+            <div class="bhv-stat-value bhv-stat-value--${feeColor}">${m.totalFeeAmount}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Rewards / Earn</div>
+            <div class="bhv-stat-value">${m.totalEarnRewards}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Conversions</div>
+            <div class="bhv-stat-value${convColor}">${m.totalConvert}</div>
+          </div>
+        </div>
+        ${m.uniqueCoins.length > 0 ? `
+        <div class="bhv-reading-line">
+          <span class="bhv-reading-dot bhv-reading-dot--gold"></span>
+          <span>Coins : ${escHtml(coinsDisplay)}</span>
+        </div>` : ''}
+      </div>
+
+      <div class="bhv-card">
+        <div class="bhv-card-head">
+          <span class="bhv-card-title">Lecture comportementale</span>
+        </div>
+        <div class="bhv-reading-line">
+          <span class="bhv-reading-dot bhv-reading-dot--${actColor}"></span>
+          <span>Activité wallet : <strong>${levelLabel(s.activityLevel)}</strong>
+            (${m.avgOperationPerDay} ops/jour · pic à ${m.maxOperationsInOneDay} en une journée)</span>
+        </div>
+        <div class="bhv-reading-line">
+          <span class="bhv-reading-dot bhv-reading-dot--${feeColor}"></span>
+          <span>Intensité des frais : <strong>${levelLabel(s.feeIntensity)}</strong>
+            (${m.totalFees} opérations de frais · valeur totale ${m.totalFeeAmount})</span>
+        </div>
+        <div class="bhv-dominant-banner bhv-dominant-banner--${actColor}">
+          <span class="bhv-dominant-label">Comportement observé</span>
+          <span class="bhv-dominant-value">${escHtml(s.behavior)}</span>
+        </div>
+      </div>
+
     </div>`;
 }
 
@@ -328,7 +433,7 @@ function buildSummaryCard(m) {
         ${metric('Délai moy.',     m.avgTimeBetween !== null ? m.avgTimeBetween + ' min' : '—', m.avgTimeBetween !== null && m.avgTimeBetween < 15 ? 'warn' : '')}
         ${metric('Après achat',   delayAfterBuy)}
         ${metric('Après vente',   delayAfterSell)}
-        ${metric('Heures actives', m.activeHours + ' / 24', m.activeHours <= 5 ? 'warn' : '')}
+        ${metric('Heures distinctes', m.activeHours + ' h sur la période', m.activeHours <= 5 ? 'warn' : '')}
       </div>
 
     </div>`;
@@ -353,7 +458,7 @@ function buildHourBars(dist) {
 
 // ── Lecture comportementale ───────────────────────────────────────────────────
 
-function buildReadingCard(metrics, patterns) {
+function buildReadingCard(metrics, patterns, style, transitions) {
   const sentences = buildReadingSentences(metrics, patterns);
 
   const items = sentences.map(s => `
@@ -362,12 +467,56 @@ function buildReadingCard(metrics, patterns) {
       <span>${escHtml(s)}</span>
     </div>`).join('');
 
+  const styleLine = style && style.key !== 'unknown' ? `
+    <div class="bhv-style-context">
+      <span class="bhv-style-label">Style détecté</span>
+      <span class="bhv-style-value">${escHtml(style.label)}</span>
+    </div>` : '';
+
+  let transitionLine = '';
+  if (transitions) {
+    let transitionText;
+    if (transitions.isStable) {
+      transitionText = 'Style stable sur la période.';
+    } else if (transitions.dominantShift && isShiftMoreAggressive(transitions.dominantShift, transitions.globalStyle)) {
+      transitionText = `Bascule locale observée vers un style plus agressif (${transitions.transitionsCount} transition${transitions.transitionsCount > 1 ? 's' : ''}).`;
+    } else {
+      transitionText = `Transitions détectées : ${transitions.transitionsCount}.`;
+    }
+    transitionLine = `
+    <div class="bhv-style-context">
+      <span class="bhv-style-label">Dynamique</span>
+      <span class="bhv-style-value">${escHtml(transitionText)}</span>
+    </div>`;
+  }
+
+  let coherenceLine = '';
+  if (transitions && transitions.localStyles.length > 0) {
+    const ratio    = transitions.transitionsCount / transitions.localStyles.length;
+    const cohLabel = ratio === 0  ? 'Élevée'
+                   : ratio <= 0.2 ? 'Bonne'
+                   : ratio <= 0.4 ? 'Moyenne'
+                   :                'Faible';
+    const cohText  = ratio === 0  ? 'Style respecté sur l\'ensemble de la période.'
+                   : ratio <= 0.2 ? 'Style globalement respecté avec quelques écarts mineurs.'
+                   : ratio <= 0.4 ? 'Style identifiable, mais dérives ponctuelles dans l\'exécution.'
+                   :                'Le style global existe, mais il est souvent rompu localement.';
+    coherenceLine = `
+    <div class="bhv-style-context">
+      <span class="bhv-style-label">Cohérence</span>
+      <span class="bhv-style-value">${escHtml(cohLabel)} · ${escHtml(cohText)}</span>
+    </div>`;
+  }
+
   return `
     <div class="bhv-card bhv-reading-card">
       <div class="bhv-card-head">
         <span class="bhv-card-title">Lecture comportementale</span>
         <span class="bhv-card-desc">Synthèse de l'historique</span>
       </div>
+      ${styleLine}
+      ${transitionLine}
+      ${coherenceLine}
       <div class="bhv-reading-list">${items}</div>
     </div>`;
 }
@@ -376,9 +525,16 @@ function buildReadingSentences(m, patterns) {
   const sentences = [];
   const types = new Set((patterns || []).map(p => p.type));
 
-  // Patterns détectés
+  // ── Alertes locales (patterns détectés sur des sous-fenêtres) ─────────────────
+  // Overtrading : pattern local — distinguer d'un rythme global élevé.
+  // Si le délai moyen global est > 60 min, les pics sont isolés, pas habituels.
   if (types.has('overtrading')) {
-    sentences.push('Tu multiplies les trades dans des fenêtres de temps très courtes.');
+    const globalPaceOk = m.avgTimeBetween !== null && m.avgTimeBetween > 60;
+    if (globalPaceOk) {
+      sentences.push('Quelques séquences rapprochées ont été détectées, mais l\'activité globale reste espacée.');
+    } else {
+      sentences.push('Tu multiplies les trades dans des fenêtres de temps très courtes.');
+    }
   }
   if (types.has('revenge_trading')) {
     sentences.push('Tu enchaînes un achat rapidement après une vente, avec une taille supérieure à ta moyenne.');
@@ -393,7 +549,7 @@ function buildReadingSentences(m, patterns) {
     sentences.push('Tes tailles de position sont instables — manque de règles fixes.');
   }
 
-  // Métriques complémentaires
+  // ── Lecture globale (métriques sur l'ensemble de la période) ──────────────────
   if (m.avgTimeBetween !== null && m.avgTimeBetween < 30) {
     sentences.push('Ton rythme moyen entre trades est inférieur à 30 minutes.');
   }
@@ -475,7 +631,7 @@ function buildJournalCard(trades, tradeTags) {
         <td class="bhv-side bhv-side--${t.side.toLowerCase()}">${t.side}</td>
         <td>${t.price}</td>
         <td>${t.quantity}</td>
-        <td>${t.quote_quantity}</td>
+        <td>${Math.round(t.price * t.quantity * 100) / 100}</td>
         <td class="bhv-tags${tagClass}">${escHtml(tags)}</td>
       </tr>`;
   };
@@ -578,7 +734,10 @@ function buildSizeCard(trades, metrics) {
 }
 
 function buildSizeChart(trades, metrics) {
-  const sizes = trades.map(t => t.quote_quantity).filter(q => q > 0);
+  // tradeSize() : cohérence avec computeMetrics — évite que les trades sans Amount
+  // valide (quote_quantity = 0) soient invisibles dans le graphique alors qu'ils
+  // sont inclus dans avgSize.
+  const sizes = trades.map(t => tradeSize(t)).filter(q => q > 0);
   if (sizes.length < 2) return '<p class="bhv-empty">Données insuffisantes.</p>';
 
   const min  = Math.min(...sizes);
@@ -676,9 +835,10 @@ function bindEvents(root, state) {
       const id      = btn.dataset.id;
       const session = getSessions().find(s => s.id === id);
       if (!session) return;
-      behaviorRepo.set('trades',      session.trades);
-      behaviorRepo.set('importError', null);
-      behaviorRepo.set('importInfo',  `Session "${session.name}" chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''}`);
+      behaviorRepo.set('trades',       session.trades);
+      behaviorRepo.set('importError',  null);
+      behaviorRepo.set('walletResult', null);
+      behaviorRepo.set('importInfo',   `Session "${session.name}" chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''}`);
       mount(root);
     });
   });
@@ -711,11 +871,18 @@ async function handleImport(file, root) {
   const result = await importBinanceSpot(file);
 
   if (!result.ok) {
-    behaviorRepo.set('importError', result.error);
-    behaviorRepo.set('importInfo', null);
-    behaviorRepo.set('trades', null);
+    behaviorRepo.set('importError',  result.error);
+    behaviorRepo.set('importInfo',   null);
+    behaviorRepo.set('trades',       null);
+    behaviorRepo.set('walletResult', null);
+  } else if (result.type === 'wallet') {
+    behaviorRepo.set('importError',  null);
+    behaviorRepo.set('trades',       null);
+    behaviorRepo.set('walletResult', result);
+    behaviorRepo.set('importInfo',   result.message);
   } else {
-    behaviorRepo.set('importError', null);
+    behaviorRepo.set('importError',  null);
+    behaviorRepo.set('walletResult', null);
     behaviorRepo.set('importInfo',
       `${result.trades.length} trade${result.trades.length !== 1 ? 's' : ''} importé${result.trades.length !== 1 ? 's' : ''} · ${result.skipped} ligne${result.skipped !== 1 ? 's' : ''} ignorée${result.skipped !== 1 ? 's' : ''}`
     );
