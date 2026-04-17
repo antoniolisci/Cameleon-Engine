@@ -8,25 +8,55 @@
 // Canonical output of normalizeTrade:
 //   timestamp, symbol, side, price, quantity, quote_value, fee
 
-// ── Tables d'alias ────────────────────────────────────────────────────────────
-// Toutes les clés en minuscules. Premier match gagne.
+// ── Normalisation des clés de colonnes ────────────────────────────────────────
+// Minuscules + suppression diacritiques + normalisation séparateurs.
+// "Côté" → "cote"  ·  "Exécuté" → "execute"  ·  "Prix" → "prix"
+// Identique à normalizeHeader() dans uploader.js — dupliquée pour rester module isolé.
+function normalizeKey(str) {
+  return String(str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')   // supprime diacritiques
+    .replace(/[\s_./\\-]+/g, ' ')      // normalise séparateurs en espace
+    .trim();
+}
 
-const ALIASES_DATE   = ['date(utc)', 'date', 'utc_time', 'time', 'timestamp', 'trade time', 'created time', 'update time', 'open time', 'created at'];
-const ALIASES_SYMBOL = ['pair', 'symbol', 'market', 'trading pair', 'base asset', 'asset', 'ticker'];
-const ALIASES_SIDE   = ['side', 'order side', 'direction', 'type', 'trade type', 'bs flag'];
-const ALIASES_PRICE  = ['price', 'avg price', 'avg. price', 'filled price', 'average price', 'avgtrading price', 'execution price', 'deal price', 'order price'];
-const ALIASES_QTY    = ['executed', 'qty', 'quantity', 'filled', 'base qty', 'base quantity', 'filled qty', 'executed qty', 'base amount', 'vol'];
-const ALIASES_QUOTE  = ['amount', 'total', 'quote qty', 'quote quantity', 'value', 'quote value', 'quote asset', 'deal value', 'deal amount', 'turnover'];
-const ALIASES_FEE    = ['fee', 'commission', 'fee amount', 'transaction fee', 'trading fee', 'maker fee', 'taker fee'];
+// ── Tables d'alias ────────────────────────────────────────────────────────────
+// Toutes les clés en forme normalisée (résultat de normalizeKey). Premier match gagne.
+// Inclut variantes FR (prix, paire, cote, execute, frais…) et formats alternatifs Binance.
+
+const ALIASES_DATE   = ['date(utc)', 'date', 'utc time', 'utc_time', 'time', 'timestamp',
+                        'trade time', 'created time', 'update time', 'open time', 'created at',
+                        'heure', 'date et heure'];
+const ALIASES_SYMBOL = ['pair', 'symbol', 'market', 'trading pair', 'base asset', 'ticker',
+                        'paire', 'paire de trading', 'asset'];
+const ALIASES_SIDE   = ['side', 'order side', 'direction', 'cote', 'sens',
+                        'type', 'trade type', 'bs flag', 'achat vente'];
+const ALIASES_PRICE  = ['price', 'avg price', 'avg. price', 'filled price', 'average price',
+                        'avgtrading price', 'execution price', 'deal price', 'order price',
+                        'prix', 'prix moyen', 'prix moyen rempli', 'prix d execution'];
+const ALIASES_QTY    = ['executed', 'qty', 'quantity', 'filled', 'base qty', 'base quantity',
+                        'filled qty', 'executed qty', 'base amount', 'vol',
+                        'execute', 'quantite', 'qte', 'volume execute', 'montant execute'];
+const ALIASES_QUOTE  = ['amount', 'total', 'quote qty', 'quote quantity', 'value', 'quote value',
+                        'quote asset', 'deal value', 'deal amount', 'turnover',
+                        'montant', 'valeur totale', 'valeur'];
+const ALIASES_FEE    = ['fee', 'commission', 'fee amount', 'transaction fee', 'trading fee',
+                        'maker fee', 'taker fee',
+                        'frais', 'cout transaction', 'frais de transaction'];
 
 // ── normalizeTrade ─────────────────────────────────────────────────────────────
 // Pipeline unique : row quelconque → trade canonique, ou null si invalide.
 // Retourne : { timestamp, symbol, side, price, quantity, quote_value, fee }
 
+// [DEBUG TEMPORAIRE] — flag pour logger seulement la 1re ligne du fichier importé
+let _debugNormalize = false;
+export function enableTradeDebug() { _debugNormalize = true; }
+
 function normalizeTrade(row) {
   const norm = {};
   for (const [k, v] of Object.entries(row)) {
-    norm[k.toLowerCase().trim()] = v;
+    norm[normalizeKey(k)] = v;   // normalisation accent-safe : "Côté" → "cote", "Exécuté" → "execute"
   }
 
   const get = (aliases) => {
@@ -42,8 +72,9 @@ function normalizeTrade(row) {
   const symbol  = get(ALIASES_SYMBOL).trim().toUpperCase();
   const rawSide = get(ALIASES_SIDE).trim().toUpperCase();
 
-  const side = rawSide === 'BUY'  || rawSide === 'LONG'  ? 'BUY'
-             : rawSide === 'SELL' || rawSide === 'SHORT' ? 'SELL'
+  // Variantes FR (ACHAT/VENTE) + types composés Binance (BUY_LIMIT, SELL_MARKET, etc.)
+  const side = (rawSide === 'BUY'  || rawSide.startsWith('BUY_')  || rawSide === 'LONG'  || rawSide === 'ACHAT') ? 'BUY'
+             : (rawSide === 'SELL' || rawSide.startsWith('SELL_') || rawSide === 'SHORT' || rawSide === 'VENTE') ? 'SELL'
              : rawSide;
 
   const price = parseNum(get(ALIASES_PRICE));
@@ -69,6 +100,19 @@ function normalizeTrade(row) {
     const rawAmount = parseNum(get(ALIASES_QUOTE));
     const computed  = price * qty;
     quote_value = (rawAmount > 0 && rawAmount >= computed * 0.5) ? rawAmount : computed;
+  }
+
+  // [DEBUG TEMPORAIRE] — à retirer après diagnostic binance_spot_trade_recent.csv
+  if (_debugNormalize) {
+    const reason = !symbol ? 'symbol vide'
+                 : !side   ? `side non reconnu ("${rawSide}")`
+                 : !price  ? 'price = 0'
+                 : !qty    ? 'qty = 0'
+                 : 'ok';
+    console.debug('[bhv:norm] clés norm:', Object.keys(norm).join(', '));
+    console.debug('[bhv:norm] extrait → date:%s sym:%s side:%s(%s) price:%s qty:%s | %s',
+      get(ALIASES_DATE), symbol, side, rawSide, price, qty, reason);
+    _debugNormalize = false;  // log seulement la 1re ligne, pas le flood
   }
 
   if (!symbol || !side || !price || !qty) return null;

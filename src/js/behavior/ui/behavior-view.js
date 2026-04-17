@@ -804,6 +804,7 @@ function bindEvents(root, state) {
 
   if (fileInput) {
     fileInput.addEventListener('change', e => {
+      console.debug('[bhv:ui] input change déclenché');  // [DEBUG TEMPORAIRE]
       const file = e.target.files[0];
       if (file) handleImport(file, root);
     });
@@ -820,6 +821,7 @@ function bindEvents(root, state) {
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('bhv-dragover');
+      console.debug('[bhv:ui] drop déclenché');  // [DEBUG TEMPORAIRE]
       const file = e.dataTransfer?.files[0];
       if (file) handleImport(file, root);
     });
@@ -891,25 +893,40 @@ function bindEvents(root, state) {
 }
 
 async function handleImport(file, root) {
-  const result = await importBinanceSpot(file);
+  console.debug('[bhv:ui] handleImport appelé', file?.name);  // [DEBUG TEMPORAIRE]
+  let result;
+  try {
+    result = await importBinanceSpot(file);
+  } catch (err) {
+    console.warn('[bhv:import] exception non catchée dans importBinanceSpot:', err);
+    result = { ok: false, error: 'Erreur inattendue lors de la lecture du fichier.', trades: [] };
+  }
 
   if (!result.ok) {
-    behaviorRepo.set('importError',  result.error);
-    behaviorRepo.set('importInfo',   null);
-    behaviorRepo.set('trades',       null);
-    behaviorRepo.set('walletResult', null);
+    behaviorRepo.set('importError',     result.error);
+    behaviorRepo.set('importInfo',      null);
+    behaviorRepo.set('trades',          null);
+    behaviorRepo.set('walletResult',    null);
+    behaviorRepo.set('analysisQuality', null);
   } else if (result.type === 'wallet') {
-    behaviorRepo.set('importError',  null);
-    behaviorRepo.set('trades',       null);
-    behaviorRepo.set('walletResult', result);
-    behaviorRepo.set('importInfo',   result.message);
+    behaviorRepo.set('importError',     null);
+    behaviorRepo.set('trades',          null);
+    behaviorRepo.set('walletResult',    result);
+    behaviorRepo.set('importInfo',      result.message);
+    behaviorRepo.set('analysisQuality', null);
   } else {
-    behaviorRepo.set('importError',  null);
-    behaviorRepo.set('walletResult', null);
-    behaviorRepo.set('importInfo',
-      `${result.trades.length} trade${result.trades.length !== 1 ? 's' : ''} importé${result.trades.length !== 1 ? 's' : ''} · ${result.skipped} ligne${result.skipped !== 1 ? 's' : ''} ignorée${result.skipped !== 1 ? 's' : ''}`
-    );
-    behaviorRepo.set('trades', result.trades);
+    const count     = result.trades.length;
+    const skip      = result.skipped;
+    const isPartial = result.analysisQuality === 'partial';
+    const pl        = n => n !== 1;
+    const info = isPartial
+      ? `Données partielles — ${count} trade${pl(count) ? 's' : ''} exploitable${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''} · analyse indicative`
+      : `${count} trade${pl(count) ? 's' : ''} importé${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''}`;
+    behaviorRepo.set('importError',     null);
+    behaviorRepo.set('walletResult',    null);
+    behaviorRepo.set('importInfo',      info);
+    behaviorRepo.set('trades',          result.trades);
+    behaviorRepo.set('analysisQuality', result.analysisQuality || 'full');
   }
 
   mount(root);
