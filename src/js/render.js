@@ -20,6 +20,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.js";
+import { backups } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 
@@ -35,8 +36,6 @@ let controlEventsBound = false;
 let clockTimer = null;
 const STATIC_HERO_VISUAL = "../assets/images/cameleon-logo.png";
 const VALID_TABS = new Set(["moteur", "pilotage", "memoire"]);
-const SNAPSHOT_KEY = "cameleon_history";
-const SNAPSHOT_MAX = 50;
 const TAB_FOCUS_TARGETS = {
   moteur: "marketStateText",
   pilotage: "marketFields",
@@ -1079,21 +1078,19 @@ function getHeroState(cockpit, tradingStatus) {
 
 // ── P4 ── snapshot history ────────────────────────────────
 function saveSnapshot(snapshot) {
-  const history = JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "[]");
-  const last = history[0];
+  const last = backups.getAll()[0];
   if (last &&
       last.regime    === snapshot.regime &&
       last.verdict   === snapshot.verdict &&
       last.decision  === snapshot.decision &&
       last.state     === snapshot.state) return;
-  history.unshift(snapshot);
-  localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(history.slice(0, SNAPSHOT_MAX)));
+  backups.prepend(snapshot);
 }
 
 function renderSnapshotHistory() {
   const target = $("history");
   if (!target) return;
-  const history = JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "[]");
+  const history = backups.getAll();
   if (!history.length) {
     target.innerHTML = "<div style=\"opacity:.3; font-size:12px;\">Aucun historique</div>";
     return;
@@ -1114,7 +1111,7 @@ function renderSnapshotHistory() {
 
 function clearSnapshotHistory() {
   if (!confirm("Supprimer tout l'historique moteur ?")) return;
-  localStorage.removeItem(SNAPSHOT_KEY);
+  backups.clear();
   renderSnapshotHistory();
   renderHistoryInsight();
 }
@@ -1146,7 +1143,7 @@ function analyzeHistory(history) {
 function renderHistoryInsight() {
   const el = $("history-insight");
   if (!el) return;
-  const history = JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "[]");
+  const history = backups.getAll();
   const result = analyzeHistory(history);
   el.textContent = result.message;
   const colors = { BLOCK: "#ff4444", TENSION: "#ffaa00", LOW_ALIGNED: "#888", NORMAL: "#00ff88", INSUFFICIENT: "#555" };
@@ -2901,14 +2898,6 @@ function buildCurrentPayload() {
   const payload = buildPayload(appState.form, appState.lastPayload);
   currentPayload = payload;
   appState.lastPayload = payload;
-  try {
-    localStorage.setItem("cameleon-engine-bridge-v45-to-v732e", JSON.stringify({
-      market_state: payload.market_state,
-      setup_inputs: payload.setup_inputs,
-      validation: payload.validation
-    }));
-  } catch (e) {}
-
   payload.decisionState = computeDecisionState(payload);
 
   return payload;
