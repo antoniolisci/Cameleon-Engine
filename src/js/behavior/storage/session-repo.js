@@ -1,18 +1,11 @@
 // Persistance des sessions d'analyse comportementale.
-// Stockage : localStorage, clé 'bhv_sessions'
+// Stockage : CE_behavior_sessions_v1 (via storage.js)
 // Structure : { id: string, name: string, createdAt: number, trades: array }
 
-const STORAGE_KEY = 'bhv_sessions';
+import { behaviorSessions } from '../../storage.js';
 
 function getAll() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.sort((a, b) => b.createdAt - a.createdAt) : [];
-  } catch {
-    return [];
-  }
+  return behaviorSessions.getAll().sort((a, b) => b.createdAt - a.createdAt);
 }
 
 function save(trades, name) {
@@ -30,24 +23,16 @@ function save(trades, name) {
     trades,
   };
   sessions.unshift(session);
-  _persist(sessions);
+  behaviorSessions.setAll(sessions);
   return session;
 }
 
 function remove(id) {
-  _persist(getAll().filter(s => s.id !== id));
+  behaviorSessions.setAll(getAll().filter(s => s.id !== id));
 }
 
 function clearAll() {
-  _persist([]);
-}
-
-function _persist(sessions) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-  } catch {
-    // quota exceeded — ignoré silencieusement
-  }
+  behaviorSessions.setAll([]);
 }
 
 export { getAll, save, remove, clearAll };

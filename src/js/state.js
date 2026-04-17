@@ -1,4 +1,7 @@
-import { DEFAULT_FORM, DEFAULT_TAB, HISTORY_LIMIT, STORAGE_KEY } from "./data.js";
+import { DEFAULT_FORM, DEFAULT_TAB, HISTORY_LIMIT } from "./data.js";
+import { uiState, journalEntries, payloadCurrent, canUseStorage, estimateTotalSize, runMigration } from "./storage.js";
+
+export { canUseStorage };
 
 let memoryState = null;
 
@@ -14,48 +17,36 @@ export function createInitialState() {
 
 export function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return memoryState ? { ...createInitialState(), ...memoryState, form: { ...DEFAULT_FORM, ...(memoryState.form || {}) } } : createInitialState();
-    }
-    const parsed = JSON.parse(raw);
-    memoryState = parsed;
-    return {
+    runMigration();
+    const ui      = uiState.get();
+    const entries = journalEntries.getAll();
+    const payload = payloadCurrent.get();
+    if (!ui) return memoryState ?? createInitialState();
+    const state = {
       ...createInitialState(),
-      ...parsed,
-      form: { ...DEFAULT_FORM, ...(parsed.form || {}) },
-      history: Array.isArray(parsed.history) ? parsed.history.slice(-HISTORY_LIMIT) : []
+      form:        { ...DEFAULT_FORM, ...(ui.form || {}) },
+      activeTab:   ui.activeTab  ?? DEFAULT_TAB,
+      lastSaved:   ui.lastSaved  ?? null,
+      history:     entries.slice(-HISTORY_LIMIT),
+      lastPayload: payload,
     };
+    memoryState = state;
+    return state;
   } catch {
-    return memoryState ? { ...createInitialState(), ...memoryState, form: { ...DEFAULT_FORM, ...(memoryState.form || {}) } } : createInitialState();
+    return memoryState ?? createInitialState();
   }
 }
 
 export function saveState(state) {
-  const snapshot = {
-    ...state,
-    history: Array.isArray(state.history) ? state.history.slice(-HISTORY_LIMIT) : []
-  };
-  memoryState = snapshot;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
-    return true;
-  } catch {
-    return false;
-  }
+  memoryState = state;
+  const ok1 = uiState.set({ activeTab: state.activeTab, form: state.form, lastSaved: state.lastSaved });
+  const ok2 = journalEntries.setAll(Array.isArray(state.history) ? state.history : []);
+  const ok3 = state.lastPayload
+    ? payloadCurrent.set(state.lastPayload)
+    : payloadCurrent.clear();
+  return ok1 && ok2 && ok3;
 }
 
-export function estimateStateSize(state) {
-  return `${(new Blob([JSON.stringify(state)]).size / 1024).toFixed(1)} KB`;
-}
-
-export function canUseStorage() {
-  try {
-    const key = "__ce_test__";
-    localStorage.setItem(key, "1");
-    localStorage.removeItem(key);
-    return true;
-  } catch {
-    return false;
-  }
+export function estimateStateSize(_state) {
+  return `${(estimateTotalSize() / 1024).toFixed(1)} KB`;
 }

@@ -1,4 +1,3 @@
-export const STORAGE_KEY = "cameleon-engine-modular-v732e-v45";
 export const HISTORY_LIMIT = 50;
 export const DEFAULT_TAB = "moteur";
 
