@@ -202,6 +202,40 @@ function buildSessionsSynthesis(analysis) {
     </div>`;
 }
 
+// ── Verdict block ─────────────────────────────────────────────────────────────
+
+function buildVerdictBlock(state) {
+  const { score, patterns, coaching } = state;
+  if (!score) return '';
+
+  const s = score.score;
+
+  // A. Statut global
+  const status = s < 40 ? { emoji: '🔴', label: 'STOP IMMÉDIAT', text: 'Ton comportement actuel détruit ton edge.',  mod: 'stop'   }
+               : s < 70 ? { emoji: '🟡', label: 'AJUSTEMENT',    text: 'Ton système est bon mais mal exécuté.',      mod: 'adjust' }
+               :           { emoji: '🟢', label: 'OK',             text: 'Ton comportement est cohérent.',             mod: 'ok'     };
+
+  // B. Action principale (une seule)
+  const dominant = score.dominantRisk || (patterns?.[0]?.label ?? '');
+  const action   = dominant.includes('Escalade')    ? 'Interdis toute augmentation de taille immédiatement'
+                 : dominant.includes('Overtrading') ? 'Stop trading pendant 24h'
+                 :                                    'Réduis ta taille de 30%';
+
+  // C. Cause principale
+  const causeLabel = coaching?.dominantLabel || patterns?.[0]?.label || dominant || '—';
+
+  return `
+    <div class="bhv-verdict bhv-verdict--${status.mod}">
+      <div class="bhv-verdict-status bhv-verdict-status--${status.mod}">
+        <span class="bhv-verdict-emoji">${status.emoji}</span>
+        <span class="bhv-verdict-label">${escHtml(status.label)}</span>
+        <span class="bhv-verdict-text">${escHtml(status.text)}</span>
+      </div>
+      <div class="bhv-verdict-action">${escHtml(action)}</div>
+      <div class="bhv-verdict-cause">Cause dominante : ${escHtml(causeLabel)}</div>
+    </div>`;
+}
+
 // ── Analysis section ──────────────────────────────────────────────────────────
 
 function buildAnalysis(state) {
@@ -224,6 +258,7 @@ function buildAnalysis(state) {
   return `
     <div class="bhv-layout bhv-fade-in">
       <div class="bhv-analysis">
+        ${buildVerdictBlock(state)}
         ${warningBanner}
         ${warningsList}
         ${score ? buildScoreCard(score) : ''}
