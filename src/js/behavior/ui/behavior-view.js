@@ -14,10 +14,12 @@ import { computeCoaching  } from '../analytics/coaching.js';
 // ── Public entry point ────────────────────────────────────────────────────────
 
 function mount(root) {
-  const trades       = behaviorRepo.get('trades');
-  const importError  = behaviorRepo.get('importError');
-  const importInfo   = behaviorRepo.get('importInfo');
-  const walletResult = behaviorRepo.get('walletResult');
+  const trades            = behaviorRepo.get('trades');
+  const importError       = behaviorRepo.get('importError');
+  const importInfo        = behaviorRepo.get('importInfo');
+  const walletResult      = behaviorRepo.get('walletResult');
+  const validationWarning  = behaviorRepo.get('validationWarning');
+  const validationWarnings = behaviorRepo.get('validationWarnings');
 
   let metrics   = null;
   let patterns  = null;
@@ -48,7 +50,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult, validationWarning, validationWarnings });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -205,9 +207,25 @@ function buildSessionsSynthesis(analysis) {
 function buildAnalysis(state) {
   const { metrics, patterns, trades, tradeTags, score, coaching, style, transitions } = state;
   if (!metrics) return '';
+
+  const warningBanner = state.validationWarning
+    ? `<div class="bhv-msg bhv-msg--warn">⚠️ Analyse potentiellement non fiable — format non standard</div>`
+    : '';
+
+  const warningsList = state.validationWarnings?.length
+    ? `<ul class="bhv-warning-list">
+         ${state.validationWarnings.map(w => {
+           const type = /anormale|incohérent/i.test(w) ? 'warn-critical' : 'warn-info';
+           return `<li class="${type}">${escHtml(w)}</li>`;
+         }).join('')}
+       </ul>`
+    : '';
+
   return `
     <div class="bhv-layout bhv-fade-in">
       <div class="bhv-analysis">
+        ${warningBanner}
+        ${warningsList}
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
         ${buildPatternsCard(patterns)}
@@ -903,17 +921,21 @@ async function handleImport(file, root) {
   }
 
   if (!result.ok) {
-    behaviorRepo.set('importError',     result.error);
-    behaviorRepo.set('importInfo',      null);
-    behaviorRepo.set('trades',          null);
-    behaviorRepo.set('walletResult',    null);
-    behaviorRepo.set('analysisQuality', null);
+    behaviorRepo.set('importError',       result.error);
+    behaviorRepo.set('importInfo',        null);
+    behaviorRepo.set('trades',            null);
+    behaviorRepo.set('walletResult',      null);
+    behaviorRepo.set('analysisQuality',    null);
+    behaviorRepo.set('validationWarning',  false);
+    behaviorRepo.set('validationWarnings', []);
   } else if (result.type === 'wallet') {
-    behaviorRepo.set('importError',     null);
-    behaviorRepo.set('trades',          null);
-    behaviorRepo.set('walletResult',    result);
-    behaviorRepo.set('importInfo',      result.message);
-    behaviorRepo.set('analysisQuality', null);
+    behaviorRepo.set('importError',        null);
+    behaviorRepo.set('trades',             null);
+    behaviorRepo.set('walletResult',       result);
+    behaviorRepo.set('importInfo',         result.message);
+    behaviorRepo.set('analysisQuality',    null);
+    behaviorRepo.set('validationWarning',  false);
+    behaviorRepo.set('validationWarnings', []);
   } else {
     const count     = result.trades.length;
     const skip      = result.skipped;
@@ -922,11 +944,13 @@ async function handleImport(file, root) {
     const info = isPartial
       ? `Données partielles — ${count} trade${pl(count) ? 's' : ''} exploitable${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''} · analyse indicative`
       : `${count} trade${pl(count) ? 's' : ''} importé${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''}`;
-    behaviorRepo.set('importError',     null);
-    behaviorRepo.set('walletResult',    null);
-    behaviorRepo.set('importInfo',      info);
-    behaviorRepo.set('trades',          result.trades);
-    behaviorRepo.set('analysisQuality', result.analysisQuality || 'full');
+    behaviorRepo.set('importError',       null);
+    behaviorRepo.set('walletResult',      null);
+    behaviorRepo.set('importInfo',        info);
+    behaviorRepo.set('trades',            result.trades);
+    behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
+    behaviorRepo.set('validationWarning',  result.validationWarning || false);
+    behaviorRepo.set('validationWarnings', result.validationWarnings || []);
   }
 
   mount(root);
