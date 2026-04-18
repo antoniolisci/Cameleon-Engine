@@ -27,7 +27,7 @@ function normalizeKey(str) {
 
 const ALIASES_DATE   = ['date(utc)', 'date', 'utc time', 'utc_time', 'time', 'timestamp',
                         'trade time', 'created time', 'update time', 'open time', 'created at',
-                        'heure', 'date et heure'];
+                        'heure', 'date et heure', 'duree'];
 const ALIASES_SYMBOL = ['pair', 'symbol', 'market', 'trading pair', 'base asset', 'ticker',
                         'paire', 'paire de trading', 'asset'];
 const ALIASES_SIDE   = ['side', 'order side', 'direction', 'cote', 'sens',
@@ -36,7 +36,7 @@ const ALIASES_PRICE  = ['price', 'avg price', 'avg. price', 'filled price', 'ave
                         'avgtrading price', 'execution price', 'deal price', 'order price',
                         'prix', 'prix moyen', 'prix moyen rempli', 'prix d execution'];
 const ALIASES_QTY    = ['executed', 'qty', 'quantity', 'filled', 'base qty', 'base quantity',
-                        'filled qty', 'executed qty', 'base amount', 'vol',
+                        'filled qty', 'executed qty', 'base amount', 'amount', 'vol',
                         'execute', 'quantite', 'qte', 'volume execute', 'montant execute'];
 const ALIASES_QUOTE  = ['amount', 'total', 'quote qty', 'quote quantity', 'value', 'quote value',
                         'quote asset', 'deal value', 'deal amount', 'turnover',
@@ -109,8 +109,8 @@ function normalizeTrade(row) {
                  : !price  ? 'price = 0'
                  : !qty    ? 'qty = 0'
                  : 'ok';
-    console.debug('[bhv:norm] clés norm:', Object.keys(norm).join(', '));
-    console.debug('[bhv:norm] extrait → date:%s sym:%s side:%s(%s) price:%s qty:%s | %s',
+    console.log('[bhv:norm] clés norm:', Object.keys(norm).join(', '));
+    console.log('[bhv:norm] extrait → date:%s sym:%s side:%s(%s) price:%s qty:%s | %s',
       get(ALIASES_DATE), symbol, side, rawSide, price, qty, reason);
     _debugNormalize = false;  // log seulement la 1re ligne, pas le flood
   }
@@ -159,6 +159,14 @@ function parseDate(str) {
   // Timestamp Unix numérique (secondes ou millisecondes)
   if (/^\d{10}$/.test(str)) return parseInt(str, 10) * 1000;
   if (/^\d{13}$/.test(str)) return parseInt(str, 10);
+
+  // Format année sur 2 chiffres : "26-04-12 16:42:05" → "2026-04-12T16:42:05"
+  const shortYear = str.match(/^(\d{2})-(\d{2})-(\d{2})\s(\d{2}:\d{2}:\d{2})$/);
+  if (shortYear) {
+    const iso = `20${shortYear[1]}-${shortYear[2]}-${shortYear[3]}T${shortYear[4]}Z`;
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? null : d.getTime();
+  }
 
   // Format texte : "2023-01-15 10:30:00" ou ISO
   const normalized = str.replace(' ', 'T');

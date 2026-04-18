@@ -141,9 +141,9 @@ async function importBinanceSpot(file) {
   const isXLSX = ext === 'xlsx' || ext === 'xls';
 
   // [DEBUG TEMPORAIRE]
-  console.debug('[bhv:file]', { name: file.name, type: file.type, size: file.size });
-  console.debug('[bhv:file] isXLSX:', isXLSX);
-  console.debug('[bhv:file] branch:', isXLSX ? 'XLSX' : 'CSV');
+  console.log('[bhv:file]', { name: file.name, type: file.type, size: file.size });
+  console.log('[bhv:file] isXLSX:', isXLSX);
+  console.log('[bhv:file] branch:', isXLSX ? 'XLSX' : 'CSV');
 
   let rows;
   try {
@@ -156,8 +156,8 @@ async function importBinanceSpot(file) {
       if (!rows || rows.length === 0) {
         console.warn('[bhv:csv] aucune ligne parsée');
       } else {
-        console.debug('[bhv:csv] rows count:', rows.length);
-        console.debug('[bhv:csv] first row:', rows[0]);
+        console.log('[bhv:csv] rows count:', rows.length);
+        console.log('[bhv:csv] first row:', rows[0]);
       }
     }
   } catch (err) {
