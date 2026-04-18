@@ -804,7 +804,7 @@ function bindEvents(root, state) {
 
   if (fileInput) {
     fileInput.addEventListener('change', e => {
-      console.debug('[bhv:ui] input change déclenché');  // [DEBUG TEMPORAIRE]
+      console.log('[bhv:ui] input change déclenché');  // [DEBUG TEMPORAIRE]
       const file = e.target.files[0];
       if (file) handleImport(file, root);
     });
@@ -821,7 +821,7 @@ function bindEvents(root, state) {
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('bhv-dragover');
-      console.debug('[bhv:ui] drop déclenché');  // [DEBUG TEMPORAIRE]
+      console.log('[bhv:ui] drop déclenché');  // [DEBUG TEMPORAIRE]
       const file = e.dataTransfer?.files[0];
       if (file) handleImport(file, root);
     });
@@ -893,7 +893,7 @@ function bindEvents(root, state) {
 }
 
 async function handleImport(file, root) {
-  console.debug('[bhv:ui] handleImport appelé', file?.name);  // [DEBUG TEMPORAIRE]
+  console.log('[bhv:ui] handleImport appelé', file?.name);  // [DEBUG TEMPORAIRE]
   let result;
   try {
     result = await importBinanceSpot(file);
