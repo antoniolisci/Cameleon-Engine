@@ -1108,3 +1108,15 @@ body.bhv-panel-open .main-shell {
 .bhv-pattern--tertiary .bhv-pattern-name {
   color: var(--muted, #bba76b);
 }
+
+
+/* ── Validation warnings list ───────────────────────────────────────────────── */
+
+.bhv-warning-list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.8rem;
+}
+
+.bhv-warning-list .warn-critical { color: #ff6b6b; }
+.bhv-warning-list .warn-info     { color: #facc15; }

@@ -5,6 +5,7 @@
 import { parseCSV } from './parser.js';
 import { mapBinanceSpotRow, enableTradeDebug } from '../normalize/mappers/binance_spot.js';
 import { isValidTrade } from '../normalize/validator.js';
+import { validateTrades } from '../normalize/trade-validator.js';
 import { analyzeWallet } from '../wallet/wallet_analyzer.js';
 
 // ── Normalisation des en-têtes ────────────────────────────────────────────────
@@ -232,7 +233,10 @@ async function importBinanceSpot(file) {
 
   const analysisQuality = level === 'PARTIAL_TRADING' ? 'partial' : 'full';
 
-  return { ok: true, type: 'trades', trades, skipped, sessionId, analysisQuality };
+  const validation = validateTrades(trades);
+
+  return { ok: true, type: 'trades', trades, skipped, sessionId, analysisQuality,
+           validationWarning: !validation.isValid, validationWarnings: validation.warnings };
 }
 
 export { importBinanceSpot };
