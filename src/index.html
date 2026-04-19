@@ -97,13 +97,18 @@
       </aside>
 
       <main class="main-shell">
-        <section class="hero">
+        <div class="signature-cameleon">
+          <div class="signature-line1">Lire le marché. Filtrer l'impulsion. Décider proprement.</div>
+          <div class="signature-line2">Moteur adaptatif · Protection comportementale · Décision structurée</div>
+        </div>
+
+        <section class="hero" id="hero-section">
           <div class="hero-grid">
             <div class="hero-copy">
               <div class="hero-top">
                 <div>
                   <div class="badge"><span class="badge-dot"></span> Caméléon Engine · identité V7.3.2e</div>
-                  <h1>Le cockpit qui tranche avant d'exécuter</h1>
+                  <h1 id="hero-h1">Le cockpit qui tranche avant d'exécuter</h1>
                   <p class="subtitle">Protéger. Filtrer. Décider proprement.</p>
                 </div>
                 <div class="badge" id="liveClock">--:--:--</div>
@@ -126,12 +131,6 @@
                   <div class="hero-chip-label">Risque trop élevé</div>
                   <strong class="hero-kpi-value" id="heroAvoidValue">Ne trade pas au hasard.</strong>
                 </div>
-              </div>
-
-              <div class="lecture-day-card">
-                <div class="tiny-label">Décision du jour</div>
-                <div class="lecture-day-main" id="lectureDayMain">Marché en attente</div>
-                <p class="lecture-day-sub" id="lectureDaySub">Structure bloquée. Attendre.</p>
               </div>
 
               <div class="hero-bar">
@@ -199,64 +198,72 @@
                 </div>
               </div>
 
-              <div class="signal-narratif">
-                <div class="signal-narratif-head">
-                  <div class="signal-narratif-title">Signal narratif</div>
-                  <div class="signal-narratif-pill">Lecture active</div>
+              <div class="hero-bottom-zone">
+                <div class="lecture-day-card">
+                  <div class="tiny-label">Décision du jour</div>
+                  <div class="lecture-day-main" id="lectureDayMain">Marché en attente</div>
+                  <p class="lecture-day-sub" id="lectureDaySub">Structure bloquée. Attendre.</p>
                 </div>
-                <div class="signal-narratif-main">Même setup, lecture différente selon le profil.</div>
-                <div class="signal-narratif-sub">Filtre émotionnel et validation humaine gardent la main sur l'exécution.</div>
-              </div>
 
-              <div class="mantra-operationnel">
-                <div class="mantra-operationnel-head">
-                  <div class="mantra-operationnel-title">Mantra opérationnel</div>
-                  <div class="mantra-operationnel-pill">Direct</div>
+                <div class="signal-narratif">
+                  <div class="signal-narratif-head">
+                    <div class="signal-narratif-title">Signal narratif</div>
+                    <div class="signal-narratif-pill">Lecture active</div>
+                  </div>
+                  <div class="signal-narratif-main">Même setup, lecture différente selon le profil.</div>
+                  <div class="signal-narratif-sub">Filtre émotionnel et validation humaine gardent la main sur l'exécution.</div>
                 </div>
-                <div class="mantra-operationnel-main">Lire. Filtrer. Agir.</div>
-              </div>
 
-              <div class="onboarding-strip">
-                <div class="onboarding-card">
-                  <div class="onboarding-step">1</div>
-                  <div class="onboarding-title">Cadre de marché</div>
-                  <div class="onboarding-text">Lire régime, forces et Constellium.</div>
+                <div class="mantra-operationnel">
+                  <div class="mantra-operationnel-head">
+                    <div class="mantra-operationnel-title">Mantra opérationnel</div>
+                    <div class="mantra-operationnel-pill">Direct</div>
+                  </div>
+                  <div class="mantra-operationnel-main">Lire. Filtrer. Agir.</div>
                 </div>
-                <div class="onboarding-card">
-                  <div class="onboarding-step">2</div>
-                  <div class="onboarding-title">Filtre profil</div>
-                  <div class="onboarding-text">Traduire en posture opérationnelle.</div>
-                </div>
-                <div class="onboarding-card">
-                  <div class="onboarding-step">3</div>
-                  <div class="onboarding-title">Validation</div>
-                  <div class="onboarding-text">Émotion et humain ferment la fenêtre.</div>
-                </div>
-              </div>
 
-              <div id="hero-split">
-                <div class="hero-block hero-market">
-                  <div class="hero-title">Lecture du marché</div>
-                  <div>Régime : <span id="market-regime"></span></div>
-                  <div>Score : <span id="market-score"></span></div>
-                  <div>Verdict : <span id="market-verdict"></span></div>
-                  <div>Contexte : <span id="market-context"></span></div>
+                <div class="onboarding-strip">
+                  <div class="onboarding-card">
+                    <div class="onboarding-step">1</div>
+                    <div class="onboarding-title">Cadre de marché</div>
+                    <div class="onboarding-text">Lire régime, forces et Constellium.</div>
+                  </div>
+                  <div class="onboarding-card">
+                    <div class="onboarding-step">2</div>
+                    <div class="onboarding-title">Filtre profil</div>
+                    <div class="onboarding-text">Traduire en posture opérationnelle.</div>
+                  </div>
+                  <div class="onboarding-card">
+                    <div class="onboarding-step">3</div>
+                    <div class="onboarding-title">Validation</div>
+                    <div class="onboarding-text">Émotion et humain ferment la fenêtre.</div>
+                  </div>
                 </div>
-                <div class="hero-status" id="hero-status"></div>
-                <div class="hero-block hero-decision">
-                  <div class="hero-title">Décision du moteur</div>
-                  <div>Décision : <span id="decision-status"></span></div>
-                  <div>Posture : <span id="decision-posture"></span></div>
-                  <div>Action : <span id="decision-action"></span></div>
-                  <div>Risque : <span id="decision-risk"></span></div>
-                  <div>Validation : <span id="decision-validation"></span></div>
-                </div>
-              </div>
-            </div>
 
-            <div class="hero-logo">
-              <div class="hero-visual-frame" aria-hidden="true">
-                <img src="../assets/images/cameleon-logo.png" alt="Cameleon Engine">
+                <div id="hero-split">
+                  <div class="hero-block hero-market">
+                    <div class="hero-title">Lecture du marché</div>
+                    <div>Régime : <span id="market-regime"></span></div>
+                    <div>Score : <span id="market-score"></span></div>
+                    <div>Verdict : <span id="market-verdict"></span></div>
+                    <div>Contexte : <span id="market-context"></span></div>
+                  </div>
+                  <div class="hero-status" id="hero-status"></div>
+                  <div class="hero-block hero-decision">
+                    <div class="hero-title">Décision du moteur</div>
+                    <div>Décision : <span id="decision-status"></span></div>
+                    <div>Posture : <span id="decision-posture"></span></div>
+                    <div>Action : <span id="decision-action"></span></div>
+                    <div>Risque : <span id="decision-risk"></span></div>
+                    <div>Validation : <span id="decision-validation"></span></div>
+                  </div>
+                </div>
+
+                <div class="hero-logo">
+                  <div class="hero-visual-frame" aria-hidden="true">
+                    <img src="../assets/images/cameleon-logo.png" alt="Cameleon Engine">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1074,6 +1081,21 @@
               </details>
             </section>
           </aside>
+        </div>
+
+        <div id="overtrading-block" class="overtrading-block">
+          <div class="overtrading-media">
+            <img id="overtrading-img" class="overtrading-img" />
+          </div>
+          <div class="overtrading-content">
+            <div class="overtrading-header">
+              <span id="overtrading-badge" class="overtrading-badge"></span>
+              <div id="overtrading-etat" class="overtrading-etat"></div>
+            </div>
+            <div id="overtrading-message" class="overtrading-message"></div>
+            <div id="overtrading-risque" class="overtrading-risque"></div>
+            <div id="overtrading-action" class="overtrading-action"></div>
+          </div>
         </div>
 
         <p class="footer-note">Cameleon Engine · identité V7.3.2e préservée · moteur adaptatif V4.5 modularisé</p>

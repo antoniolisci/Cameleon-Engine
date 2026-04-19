@@ -235,6 +235,38 @@ export function buildPayload(v, previousPayload = null) {
   const profiled = profileMatrix(v.userProfile, engine, v);
   const adaptive = applyAdaptiveFilter(profiled, v);
   const filtered = applyValidation(adaptive, v);
+
+  // ── Overtrading guard ────────────────────────────────────────────────
+  // Bonus/malus constants — ajuster ici pour calibrer la sensibilité
+  const OT_BONUS_NEED_ACTION  = 1;  // +1 si nécessité réelle d'agir = Oui
+  const OT_BONUS_PENDING      = 1;  // +1 si validation humaine = En attente
+  const OT_BONUS_NO_STRUCTURE = 1;  // +1 si signal de structure = Aucun
+  const OT_BONUS_NO_MOMENTUM  = 1;  // +1 si confirmation d'élan = Aucune
+  const OT_MALUS_CALM         = 1;  // -1 si état émotionnel = Calme
+
+  const overtradingBase = engine.score > 85 ? 5 : engine.score > 70 ? 4 : engine.score > 50 ? 3 : engine.score >= 30 ? 2 : 1;
+  const overtradingAdj = (v.needAction === "yes"        ? OT_BONUS_NEED_ACTION  : 0)
+                       + (v.validationState === "pending" ? OT_BONUS_PENDING      : 0)
+                       + (v.structureSignal === "none"    ? OT_BONUS_NO_STRUCTURE : 0)
+                       + (v.momentumSignal === "none"     ? OT_BONUS_NO_MOMENTUM  : 0)
+                       - (v.emotion === "calm"            ? OT_MALUS_CALM         : 0);
+  const overtradingLevel = Math.min(5, Math.max(1, overtradingBase + overtradingAdj));
+
+  if (overtradingLevel >= 4) {
+    if (filtered.engagement_level !== "NONE") filtered.engagement_level = "REDUCED";
+    if (filtered.attack === "ON") filtered.attack = "LIGHT";
+    adaptive.engagement_level = "REDUCED";
+  }
+
+  if (overtradingLevel === 5) {
+    filtered.attack = "OFF";
+    filtered.sniper = "OFF";
+    if (filtered.tradingStatus !== "VALIDATION BLOCK") filtered.tradingStatus = "NO TRADE";
+    filtered.engagement_level = "NONE";
+    adaptive.engagement_level = "NONE";
+  }
+  // ────────────────────────────────────────────────────────────────────
+
   const { state: mState, modifier: mModifier } = mapLegacyMarketState(v.market);
   const marketReading = assessMarket(mState, mModifier);
   const decision = getDecision(marketReading);
@@ -333,7 +365,10 @@ export function buildPayload(v, previousPayload = null) {
     tags,
     updated_at: new Date().toISOString(),
     marketReading,
-    decision: { ...decision, bestAlternative }
+    decision: { ...decision, bestAlternative },
+    behavior: {
+      overtradingLevel
+    }
   };
 }
 

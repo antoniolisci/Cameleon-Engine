@@ -1,4 +1,5 @@
 import { MARKET_DICTIONARY } from "./dictionary.js";
+import { OVERTRADING_DICT } from "./overtrading-dictionary.js";
 import { updateBehavior } from "./behavior.js";
 import { getAdaptiveMessage } from "./tone.js";
 import {
@@ -31,6 +32,7 @@ let appState = loadState();
 let currentPayload = null;
 let initialized = false;
 let decisionHistory = [];
+let overtradingStreak = { level: 0, count: 0 };
 let fieldEventsBound = false;
 let controlEventsBound = false;
 let clockTimer = null;
@@ -1184,13 +1186,14 @@ function renderHero(payload) {
   setText("verdictWatch",     cockpit.market.decision);
 
   // P2 — Hero KPI grid
-  setText("heroMarketStrong", cockpit.market.label);
+  const shortMarketLabel = (cockpit.market.label || "").split("(")[0].trim() || cockpit.market.label;
+  setText("heroMarketStrong", shortMarketLabel);
   setText("heroVerdictValue", cockpit.market.verdict);
   setText("heroPostureValue", cockpit.market.posture);
   setText("heroAvoidValue",   cockpit.market.avoid);
 
   // Hero bar
-  setText("heroBarMarket",  cockpit.market.label);
+  setText("heroBarMarket",  shortMarketLabel);
   setText("heroBarScore",   String(payload.score));
   setText("heroBarMode",    formatHeroModeReading(cockpit.marketKey));
   setText("heroBarPosture", cockpit.market.posture);
@@ -1229,6 +1232,25 @@ function renderHero(payload) {
   if (heroStatusEl) {
     heroStatusEl.className = `hero-status ${decisionState.cls}`;
     heroStatusEl.textContent = decisionState.label;
+  }
+
+  // hero h1 dynamique selon decisionState
+  const heroH1Titles = {
+    ALIGNED:  "Le cockpit qui tranche avant d'exécuter",
+    BLOCKED:  "Le cockpit qui te protège de toi-même",
+    PROTECT:  "Le cockpit qui te protège de toi-même",
+    WAIT:     "Le cockpit qui t'empêche d'entrer trop tôt",
+    READY:    "Le cockpit qui t'empêche d'entrer trop tôt",
+    TENSION:  "Le cockpit qui t'empêche d'entrer trop tôt"
+  };
+  const heroH1Text = heroH1Titles[decisionState.state] || "Le cockpit qui tranche avant d'exécuter";
+  setText("hero-h1", heroH1Text);
+
+  // micro-interaction : hero-warning sur états risqués
+  const heroSection = $("hero-section");
+  if (heroSection) {
+    const isWarning = ["BLOCKED", "PROTECT", "TENSION"].includes(decisionState.state);
+    heroSection.classList.toggle("hero-warning", isWarning);
   }
 
   // P4 — sauvegarde snapshot
@@ -2891,6 +2913,80 @@ function render() {
   renderHistory();
   renderDiagnostics();
   sanitizeVisibleText();
+
+  const level = currentPayload?.behavior?.overtradingLevel || 1;
+  const data = OVERTRADING_DICT[level];
+
+  if (!data) return;
+
+  // ── Streak update ─────────────────────────────────────────────
+  if (level === overtradingStreak.level) {
+    overtradingStreak.count++;
+  } else if (level < overtradingStreak.level) {
+    overtradingStreak.level = level;
+    overtradingStreak.count = Math.max(1, Math.floor(overtradingStreak.count / 2));
+  } else {
+    overtradingStreak.level = level;
+    overtradingStreak.count = 1;
+  }
+
+  const streakCount  = overtradingStreak.count;
+  const isIntense    = streakCount >= 3 && level >= 3;
+  const isCritical   = (streakCount >= 5 && level >= 4) || (level === 5 && streakCount >= 3);
+  // ─────────────────────────────────────────────────────────────
+
+  // severity class sur le bloc
+  const block = document.getElementById("overtrading-block");
+  if (block) {
+    block.dataset.otLevel = level;
+    block.classList.remove("ot-warning", "ot-alerte", "ot-danger", "ot-intense", "ot-critical");
+    if (level <= 2)       block.classList.add("ot-warning");
+    else if (level === 3) block.classList.add("ot-alerte");
+    else                  block.classList.add("ot-danger");
+    if (isCritical)       block.classList.add("ot-critical");
+    else if (isIntense)   block.classList.add("ot-intense");
+  }
+
+  // badge — signal + streak si intensité active
+  const badge = document.getElementById("overtrading-badge");
+  if (badge) {
+    badge.textContent = isIntense
+      ? `${data.signal || ""} · ${streakCount}×`
+      : (data.signal || "");
+  }
+
+  // image
+  const img = document.getElementById("overtrading-img");
+  if (img && data.imageTrading) {
+    img.src = data.imageTrading;
+  }
+
+  // etat
+  const etat = document.getElementById("overtrading-etat");
+  if (etat && data.etat) {
+    etat.textContent = data.etat;
+  }
+
+  // message
+  const message = document.getElementById("overtrading-message");
+  if (message && data.message) {
+    message.textContent = data.message;
+  }
+
+  // risque
+  const risque = document.getElementById("overtrading-risque");
+  if (risque && data.risque) {
+    risque.textContent = `Risque : ${data.risque}`;
+  }
+
+  // action — escalade vers reaction si intensité active
+  const action = document.getElementById("overtrading-action");
+  if (action) {
+    const actionText = isIntense
+      ? (data.reaction?.[0] || data.action?.[0] || "")
+      : (data.action?.[0] || "");
+    action.textContent = actionText;
+  }
 }
 
 function buildCurrentPayload() {
@@ -3126,3 +3222,6 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
+
+const data = OVERTRADING_DICT[1];
+console.log("DATA UI :", data);
