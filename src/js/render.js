@@ -1172,6 +1172,7 @@ function clearSnapshotHistory() {
   backups.clear();
   renderSnapshotHistory();
   renderHistoryInsight();
+  renderSnapshotBehaviorAlert();
 }
 
 // ── P5 ── intelligent insight ─────────────────────────────
@@ -1206,6 +1207,33 @@ function renderHistoryInsight() {
   el.textContent = result.message;
   const colors = { BLOCK: "#ff4444", TENSION: "#ffaa00", LOW_ALIGNED: "#888", NORMAL: "#00ff88", INSUFFICIENT: "#555" };
   el.style.color = colors[result.status] || "#555";
+}
+
+// ── P5b ── behavior drift detection ──────────────────────────────────────
+function detectBehaviorDrift(history) {
+  const fomoCount    = history.filter(h => (h.emotion_state || "").toLowerCase() === "fomo").length;
+  const tensionCount = history.filter(h => ["tension", "stress"].includes((h.emotion_state || "").toLowerCase())).length;
+  const blockedCount = history.filter(h => h.state === "BLOCKED").length;
+  const waitCount    = history.filter(h => h.state === "WAIT").length;
+
+  if (fomoCount    >= 3) return { type: "warning", message: "FOMO répété — ralentir avant d'agir" };
+  if (tensionCount >= 3) return { type: "warning", message: "Tension élevée — réduire l'exposition" };
+  if (blockedCount >= 4) return { type: "warning", message: "Blocages fréquents — éviter toute entrée" };
+  if (waitCount    >= 5) return { type: "warning", message: "Attente prolongée — marché peu lisible" };
+  return null;
+}
+
+function renderSnapshotBehaviorAlert() {
+  const card = $("behaviorAlertCard");
+  if (!card) return;
+  const alert = detectBehaviorDrift(backups.getAll().slice(0, 20));
+  if (!alert) {
+    card.style.display = "none";
+    card.textContent = "";
+    return;
+  }
+  card.style.display = "block";
+  card.textContent = alert.message;
 }
 
 function renderHeader(payload) {
@@ -1339,6 +1367,7 @@ function renderHero(payload) {
   });
   renderSnapshotHistory();
   renderHistoryInsight();
+  renderSnapshotBehaviorAlert();
 }
 
 function renderLightContext(payload) {
