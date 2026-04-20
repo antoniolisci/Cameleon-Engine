@@ -6058,6 +6058,7 @@ body {
   grid-template-columns: minmax(0, 1fr) !important;
   gap: 14px !important;
   align-items: start !important;
+  align-content: start !important;
 }
 
 /* Zone haute — tous les blocs directs de hero-copy = pleine largeur */
@@ -6069,29 +6070,51 @@ body {
   grid-column: 1 !important;
 }
 
-/* hero-bottom-zone : le wrapper de la zone basse — pleine largeur */
+/* hero-bottom-zone : grille 3 colonnes (gauche | droite | image) */
 .hero-copy > .hero-bottom-zone {
   grid-column: 1 !important;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 420px) !important;
-  column-gap: 28px !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) clamp(300px, 28vw, 420px) !important;
+  column-gap: 20px !important;
   row-gap: 14px !important;
   align-items: start !important;
 }
 
-/* Zone basse gauche — lecture-day-card, signal, mantra, onboarding, split */
-.hero-bottom-zone > .lecture-day-card,
-.hero-bottom-zone > .signal-narratif,
-.hero-bottom-zone > .mantra-operationnel,
-.hero-bottom-zone > .onboarding-strip,
-.hero-bottom-zone > #hero-split {
-  grid-column: 1 !important;
+/* Décision du jour — rangée 1, pleine largeur gauche */
+.hero-bottom-zone > .lecture-day-card {
+  grid-column: 1 / span 2 !important;
+  grid-row: 1 !important;
 }
 
-/* Logo — colonne droite, s'étire sur toute la hauteur zone basse (5 rows) */
-.hero-bottom-zone > .hero-logo {
+/* Pourquoi — rangée 2, colonne gauche */
+.hero-bottom-zone > .signal-narratif {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+}
+
+/* Posture — rangée 2, colonne droite */
+.hero-bottom-zone > .mantra-operationnel {
   grid-column: 2 !important;
-  grid-row: 1 / span 5 !important;
+  grid-row: 2 !important;
+}
+
+/* Onboarding — rangée 3, pleine largeur gauche */
+.hero-bottom-zone > .onboarding-strip {
+  grid-column: 1 / span 2 !important;
+  grid-row: 3 !important;
+}
+
+/* État du marché — rangée 4, pleine largeur gauche */
+.hero-bottom-zone > #hero-split {
+  grid-column: 1 / span 2 !important;
+  grid-row: 4 !important;
+  margin-top: 0 !important;
+}
+
+/* Image — col 3, couvre les 4 rangées */
+.hero-bottom-zone > .hero-logo {
+  grid-column: 3 !important;
+  grid-row: 1 / span 4 !important;
   display: flex !important;
   flex-direction: column !important;
   align-self: stretch !important;
@@ -6132,6 +6155,7 @@ body {
   .hero-bottom-zone > .onboarding-strip,
   .hero-bottom-zone > #hero-split {
     grid-column: 1 !important;
+    grid-row: auto !important;
   }
 
   .hero-bottom-zone > .hero-logo {
@@ -6144,3 +6168,4 @@ body {
     min-height: 240px !important;
   }
 }
+
