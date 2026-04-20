@@ -1173,6 +1173,7 @@ function clearSnapshotHistory() {
   renderSnapshotHistory();
   renderHistoryInsight();
   renderSnapshotBehaviorAlert();
+  renderPreBehaviorAlert();
 }
 
 // ── P5 ── intelligent insight ─────────────────────────────
@@ -1227,6 +1228,41 @@ function renderSnapshotBehaviorAlert() {
   const card = $("behaviorAlertCard");
   if (!card) return;
   const alert = detectBehaviorDrift(backups.getAll().slice(0, 20));
+  if (!alert) {
+    card.style.display = "none";
+    card.textContent = "";
+    return;
+  }
+  card.style.display = "block";
+  card.textContent = alert.message;
+}
+
+function detectPreBehaviorDrift(history) {
+  const fomoCount    = history.filter(h => (h.emotion_state || "").toLowerCase() === "fomo").length;
+  const tensionCount = history.filter(h => ["tension", "stress"].includes((h.emotion_state || "").toLowerCase())).length;
+  const waitCount    = history.filter(h => h.state === "WAIT").length;
+
+  const scores    = history.map(h => h.score).filter(s => s !== null && s !== undefined);
+  const scoreDrop = scores.length >= 3 && scores[0] < scores[1] && scores[1] < scores[2];
+
+  if (fomoCount    >= 2)                return { type: "soft-warning", message: "Attention orientée — tu commences à chercher une opportunité" };
+  if (tensionCount >= 2)                return { type: "soft-warning", message: "Tension montante — ralentis avant de forcer" };
+  if (scoreDrop)                        return { type: "soft-warning", message: "Clarté en baisse — ne force pas" };
+  if (waitCount >= 1 && fomoCount >= 1) return { type: "soft-warning", message: "Patience fragile — risque de forcer une entrée" };
+  return null;
+}
+
+function renderPreBehaviorAlert() {
+  const card = $("preBehaviorAlertCard");
+  if (!card) return;
+  const shortHistory  = backups.getAll().slice(0, 8);
+  const strongHistory = backups.getAll().slice(0, 20);
+  if (detectBehaviorDrift(strongHistory)) {
+    card.style.display = "none";
+    card.textContent = "";
+    return;
+  }
+  const alert = detectPreBehaviorDrift(shortHistory);
   if (!alert) {
     card.style.display = "none";
     card.textContent = "";
@@ -1368,6 +1404,7 @@ function renderHero(payload) {
   renderSnapshotHistory();
   renderHistoryInsight();
   renderSnapshotBehaviorAlert();
+  renderPreBehaviorAlert();
 }
 
 function renderLightContext(payload) {
