@@ -793,48 +793,68 @@ const HERO_COPY_MAP = {
   }
 };
 
+// ── LDC : normalisation des inputs canoniques ────────────────────────────────
+function normalizeLdcInputs(payload) {
+  return {
+    marketState:     deriveMarketStateKey(payload),
+    validationState: payload.validation?.state      || "pending",
+    emotionState:    payload.emotion_state          || "stable"
+  };
+}
+
+const RULE_OF_DAY_MAP = {
+  RANGE:       "Ne pas forcer une direction. Attendre la structure avant d'engager.",
+  COMPRESSION: "La patience prime. Anticiper coûte plus qu'attendre le signal.",
+  BREAKOUT:    "Confirmation avant entrée. Le momentum se valide, il ne s'anticipe pas.",
+  TREND:       "Suivre, ne pas devancer. Entrer sur retracement propre uniquement.",
+  CHAOS:       "Capital d'abord. Aucun trade ne vaut un drawdown non maîtrisé.",
+  DEFENSE:     "Réduire l'exposition, pas l'attention. Rester en observation active.",
+  UNKNOWN:     "Sans lecture claire, l'abstention est une décision à part entière."
+};
+
+// ── LDC : résolution de la règle du jour ─────────────────────────────────────
+// V2 : inputs accueillera zoneState pour un branchement plus fin sans changer les appelants
+function getLdcRule(inputs) {
+  const { marketState } = inputs;
+  return RULE_OF_DAY_MAP[marketState] ?? RULE_OF_DAY_MAP["UNKNOWN"];
+}
+
+// ── getHeroCopy : couche narrative pure ──────────────────────────────────────
+// Source principale : payload.decisionState.
+// Exception UX : BLOCKED → affinage via emotion_state (couche présentation uniquement).
 function getHeroCopy(payload) {
-  const cockpit = getCockpitModel(payload);
-  const marketKey = cockpit.marketKey;
-  const validationState = payload.validation?.state;
-  const emotionState = payload.emotion_state;
+  const ds = payload.decisionState ?? computeDecisionState(payload);
 
-  if (validationState === "rejected") {
-    return {
-      title: "⛔ Exécution bloquée",
-      subtitle: "Validation refusée. Aucune entrée."
-    };
+  if (ds.state === "BLOCKED") {
+    const emotion = (payload.emotion_state || "").toLowerCase();
+    switch (emotion) {
+      case "fomo":
+        return { title: "⛔ Pause obligatoire",   subtitle: "FOMO détecté — aucune exécution autorisée." };
+      case "revenge":
+        return { title: "⛔ Exécution interdite",        subtitle: "Comportement agressif détecté." };
+      case "overtrading":
+        return { title: "⛔ Ralentissement obligatoire", subtitle: "Saturation détectée — réduire l'activité immédiatement." };
+      case "tilt":
+        return { title: "⛔ Arrêt immédiat",             subtitle: "Perte de contrôle détectée — pause obligatoire." };
+      default:
+        return { title: "⛔ Exécution bloquée",   subtitle: "Aucune entrée autorisée." };
+    }
   }
 
-  if (emotionState === "stress" || emotionState === "fomo") {
-    return {
-      title: "⚠️ Pause obligatoire",
-      subtitle: "État instable. Ne pas agir."
-    };
+  switch (ds.state) {
+    case "PROTECT":
+      return { title: "⚠️ Mode défensif",       subtitle: "Capital prioritaire." };
+    case "WAIT":
+      return { title: "⏸️ Attente",             subtitle: "Pas de setup clair." };
+    case "ALIGNED":
+      return { title: "✅ Exécution",            subtitle: "Conditions validées." };
+    case "READY":
+      return { title: "Setup prêt",              subtitle: "Signal favorable. Attendre confirmation." };
+    case "TENSION":
+      return { title: "Tension active",          subtitle: "Contexte fragile. Rester discipliné." };
+    default:
+      return { title: "—",                      subtitle: "" };
   }
-
-  if ((marketKey === "BREAKOUT" || marketKey === "TREND") && validationState === "adjusted") {
-    return {
-      title: "Exposition réduite",
-      subtitle: "Signal présent. Taille limitée."
-    };
-  }
-
-  if (marketKey === "BREAKOUT" && validationState === "accepted") {
-    return {
-      title: "✅ Entrée validée",
-      subtitle: "Cassure confirmée. Agir sur signal."
-    };
-  }
-
-  if (marketKey === "TREND" && validationState === "accepted") {
-    return {
-      title: "✅ Tendance confirmée",
-      subtitle: "Direction tenue. Entrée propre."
-    };
-  }
-
-  return HERO_COPY_MAP[marketKey] || HERO_COPY_MAP.UNKNOWN;
 }
 
 const DECISION_COPY_MAP = {
@@ -952,6 +972,26 @@ function computeDecisionState(payload) {
   const defensive  = isProtectContext(state);
   const expansion  = isExpansionContext(state);
   const accepted   = isAcceptedValidation(valid);
+  const emotion    = (payload.emotion_state || "").toLowerCase();
+
+  // ── 0. GARDE-FOU ÉMOTIONNEL — priorité absolue ───────────────
+  // Surpasse score, validation, posture et trading_status.
+  if (emotion === "fomo") {
+    return {
+      state:   "BLOCKED",
+      label:   "BLOCAGE",
+      cls:     "status-block",
+      message: "⛔ FOMO détecté — aucune exécution autorisée"
+    };
+  }
+  if (emotion === "stress") {
+    return {
+      state:   "PROTECT",
+      label:   "PROTECTION",
+      cls:     "status-protect",
+      message: "⚠️ Sous tension — réduire et ne pas ouvrir"
+    };
+  }
 
   // ── 1. BLOCKED ───────────────────────────────────────────────
   // Veto humain explicite uniquement.
@@ -1170,13 +1210,30 @@ function resolveVerdictLabel(payload) {
 }
 
 function renderHero(payload) {
-  const heroCopy = getHeroCopy(payload);
-  const cockpit = getCockpitModel(payload);
+  const ldcInputs = normalizeLdcInputs(payload);
+  const heroCopy  = getHeroCopy(payload);
+  const cockpit   = getCockpitModel(payload);
 
   applyMarketVisual(payload);
 
   setText("lectureDayMain", heroCopy.title);
-  setText("lectureDaySub", heroCopy.subtitle);
+  setText("lectureDaySub",  heroCopy.subtitle);
+  setText("lectureDayRule", getLdcRule(ldcInputs));
+
+  // État visuel LDC — source unique : payload.decisionState.state
+  const ldcCard = document.querySelector(".hero-bottom-zone > .lecture-day-card");
+  if (ldcCard) {
+    const ds = payload.decisionState?.state || "WAIT";
+    const LDC_STATE_MAP = {
+      BLOCKED: "blocked",
+      PROTECT: "protect",
+      WAIT:    "wait",
+      READY:   "ready",
+      ALIGNED: "aligned",
+      TENSION: "tension"
+    };
+    ldcCard.dataset.ldcState = LDC_STATE_MAP[ds] || "wait";
+  }
 
   // P1 — Verdict shell
   setText("verdictImmediate", resolveVerdictLabel(payload));
@@ -1217,7 +1274,7 @@ function renderHero(payload) {
   setText("decision-risk",       cockpit.market.avoid);
   setText("decision-validation", getValidationLabel(payload));
 
-  const decisionState = payload.decisionState;
+  const decisionState = payload.decisionState ?? computeDecisionState(payload);
 
   console.log("[DecisionState]", {
     marketState:     payload.market_state,
@@ -1850,82 +1907,6 @@ function renderWhyDecision(payload) {
   });
 }
 
-function getActionPlan(marketKey) {
-  const MAP = {
-    RANGE: {
-      now: [
-        "Observer le range",
-        "Ne pas forcer entrée"
-      ],
-      prepare: [
-        "Travailler les zones",
-        "Ordres limites aux bornes",
-        "Préparer rotation"
-      ]
-    },
-    COMPRESSION: {
-      now: [
-        "Attendre la cassure",
-        "Ne pas anticiper"
-      ],
-      prepare: [
-        "Préparer les ordres",
-        "Surveiller cassure ou rejet",
-        "Définir niveaux clés"
-      ]
-    },
-    BREAKOUT: {
-      now: [
-        "Attendre confirmation ou retest",
-        "Éviter poursuite aveugle"
-      ],
-      prepare: [
-        "Préparer niveau d'entrée",
-        "Préparer scénario validation"
-      ]
-    },
-    TREND: {
-      now: [
-        "Gérer position proprement",
-        "Sécuriser bénéfices partiels"
-      ],
-      prepare: [
-        "Laisser courir proprement",
-        "Préparer allègement suivant"
-      ]
-    },
-    DEFENSE: {
-      now: [
-        "Réduire exposition",
-        "Protéger capital"
-      ],
-      prepare: [
-        "Identifier zones plus basses",
-        "Préparer rechargement défensif"
-      ]
-    },
-    CHAOS: {
-      now: [
-        "Rester défensif",
-        "Protéger capital"
-      ],
-      prepare: [
-        "Attendre retour de structure",
-        "Identifier zones fortes"
-      ]
-    },
-    UNKNOWN: {
-      now: [
-        "Observer"
-      ],
-      prepare: [
-        "Attendre plus de clarté"
-      ]
-    }
-  };
-  return MAP[marketKey] || MAP.UNKNOWN;
-}
-
 function getDecisionAwareActionPlan(payload) {
   const ds = computeDecisionState(payload);
 
@@ -1988,81 +1969,142 @@ function getDecisionAwareActionPlan(payload) {
   };
 }
 
+// Single source of truth for action plan
+// Source : payload.decisionState.state + payload.emotion_state — format 3 lignes fixe
+function getActionPlan(payload) {
+  const state   = payload.decisionState?.state;
+  const emotion = (payload.emotion_state || "").toLowerCase();
+
+  if (state === "BLOCKED") {
+    switch (emotion) {
+      case "fomo":
+        return [
+          "Maintenant → Stop immédiat",
+          "Préparer → Couper écran / attendre reset",
+          "Interdit → Toute entrée"
+        ];
+      case "revenge":
+        return [
+          "Maintenant → Stop immédiat",
+          "Préparer → Revenir au plan strict",
+          "Interdit → Augmenter taille / forcer trade"
+        ];
+      case "overtrading":
+        return [
+          "Maintenant → Ralentir fortement",
+          "Préparer → Réduire fréquence",
+          "Interdit → Multiplier les entrées"
+        ];
+      case "tilt":
+        return [
+          "Maintenant → Arrêt immédiat",
+          "Préparer → Quitter session",
+          "Interdit → Toute activité trading"
+        ];
+      default:
+        return [
+          "Maintenant → Stop immédiat",
+          "Préparer → Revenir au plan",
+          "Interdit → Forcer une entrée"
+        ];
+    }
+  }
+
+  if (state === "PROTECT") {
+    return [
+      "Maintenant → Réduire exposition",
+      "Préparer → Nettoyer positions fragiles",
+      "Interdit → Augmenter taille"
+    ];
+  }
+
+  if (state === "NEUTRAL" || state === "WAIT") {
+    return [
+      "Maintenant → Observer",
+      "Préparer → Identifier niveau clé",
+      "Interdit → Entrée impulsive"
+    ];
+  }
+
+  if (state === "ALIGNED") {
+    return [
+      "Maintenant → Exécuter propre",
+      "Préparer → Plan de sortie",
+      "Interdit → Sur-engagement"
+    ];
+  }
+
+  return [
+    "Maintenant → —",
+    "Préparer → —",
+    "Interdit → —"
+  ];
+}
+
+const PLAN_TONE_MAP = {
+  BLOCKED: "danger",
+  PROTECT: "wait",
+  WAIT:    "wait",
+  READY:   "wait",
+  TENSION: "wait",
+  ALIGNED: "active"
+};
+
 function renderActionPlan(payload) {
   const container = $("actionPlan");
   if (!container) return;
 
+  const lines = getActionPlan(payload);
+  const tone  = PLAN_TONE_MAP[payload.decisionState?.state] || "neutral";
+
+  setPlanCardState(tone);
+
   container.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "action-plan";
+  lines.forEach((text) => {
+    const d = document.createElement("div");
+    d.textContent = text;
+    wrap.appendChild(d);
+  });
+  container.appendChild(wrap);
+}
 
-  // PRIORITÉ ABSOLUE — validation rejetée
-  let plan;
-  if (payload.validation?.state === "rejected") {
-    plan = {
-      tone:    "danger",
-      now:     ["Aucune action"],
-      prepare: ["Revoir le contexte", "Attendre nouvelle validation"]
-    };
-  } else {
-    // PRIORITÉ 2 — engagement_level (filtre adaptatif)
-    const ENGAGEMENT_PLANS = {
-      NONE: {
-        tone:    "danger",
-        now:     ["Ne pas intervenir", "Ne pas agir"],
-        prepare: ["Observer le marché", "Attendre nouveau signal"]
-      },
-      MINIMAL: {
-        tone:    "danger",
-        now:     ["Observer uniquement", "Ne pas anticiper"],
-        prepare: ["Identifier niveau clé", "Attendre confirmation"]
-      },
-      REDUCED: {
-        tone:    "wait",
-        now:     ["Entrée légère possible", "Éviter surexposition"],
-        prepare: ["Limiter le risque", "Prévoir sortie rapide"]
-      },
-      NEUTRAL: {
-        tone:    "wait",
-        now:     ["Attendre confirmation", "Observer activement"],
-        prepare: ["Identifier trigger précis", "Préparer plan entrée"]
-      },
-      FULL: {
-        tone:    "active",
-        now:     ["Exécuter le plan", "Rester discipliné"],
-        prepare: ["Définir niveau d'entrée", "Valider stop et sizing"]
-      }
-    };
-    // FALLBACK — engagement_level absent ou inconnu : comportement actuel conservé
-    plan = ENGAGEMENT_PLANS[payload.engagement_level] ?? getDecisionAwareActionPlan(payload);
+function applyFocusState(payload) {
+  const ds   = payload.decisionState ?? computeDecisionState(payload);
+  const root = document.querySelector("#app") || document.body;
+
+  root.querySelectorAll(".focus-primary, .focus-secondary").forEach(el => {
+    el.classList.remove("focus-primary", "focus-secondary");
+  });
+
+  const lectureDay    = document.querySelector(".lecture-day-card");
+  const actionPlan    = document.querySelector("#actionPlanCard");
+  const signalNarratif = document.querySelector(".signal-narratif");
+
+  [lectureDay, actionPlan, signalNarratif].forEach(el => {
+    if (el) el.classList.add("focus-secondary");
+  });
+
+  switch (ds?.state) {
+    case "BLOCKED":
+      if (lectureDay) lectureDay.classList.add("focus-primary");
+      break;
+    case "PROTECT":
+      if (lectureDay) lectureDay.classList.add("focus-primary");
+      if (actionPlan) actionPlan.classList.add("focus-primary");
+      break;
+    case "WAIT":
+    case "READY":
+    case "ALIGNED":
+      if (actionPlan) actionPlan.classList.add("focus-primary");
+      break;
+    case "TENSION":
+      if (signalNarratif) signalNarratif.classList.add("focus-primary");
+      break;
+    default:
+      if (lectureDay) lectureDay.classList.add("focus-primary");
   }
-
-  setPlanCardState(plan.tone);
-
-  const nowTitle = document.createElement("div");
-  nowTitle.className = "plan-section-title";
-  nowTitle.textContent = "Maintenant";
-
-  const nowList = document.createElement("ul");
-  plan.now.forEach((a) => {
-    const li = document.createElement("li");
-    li.textContent = a;
-    nowList.appendChild(li);
-  });
-
-  const prepTitle = document.createElement("div");
-  prepTitle.className = "plan-section-title";
-  prepTitle.textContent = "Préparer";
-
-  const prepList = document.createElement("ul");
-  plan.prepare.forEach((a) => {
-    const li = document.createElement("li");
-    li.textContent = a;
-    prepList.appendChild(li);
-  });
-
-  container.appendChild(nowTitle);
-  container.appendChild(nowList);
-  container.appendChild(prepTitle);
-  container.appendChild(prepList);
 }
 
 function setPlanCardState(tone) {
@@ -2881,6 +2923,11 @@ function render() {
   warnMissingPayloadData(currentPayload);
   document.body.dataset.shellState = getCockpitModel(currentPayload).marketKey.toLowerCase();
 
+  // Liaison visuelle globale — source : decisionState
+  const _ds = currentPayload.decisionState ?? computeDecisionState(currentPayload);
+  const _root = document.querySelector("#app") || document.body;
+  if (_ds?.state) _root.dataset.decisionState = _ds.state.toLowerCase();
+
   renderMarketStateBrain();
   renderDebugBrain();
   renderDecisionPanel();
@@ -2898,6 +2945,7 @@ function render() {
   renderPilotage(currentPayload);
   renderRightRail(currentPayload);
   renderActionPlan(currentPayload);
+  applyFocusState(currentPayload);
   renderExecutionLevel(currentPayload);
   renderPositionManagement(currentPayload);
   renderTradeScenarios(currentPayload);
@@ -3167,6 +3215,19 @@ function bindControls() {
   $("helpDialog")?.addEventListener("click", (event) => {
     if (event.target === $("helpDialog")) $("helpDialog")?.close();
   });
+
+  // ── Onboarding — affiché une seule fois ──────────────────────────────────
+  const ONBOARDING_KEY = "CE_onboarding_v1";
+  const onboardingOverlay = $("onboardingOverlay");
+  if (onboardingOverlay) {
+    if (localStorage.getItem(ONBOARDING_KEY)) {
+      onboardingOverlay.classList.add("hidden");
+    }
+    $("onboardingBtn")?.addEventListener("click", () => {
+      localStorage.setItem(ONBOARDING_KEY, "1");
+      onboardingOverlay.classList.add("hidden");
+    });
+  }
 
   $("modeCoreBtn")?.addEventListener("click", () => {
     activateTab("pilotage");
