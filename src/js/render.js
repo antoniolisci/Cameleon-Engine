@@ -1119,34 +1119,50 @@ function getHeroState(cockpit, tradingStatus) {
 }
 
 // ── P4 ── snapshot history ────────────────────────────────
+const SNAP_MARKET_MAP = {
+  range: "Range", compression: "Compression", expansion: "Expansion",
+  defense: "Défense", chaos: "Chaos", unknown: "—"
+};
+const SNAP_EMOTION_MAP = {
+  fomo: "FOMO", stress: "Tension", tension: "Tension",
+  neutral: "Calme", calm: "Calme", unknown: "—"
+};
+const SNAP_STATE_MAP = {
+  WAIT: "Attente", BLOCKED: "Bloqué", PROTECT: "Protection",
+  ACTIVE: "Actif", ALIGNED: "Aligné", READY: "Prêt", TENSION: "Tension"
+};
+
 function saveSnapshot(snapshot) {
   const last = backups.getAll()[0];
-  if (last &&
-      last.regime    === snapshot.regime &&
-      last.verdict   === snapshot.verdict &&
-      last.decision  === snapshot.decision &&
-      last.state     === snapshot.state) return;
+  const sig = (s) => `${s.market_state}|${s.emotion_state}|${s.state}`;
+  if (last && sig(last) === sig(snapshot)) return;
   backups.prepend(snapshot);
 }
 
 function renderSnapshotHistory() {
   const target = $("history");
   if (!target) return;
-  const history = backups.getAll();
+  const history = backups.getAll().slice(0, 5);
   if (!history.length) {
     target.innerHTML = "<div style=\"opacity:.3; font-size:12px;\">Aucun historique</div>";
     return;
   }
-  target.innerHTML = history.map((h) => {
-    const d = new Date(h.timestamp);
-    const date = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-    const time = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-    return `<div style="display:flex;gap:12px;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);">`
-      + `<span style="opacity:.4;min-width:90px;">${date} ${time}</span>`
-      + `<span>${h.regime}</span>`
-      + `<span style="opacity:.5;">→</span>`
-      + `<span>${h.decision}</span>`
-      + `<span style="margin-left:auto;" class="status-${h.state.toLowerCase()}">${h.state}</span>`
+  target.innerHTML = history.map((h, i) => {
+    const time    = new Date(h.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const mkt     = SNAP_MARKET_MAP[(h.market_state  || "").toLowerCase()] ?? "—";
+    const emo     = SNAP_EMOTION_MAP[(h.emotion_state || "").toLowerCase()] ?? "—";
+    const dec     = SNAP_STATE_MAP[h.state]                                 ?? "—";
+    const isFirst = i === 0;
+    const rowStyle = isFirst
+      ? "display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:1;"
+      : "display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:0.5;";
+    return `<div style="${rowStyle}">`
+      + `<span style="opacity:.55;min-width:38px;">${time}</span>`
+      + `<span>${mkt}</span>`
+      + `<span style="opacity:.35;">/</span>`
+      + `<span>${emo}</span>`
+      + `<span style="opacity:.35;">/</span>`
+      + `<span style="font-weight:${isFirst ? 600 : 400};">${dec}</span>`
       + `</div>`;
   }).join("");
 }
@@ -1312,11 +1328,14 @@ function renderHero(payload) {
 
   // P4 — sauvegarde snapshot
   saveSnapshot({
-    timestamp: new Date().toISOString(),
-    regime:   cockpit.market.label,
-    verdict:  cockpit.market.verdict,
-    decision: tradingStatusFormatted,
-    state:    decisionState.state
+    timestamp:     new Date().toISOString(),
+    regime:        cockpit.market.label,
+    verdict:       cockpit.market.verdict,
+    decision:      tradingStatusFormatted,
+    state:         decisionState.state,
+    market_state:  payload.market_state  || "unknown",
+    emotion_state: payload.emotion_state || "unknown",
+    score:         payload.score ?? null
   });
   renderSnapshotHistory();
   renderHistoryInsight();
