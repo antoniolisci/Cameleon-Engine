@@ -5064,7 +5064,7 @@ body {
 .hero-kpi-grid,
 .hero-bar,
 .hero-decision-grid,
-.onboarding-strip,
+.hero-bottom-zone > .onboarding-strip,
 .master-card .alertes-bottom-grid {
   display: grid !important;
 }
@@ -6322,6 +6322,17 @@ body[data-decision-state="blocked"] .focus-primary {
 
 body[data-decision-state="protect"] .focus-primary {
   border-color: rgba(255, 180, 60, 0.24) !important;
+}
+
+/* ── Reset mental — bloc émotionnel contextuel ───────────────────────────── */
+.mental-reset {
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 4px 0;
+}
+
+.mental-reset div {
+  opacity: 0.88;
 }
 
 /* ── Onboarding overlay — première ouverture ─────────────────────────────── */

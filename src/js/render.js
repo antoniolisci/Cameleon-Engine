@@ -2107,6 +2107,42 @@ function applyFocusState(payload) {
   }
 }
 
+function getMentalReset(payload) {
+  const emotion = (payload.emotion_state || "").toLowerCase();
+  if (emotion === "fomo") {
+    return ["FOMO détecté.", "Coupe l'écran.", "Reviens au calme."];
+  }
+  if (emotion === "stress" || emotion === "tension") {
+    return ["Tension détectée.", "Réduis l'exposition.", "Ne force rien."];
+  }
+  return null;
+}
+
+function renderMentalReset(payload) {
+  const card      = $("mentalResetCard");
+  const container = $("mentalReset");
+  if (!card || !container) return;
+
+  const lines = getMentalReset(payload);
+
+  if (!lines || lines.length === 0) {
+    card.style.display = "none";
+    container.innerHTML = "";
+    return;
+  }
+
+  card.style.display = "block";
+  container.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "mental-reset";
+  lines.forEach((text) => {
+    const d = document.createElement("div");
+    d.textContent = text;
+    wrap.appendChild(d);
+  });
+  container.appendChild(wrap);
+}
+
 function setPlanCardState(tone) {
   const el = $("actionPlanCard");
   if (!el) return;
@@ -2945,6 +2981,7 @@ function render() {
   renderPilotage(currentPayload);
   renderRightRail(currentPayload);
   renderActionPlan(currentPayload);
+  renderMentalReset(currentPayload);
   applyFocusState(currentPayload);
   renderExecutionLevel(currentPayload);
   renderPositionManagement(currentPayload);
