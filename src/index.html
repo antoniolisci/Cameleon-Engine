@@ -7,6 +7,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/behavior.css">
+  <script>try{if(localStorage.getItem("CE_onboarding_v1"))document.documentElement.classList.add("onboarding-seen");}catch(e){}</script>
 </head>
 <body data-shell-state="range">
   <div class="shell">
@@ -200,9 +201,17 @@
 
               <div class="hero-bottom-zone">
                 <div class="lecture-day-card">
-                  <div class="tiny-label">Décision du jour</div>
-                  <div class="lecture-day-main" id="lectureDayMain">Marché en attente</div>
-                  <p class="lecture-day-sub" id="lectureDaySub">Structure bloquée. Attendre.</p>
+                  <div class="ldc-header">
+                    <div class="tiny-label">Décision du jour</div>
+                  </div>
+                  <div class="ldc-body">
+                    <div class="lecture-day-main" id="lectureDayMain">Marché en attente</div>
+                    <p class="lecture-day-sub" id="lectureDaySub">Structure bloquée. Attendre.</p>
+                  </div>
+                  <div class="ldc-rule">
+                    <div class="ldc-rule-label">Règle du jour</div>
+                    <p class="ldc-rule-text" id="lectureDayRule">—</p>
+                  </div>
                 </div>
 
                 <div class="signal-narratif">
@@ -1106,67 +1115,60 @@
   <dialog class="help-dialog" id="helpDialog" aria-labelledby="helpTitle">
     <div class="help-dialog-shell">
       <div class="card-head">
-        <div>
-          <h2 class="card-title" id="helpTitle">Mode d'emploi</h2>
-          <p class="card-desc">Le cockpit analyse le marche et te donne une decision. Lis la decision puis agis ou attends.</p>
-        </div>
+        <h2 class="card-title" id="helpTitle">Mode d'emploi</h2>
         <button class="mode-btn compact-btn help-close-btn" id="helpCloseBtn" type="button">
           <div class="mode-btn-title">Fermer</div>
-          <div class="mode-btn-desc">Retour au cockpit.</div>
         </button>
       </div>
+      <p class="help-tagline">Lis → Décide → Exécute (ou attends)</p>
       <div class="help-grid">
         <section class="help-card">
-          <div class="tiny-label">Comment utiliser</div>
-          <p>Le cockpit analyse le marche et te donne une decision.</p>
-          <p>Lis la decision puis agis ou attends.</p>
+          <div class="tiny-label">Lis uniquement 2 choses</div>
+          <p>→ Décision du jour</p>
+          <p>→ Plan d'action</p>
         </section>
         <section class="help-card">
-          <div class="tiny-label">Comment lire l'ecran</div>
-          <ul class="help-list">
-            <li>Verdict -> ce que tu dois faire</li>
-            <li>Posture -> comment agir</li>
-            <li>Risque trop eleve -> entree non valide ou contexte non exploitable</li>
-            <li>Decision -> resume simple</li>
-          </ul>
+          <div class="tiny-label">Règle</div>
+          <p>Si c'est bloqué → tu ne trades pas</p>
+          <p>Si c'est flou → tu attends</p>
+          <p>Si c'est clair → tu agis</p>
         </section>
         <section class="help-card">
-          <div class="tiny-label">Etats de marche</div>
-          <ul class="help-list">
-            <li>Range -> marche bloque</li>
-            <li>Compression -> mouvement arrive</li>
-            <li>Breakout -> sortie de zone</li>
-            <li>Trend -> direction claire</li>
-            <li>Chaos -> marche dangereux</li>
-            <li>Defense -> prudence</li>
-          </ul>
+          <div class="tiny-label">Interprétation</div>
+          <p>Bloqué → stop</p>
+          <p>Défense → réduire risque</p>
+          <p>Attente → observer</p>
+          <p>Action → exécuter</p>
         </section>
         <section class="help-card">
-          <div class="tiny-label">Modes</div>
-          <ul class="help-list">
-            <li>Socle -> proteger le capital</li>
-            <li>Attaque -> profiter du mouvement</li>
-            <li>Sniper -> agir precisement</li>
-            <li>Attente -> ne rien faire</li>
-          </ul>
-        </section>
-        <section class="help-card">
-          <div class="tiny-label">Regle principale</div>
-          <p>Si ce n'est pas clair, tu n'agis pas.</p>
-        </section>
-        <section class="help-card">
-          <div class="tiny-label">Glossaire</div>
-          <ul class="help-list">
-            <li>Breakout -> sortie de zone</li>
-            <li>Range -> marche bloque</li>
-            <li>Trend -> direction</li>
-            <li>Volatilite -> vitesse du marche</li>
-            <li>Liquidite -> facilite d'achat et de vente</li>
-          </ul>
+          <div class="tiny-label">Règle finale</div>
+          <p>Si tu hésites → tu ne fais rien</p>
         </section>
       </div>
     </div>
   </dialog>
+  <div class="onboarding-overlay" id="onboardingOverlay" aria-modal="true" role="dialog" aria-labelledby="onboardingTitle">
+    <div class="onboarding-card">
+      <div class="onboarding-logo">Caméléon Engine</div>
+      <p class="onboarding-phrase">Ce système ne te donne pas des signaux.<br>Il t'empêche de faire des erreurs.</p>
+      <div class="onboarding-blocks">
+        <div class="onboarding-block">
+          <div class="tiny-label">Principe</div>
+          <p>Tu ne décides pas.<br>Tu lis.</p>
+        </div>
+        <div class="onboarding-block">
+          <div class="tiny-label">Règle</div>
+          <p>Si c'est bloqué → tu ne trades pas<br>Si c'est flou → tu attends<br>Si c'est clair → tu agis</p>
+        </div>
+        <div class="onboarding-block">
+          <div class="tiny-label">Règle finale</div>
+          <p>Si tu hésites → tu ne fais rien</p>
+        </div>
+      </div>
+      <button class="onboarding-btn" id="onboardingBtn" type="button">Compris</button>
+    </div>
+  </div>
+
   <script type="module" src="./js/render.js"></script>
   <script type="module" src="./js/behavior/behavior-main.js"></script>
 

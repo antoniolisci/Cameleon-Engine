@@ -3743,6 +3743,14 @@ pre {
   padding: 24px;
 }
 
+.help-tagline {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
 .help-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6077,13 +6085,101 @@ body {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) clamp(300px, 28vw, 420px) !important;
   column-gap: 20px !important;
   row-gap: 14px !important;
-  align-items: start !important;
+  align-items: stretch !important;
 }
 
-/* Décision du jour — rangée 1, pleine largeur gauche */
+/* ── lecture-day-card : bloc maître — P6 ────────────────────────────────── */
 .hero-bottom-zone > .lecture-day-card {
   grid-column: 1 / span 2 !important;
   grid-row: 1 !important;
+  max-width: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: clamp(28px, 3.5vw, 44px) clamp(28px, 3.5vw, 44px) clamp(32px, 4vw, 48px) !important;
+}
+
+/* Titre — libérer la contrainte 12ch orpheline de P4, renforcer l'impact */
+.hero-bottom-zone > .lecture-day-card .lecture-day-main {
+  max-width: none !important;
+  color: var(--text) !important;
+}
+
+/* Sous-texte — alléger pour hiérarchiser sous le titre */
+.hero-bottom-zone > .lecture-day-card .lecture-day-sub {
+  font-weight: 400 !important;
+  color: rgba(245, 241, 231, 0.6) !important;
+  margin-top: 10px !important;
+}
+
+/* Zone basse — Loi du jour */
+.hero-bottom-zone > .lecture-day-card .ldc-rule {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Label "LOI DU JOUR" — substitution CSS, texte HTML masqué */
+.hero-bottom-zone > .lecture-day-card .ldc-rule-label {
+  font-size: 0 !important;
+}
+
+.hero-bottom-zone > .lecture-day-card .ldc-rule-label::before {
+  content: "LOI DU JOUR";
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--state-text);
+  opacity: 0.5;
+  margin-bottom: 7px;
+}
+
+/* Texte de la règle — plus de présence */
+.hero-bottom-zone > .lecture-day-card .ldc-rule-text {
+  font-size: 14px;
+  line-height: 1.58;
+  color: rgba(245, 241, 231, 0.78);
+  font-weight: 500;
+  max-width: 56ch;
+}
+
+/* ── États critiques LDC — source : data-ldc-state posé par renderHero() ── */
+
+/* BLOCKED — interdit, rouge sombre premium */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] {
+  border-color: rgba(210, 55, 55, 0.38) !important;
+  background-image: radial-gradient(
+    ellipse at top left,
+    rgba(185, 30, 30, 0.10) 0%,
+    transparent 55%
+  ) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] .lecture-day-main {
+  color: rgba(255, 200, 200, 0.95) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] .lecture-day-sub {
+  color: rgba(245, 210, 210, 0.72) !important;
+}
+
+/* PROTECT — défensif, ambre chaud discret */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] {
+  border-color: rgba(210, 140, 30, 0.32) !important;
+  background-image: radial-gradient(
+    ellipse at top left,
+    rgba(180, 110, 20, 0.08) 0%,
+    transparent 55%
+  ) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] .lecture-day-main {
+  color: rgba(255, 220, 150, 0.95) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] .lecture-day-sub {
+  color: rgba(245, 225, 185, 0.70) !important;
 }
 
 /* Pourquoi — rangée 2, colonne gauche */
@@ -6143,6 +6239,11 @@ body {
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.5fr) minmax(0, 0.8fr) !important;
 }
 
+/* hero-overlay-panel : hors du flux hero dans le DOM — neutralisé via spec (0,2,0) > regression repair (0,1,0) */
+.main-shell > .hero-overlay-panel {
+  display: none !important;
+}
+
 /* Responsive : sous 980px, zone basse en 1 colonne */
 @media (max-width: 980px) {
   .hero-copy > .hero-bottom-zone {
@@ -6169,3 +6270,158 @@ body {
   }
 }
 
+/* ── Liaison visuelle globale — data-decision-state sur root ────────────── */
+[data-decision-state="blocked"] .hero-kpi-grid,
+[data-decision-state="blocked"] .hero-bar {
+  border-color: rgba(255, 80, 80, 0.15);
+  box-shadow: 0 0 12px rgba(255, 80, 80, 0.08);
+}
+
+[data-decision-state="protect"] .hero-kpi-grid,
+[data-decision-state="protect"] .hero-bar {
+  border-color: rgba(255, 200, 120, 0.15);
+  box-shadow: 0 0 12px rgba(255, 200, 120, 0.08);
+}
+
+[data-decision-state="aligned"] .hero-kpi-grid,
+[data-decision-state="aligned"] .hero-bar {
+  border-color: rgba(120, 255, 180, 0.15);
+  box-shadow: 0 0 12px rgba(120, 255, 180, 0.08);
+}
+
+/* ── Plan d'action — format 3 lignes ────────────────────────────────────── */
+.action-plan {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.action-plan div {
+  opacity: 0.9;
+}
+
+
+/* ── Focus state system — pilotage visuel dynamique ─────────────────────── */
+.focus-primary {
+  opacity: 1 !important;
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 24px rgba(0, 0, 0, 0.22);
+  transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  position: relative;
+  z-index: 2;
+}
+
+.focus-secondary {
+  opacity: 0.82;
+  transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+body[data-decision-state="blocked"] .focus-primary {
+  border-color: rgba(220, 60, 60, 0.28) !important;
+}
+
+body[data-decision-state="protect"] .focus-primary {
+  border-color: rgba(255, 180, 60, 0.24) !important;
+}
+
+/* ── Onboarding overlay — première ouverture ─────────────────────────────── */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 6, 10, 0.88);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.onboarding-overlay:not(.hidden) {
+  opacity: 1;
+}
+
+html.onboarding-seen .onboarding-overlay {
+  display: none !important;
+}
+
+.onboarding-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.onboarding-card {
+  width: min(480px, calc(100vw - 32px));
+  padding: 36px 32px 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface, #0d1117);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transform: scale(0.98);
+  opacity: 0;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.onboarding-overlay:not(.hidden) .onboarding-card {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.onboarding-logo {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.onboarding-phrase {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0;
+}
+
+.onboarding-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.onboarding-block {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.onboarding-block p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.onboarding-btn {
+  align-self: flex-end;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.onboarding-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
