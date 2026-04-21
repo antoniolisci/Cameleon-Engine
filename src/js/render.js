@@ -1195,6 +1195,90 @@ function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusForm
   renderBehaviorCoach();
 }
 
+// ── Mémoire du trader ─────────────────────────────────────────────────────
+
+const TRADER_MEMORY_LABELS = {
+  emotion: {
+    fomo: "FOMO",
+    tension: "Tension",
+    stress: "Stress",
+    calm: "Calme",
+    neutral: "Calme"
+  },
+  state: {
+    BLOCKED: "Bloqué",
+    WAIT: "Attente",
+    PROTECT: "Protection",
+    ACTIVE: "Actif",
+    ALIGNED: "Aligné",
+    READY: "Prêt",
+    TENSION: "Tension"
+  },
+  quality: {
+    good: "🟢 Aligné",
+    medium: "🟡 Flou",
+    bad: "🔴 Dégradé"
+  }
+};
+
+function computeTraderMemory(history) {
+  if (!history || history.length < 5) return null;
+
+  const freq = (arr, key) => {
+    const counts = {};
+    arr.forEach(item => {
+      const value = item?.[key];
+      if (!value) return;
+      counts[value] = (counts[value] || 0) + 1;
+    });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return sorted.length ? sorted[0][0] : null;
+  };
+
+  const recent   = history.slice(0, 5);
+  const previous = history.slice(5, 10);
+
+  const recentBad    = recent.filter(h => h.quality === "bad").length;
+  const recentGood   = recent.filter(h => h.quality === "good").length;
+  const previousBad  = previous.filter(h => h.quality === "bad").length;
+  const previousGood = previous.filter(h => h.quality === "good").length;
+
+  let tendance = "Stable";
+  if (recentBad > previousBad)        tendance = "Dégradation récente";
+  else if (recentGood > previousGood) tendance = "Amélioration récente";
+
+  return {
+    biaisDominant:    freq(history, "emotion_state"),
+    etatDominant:     freq(history, "state"),
+    qualiteDominante: freq(history, "quality"),
+    tendance
+  };
+}
+
+function renderTraderMemory() {
+  const el = $("traderMemoryCard");
+  if (!el) return;
+
+  const memory = computeTraderMemory(backups.getAll());
+  if (!memory) {
+    el.style.display = "none";
+    return;
+  }
+
+  const emotionLabel = TRADER_MEMORY_LABELS.emotion[memory.biaisDominant]   || memory.biaisDominant   || "—";
+  const stateLabel   = TRADER_MEMORY_LABELS.state[memory.etatDominant]      || memory.etatDominant    || "—";
+  const qualityLabel = TRADER_MEMORY_LABELS.quality[memory.qualiteDominante] || "—";
+
+  el.style.display = "block";
+  el.innerHTML = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Mémoire du trader</div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">Biais dominant : ${emotionLabel}</div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">État dominant : ${stateLabel}</div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">Qualité dominante : ${qualityLabel}</div>
+    <div style="font-size:12px;opacity:0.55;">Tendance : ${memory.tendance}</div>
+  `;
+}
+
 function renderSnapshotHistory() {
   const target = $("history");
   if (!target) return;
@@ -3244,6 +3328,7 @@ function render() {
   renderMetaLayer();
   renderHistory();
   renderDiagnostics();
+  renderTraderMemory();
   sanitizeVisibleText();
 
   const level = currentPayload?.behavior?.overtradingLevel || 1;
@@ -3502,6 +3587,7 @@ function bindControls() {
       latestSnapshotContext.decisionState,
       latestSnapshotContext.tradingStatusFormatted
     );
+    renderTraderMemory();
     const btn = $("saveSnapshotBtn");
     const label = btn?.querySelector(".mode-btn-title");
     if (btn && label) {
@@ -3588,6 +3674,7 @@ function init() {
   renderSnapshotBehaviorAlert();
   renderPreBehaviorAlert();
   renderBehaviorCoach();
+  renderTraderMemory();
 }
 
 if (document.readyState === "loading") {
