@@ -1144,7 +1144,39 @@ function saveSnapshot(snapshot) {
   backups.prepend(snapshot);
 }
 
+function computeSnapshotQuality({ state, emotion_state, score }) {
+  const emo = (emotion_state || "").toLowerCase();
+
+  if (state === "BLOCKED") return "bad";
+  if (emo === "fomo") return "bad";
+  if (["tension", "stress"].includes(emo) && score !== null && score < 40) return "bad";
+
+  if (state === "WAIT") return "medium";
+  if (["tension", "stress"].includes(emo)) return "medium";
+
+  if (
+    ["ALIGNED", "READY", "ACTIVE"].includes(state) &&
+    ["calm", "neutral"].includes(emo) &&
+    (score === null || score >= 60)
+  ) {
+    return "good";
+  }
+
+  return "medium";
+}
+
+const SNAP_QUALITY_MAP = {
+  good:   "🟢",
+  medium: "🟡",
+  bad:    "🔴"
+};
+
 function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusFormatted) {
+  const quality = computeSnapshotQuality({
+    state:         decisionState.state,
+    emotion_state: payload.emotion_state,
+    score:         payload.score ?? null
+  });
   saveSnapshot({
     timestamp:     new Date().toISOString(),
     regime:        cockpit.market.label,
@@ -1153,7 +1185,8 @@ function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusForm
     state:         decisionState.state,
     market_state:  payload.market_state  || "unknown",
     emotion_state: payload.emotion_state || "unknown",
-    score:         payload.score ?? null
+    score:         payload.score ?? null,
+    quality:       quality
   });
   renderSnapshotHistory();
   renderHistoryInsight();
@@ -1174,6 +1207,7 @@ function renderSnapshotHistory() {
     const mkt     = SNAP_MARKET_MAP[(h.market_state  || "").toLowerCase()] ?? "—";
     const emo     = SNAP_EMOTION_MAP[(h.emotion_state || "").toLowerCase()] ?? "—";
     const dec     = SNAP_STATE_MAP[h.state]                                 ?? "—";
+    const q       = SNAP_QUALITY_MAP[h.quality]                              ?? "";
     const isFirst = i === 0;
     const rowStyle = isFirst
       ? "display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:1;"
@@ -1185,6 +1219,7 @@ function renderSnapshotHistory() {
       + `<span>${emo}</span>`
       + `<span style="opacity:.35;">/</span>`
       + `<span style="font-weight:${isFirst ? 600 : 400};">${dec}</span>`
+      + `<span style="margin-left:auto;">${q}</span>`
       + `</div>`;
   }).join("");
 }
