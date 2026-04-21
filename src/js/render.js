@@ -1575,6 +1575,80 @@ function renderPsychProfile() {
   `;
 }
 
+function computeBehaviorRepetition(history) {
+  if (!history || history.length < 3) return null;
+
+  const recent = history.slice(0, 5);
+
+  const patterns = recent.map(h => (h.emotion_state || "").toLowerCase());
+
+  const counts = {};
+  patterns.forEach(p => {
+    if (!p) return;
+    counts[p] = (counts[p] || 0) + 1;
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  if (!sorted.length) return null;
+
+  const [pattern, count] = sorted[0];
+
+  let status = "Faible";
+  if (count >= 4)      status = "Boucle active";
+  else if (count >= 3) status = "Répétition";
+  else                 status = "Diffus";
+
+  const LABELS = {
+    fomo: "FOMO",
+    tension: "Tension",
+    stress: "Tension",
+    calm: "Calme",
+    neutral: "Calme"
+  };
+
+  return {
+    pattern: LABELS[pattern] || pattern,
+    count,
+    total: recent.length,
+    status
+  };
+}
+
+function renderBehaviorRepetition() {
+  const el = $("behaviorRepetitionCard");
+  if (!el) return;
+
+  const history = backups.getAll();
+  const rep = computeBehaviorRepetition(history);
+
+  if (!rep) {
+    el.style.display = "none";
+    return;
+  }
+
+  const isDanger = rep.status === "Boucle active";
+
+  el.style.display    = "block";
+  el.style.border     = isDanger ? "1px solid rgba(255,68,68,0.35)" : "";
+  el.style.background = isDanger ? "rgba(255,68,68,0.04)" : "";
+
+  el.innerHTML = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px;">
+      Boucle comportementale
+    </div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">
+      Pattern : ${rep.pattern}
+    </div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">
+      Répétitions : ${rep.count} / ${rep.total}
+    </div>
+    <div style="font-size:12px;opacity:0.55;">
+      Statut : ${rep.status}
+    </div>
+  `;
+}
+
 function renderSnapshotHistory() {
   const target = $("history");
   if (!target) return;
@@ -3628,6 +3702,7 @@ function render() {
   renderTraderSignature();
   renderBehaviorProfile();
   renderPsychProfile();
+  renderBehaviorRepetition();
   sanitizeVisibleText();
 
   const level = currentPayload?.behavior?.overtradingLevel || 1;
@@ -3890,6 +3965,7 @@ function bindControls() {
     renderTraderSignature();
     renderBehaviorProfile();
     renderPsychProfile();
+    renderBehaviorRepetition();
     const btn = $("saveSnapshotBtn");
     const label = btn?.querySelector(".mode-btn-title");
     if (btn && label) {
@@ -3980,6 +4056,7 @@ function init() {
   renderTraderSignature();
   renderBehaviorProfile();
   renderPsychProfile();
+  renderBehaviorRepetition();
 }
 
 if (document.readyState === "loading") {
