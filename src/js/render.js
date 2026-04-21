@@ -1279,6 +1279,82 @@ function renderTraderMemory() {
   `;
 }
 
+function computeTraderSignature(memory) {
+  if (!memory) return null;
+
+  const { biaisDominant, etatDominant, qualiteDominante } = memory;
+
+  if (biaisDominant === "fomo" && qualiteDominante === "bad") {
+    return {
+      type: "danger",
+      label: "Trader impulsif",
+      message: "Tu poursuis le marché sans validation.",
+      action: "Stop. Reviens à l'attente."
+    };
+  }
+
+  if (etatDominant === "BLOCKED" && (qualiteDominante === "bad" || qualiteDominante === "medium")) {
+    return {
+      type: "warning",
+      label: "Trader défensif",
+      message: "Tu es bloqué sans lecture claire.",
+      action: "Observe sans forcer."
+    };
+  }
+
+  if (qualiteDominante === "good") {
+    return {
+      type: "good",
+      label: "Trader discipliné",
+      message: "Comportement aligné avec le moteur.",
+      action: "Continue."
+    };
+  }
+
+  return {
+    type: "neutral",
+    label: "Trader instable",
+    message: "Comportement incohérent.",
+    action: "Ralentis."
+  };
+}
+
+function renderTraderSignature() {
+  const el = $("traderSignatureCard");
+  if (!el) return;
+
+  const memory = computeTraderMemory(backups.getAll());
+  if (!memory) {
+    el.style.display = "none";
+    return;
+  }
+
+  const signature = computeTraderSignature(memory);
+  if (!signature) {
+    el.style.display = "none";
+    return;
+  }
+
+  const color =
+    signature.type === "danger"  ? "#ff4444" :
+    signature.type === "warning" ? "#ffaa00" :
+    signature.type === "good"    ? "#4CAF50" :
+    "inherit";
+
+  el.style.display = "block";
+  el.innerHTML = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:${color};">
+      ${signature.label}
+    </div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:6px;">
+      ${signature.message}
+    </div>
+    <div style="font-size:12px;opacity:0.55;">
+      → ${signature.action}
+    </div>
+  `;
+}
+
 function renderSnapshotHistory() {
   const target = $("history");
   if (!target) return;
@@ -3329,6 +3405,7 @@ function render() {
   renderHistory();
   renderDiagnostics();
   renderTraderMemory();
+  renderTraderSignature();
   sanitizeVisibleText();
 
   const level = currentPayload?.behavior?.overtradingLevel || 1;
@@ -3588,6 +3665,7 @@ function bindControls() {
       latestSnapshotContext.tradingStatusFormatted
     );
     renderTraderMemory();
+    renderTraderSignature();
     const btn = $("saveSnapshotBtn");
     const label = btn?.querySelector(".mode-btn-title");
     if (btn && label) {
@@ -3675,6 +3753,7 @@ function init() {
   renderPreBehaviorAlert();
   renderBehaviorCoach();
   renderTraderMemory();
+  renderTraderSignature();
 }
 
 if (document.readyState === "loading") {
