@@ -1335,6 +1335,29 @@ function renderTraderSignature() {
     return;
   }
 
+  let label   = signature.label;
+  let message = signature.message;
+
+  if (signature.type === "danger") {
+    if (memory.tendance === "Dégradation récente") {
+      label   = "Dérive active";
+      message = "Tu perds le contrôle de ton comportement.";
+    } else if (memory.tendance === "Amélioration récente") {
+      label   = "Reprise de contrôle";
+      message = "Tu corriges une dérive récente.";
+    }
+  }
+
+  if (signature.type === "good") {
+    if (memory.tendance === "Dégradation récente") {
+      label   = "Discipline fragile";
+      message = "Ton alignement se dégrade.";
+    } else if (memory.tendance === "Stable") {
+      label   = "Discipline stable";
+      message = "Comportement solide.";
+    }
+  }
+
   const color =
     signature.type === "danger"  ? "#ff4444" :
     signature.type === "warning" ? "#ffaa00" :
@@ -1348,10 +1371,10 @@ function renderTraderSignature() {
   el.style.display = "block";
   el.innerHTML = `
     <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:${color};">
-      ${signature.label}
+      ${label}
     </div>
     <div style="font-size:12px;opacity:0.75;margin-bottom:6px;">
-      ${signature.message}
+      ${message}
     </div>
     <div style="font-size:12px;opacity:0.55;">
       → ${signature.action}
