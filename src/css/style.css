@@ -343,6 +343,11 @@ img {
   color: var(--state-text);
 }
 
+.snapshot-confirm {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+  opacity: 1;
+}
+
 /* ── Trading Policy — visual gate ──────────────────────────── */
 .policy-action-allowed {
   box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.28);
