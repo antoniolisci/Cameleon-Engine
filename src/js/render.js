@@ -1341,6 +1341,10 @@ function renderTraderSignature() {
     signature.type === "good"    ? "#4CAF50" :
     "inherit";
 
+  const isDanger = signature.type === "danger";
+  el.style.border     = isDanger ? "1px solid rgba(255,68,68,0.35)" : "";
+  el.style.background = isDanger ? "rgba(255,68,68,0.04)" : "";
+
   el.style.display = "block";
   el.innerHTML = `
     <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:${color};">
