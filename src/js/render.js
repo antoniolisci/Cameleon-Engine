@@ -1382,6 +1382,105 @@ function renderTraderSignature() {
   `;
 }
 
+function computeBehaviorScore(history) {
+  if (!history || history.length < 3) return null;
+
+  const recent = history.slice(0, 10);
+
+  let score = 100;
+
+  recent.forEach(h => {
+    if (h.quality === "bad")         score -= 20;
+    else if (h.quality === "medium") score -= 10;
+    else if (h.quality === "good")   score += 2;
+
+    if ((h.emotion_state || "").toLowerCase() === "fomo") score -= 10;
+    if (["tension", "stress"].includes((h.emotion_state || "").toLowerCase())) score -= 6;
+    if (h.state === "BLOCKED") score -= 8;
+  });
+
+  if (score < 0)   score = 0;
+  if (score > 100) score = 100;
+
+  return score;
+}
+
+function computeBehaviorPattern(history) {
+  if (!history || history.length < 3) return null;
+
+  const recent = history.slice(0, 10);
+
+  const counts = {
+    fomo: 0,
+    tension: 0,
+    blocked: 0,
+    calm: 0,
+    disciplined: 0
+  };
+
+  recent.forEach(h => {
+    const emotion = (h.emotion_state || "").toLowerCase();
+
+    if (emotion === "fomo") counts.fomo++;
+    if (["tension", "stress"].includes(emotion)) counts.tension++;
+    if (h.state === "BLOCKED") counts.blocked++;
+    if (["calm", "neutral"].includes(emotion)) counts.calm++;
+    if (h.quality === "good") counts.disciplined++;
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const top = sorted[0]?.[0] || null;
+
+  const LABELS = {
+    fomo: "FOMO",
+    tension: "Tension",
+    blocked: "Blocage",
+    calm: "Retour au calme",
+    disciplined: "Discipline"
+  };
+
+  return LABELS[top] || null;
+}
+
+function renderBehaviorProfile() {
+  const el = $("behaviorProfileCard");
+  if (!el) return;
+
+  const history = backups.getAll();
+  const score   = computeBehaviorScore(history);
+  const pattern = computeBehaviorPattern(history);
+
+  if (score === null || !pattern) {
+    el.style.display = "none";
+    return;
+  }
+
+  let niveau = "Sous contrôle";
+  let color  = "#4CAF50";
+
+  if (score <= 30) {
+    niveau = "Dérive forte";
+    color  = "#ff4444";
+  } else if (score <= 60) {
+    niveau = "Fragile";
+    color  = "#ffaa00";
+  } else if (score <= 80) {
+    niveau = "Sous contrôle";
+    color  = "#cfcfcf";
+  } else {
+    niveau = "Aligné";
+    color  = "#4CAF50";
+  }
+
+  el.style.display = "block";
+  el.innerHTML = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Lecture comportementale</div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">Score : <span style="color:${color};font-weight:600;">${score} / 100</span></div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">Pattern dominant : ${pattern}</div>
+    <div style="font-size:12px;opacity:0.55;">Niveau : ${niveau}</div>
+  `;
+}
+
 function renderSnapshotHistory() {
   const target = $("history");
   if (!target) return;
@@ -3433,6 +3532,7 @@ function render() {
   renderDiagnostics();
   renderTraderMemory();
   renderTraderSignature();
+  renderBehaviorProfile();
   sanitizeVisibleText();
 
   const level = currentPayload?.behavior?.overtradingLevel || 1;
@@ -3693,6 +3793,7 @@ function bindControls() {
     );
     renderTraderMemory();
     renderTraderSignature();
+    renderBehaviorProfile();
     const btn = $("saveSnapshotBtn");
     const label = btn?.querySelector(".mode-btn-title");
     if (btn && label) {
@@ -3781,6 +3882,7 @@ function init() {
   renderBehaviorCoach();
   renderTraderMemory();
   renderTraderSignature();
+  renderBehaviorProfile();
 }
 
 if (document.readyState === "loading") {
