@@ -1132,11 +1132,33 @@ const SNAP_STATE_MAP = {
   ACTIVE: "Actif", ALIGNED: "Aligné", READY: "Prêt", TENSION: "Tension"
 };
 
+let latestSnapshotContext = null;
+let saveSnapshotFeedbackTimer = null;
+const SNAPSHOT_BTN_LABEL = "Mémoriser cet état";
+const SNAPSHOT_BTN_CONFIRM = "État mémorisé";
+
 function saveSnapshot(snapshot) {
   const last = backups.getAll()[0];
   const sig = (s) => `${s.market_state}|${s.emotion_state}|${s.state}`;
   if (last && sig(last) === sig(snapshot)) return;
   backups.prepend(snapshot);
+}
+
+function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusFormatted) {
+  saveSnapshot({
+    timestamp:     new Date().toISOString(),
+    regime:        cockpit.market.label,
+    verdict:       cockpit.market.verdict,
+    decision:      tradingStatusFormatted,
+    state:         decisionState.state,
+    market_state:  payload.market_state  || "unknown",
+    emotion_state: payload.emotion_state || "unknown",
+    score:         payload.score ?? null
+  });
+  renderSnapshotHistory();
+  renderHistoryInsight();
+  renderSnapshotBehaviorAlert();
+  renderPreBehaviorAlert();
 }
 
 function renderSnapshotHistory() {
@@ -1390,21 +1412,8 @@ function renderHero(payload) {
     heroSection.classList.toggle("hero-warning", isWarning);
   }
 
-  // P4 — sauvegarde snapshot
-  saveSnapshot({
-    timestamp:     new Date().toISOString(),
-    regime:        cockpit.market.label,
-    verdict:       cockpit.market.verdict,
-    decision:      tradingStatusFormatted,
-    state:         decisionState.state,
-    market_state:  payload.market_state  || "unknown",
-    emotion_state: payload.emotion_state || "unknown",
-    score:         payload.score ?? null
-  });
-  renderSnapshotHistory();
-  renderHistoryInsight();
-  renderSnapshotBehaviorAlert();
-  renderPreBehaviorAlert();
+  // P4 — contexte snapshotable mis à jour (enregistrement manuel uniquement)
+  latestSnapshotContext = { payload, cockpit, decisionState, tradingStatusFormatted };
 }
 
 function renderLightContext(payload) {
@@ -3332,6 +3341,29 @@ function bindControls() {
   $("saveBtn")?.addEventListener("click", saveDay);
   $("clearBtn")?.addEventListener("click", clearHistory);
   $("clearSnapshotBtn")?.addEventListener("click", clearSnapshotHistory);
+  $("saveSnapshotBtn")?.addEventListener("click", () => {
+    if (!latestSnapshotContext) return;
+    handleManualSnapshot(
+      latestSnapshotContext.payload,
+      latestSnapshotContext.cockpit,
+      latestSnapshotContext.decisionState,
+      latestSnapshotContext.tradingStatusFormatted
+    );
+    const btn = $("saveSnapshotBtn");
+    const label = btn?.querySelector(".mode-btn-title");
+    if (btn && label) {
+      clearTimeout(saveSnapshotFeedbackTimer);
+      label.textContent = SNAPSHOT_BTN_CONFIRM;
+      btn.classList.add("snapshot-confirm");
+      btn.disabled = true;
+      saveSnapshotFeedbackTimer = setTimeout(() => {
+        label.textContent = SNAPSHOT_BTN_LABEL;
+        btn.classList.remove("snapshot-confirm");
+        btn.disabled = false;
+        saveSnapshotFeedbackTimer = null;
+      }, 1000);
+    }
+  });
   $("helpBtn")?.addEventListener("click", () => $("helpDialog")?.showModal());
   $("helpCloseBtn")?.addEventListener("click", () => $("helpDialog")?.close());
   $("helpDialog")?.addEventListener("click", (event) => {
@@ -3398,6 +3430,10 @@ function init() {
   buildCurrentPayload();
   saveState(appState);
   render();
+  renderSnapshotHistory();
+  renderHistoryInsight();
+  renderSnapshotBehaviorAlert();
+  renderPreBehaviorAlert();
 }
 
 if (document.readyState === "loading") {
