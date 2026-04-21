@@ -1310,6 +1310,29 @@ function detectSnapshotQualityPattern(history) {
   return null;
 }
 
+function computeBehaviorGate(history) {
+  const recent = history.slice(0, 5);
+  if (recent.length < 3) return "neutral";
+
+  let good = 0, medium = 0, bad = 0;
+  recent.forEach(h => {
+    if (h.quality === "good")   good++;
+    if (h.quality === "medium") medium++;
+    if (h.quality === "bad")    bad++;
+  });
+
+  if (bad    >= 3) return "blocked";
+  if (medium >= 3) return "caution";
+  if (good   >= 3) return "clean";
+  return "neutral";
+}
+
+function getBehaviorAdjustedActions(baseActions, gate) {
+  if (gate === "blocked") return ["Aucune entrée", "Réduction obligatoire", "Pause"];
+  if (gate === "caution") return ["Taille réduite", "Observation", "Une seule action max"];
+  return baseActions;
+}
+
 function renderSnapshotBehaviorAlert() {
   const card = $("behaviorAlertCard");
   if (!card) return;
@@ -1973,7 +1996,21 @@ function renderAgentRules() {
   const decisionState = currentPayload?.decisionState ?? { state: "WAIT", message: "" };
   const policy        = getTradingPolicy(decisionState.state);
 
-  setText("rules-allowed",   policy.allowed.map(translatePolicyAction).join(", "));
+  const history      = backups.getAll();
+  const gate         = computeBehaviorGate(history);
+  const finalActions = getBehaviorAdjustedActions(policy.allowed, gate);
+
+  const actionsText = (gate === "blocked" || gate === "caution")
+    ? finalActions.join(", ")
+    : finalActions.map(translatePolicyAction).join(", ");
+
+  const GATE_LABELS = { blocked: "Comportement : Bloqué", caution: "Comportement : Prudence", clean: "Comportement : Propre" };
+  const gateLabel   = gate !== "neutral"
+    ? `<div style="margin-top:4px;font-size:11px;opacity:0.55;">${GATE_LABELS[gate]}</div>`
+    : "";
+  const rulesAllowedEl = $("rules-allowed");
+  if (rulesAllowedEl) rulesAllowedEl.innerHTML = `${actionsText}${gateLabel}`;
+
   setText("rules-forbidden", policy.forbidden.map(translatePolicyAction).join(", "));
   if (decisionState.message) setText("cerveau-synthesis", decisionState.message);
 
