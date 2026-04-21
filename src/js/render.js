@@ -1192,6 +1192,7 @@ function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusForm
   renderHistoryInsight();
   renderSnapshotBehaviorAlert();
   renderPreBehaviorAlert();
+  renderBehaviorCoach();
 }
 
 function renderSnapshotHistory() {
@@ -1379,6 +1380,56 @@ function renderPreBehaviorAlert() {
   }
   card.style.display = "block";
   card.textContent = alert.message;
+}
+
+function detectBehaviorCoaching(history, payload) {
+  const recent = history.slice(0, 5);
+  if (recent.length < 3) return null;
+
+  const bad    = recent.filter(h => h.quality === "bad").length;
+  const medium = recent.filter(h => h.quality === "medium").length;
+  const good   = recent.filter(h => h.quality === "good").length;
+
+  const emotion       = (payload?.emotion_state || "").toLowerCase();
+  const decisionState = payload?.decisionState?.state || "";
+
+  if (bad >= 3 && emotion === "fomo") {
+    return { type: "danger",  titre: "Tu forces depuis 3 cycles",          message: "Tu poursuis un mouvement que le moteur ne valide pas.", action: "Coupe les entrées et observe." };
+  }
+  if (medium >= 3 && ["tension", "stress"].includes(emotion)) {
+    return { type: "warning", titre: "Tension persistante",                message: "Tu n'es pas hors cadre, mais tu n'es pas propre.",     action: "Réduis la vitesse et garde une seule lecture." };
+  }
+  if (good >= 3 && ["calm", "neutral"].includes(emotion)) {
+    return { type: "good",    titre: "Retour au calme",                    message: "Tu reviens dans une posture exploitable.",             action: "Observe sans te précipiter." };
+  }
+  if ((decisionState === "WAIT" || decisionState === "BLOCKED") && emotion === "fomo") {
+    return { type: "warning", titre: "Le moteur freine, toi tu accélères", message: "Ton état émotionnel contredit la lecture actuelle.",   action: "Ne cherche pas d'entrée maintenant." };
+  }
+
+  return null;
+}
+
+function renderBehaviorCoach() {
+  const el = $("behaviorCoachCard");
+  if (!el) return;
+
+  const coaching = detectBehaviorCoaching(backups.getAll(), currentPayload);
+
+  if (!coaching) {
+    el.style.display = "none";
+    return;
+  }
+
+  el.style.display = "block";
+  const dangerLine = coaching.type === "danger"
+    ? `<div style="color:#ff4444;font-size:12px;font-weight:600;margin-bottom:6px;">⚠️ STOP — dérive active</div>`
+    : "";
+  el.innerHTML = `
+    ${dangerLine}
+    <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${coaching.titre}</div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:6px;">${coaching.message}</div>
+    <div style="font-size:12px;opacity:0.55;">→ ${coaching.action}</div>
+  `;
 }
 
 function renderHeader(payload) {
@@ -3189,6 +3240,7 @@ function render() {
   renderDecisionInsights();
   renderBehaviorAlert();
   renderBehaviorInfluence();
+  renderBehaviorCoach();
   renderMetaLayer();
   renderHistory();
   renderDiagnostics();
@@ -3535,6 +3587,7 @@ function init() {
   renderHistoryInsight();
   renderSnapshotBehaviorAlert();
   renderPreBehaviorAlert();
+  renderBehaviorCoach();
 }
 
 if (document.readyState === "loading") {
