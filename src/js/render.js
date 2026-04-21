@@ -1481,6 +1481,100 @@ function renderBehaviorProfile() {
   `;
 }
 
+function computePsychProfile({ memory, signature, score, pattern }) {
+  if (!memory || !signature || score === null || !pattern) return null;
+
+  if (signature.type === "danger" && score <= 30) {
+    return {
+      type: "danger",
+      label: "Impulsif en dérive",
+      message: "Le comportement émotionnel domine clairement la lecture.",
+      action: "Stop total. Coupe l'initiative."
+    };
+  }
+
+  if (signature.type === "warning" && pattern === "Tension") {
+    return {
+      type: "warning",
+      label: "Défensif sous tension",
+      message: "Tu ne passes pas à l'acte, mais la pression reste présente.",
+      action: "Ralentis et garde une lecture unique."
+    };
+  }
+
+  if (memory.tendance === "Amélioration récente" && score > 30 && score <= 70) {
+    return {
+      type: "recovery",
+      label: "En reprise de contrôle",
+      message: "La dérive se corrige, mais l'équilibre reste fragile.",
+      action: "Continue sans accélérer."
+    };
+  }
+
+  if (signature.type === "good" && score >= 80) {
+    return {
+      type: "good",
+      label: "Discipliné stable",
+      message: "Le comportement reste aligné avec le moteur.",
+      action: "Conserve ce rythme."
+    };
+  }
+
+  return {
+    type: "neutral",
+    label: "Profil à surveiller",
+    message: "Le comportement existe, mais n'est pas encore clairement stabilisé.",
+    action: "Observe avant d'interpréter trop vite."
+  };
+}
+
+function renderPsychProfile() {
+  const el = $("psychProfileCard");
+  if (!el) return;
+
+  const history = backups.getAll();
+  const memory  = computeTraderMemory(history);
+  const score   = computeBehaviorScore(history);
+  const pattern = computeBehaviorPattern(history);
+
+  if (!memory || score === null || !pattern) {
+    el.style.display = "none";
+    return;
+  }
+
+  const signature = computeTraderSignature(memory);
+  const profile   = computePsychProfile({ memory, signature, score, pattern });
+
+  if (!profile) {
+    el.style.display = "none";
+    return;
+  }
+
+  const color =
+    profile.type === "danger"   ? "#ff4444" :
+    profile.type === "warning"  ? "#ffaa00" :
+    profile.type === "good"     ? "#4CAF50" :
+    profile.type === "recovery" ? "#cfcfcf" :
+    "inherit";
+
+  const isDanger = profile.type === "danger";
+  el.style.border     = isDanger ? "1px solid rgba(255,68,68,0.35)" : "";
+  el.style.background = isDanger ? "rgba(255,68,68,0.04)" : "";
+
+  el.style.display = "block";
+  el.innerHTML = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:${color};">
+      ${profile.label}
+    </div>
+    <div style="font-size:12px;opacity:0.75;margin-bottom:6px;">
+      ${profile.message}
+    </div>
+    <div style="font-size:12px;opacity:0.55;">
+      → ${profile.action}
+    </div>
+  `;
+}
+
 function renderSnapshotHistory() {
   const target = $("history");
   if (!target) return;
@@ -3533,6 +3627,7 @@ function render() {
   renderTraderMemory();
   renderTraderSignature();
   renderBehaviorProfile();
+  renderPsychProfile();
   sanitizeVisibleText();
 
   const level = currentPayload?.behavior?.overtradingLevel || 1;
@@ -3794,6 +3889,7 @@ function bindControls() {
     renderTraderMemory();
     renderTraderSignature();
     renderBehaviorProfile();
+    renderPsychProfile();
     const btn = $("saveSnapshotBtn");
     const label = btn?.querySelector(".mode-btn-title");
     if (btn && label) {
@@ -3883,6 +3979,7 @@ function init() {
   renderTraderMemory();
   renderTraderSignature();
   renderBehaviorProfile();
+  renderPsychProfile();
 }
 
 if (document.readyState === "loading") {
