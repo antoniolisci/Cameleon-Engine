@@ -1208,11 +1208,16 @@ function renderSnapshotHistory() {
     const emo     = SNAP_EMOTION_MAP[(h.emotion_state || "").toLowerCase()] ?? "—";
     const dec     = SNAP_STATE_MAP[h.state]                                 ?? "—";
     const q       = SNAP_QUALITY_MAP[h.quality]                              ?? "";
+    const qualityClass =
+      h.quality === "bad"    ? "snapshot-quality-bad"    :
+      h.quality === "medium" ? "snapshot-quality-medium" :
+      h.quality === "good"   ? "snapshot-quality-good"   :
+      "";
     const isFirst = i === 0;
     const rowStyle = isFirst
       ? "display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:1;"
       : "display:flex;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:0.5;";
-    return `<div style="${rowStyle}">`
+    return `<div style="${rowStyle}" class="${qualityClass}">`
       + `<span style="opacity:.55;min-width:38px;">${time}</span>`
       + `<span>${mkt}</span>`
       + `<span style="opacity:.35;">/</span>`
@@ -1262,9 +1267,17 @@ function renderHistoryInsight() {
   if (!el) return;
   const history = backups.getAll();
   const result = analyzeHistory(history);
-  el.textContent = result.message;
   const colors = { BLOCK: "#ff4444", TENSION: "#ffaa00", LOW_ALIGNED: "#888", NORMAL: "#00ff88", INSUFFICIENT: "#555" };
-  el.style.color = colors[result.status] || "#555";
+  const insightColor = colors[result.status] || "#555";
+
+  const pattern = detectSnapshotQualityPattern(history);
+  const QUALITY_COLORS = { danger: "#ff4444", warning: "#ffaa00", good: "#00ff88" };
+  const QUALITY_EMOJI  = { danger: "🔴", warning: "🟡", good: "🟢" };
+  const patternLine = pattern
+    ? `<div style="margin-top:4px;color:${QUALITY_COLORS[pattern.type]};">${QUALITY_EMOJI[pattern.type]} ${pattern.message}</div>`
+    : "";
+
+  el.innerHTML = `<span style="color:${insightColor};">${result.message}</span>${patternLine}`;
 }
 
 // ── P5b ── behavior drift detection ──────────────────────────────────────
@@ -1278,6 +1291,22 @@ function detectBehaviorDrift(history) {
   if (tensionCount >= 3) return { type: "warning", message: "Tension élevée — réduire l'exposition" };
   if (blockedCount >= 4) return { type: "warning", message: "Blocages fréquents — éviter toute entrée" };
   if (waitCount    >= 5) return { type: "warning", message: "Attente prolongée — marché peu lisible" };
+  return null;
+}
+
+function detectSnapshotQualityPattern(history) {
+  const last = history.slice(0, 5);
+  if (last.length < 3) return null;
+
+  const counts = { good: 0, medium: 0, bad: 0 };
+  last.forEach(h => {
+    if (h.quality && counts[h.quality] !== undefined) counts[h.quality]++;
+  });
+
+  if (counts.bad    >= 3) return { type: "danger",  message: "Dérive détectée — coupe immédiatement" };
+  if (counts.medium >= 3) return { type: "warning", message: "Instabilité — ralentis" };
+  if (counts.good   >= 3) return { type: "good",    message: "Alignement — état propre" };
+
   return null;
 }
 
