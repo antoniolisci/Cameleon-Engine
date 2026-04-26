@@ -1,6 +1,6 @@
 import { MARKET_DICTIONARY } from "./dictionary.js";
 import { OVERTRADING_DICT } from "./overtrading-dictionary.js";
-import { updateBehavior } from "./behavior.js";
+import { updateBehavior, resetBehavior } from "./behavior.js";
 import { getAdaptiveMessage } from "./tone.js";
 import {
   AUTO_FILL_PRESETS,
@@ -1121,7 +1121,8 @@ function getHeroState(cockpit, tradingStatus) {
 // ── P4 ── snapshot history ────────────────────────────────
 const SNAP_MARKET_MAP = {
   range: "Range", compression: "Compression", expansion: "Expansion",
-  defense: "Défense", chaos: "Chaos", unknown: "—"
+  defense: "Défense", chaos: "Chaos", riskoff: "Risk-off",
+  instable: "Instable", unknown: "—"
 };
 const SNAP_EMOTION_MAP = {
   fomo: "FOMO", stress: "Tension", tension: "Tension",
@@ -1140,8 +1141,9 @@ const SNAPSHOT_BTN_CONFIRM = "État mémorisé";
 function saveSnapshot(snapshot) {
   const last = backups.getAll()[0];
   const sig = (s) => `${s.market_state}|${s.emotion_state}|${s.state}`;
-  if (last && sig(last) === sig(snapshot)) return;
+  if (last && sig(last) === sig(snapshot)) return false; // doublon détecté
   backups.prepend(snapshot);
+  return true;
 }
 
 function computeSnapshotQuality({ state, emotion_state, score }) {
@@ -1177,7 +1179,7 @@ function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusForm
     emotion_state: payload.emotion_state,
     score:         payload.score ?? null
   });
-  saveSnapshot({
+  const saved = saveSnapshot({
     timestamp:     new Date().toISOString(),
     regime:        cockpit.market.label,
     verdict:       cockpit.market.verdict,
@@ -1188,11 +1190,14 @@ function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusForm
     score:         payload.score ?? null,
     quality:       quality
   });
+  if (!saved) return false; // doublon — ne pas re-rendre
+
   renderSnapshotHistory();
   renderHistoryInsight();
   renderSnapshotBehaviorAlert();
   renderPreBehaviorAlert();
   renderBehaviorCoach();
+  return true;
 }
 
 // ── Mémoire du trader ─────────────────────────────────────────────────────
@@ -1247,10 +1252,13 @@ function computeTraderMemory(history) {
   if (recentBad > previousBad)        tendance = "Dégradation récente";
   else if (recentGood > previousGood) tendance = "Amélioration récente";
 
+  // Biais et état dominant : calculés sur les 10 derniers snapshots uniquement.
+  // Évite que les vieux états contaminent la lecture courante.
+  const recentWindow = history.slice(0, 10);
   return {
-    biaisDominant:    freq(history, "emotion_state"),
-    etatDominant:     freq(history, "state"),
-    qualiteDominante: freq(history, "quality"),
+    biaisDominant:    freq(recentWindow, "emotion_state"),
+    etatDominant:     freq(recentWindow, "state"),
+    qualiteDominante: freq(recentWindow, "quality"),
     tendance
   };
 }
@@ -1385,51 +1393,64 @@ function renderTraderSignature() {
 function computeBehaviorScore(history) {
   if (!history || history.length < 3) return null;
 
+  // Score pondéré par récence : index 0 (le plus récent) = poids 10, index 9 = poids 1.
+  // Chaque snapshot contribue une valeur de base 0–100 selon sa qualité,
+  // ajustée par les signaux émotionnels. La moyenne pondérée garantit que
+  // le score peut monter aussi bien que descendre selon l'historique récent.
   const recent = history.slice(0, 10);
 
-  let score = 100;
+  let weightedSum = 0;
+  let totalWeight = 0;
 
-  recent.forEach(h => {
-    if (h.quality === "bad")         score -= 20;
-    else if (h.quality === "medium") score -= 10;
-    else if (h.quality === "good")   score += 2;
+  recent.forEach((h, i) => {
+    const weight = 10 - i; // poids décroissant avec l'ancienneté
 
-    if ((h.emotion_state || "").toLowerCase() === "fomo") score -= 10;
-    if (["tension", "stress"].includes((h.emotion_state || "").toLowerCase())) score -= 6;
-    if (h.state === "BLOCKED") score -= 8;
+    let pts =
+      h.quality === "good"   ? 85 :
+      h.quality === "medium" ? 45 :
+      h.quality === "bad"    ? 10 :
+      50; // état inconnu → neutre
+
+    const emo = (h.emotion_state || "").toLowerCase();
+    if (emo === "fomo")                          pts -= 15;
+    if (["tension", "stress"].includes(emo))     pts -= 8;
+    if (h.state === "BLOCKED")                   pts -= 10;
+
+    pts = Math.max(0, Math.min(100, pts));
+    weightedSum += pts * weight;
+    totalWeight += weight;
   });
 
-  if (score < 0)   score = 0;
-  if (score > 100) score = 100;
-
-  return score;
+  return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : null;
 }
 
 function computeBehaviorPattern(history) {
   if (!history || history.length < 3) return null;
 
+  // Pondération par récence : index 0 (le plus récent) = poids 10, index 9 = poids 1.
+  // Empêche les vieux états de dominer lorsque le comportement s'améliore.
   const recent = history.slice(0, 10);
 
-  const counts = {
-    fomo: 0,
-    tension: 0,
-    blocked: 0,
-    calm: 0,
-    disciplined: 0
-  };
+  const counts = { fomo: 0, tension: 0, blocked: 0, calm: 0, disciplined: 0 };
 
-  recent.forEach(h => {
+  recent.forEach((h, i) => {
+    const weight  = 10 - i;
     const emotion = (h.emotion_state || "").toLowerCase();
 
-    if (emotion === "fomo") counts.fomo++;
-    if (["tension", "stress"].includes(emotion)) counts.tension++;
-    if (h.state === "BLOCKED") counts.blocked++;
-    if (["calm", "neutral"].includes(emotion)) counts.calm++;
-    if (h.quality === "good") counts.disciplined++;
+    if (emotion === "fomo")                        counts.fomo        += weight;
+    if (["tension", "stress"].includes(emotion))   counts.tension     += weight;
+    if (h.state === "BLOCKED")                     counts.blocked     += weight;
+    if (["calm", "neutral"].includes(emotion))     counts.calm        += weight;
+    if (h.quality === "good")                      counts.disciplined += weight;
   });
 
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const top = sorted[0]?.[0] || null;
+  const [topKey, topScore] = sorted[0] ?? [null, 0];
+  const [, secondScore]    = sorted[1] ?? [null, 0];
+
+  // Pas de dominante claire : scores trop faibles ou trop proches
+  if (topScore < 10) return "Mixte";
+  if (secondScore > 0 && topScore / secondScore < 1.3) return "Mixte / Instable";
 
   const LABELS = {
     fomo: "FOMO",
@@ -1439,7 +1460,7 @@ function computeBehaviorPattern(history) {
     disciplined: "Discipline"
   };
 
-  return LABELS[top] || null;
+  return LABELS[topKey] || null;
 }
 
 function renderBehaviorProfile() {
@@ -1685,12 +1706,36 @@ function renderSnapshotHistory() {
 }
 
 function clearSnapshotHistory() {
-  if (!confirm("Supprimer tout l'historique moteur ?")) return;
+  if (!confirm("Supprimer tout l'historique et réinitialiser la mémoire comportementale ?")) return;
+
+  // ── 1. Vider les données persistantes ────────────────────────────────────
   backups.clear();
+
+  // ── 2. Réinitialiser les singletons en mémoire ───────────────────────────
+  resetBehavior();          // behavior.js singleton (_s.score, emotionHistory…)
+  decisionHistory    = [];  // historique Pilotage tab
+  overtradingStreak  = { level: 0, count: 0 }; // streak overtrading
+
+  // ── 3. Invalider le contexte snapshot ───────────────────────────────────
+  // Empêche le bouton "Mémoriser" de sauvegarder un état pré-reset.
+  // Un nouveau contexte sera généré au prochain render().
+  latestSnapshotContext = null;
+
   renderSnapshotHistory();
   renderHistoryInsight();
   renderSnapshotBehaviorAlert();
   renderPreBehaviorAlert();
+  renderBehaviorProfile();
+  renderBehaviorRepetition();
+  renderPsychProfile();
+  renderBehaviorCoach();
+  renderTraderMemory();
+  renderTraderSignature();
+  renderDecisionHistory();
+  renderDecisionInsights();
+  renderBehaviorAlert();
+  renderBehaviorInfluence();
+  renderMetaLayer();
 }
 
 // ── P5 ── intelligent insight ─────────────────────────────
@@ -1794,11 +1839,16 @@ function renderSnapshotBehaviorAlert() {
   const alert = detectBehaviorDrift(backups.getAll().slice(0, 20));
   if (!alert) {
     card.style.display = "none";
-    card.textContent = "";
+    card.innerHTML = "";
     return;
   }
   card.style.display = "block";
-  card.textContent = alert.message;
+  // Message principal + avertissement sur le filtre adaptatif
+  card.innerHTML =
+    `<div>${alert.message}</div>` +
+    `<div style="margin-top:4px;font-size:11px;opacity:0.7;">` +
+    `Mode protection actif — le filtre adaptatif est temporairement désactivé car une dérive comportementale est détectée.` +
+    `</div>`;
 }
 
 function detectPreBehaviorDrift(history) {
@@ -3955,22 +4005,26 @@ function bindControls() {
   $("clearSnapshotBtn")?.addEventListener("click", clearSnapshotHistory);
   $("saveSnapshotBtn")?.addEventListener("click", () => {
     if (!latestSnapshotContext) return;
-    handleManualSnapshot(
+    const saved = handleManualSnapshot(
       latestSnapshotContext.payload,
       latestSnapshotContext.cockpit,
       latestSnapshotContext.decisionState,
       latestSnapshotContext.tradingStatusFormatted
     );
-    renderTraderMemory();
-    renderTraderSignature();
-    renderBehaviorProfile();
-    renderPsychProfile();
-    renderBehaviorRepetition();
+    // Re-render mémoire comportementale seulement si un snapshot a été sauvegardé
+    if (saved) {
+      renderTraderMemory();
+      renderTraderSignature();
+      renderBehaviorProfile();
+      renderPsychProfile();
+      renderBehaviorRepetition();
+    }
     const btn = $("saveSnapshotBtn");
     const label = btn?.querySelector(".mode-btn-title");
     if (btn && label) {
       clearTimeout(saveSnapshotFeedbackTimer);
-      label.textContent = SNAPSHOT_BTN_CONFIRM;
+      // Message différent si doublon détecté
+      label.textContent = saved ? SNAPSHOT_BTN_CONFIRM : "Aucun changement détecté";
       btn.classList.add("snapshot-confirm");
       btn.disabled = true;
       saveSnapshotFeedbackTimer = setTimeout(() => {
@@ -3978,7 +4032,7 @@ function bindControls() {
         btn.classList.remove("snapshot-confirm");
         btn.disabled = false;
         saveSnapshotFeedbackTimer = null;
-      }, 1000);
+      }, 1200);
     }
   });
   $("helpBtn")?.addEventListener("click", () => $("helpDialog")?.showModal());
