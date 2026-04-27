@@ -6766,11 +6766,17 @@ html.onboarding-seen .onboarding-overlay {
 }
 
 
-body[data-guidance-state="BLOCKED"] .moteur-flow button,
-body[data-guidance-state="BLOCKED"] .moteur-flow select,
-body[data-guidance-state="BLOCKED"] .moteur-flow input {
+/* Soft friction — only actions, NOT inputs */
+body[data-guidance-state="BLOCKED"] .moteur-flow button {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* Inputs must remain normal and usable */
+body[data-guidance-state="BLOCKED"] .moteur-flow select,
+body[data-guidance-state="BLOCKED"] .moteur-flow input {
+  cursor: default;
+  opacity: 1;
 }
 
 body[data-guidance-state="BLOCKED"] .guidance-headline {
