@@ -7122,3 +7122,70 @@ body[data-action-level="EXECUTE"] .action-score { color: #00f5d4; }
   font-weight: 700;
   opacity: 0.85;
 }
+
+/* ============================
+   VISUAL LINKING SYSTEM
+   ============================ */
+
+.active-link {
+  position: relative;
+  z-index: 2;
+}
+
+.active-link::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  opacity: 0.25;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+/* Color mapping — link-engagement + link-mode */
+body[data-action-level="LOCKED"] .link-engagement,
+body[data-action-level="LOCKED"] .link-mode  { color: #ff6b6b; }
+
+body[data-action-level="OBSERVE"] .link-engagement,
+body[data-action-level="OBSERVE"] .link-mode  { color: #ffd166; }
+
+body[data-action-level="PREPARE"] .link-engagement,
+body[data-action-level="PREPARE"] .link-mode  { color: #fcbf49; }
+
+body[data-action-level="LIMITED"] .link-engagement,
+body[data-action-level="LIMITED"] .link-mode  { color: #80ed99; }
+
+body[data-action-level="EXECUTE"] .link-engagement,
+body[data-action-level="EXECUTE"] .link-mode  { color: #00f5d4; }
+
+/* Glow on dominant link-mode */
+body[data-action-level="EXECUTE"] .link-mode.active-link::after {
+  background: rgba(0, 245, 212, 0.25);
+}
+
+body[data-action-level="LIMITED"] .link-mode.active-link::after {
+  background: rgba(128, 237, 153, 0.2);
+}
+
+body[data-action-level="OBSERVE"] .link-mode.active-link::after {
+  background: rgba(255, 209, 102, 0.15);
+}
+
+@keyframes activeLinkBreath {
+  0%, 100% { transform: scale(1);     opacity: 0.92; }
+  50%       { transform: scale(1.006); opacity: 1;    }
+}
+
+@keyframes activeGlowBreath {
+  0%, 100% { opacity: 0.16; }
+  50%       { opacity: 0.28; }
+}
+
+.active-link {
+  animation: activeLinkBreath 4.8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.active-link::after {
+  animation: activeGlowBreath 4.8s ease-in-out infinite;
+}

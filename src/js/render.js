@@ -2967,7 +2967,7 @@ function renderActionScore(payload) {
   const engineScore  = payload?.score ?? "—";
 
   const block = document.createElement("div");
-  block.className = "action-score-block";
+  block.className = "action-score-block link-engagement";
   block.innerHTML = `
     <div class="action-score-title">Niveau d'engagement</div>
     <div class="action-score">${actionScore} <span style="font-size:0.7em;font-weight:400">/ 100</span></div>
@@ -2978,6 +2978,17 @@ function renderActionScore(payload) {
     </div>
   `;
   card.appendChild(block);
+
+  document.querySelectorAll(".active-link").forEach(el => el.classList.remove("active-link"));
+
+  const level = getActionLevel(actionScore);
+  if (level === "EXECUTE" || level === "LIMITED") {
+    document.querySelector(".link-mode")?.classList.add("active-link");
+  } else if (level === "PREPARE") {
+    block.classList.add("active-link");
+  } else {
+    document.querySelectorAll(".active-link").forEach(el => el.classList.remove("active-link"));
+  }
 }
 
 function renderBehaviorFeedback() {
