@@ -24,6 +24,7 @@ import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.
 import { backups } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
+import { computeUXState } from "./ux-state.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -3847,6 +3848,7 @@ function render() {
   renderBehaviorAlert();
   renderBehaviorInfluence();
   renderGuidanceBlock();
+  document.body.setAttribute("data-ux-intensity", computeUXState({ history: appState.history }));
   renderBehaviorCoach();
   renderMetaLayer();
   renderHistory();
