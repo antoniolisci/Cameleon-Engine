@@ -1171,6 +1171,7 @@ h1 {
   gap: 24px;
   margin-top: 24px;
   align-items: start;
+  position: relative;
 }
 
 .moteur-flow {
@@ -5240,6 +5241,198 @@ body {
   font-weight: 600;
 }
 
+/* ── Behavioral 5-level zones ───────────────────────────── */
+
+.mem-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.mem-zone-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  opacity: .35;
+  padding-bottom: 2px;
+}
+
+.mem-zone--data { gap: 4px; }
+
+.mem-zone--interpretation { opacity: .82; }
+
+.mem-zone--action .side-card {
+  padding: 16px 18px;
+  border-color: rgba(125, 255, 179, 0.22);
+  background: rgba(125, 255, 179, 0.03);
+}
+
+.mem-zone--action .mem-zone-label {
+  color: var(--ok, #7dffb3);
+  opacity: .7;
+}
+
+.mem-empty-hint {
+  font-size: 11px;
+  color: var(--muted, #bba76b);
+  opacity: .6;
+  text-align: center;
+  padding: 12px 8px;
+  margin: 0;
+}
+
+.memory-shell:has(#behaviorProfileCard[style*="block"]) .mem-empty-hint {
+  display: none;
+}
+
+/* ── UX Phase 2 — Visual hierarchy ─────────────────────── */
+
+/* Spacing between zones */
+.mem-zone { margin-top: 18px; }
+.mem-zone--data { margin-top: 14px; }
+
+/* ── 1. SIGNAL — Priority 1 ─────────────────────────────── */
+
+#behaviorAlertCard[style*="block"] {
+  padding: 14px 16px;
+  background: rgba(255, 80, 80, 0.035);
+  border-color: rgba(255, 80, 80, 0.25);
+  box-shadow: 0 0 10px rgba(255, 80, 80, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.016);
+}
+
+#preBehaviorAlertCard[style*="block"] {
+  padding: 10px 14px;
+  background: rgba(255, 180, 50, 0.04);
+  border-color: rgba(255, 180, 50, 0.22);
+}
+
+.mem-zone--signal .mem-zone-label {
+  color: var(--danger, #ff7b7b);
+  opacity: .65;
+}
+
+/* ── 2. ACTION — Priority 2 ─────────────────────────────── */
+
+.mem-zone--action .side-card {
+  padding: 18px 20px;
+  border-color: rgba(125, 255, 179, 0.35);
+  background: rgba(125, 255, 179, 0.06);
+  box-shadow: 0 0 14px rgba(125, 255, 179, 0.06),
+              inset 0 1px 0 rgba(255, 255, 255, 0.022);
+}
+
+/* Main action line — render.js injects first coaching tip as leading text */
+.mem-zone--action .side-card > div:first-of-type {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Secondary lines — lower opacity */
+.mem-zone--action .side-card > div:not(:first-of-type) {
+  opacity: .72;
+}
+
+/* ── 3. DATA — Priority 4 (background info) ──────────────── */
+
+.mem-zone--data {
+  opacity: .78;
+}
+
+.mem-zone--data .side-card {
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+/* ── 4. DIAGNOSTIC — readability ────────────────────────── */
+
+.mem-zone--diagnostic .side-card {
+  line-height: 1.7;
+}
+
+/* ── 5. INTERPRÉTATION — secondary weight ───────────────── */
+
+.mem-zone--interpretation .side-card {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.008);
+}
+
+/* ── Guidance immédiate ─────────────────────────────────── */
+
+.guidance-card {
+  padding: 16px 18px;
+  border-color: rgba(212, 175, 55, 0.2);
+}
+
+.guidance-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--gold, #d4af37);
+  opacity: .85;
+  margin-bottom: 12px;
+}
+
+.guidance-section {
+  margin-bottom: 10px;
+}
+
+.guidance-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .4;
+  margin-bottom: 4px;
+}
+
+.guidance-list {
+  margin: 0;
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.guidance-list li {
+  font-size: 12px;
+  color: var(--text, #f4ecd0);
+  line-height: 1.5;
+}
+
+.guidance-list--why li {
+  opacity: .65;
+  font-size: 11px;
+}
+
+.guidance-focus {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.guidance-focus-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gold, #d4af37);
+  opacity: .7;
+  white-space: nowrap;
+}
+
+.guidance-focus-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text, #f4ecd0);
+}
+
 /* Hero visual fix */
 .hero-logo {
   display: flex;
@@ -6464,4 +6657,113 @@ html.onboarding-seen .onboarding-overlay {
 .onboarding-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================
+   GUIDANCE V2 — DOMINANT BLOCK
+   ============================ */
+
+.guidance-card {
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 70%);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.07);
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 24px 28px;
+  position: relative;
+  z-index: 10;
+}
+
+.guidance-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guidance-mode {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--gold, #d4af37);
+  letter-spacing: 0.05em;
+}
+
+.guidance-block {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.guidance-block .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+.guidance-block--forbidden {
+  border-left: 3px solid rgba(255, 70, 70, 0.7);
+}
+
+.guidance-block--allowed {
+  border-left: 3px solid rgba(80, 200, 120, 0.7);
+}
+
+.guidance-block--focus {
+  border-left: 3px solid rgba(212, 175, 55, 0.7);
+}
+
+.guidance-context {
+  font-size: 11px;
+  opacity: 0.6;
+  padding-top: 6px;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+/* ============================
+   STATE VISUAL DOMINANCE
+   ============================ */
+
+.guidance-v2[data-state="BLOCKED"] {
+  box-shadow: 0 0 24px rgba(255, 50, 50, 0.1);
+}
+
+.guidance-v2[data-state="READY"] {
+  box-shadow: 0 0 24px rgba(80, 200, 120, 0.1);
+}
+
+.guidance-v2[data-state="WAIT"] {
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.1);
+}
+
+.guidance-v2[data-state="BLOCKED"] .guidance-headline {
+  color: #ff5a5a;
+}
+
+.guidance-v2[data-state="READY"] .guidance-headline {
+  color: #7dffb3;
+}
+
+
+.guidance-headline {
+  font-size: 36px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+
+/* Focus lock — soft dimming only, interaction fully preserved */
+body[data-guidance-state="BLOCKED"] .main-grid,
+body[data-guidance-state="WAIT"] .main-grid {
+  opacity: 0.45;
+  transition: opacity 0.25s ease;
+  pointer-events: auto;
+}
+
+body[data-guidance-state="BLOCKED"] .guidance-card,
+body[data-guidance-state="WAIT"] .guidance-card {
+  opacity: 1;
+  pointer-events: auto;
 }
