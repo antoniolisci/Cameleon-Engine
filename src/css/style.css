@@ -6754,7 +6754,9 @@ html.onboarding-seen .onboarding-overlay {
 }
 
 .guidance-v2[data-state="READY"] .guidance-headline {
-  color: #7dffb3;
+  color: rgba(125, 255, 179, 0.95);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 
@@ -6800,8 +6802,22 @@ body[data-guidance-state="BLOCKED"] .guidance-card {
   animation: lockBreath 4.5s ease-in-out infinite;
 }
 
+@keyframes readyBreath {
+  0%, 100% { box-shadow: 0 0 24px rgba(80, 200, 120, 0.10); }
+  50%       { box-shadow: 0 0 32px rgba(80, 200, 120, 0.18); }
+}
+
 body[data-guidance-state="READY"] .guidance-card {
-  box-shadow: 0 0 18px rgba(80, 200, 120, 0.15);
+  opacity: 1;
+  transform: scale(1.01);
+  border-color: rgba(80, 200, 120, 0.35);
+  animation: readyBreath 5s ease-in-out infinite;
+}
+
+body[data-guidance-state="READY"] .moteur-flow,
+body[data-guidance-state="READY"] .side-panel {
+  opacity: 1;
+  filter: none;
 }
 
 @keyframes breathe {
