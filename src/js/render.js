@@ -1496,9 +1496,9 @@ function renderBehaviorProfile() {
   el.style.display = "block";
   el.innerHTML = `
     <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Lecture comportementale</div>
-    <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">Score : <span style="color:${color};font-weight:600;">${score} / 100</span></div>
+    <div style="font-size:12px;opacity:0.55;margin-bottom:4px;">Niveau : ${niveau}</div>
     <div style="font-size:12px;opacity:0.75;margin-bottom:4px;">Pattern dominant : ${pattern}</div>
-    <div style="font-size:12px;opacity:0.55;">Niveau : ${niveau}</div>
+    <div style="font-size:12px;opacity:0.75;">Score : <span style="color:${color};font-weight:600;">${score} / 100</span></div>
   `;
 }
 
@@ -1911,6 +1911,108 @@ function detectBehaviorCoaching(history, payload) {
   }
 
   return null;
+}
+
+function renderGuidanceBlock() {
+  const el = $("guidanceCard");
+  if (!el || !currentPayload) {
+    if (el) el.style.display = "none";
+    return;
+  }
+
+  const ds     = currentPayload.decisionState ?? computeDecisionState(currentPayload);
+  const state  = ds?.state || "WAIT";
+  const market = (currentPayload.market_state || "").toLowerCase();
+
+  const MODE = {
+    BLOCKED: "BLOQUÉ",
+    PROTECT: "PROTECTION",
+    WAIT:    "ATTENTE",
+    TENSION: "TENSION",
+    READY:   "PRÊT",
+  };
+
+  const FORBIDDEN = {
+    BLOCKED: ["Entrer en position"],
+    PROTECT: ["Nouvelle entrée"],
+    WAIT:    ["Forcer une entrée"],
+    TENSION: ["Entrer full size"],
+    READY:   [],
+  };
+
+  const ALLOWED = {
+    BLOCKED: ["Observer"],
+    PROTECT: ["Réduire exposition"],
+    WAIT:    ["Observer", "Attendre validation"],
+    TENSION: ["Entrée légère uniquement"],
+    READY:   ["Entrée sur signal validé"],
+  };
+
+  const FOCUS = {
+    BLOCKED: "Protection du capital",
+    PROTECT: "Gestion des positions",
+    WAIT:    "Cassure + validation",
+    TENSION: "Qualité du signal",
+    READY:   "Setup + timing",
+  };
+
+  const CONTEXT = {
+    compression: "Marché en compression — mouvement en préparation",
+    range:       "Marché sans direction claire",
+    expansion:   "Volatilité élevée — faux signaux fréquents",
+    defense:     "Phase défensive — prudence",
+    chaos:       "Structure instable — risque élevé",
+    riskoff:     "Contexte risk-off",
+  };
+
+  const HEADLINE = {
+    BLOCKED: "⛔ STOP",
+    PROTECT: "🛡️ PROTÈGE",
+    WAIT:    "⏳ ATTENDS",
+    TENSION: "⚠️ RÉDUIS",
+    READY:   "🚀 GO",
+  };
+
+  const modeLabel   = MODE[state] || "ATTENTE";
+  const headlineText = HEADLINE[state] || "⏳ ATTENDS";
+  const forbidden   = FORBIDDEN[state] || [];
+  const allowed     = ALLOWED[state] || ["Observer"];
+  const focus       = FOCUS[state] || "Lecture du marché";
+  const contextText = CONTEXT[market] || "Analyse en cours";
+
+  document.body.dataset.guidanceState = state;
+
+  el.style.display = "block";
+  el.innerHTML = `
+    <div class="guidance-v2" data-state="${state}">
+
+      <div class="guidance-headline">${headlineText}</div>
+
+      <div class="guidance-mode">
+        ${modeLabel}
+      </div>
+
+      <div class="guidance-block guidance-block--forbidden">
+        <div class="label">⛔ INTERDIT</div>
+        ${forbidden.length ? forbidden.map(l => `<div>→ ${l}</div>`).join("") : `<div>—</div>`}
+      </div>
+
+      <div class="guidance-block guidance-block--allowed">
+        <div class="label">✅ AUTORISÉ</div>
+        ${allowed.map(l => `<div>→ ${l}</div>`).join("")}
+      </div>
+
+      <div class="guidance-block guidance-block--focus">
+        <div class="label">🎯 FOCUS</div>
+        <div>${focus}</div>
+      </div>
+
+      <div class="guidance-context">
+        ${contextText}
+      </div>
+
+    </div>
+  `;
 }
 
 function renderBehaviorCoach() {
@@ -3744,6 +3846,7 @@ function render() {
   renderDecisionInsights();
   renderBehaviorAlert();
   renderBehaviorInfluence();
+  renderGuidanceBlock();
   renderBehaviorCoach();
   renderMetaLayer();
   renderHistory();
