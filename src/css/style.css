@@ -7004,12 +7004,14 @@ body[data-ux-intensity="DRIFT"] .guidance-card {
 
 .action-score-block {
   margin-top: 10px;
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .action-score {
-  font-weight: 800;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
 }
 
 .action-score-label {
@@ -7017,10 +7019,24 @@ body[data-ux-intensity="DRIFT"] .guidance-card {
   font-size: 0.82rem;
 }
 
+.action-score-title {
+  opacity: 0.65;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
 .engine-score-secondary {
-  opacity: 0.55;
-  font-size: 0.78rem;
-  margin-top: 4px;
+  opacity: 0.34;
+  font-size: 0.72rem;
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+.engine-score-note {
+  opacity: 0.75;
+  font-style: italic;
 }
 
 /* ============================
@@ -7072,4 +7088,37 @@ body[data-action-level="LOCKED"] .decision-anchor {
 
 body[data-action-level="EXECUTE"] .decision-anchor {
   border-color: rgba(80, 200, 120, 0.25);
+}
+
+body[data-action-level="LOCKED"]  .action-score { color: #ff6b6b; }
+body[data-action-level="OBSERVE"] .action-score { color: #ffd166; }
+body[data-action-level="PREPARE"] .action-score { color: #fcbf49; }
+body[data-action-level="LIMITED"] .action-score { color: #80ed99; }
+body[data-action-level="EXECUTE"] .action-score { color: #00f5d4; }
+
+/* ============================
+   SCORE HIERARCHY — visual priority
+   ============================ */
+
+/* Engine score — low priority (context only) */
+#scoreCard > .kpi-label {
+  opacity: 0.5;
+  font-size: 0.72rem;
+}
+
+#scoreCard > .kpi-value {
+  opacity: 0.6;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Readability — medium priority */
+.confidence-panel .kpi-card:first-child .kpi-label {
+  opacity: 0.75;
+  font-size: 0.75rem;
+}
+
+.confidence-panel .kpi-card:first-child .kpi-value {
+  font-weight: 700;
+  opacity: 0.85;
 }

@@ -2969,9 +2969,13 @@ function renderActionScore(payload) {
   const block = document.createElement("div");
   block.className = "action-score-block";
   block.innerHTML = `
+    <div class="action-score-title">Niveau d'engagement</div>
     <div class="action-score">${actionScore} <span style="font-size:0.7em;font-weight:400">/ 100</span></div>
     <div class="action-score-label">${label}</div>
-    <div class="engine-score-secondary">Lecture moteur : ${engineScore} / 100</div>
+    <div class="engine-score-secondary">
+      <div>Marché lisible : ${engineScore}/100</div>
+      <div class="engine-score-note">N'implique pas une entrée.</div>
+    </div>
   `;
   card.appendChild(block);
 }
