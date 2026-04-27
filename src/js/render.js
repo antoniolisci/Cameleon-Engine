@@ -3055,10 +3055,10 @@ function getBehaviorPattern(memory = []) {
     if (e.behaviorState === "negative") negatives++;
     if (e.behaviorState === "positive") positives++;
   });
-  if (negatives >= 4) return "force";
-  if (switches >= 5) return "drift";
-  if (positives >= 5) return "discipline";
-  return "neutral";
+  if (negatives >= 4) return { type: "force",      intensity: Math.min(negatives / 10, 1) };
+  if (switches >= 5)  return { type: "drift",      intensity: Math.min(switches / 10, 1) };
+  if (positives >= 5) return { type: "discipline", intensity: Math.min(positives / 10, 1) };
+  return { type: "neutral", intensity: 0 };
 }
 
 function getBehaviorMemoryTone(memory = []) {
@@ -3095,7 +3095,8 @@ function renderBehaviorState(payload) {
   container.setAttribute("data-memory-tone", tone);
 
   const pattern = getBehaviorPattern(memory);
-  container.setAttribute("data-behavior-pattern", pattern);
+  container.setAttribute("data-behavior-pattern", pattern.type);
+  container.style.setProperty("--behavior-intensity", pattern.intensity);
 }
 
 function applyFocusState(payload) {
