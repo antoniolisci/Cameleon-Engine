@@ -6780,6 +6780,7 @@ body[data-guidance-state="BLOCKED"] .moteur-flow input {
 }
 
 body[data-guidance-state="BLOCKED"] .guidance-headline {
+  color: rgba(255, 90, 90, 0.9);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.9;
@@ -6792,7 +6793,12 @@ body[data-guidance-state="WAIT"] .guidance-card {
 }
 
 body[data-guidance-state="BLOCKED"] .guidance-card {
+  opacity: 1;
+  filter: none;
   transform: scale(1.01);
+  z-index: 20;
+  border-color: rgba(255, 90, 90, 0.35);
+  box-shadow: 0 0 26px rgba(255, 90, 90, 0.12);
 }
 
 body[data-guidance-state="READY"] .guidance-card {
@@ -6812,12 +6818,14 @@ body[data-guidance-state="WAIT"] .guidance-card {
 /* Priority fade — secondary content */
 .moteur-flow,
 .side-panel {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
 }
 
 body[data-guidance-state="BLOCKED"] .moteur-flow,
 body[data-guidance-state="BLOCKED"] .side-panel {
-  opacity: 0.45;
+  opacity: 0.38;
+  filter: saturate(0.65) brightness(0.82);
+  transition: opacity 0.25s ease, filter 0.25s ease;
 }
 
 body[data-guidance-state="WAIT"] .moteur-flow,
