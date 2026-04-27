@@ -2923,6 +2923,98 @@ function renderActionPlan(payload) {
   container.appendChild(wrap);
 }
 
+function getActionLevel(score) {
+  if (score <= 10) return "LOCKED";
+  if (score <= 30) return "OBSERVE";
+  if (score <= 55) return "PREPARE";
+  if (score <= 75) return "LIMITED";
+  return "EXECUTE";
+}
+
+function computeActionScoreUX(payload) {
+  if (!payload) return 0;
+  const state      = payload.decisionState?.state || "";
+  const market     = String(payload.market_state || "").toLowerCase();
+  const validation = String(payload.validation?.state || "").toLowerCase();
+
+  if (state === "BLOCKED") return 0;
+  if (state === "PROTECT") return 10;
+  if (market === "riskoff" || market === "chaos") return 0;
+  if (market === "instable" || market.includes("instable")) return 0;
+  if (validation === "rejected") return 0;
+  if (state === "WAIT") return 20;
+  if (state === "TENSION") return 40;
+  if (state === "READY") return 75;
+  return 20;
+}
+
+function getActionScoreLabel(score) {
+  if (score <= 10) return "Hors marché";
+  if (score <= 30) return "Observation";
+  if (score <= 55) return "Préparation";
+  if (score <= 75) return "Action limitée";
+  return "Action autorisée";
+}
+
+function renderActionScore(payload) {
+  const card = $("scoreCard");
+  if (!card) return;
+  const existing = card.querySelector(".action-score-block");
+  if (existing) existing.remove();
+
+  const actionScore  = computeActionScoreUX(payload);
+  const label        = getActionScoreLabel(actionScore);
+  const engineScore  = payload?.score ?? "—";
+
+  const block = document.createElement("div");
+  block.className = "action-score-block";
+  block.innerHTML = `
+    <div class="action-score">${actionScore} <span style="font-size:0.7em;font-weight:400">/ 100</span></div>
+    <div class="action-score-label">${label}</div>
+    <div class="engine-score-secondary">Lecture moteur : ${engineScore} / 100</div>
+  `;
+  card.appendChild(block);
+}
+
+function renderBehaviorFeedback() {
+  const container = $("actionPlan");
+  if (!container) return;
+  const existing = container.querySelector(".behavior-block");
+  if (existing) existing.remove();
+
+  const uxState = computeUXState({ history: appState.history || [] });
+  const labelMap = {
+    CALM:    "Lecture propre",
+    TENSION: "Hésitation détectée",
+    DRIFT:   "Instabilité détectée",
+    DANGER:  "Comportement à risque"
+  };
+  const label = labelMap[uxState];
+  if (!label) return;
+
+  const block = document.createElement("div");
+  block.className = "behavior-block";
+  block.textContent = `🧠 ${label}`;
+  container.appendChild(block);
+}
+
+function renderDecisionAnchor() {
+  const container = $("actionPlan");
+  if (!container) return;
+  const existing = container.querySelector(".decision-anchor");
+  if (existing) existing.remove();
+
+  container.insertAdjacentHTML("beforeend", `
+    <div class="decision-anchor">
+      <div class="decision-title">⚡ Choix utilisateur</div>
+      <div class="decision-actions">
+        <div class="decision-btn">Je respecte la lecture</div>
+        <div class="decision-btn alt">J'ignore le moteur</div>
+      </div>
+    </div>
+  `);
+}
+
 function applyFocusState(payload) {
   const ds   = payload.decisionState ?? computeDecisionState(payload);
   const root = document.querySelector("#app") || document.body;
@@ -3834,6 +3926,10 @@ function render() {
   renderPilotage(currentPayload);
   renderRightRail(currentPayload);
   renderActionPlan(currentPayload);
+  renderActionScore(currentPayload);
+  document.body.setAttribute("data-action-level", getActionLevel(computeActionScoreUX(currentPayload)));
+  renderBehaviorFeedback();
+  renderDecisionAnchor();
   renderMentalReset(currentPayload);
   applyFocusState(currentPayload);
   renderExecutionLevel(currentPayload);

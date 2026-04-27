@@ -6918,3 +6918,158 @@ body[data-guidance-state="BLOCKED"] .moteur-flow > *,
 body[data-guidance-state="BLOCKED"] .side-panel > * {
   transform: translateY(0.5px);
 }
+
+/* ============================
+   BEHAVIORAL FEEDBACK BLOCK
+   ============================ */
+
+.behavior-block {
+  opacity: 0.7;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
+/* ============================
+   DECISION ANCHOR
+   ============================ */
+
+.decision-anchor {
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.decision-title {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.decision-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.decision-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  cursor: default;
+  text-align: center;
+  transition: border-color 0.2s ease;
+  user-select: none;
+}
+
+.decision-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.decision-btn.alt {
+  opacity: 0.6;
+}
+
+/* ============================
+   READY STATE ENHANCEMENT
+   ============================ */
+
+body[data-guidance-state="READY"] .moteur-flow {
+  transform: scale(1.002);
+  transition: all 0.2s ease;
+}
+
+/* ============================
+   BLOCKED MICRO-FRICTION
+   ============================ */
+
+body[data-guidance-state="BLOCKED"] button {
+  transition: all 0.35s ease;
+}
+
+/* ============================
+   DRIFT VISUAL SIGNAL
+   ============================ */
+
+body[data-ux-intensity="DRIFT"] .guidance-card {
+  border-color: rgba(255, 180, 80, 0.25);
+}
+
+/* ============================
+   ACTION SCORE — UX display layer
+   ============================ */
+
+.action-score-block {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.action-score {
+  font-weight: 800;
+}
+
+.action-score-label {
+  opacity: 0.7;
+  font-size: 0.82rem;
+}
+
+.engine-score-secondary {
+  opacity: 0.55;
+  font-size: 0.78rem;
+  margin-top: 4px;
+}
+
+/* ============================
+   ACTION LOCK UX
+   ============================ */
+
+body[data-action-level="LOCKED"] .action-plan,
+body[data-action-level="OBSERVE"] .action-plan {
+  opacity: 0.55;
+}
+
+body[data-action-level="PREPARE"] .action-plan {
+  opacity: 0.75;
+}
+
+body[data-action-level="LIMITED"] .action-plan {
+  opacity: 0.9;
+}
+
+body[data-action-level="EXECUTE"] .action-plan {
+  opacity: 1;
+}
+
+body[data-action-level="LOCKED"] button {
+  opacity: 0.5;
+  transition: all 0.35s ease;
+}
+
+body[data-action-level="OBSERVE"] button {
+  opacity: 0.65;
+}
+
+body[data-action-level="PREPARE"] button {
+  opacity: 0.8;
+}
+
+body[data-action-level="LIMITED"] button {
+  opacity: 0.9;
+}
+
+body[data-action-level="EXECUTE"] button {
+  opacity: 1;
+  transform: scale(1.01);
+}
+
+body[data-action-level="LOCKED"] .decision-anchor {
+  opacity: 0.6;
+}
+
+body[data-action-level="EXECUTE"] .decision-anchor {
+  border-color: rgba(80, 200, 120, 0.25);
+}
