@@ -7237,3 +7237,28 @@ body[data-action-level="OBSERVE"] .link-mode.active-link::after {
 .behavior-feedback[data-behavior-pattern="drift"]       { transform: translateY(calc(1px * var(--behavior-intensity))); }
 .behavior-feedback[data-behavior-pattern="force"]       { box-shadow: 0 0 calc(18px * var(--behavior-intensity)) rgba(255, 107, 107, 0.25); }
 .behavior-feedback[data-behavior-pattern="discipline"]  { box-shadow: 0 0 calc(18px * var(--behavior-intensity)) rgba(0, 245, 212, 0.25); }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease, background 0.4s ease;
+}
+
+body[data-behavior-pattern="force"]::before {
+  opacity: calc(0.16 * var(--behavior-intensity));
+  background: radial-gradient(circle at 50% 30%, rgba(255,107,107,0.26), transparent 55%);
+}
+
+body[data-behavior-pattern="drift"]::before {
+  opacity: calc(0.13 * var(--behavior-intensity));
+  background: radial-gradient(circle at 50% 30%, rgba(255,209,102,0.22), transparent 55%);
+}
+
+body[data-behavior-pattern="discipline"]::before {
+  opacity: calc(0.11 * var(--behavior-intensity));
+  background: radial-gradient(circle at 50% 30%, rgba(0,245,212,0.20), transparent 55%);
+}
