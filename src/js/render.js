@@ -3096,7 +3096,9 @@ function renderBehaviorState(payload) {
 
   const pattern = getBehaviorPattern(memory);
   container.setAttribute("data-behavior-pattern", pattern.type);
-  container.style.setProperty("--behavior-intensity", pattern.intensity);
+  const lastIntensity = parseFloat(container.style.getPropertyValue("--behavior-intensity")) || 0;
+  const smooth = lastIntensity + (pattern.intensity - lastIntensity) * 0.25;
+  container.style.setProperty("--behavior-intensity", smooth);
 }
 
 function applyFocusState(payload) {
