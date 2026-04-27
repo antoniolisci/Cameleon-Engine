@@ -1,26 +1,52 @@
 export function computeUXState({ history = [] }) {
   const n = history.length;
+
   if (n < 3) return "CALM";
 
-  const recent = history.slice(-5); // 5 derniers snapshots
+  const recent = history.slice(-5);
 
-  // Détection FOMO répété
+  // --- 1. FOMO DETECTION ---
   const fomoCount = recent.filter(s => s.emotion_state === "fomo").length;
-  if (fomoCount >= 2) return "DANGER";
 
-  // Détection instabilité : changements de market_state ou emotion_state
-  let changes = 0;
-  for (let i = 0; i < recent.length - 1; i++) {
-    if (recent[i].market_state !== recent[i + 1].market_state) changes++;
-    if (recent[i].emotion_state !== recent[i + 1].emotion_state) changes++;
+  if (fomoCount >= 2) {
+    return "DANGER";
   }
 
-  if (changes >= 4 && n >= 6) return "DRIFT";
-  if (changes >= 2) return "TENSION";
+  // --- 2. HESITATION DETECTION ---
+  let decisionChanges = 0;
 
-  // Utilisateur stable avec historique long
-  if (n >= 20 && changes <= 1) return "CALM";
+  for (let i = 0; i < recent.length - 1; i++) {
+    if (recent[i].decision !== recent[i + 1].decision) {
+      decisionChanges++;
+    }
+  }
 
+  const sameMarket = recent.every(
+    s => s.market_state === recent[0].market_state
+  );
+
+  if (sameMarket && decisionChanges >= 2) {
+    return "TENSION"; // hésitation
+  }
+
+  // --- 3. REVENGE / IMPULSIVE ---
+  let instability = 0;
+
+  for (let i = 0; i < recent.length - 1; i++) {
+    if (recent[i].market_state !== recent[i + 1].market_state) instability++;
+    if (recent[i].emotion_state !== recent[i + 1].emotion_state) instability++;
+  }
+
+  if (instability >= 4 && n >= 6) {
+    return "DRIFT";
+  }
+
+  // --- LONG TERM STABILITY ---
+  if (n >= 20 && instability <= 1) {
+    return "CALM";
+  }
+
+  // --- DEFAULT ---
   if (n >= 6) return "DRIFT";
   return "TENSION";
 }
