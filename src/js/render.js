@@ -3045,6 +3045,22 @@ function renderDecisionAnchor() {
 
 const BEHAVIOR_MEMORY_KEY = "cameleon_behavior_memory_v1";
 
+function getBehaviorPattern(memory = []) {
+  const recent = memory.slice(-10);
+  let switches = 0, negatives = 0, positives = 0;
+  for (let i = 1; i < recent.length; i++) {
+    if (recent[i].behaviorState !== recent[i - 1].behaviorState) switches++;
+  }
+  recent.forEach(e => {
+    if (e.behaviorState === "negative") negatives++;
+    if (e.behaviorState === "positive") positives++;
+  });
+  if (negatives >= 4) return "force";
+  if (switches >= 5) return "drift";
+  if (positives >= 5) return "discipline";
+  return "neutral";
+}
+
 function getBehaviorMemoryTone(memory = []) {
   const recent = memory.slice(-8);
   const negativeCount = recent.filter(e => e.behaviorState === "negative").length;
@@ -3077,6 +3093,9 @@ function renderBehaviorState(payload) {
 
   const tone = getBehaviorMemoryTone(memory);
   container.setAttribute("data-memory-tone", tone);
+
+  const pattern = getBehaviorPattern(memory);
+  container.setAttribute("data-behavior-pattern", pattern);
 }
 
 function applyFocusState(payload) {

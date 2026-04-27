@@ -7231,3 +7231,7 @@ body[data-action-level="OBSERVE"] .link-mode.active-link::after {
 .behavior-feedback[data-memory-tone="strict"]    { box-shadow: 0 0 14px rgba(255, 107, 107, 0.18); }
 .behavior-feedback[data-memory-tone="confident"] { box-shadow: 0 0 14px rgba(0, 245, 212, 0.18); }
 .behavior-feedback[data-memory-tone="neutral"]   { box-shadow: none; }
+
+.behavior-feedback[data-behavior-pattern="drift"]       { transform: translateY(1px); }
+.behavior-feedback[data-behavior-pattern="force"]       { box-shadow: 0 0 18px rgba(255, 107, 107, 0.25); }
+.behavior-feedback[data-behavior-pattern="discipline"]  { box-shadow: 0 0 18px rgba(0, 245, 212, 0.25); }
