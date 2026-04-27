@@ -293,6 +293,8 @@
           </div>
         </div>
 
+        <div id="guidanceCard" class="side-card guidance-card" style="display:none;"></div>
+
         <div class="main-grid">
           <div class="stack moteur-flow">
             <section class="card verdict-shell tab-panel active" data-tab-panel="moteur">
@@ -757,25 +759,51 @@
                         <div class="mode-btn-desc">Supprime les entrées locales sans toucher au moteur actif.</div>
                       </button>
                     </div>
-                    <div class="memory-list" id="historyList"></div>
-                    <div id="history-insight"></div>
-                    <div id="history-section">
-                      <div class="history-header">
-                        <span class="history-label">Historique moteur</span>
-                        <button id="clearSnapshotBtn" class="mode-btn compact-btn" type="button">
-                          <div class="mode-btn-title">Nettoyer les données comportementales</div>
-                        </button>
+                    <p class="mem-empty-hint">Mémorisez 3 états pour activer l'analyse comportementale</p>
+
+                    <!-- DATA -->
+                    <div class="mem-zone mem-zone--data">
+                      <div class="mem-zone-label">Données</div>
+                      <div class="memory-list" id="historyList"></div>
+                      <div id="history-insight"></div>
+                      <div id="history-section">
+                        <div class="history-header">
+                          <span class="history-label">Historique moteur</span>
+                          <button id="clearSnapshotBtn" class="mode-btn compact-btn" type="button">
+                            <div class="mode-btn-title">Nettoyer les données comportementales</div>
+                          </button>
+                        </div>
+                        <div id="history"></div>
                       </div>
-                      <div id="history"></div>
+                      <div id="behaviorRepetitionCard" class="side-card" style="display:none"></div>
                     </div>
-                    <div id="behaviorAlertCard" class="side-card" style="display:none;font-size:13px;opacity:0.88;"></div>
-                    <div id="preBehaviorAlertCard" class="side-card" style="display:none;font-size:13px;opacity:0.72;"></div>
-                    <div id="behaviorCoachCard" class="side-card" style="display:none;"></div>
-                    <div id="traderMemoryCard" class="side-card" style="display:none"></div>
-                    <div id="traderSignatureCard" class="side-card" style="display:none"></div>
-                    <div id="behaviorProfileCard" class="side-card" style="display:none"></div>
-                    <div id="psychProfileCard" class="side-card" style="display:none"></div>
-                    <div id="behaviorRepetitionCard" class="side-card" style="display:none"></div>
+
+                    <!-- SIGNAL -->
+                    <div class="mem-zone mem-zone--signal">
+                      <div class="mem-zone-label">Signal</div>
+                      <div id="behaviorAlertCard" class="side-card" style="display:none;font-size:13px;opacity:0.88;"></div>
+                      <div id="preBehaviorAlertCard" class="side-card" style="display:none;font-size:13px;opacity:0.72;"></div>
+                    </div>
+
+                    <!-- DIAGNOSTIC -->
+                    <div class="mem-zone mem-zone--diagnostic">
+                      <div class="mem-zone-label">Diagnostic</div>
+                      <div id="traderSignatureCard" class="side-card" style="display:none"></div>
+                      <div id="behaviorProfileCard" class="side-card" style="display:none"></div>
+                      <div id="traderMemoryCard" class="side-card" style="display:none"></div>
+                    </div>
+
+                    <!-- INTERPRÉTATION -->
+                    <div class="mem-zone mem-zone--interpretation">
+                      <div class="mem-zone-label">Interprétation</div>
+                      <div id="psychProfileCard" class="side-card" style="display:none"></div>
+                    </div>
+
+                    <!-- ACTION -->
+                    <div class="mem-zone mem-zone--action">
+                      <div class="mem-zone-label">Action</div>
+                      <div id="behaviorCoachCard" class="side-card" style="display:none;"></div>
+                    </div>
                   </div>
                 </div>
               </div>
