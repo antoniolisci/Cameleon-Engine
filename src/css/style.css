@@ -7189,3 +7189,15 @@ body[data-action-level="OBSERVE"] .link-mode.active-link::after {
 .active-link::after {
   animation: activeGlowBreath 4.8s ease-in-out infinite;
 }
+
+.focus-settling {
+  opacity: 0.82;
+  transform: scale(0.996);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.focus-settled {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 220ms ease, transform 220ms ease;
+}

@@ -2979,15 +2979,27 @@ function renderActionScore(payload) {
   `;
   card.appendChild(block);
 
-  document.querySelectorAll(".active-link").forEach(el => el.classList.remove("active-link"));
+  document.querySelectorAll(".focus-settling, .focus-settled").forEach(el => {
+    el.classList.remove("focus-settling", "focus-settled");
+  });
 
   const level = getActionLevel(actionScore);
+  let target = null;
+
   if (level === "EXECUTE" || level === "LIMITED") {
-    document.querySelector(".link-mode")?.classList.add("active-link");
+    target = document.querySelector(".link-mode");
   } else if (level === "PREPARE") {
-    block.classList.add("active-link");
-  } else {
-    document.querySelectorAll(".active-link").forEach(el => el.classList.remove("active-link"));
+    target = block;
+  }
+
+  document.querySelectorAll(".active-link").forEach(el => el.classList.remove("active-link"));
+
+  if (target) {
+    target.classList.add("focus-settling");
+    setTimeout(() => {
+      target.classList.remove("focus-settling");
+      target.classList.add("focus-settled", "active-link");
+    }, 180);
   }
 }
 
