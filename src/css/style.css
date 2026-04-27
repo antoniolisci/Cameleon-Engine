@@ -6795,10 +6795,9 @@ body[data-guidance-state="WAIT"] .guidance-card {
 body[data-guidance-state="BLOCKED"] .guidance-card {
   opacity: 1;
   filter: none;
-  transform: scale(1.01);
   z-index: 20;
   border-color: rgba(255, 90, 90, 0.35);
-  box-shadow: 0 0 26px rgba(255, 90, 90, 0.12);
+  animation: lockBreath 4.5s ease-in-out infinite;
 }
 
 body[data-guidance-state="READY"] .guidance-card {
@@ -6824,7 +6823,7 @@ body[data-guidance-state="WAIT"] .guidance-card {
 body[data-guidance-state="BLOCKED"] .moteur-flow,
 body[data-guidance-state="BLOCKED"] .side-panel {
   opacity: 0.38;
-  filter: saturate(0.65) brightness(0.82);
+  filter: saturate(0.58) brightness(0.78) contrast(0.92);
   transition: opacity 0.25s ease, filter 0.25s ease;
 }
 
@@ -6852,4 +6851,54 @@ body[data-ux-intensity="DRIFT"] .guidance-card {
 body[data-ux-intensity="TENSION"] button,
 body[data-ux-intensity="DRIFT"] button {
   transition: all 0.2s ease;
+}
+
+/* ============================
+   TENSION UX — subtle behavioral friction
+   ============================ */
+
+@keyframes lockBreath {
+  0%, 100% {
+    box-shadow: 0 0 26px rgba(255, 90, 90, 0.10);
+    transform: scale(1.01);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(255, 90, 90, 0.16);
+    transform: scale(1.012);
+  }
+}
+
+body[data-guidance-state="BLOCKED"] .moteur-flow p,
+body[data-guidance-state="BLOCKED"] .moteur-flow li,
+body[data-guidance-state="BLOCKED"] .moteur-flow span,
+body[data-guidance-state="BLOCKED"] .side-panel p,
+body[data-guidance-state="BLOCKED"] .side-panel li,
+body[data-guidance-state="BLOCKED"] .side-panel span {
+  opacity: 0.82;
+}
+
+body[data-guidance-state="BLOCKED"] .guidance-block .label {
+  opacity: 0.72;
+  letter-spacing: 0.09em;
+}
+
+/* ============================
+   UX LEVEL 4 — cognitive friction
+   ============================ */
+
+body[data-guidance-state="BLOCKED"] .moteur-flow,
+body[data-guidance-state="BLOCKED"] .side-panel {
+  line-height: 1.48;
+}
+
+body[data-guidance-state="BLOCKED"] .moteur-flow p,
+body[data-guidance-state="BLOCKED"] .moteur-flow li,
+body[data-guidance-state="BLOCKED"] .side-panel p,
+body[data-guidance-state="BLOCKED"] .side-panel li {
+  letter-spacing: 0.015em;
+}
+
+body[data-guidance-state="BLOCKED"] .moteur-flow > *,
+body[data-guidance-state="BLOCKED"] .side-panel > * {
+  transform: translateY(0.5px);
 }
