@@ -3038,8 +3038,45 @@ function renderDecisionAnchor() {
         <div class="decision-btn">Je respecte la lecture</div>
         <div class="decision-btn alt">J'ignore le moteur</div>
       </div>
+      <div class="behavior-feedback"></div>
     </div>
   `);
+}
+
+const BEHAVIOR_MEMORY_KEY = "cameleon_behavior_memory_v1";
+
+function getBehaviorMemoryTone(memory = []) {
+  const recent = memory.slice(-8);
+  const negativeCount = recent.filter(e => e.behaviorState === "negative").length;
+  const positiveCount = recent.filter(e => e.behaviorState === "positive").length;
+  if (negativeCount >= 3) return "strict";
+  if (positiveCount >= 4) return "confident";
+  return "neutral";
+}
+
+function renderBehaviorState(payload) {
+  const container = document.querySelector(".behavior-feedback");
+  if (!container) return;
+  const level = getActionLevel(computeActionScoreUX(payload));
+  let state = "neutral";
+  if (level === "EXECUTE" || level === "LIMITED") state = "positive";
+  else if (level === "LOCKED") state = "negative";
+  else if (level === "OBSERVE") state = "neutral";
+  container.setAttribute("data-behavior", state);
+
+  let memory = [];
+  try {
+    memory = JSON.parse(localStorage.getItem(BEHAVIOR_MEMORY_KEY) || "[]");
+    const last = memory[memory.length - 1];
+    if (!last || last.behaviorState !== state || last.actionLevel !== level) {
+      memory.push({ timestamp: Date.now(), actionLevel: level, behaviorState: state });
+    }
+    if (memory.length > 20) memory = memory.slice(-20);
+    localStorage.setItem(BEHAVIOR_MEMORY_KEY, JSON.stringify(memory));
+  } catch {}
+
+  const tone = getBehaviorMemoryTone(memory);
+  container.setAttribute("data-memory-tone", tone);
 }
 
 function applyFocusState(payload) {
@@ -3957,6 +3994,7 @@ function render() {
   document.body.setAttribute("data-action-level", getActionLevel(computeActionScoreUX(currentPayload)));
   renderBehaviorFeedback();
   renderDecisionAnchor();
+  renderBehaviorState(currentPayload);
   renderMentalReset(currentPayload);
   applyFocusState(currentPayload);
   renderExecutionLevel(currentPayload);
