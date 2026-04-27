@@ -1,4 +1,6 @@
 :root {
+  --ux-breath: 4.8s;
+  --ux-transition: 0.28s;
   --font-ui: "Segoe UI", "Aptos", "Trebuchet MS", sans-serif;
   --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   --bg: #060606;
@@ -2180,28 +2182,6 @@ pre {
   border-top: 1px solid rgba(var(--state-rgb), 0.1);
 }
 
-@keyframes pulseDot {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.18);
-    opacity: 1;
-  }
-}
-
-@keyframes panelReveal {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 @media (max-width: 1380px) {
   .hero-grid {
@@ -5362,10 +5342,6 @@ body {
 
 /* ── Guidance immédiate ─────────────────────────────────── */
 
-.guidance-card {
-  padding: 16px 18px;
-  border-color: rgba(212, 175, 55, 0.2);
-}
 
 .guidance-title {
   font-size: 12px;
@@ -5625,16 +5601,6 @@ body {
   background: rgba(187, 167, 107, 0.05);
 }
 
-@keyframes decisionReveal {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 @media (max-width: 600px) {
   .decision-block {
@@ -6105,10 +6071,6 @@ body {
 }
 
 /* ── Overtrading block ───────────────────────────────────────── */
-@keyframes ot-pulse {
-  0%, 100% { box-shadow: var(--shadow-lg), 0 0 0 0 var(--ot-glow); }
-  50%       { box-shadow: var(--shadow-lg), 0 0 18px 4px var(--ot-glow); }
-}
 
 .overtrading-block {
   --ot-border: var(--border-strong);
@@ -6795,11 +6757,10 @@ body[data-guidance-state="WAIT"] .guidance-card {
 }
 
 body[data-guidance-state="BLOCKED"] .guidance-card {
-  opacity: 1;
   filter: none;
   z-index: 20;
   border-color: rgba(255, 90, 90, 0.35);
-  animation: lockBreath 4.5s ease-in-out infinite;
+  animation: lockBreath var(--ux-breath) ease-in-out infinite;
 }
 
 @keyframes readyBreath {
@@ -6811,7 +6772,7 @@ body[data-guidance-state="READY"] .guidance-card {
   opacity: 1;
   transform: scale(1.01);
   border-color: rgba(80, 200, 120, 0.35);
-  animation: readyBreath 5s ease-in-out infinite;
+  animation: readyBreath var(--ux-breath) ease-in-out infinite;
 }
 
 body[data-guidance-state="READY"] .moteur-flow,
@@ -6820,27 +6781,21 @@ body[data-guidance-state="READY"] .side-panel {
   filter: none;
 }
 
-@keyframes breathe {
-  0%   { opacity: 0.95; }
-  50%  { opacity: 1; }
-  100% { opacity: 0.95; }
-}
-
 body[data-guidance-state="WAIT"] .guidance-card {
-  animation: breathe 4s ease-in-out infinite;
+  animation: subtlePulse var(--ux-breath) ease-in-out infinite;
 }
 
 /* Priority fade — secondary content */
 .moteur-flow,
 .side-panel {
-  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  transition: opacity var(--ux-transition) ease, filter var(--ux-transition) ease, transform var(--ux-transition) ease;
 }
 
 body[data-guidance-state="BLOCKED"] .moteur-flow,
 body[data-guidance-state="BLOCKED"] .side-panel {
   opacity: 0.38;
   filter: saturate(0.58) brightness(0.78) contrast(0.92);
-  transition: opacity 0.25s ease, filter 0.25s ease;
+  transition: opacity var(--ux-transition) ease, filter var(--ux-transition) ease;
 }
 
 body[data-guidance-state="WAIT"] .moteur-flow,
@@ -6861,7 +6816,8 @@ body[data-ux-intensity="DRIFT"] .moteur-flow {
 }
 
 body[data-ux-intensity="DRIFT"] .guidance-card {
-  transform: scale(1.01);
+  transform: scale(calc(1 + 0.01 * var(--behavior-intensity)));
+  border-color: rgba(255, 180, 80, 0.25);
 }
 
 body[data-ux-intensity="TENSION"] button,
@@ -6990,13 +6946,6 @@ body[data-guidance-state="BLOCKED"] button {
   transition: all 0.35s ease;
 }
 
-/* ============================
-   DRIFT VISUAL SIGNAL
-   ============================ */
-
-body[data-ux-intensity="DRIFT"] .guidance-card {
-  border-color: rgba(255, 180, 80, 0.25);
-}
 
 /* ============================
    ACTION SCORE — UX display layer
@@ -7184,6 +7133,11 @@ body[data-action-level="OBSERVE"] .link-mode.active-link::after {
 .active-link {
   animation: activeLinkBreath 4.8s ease-in-out infinite;
   transform-origin: center;
+  letter-spacing: 0.01em;
+}
+
+body[data-action-level="EXECUTE"] .active-link {
+  letter-spacing: 0.02em;
 }
 
 .active-link::after {
@@ -7210,8 +7164,8 @@ body[data-action-level="OBSERVE"] .link-mode.active-link::after {
   height: 6px;
   margin-top: 8px;
   border-radius: 4px;
-  opacity: 0.4;
-  transition: all 0.3s ease;
+  opacity: 0.6;
+  transition: background var(--ux-transition) ease, opacity var(--ux-transition) ease, box-shadow var(--ux-transition) ease, transform var(--ux-transition) ease;
 }
 
 .behavior-feedback[data-behavior="positive"] {
