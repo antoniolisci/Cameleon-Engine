@@ -1,5 +1,6 @@
 import { MARKET_DICTIONARY } from "./dictionary.js";
 import { OVERTRADING_DICT } from "./overtrading-dictionary.js";
+import { getBehaviorMatrixEntry } from "./behavior/behavior-matrix.js";
 import { updateBehavior, resetBehavior } from "./behavior.js";
 import { getAdaptiveMessage } from "./tone.js";
 import {
@@ -4045,8 +4046,43 @@ function render() {
   renderBehaviorRepetition();
   sanitizeVisibleText();
 
-  const level = currentPayload?.behavior?.overtradingLevel || 1;
+  // ── Overtrading Block — Merged Behavior Guard ────────────────────────
+  // The final level is the MAX of two independent sources:
+  //   1. Instant Guard  — computed by engine.js / buildPayload() on every run.
+  //      Source: currentPayload.behavior.overtradingLevel (integer 1–5).
+  //      Always live. Always authoritative. Never reduced by historical data.
+  //   2. Historical Guard — produced by the CSV/XLS Behavior Analysis module
+  //      (src/js/behavior/) after a file import, stored in localStorage.
+  //      Key: cameleon.behavior.v1.guardLevel
+  //      Expires after 7 days. If absent or expired, falls back to 1 (no effect).
+  //
+  // MERGE RULE: finalLevel = Math.max(instant, historical)
+  // Historical behavior may raise caution but must never reduce the instant guard.
+  // engine.js and buildPayload() are not involved in this merge.
+  // See: src/js/behavior/README.md
+  // ──────────────────────────────────────────────────────────────────────
+  const instantLevel = currentPayload?.behavior?.overtradingLevel || 1;
+
+  let historicalLevel = 1;
+  try {
+    const _rawLevel = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevel'));
+    const _rawTs    = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevelUpdatedAt'));
+    const _SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const _isValidLevel  = typeof _rawLevel === 'number' && _rawLevel >= 1 && _rawLevel <= 5;
+    const _isValidTs     = typeof _rawTs === 'number' && (Date.now() - _rawTs) < _SEVEN_DAYS_MS;
+    if (_isValidLevel && _isValidTs) historicalLevel = _rawLevel;
+  } catch { /* localStorage unavailable — stay at 1 */ }
+
+  const level = Math.max(instantLevel, historicalLevel);
   const data = OVERTRADING_DICT[level];
+
+  // ── Behavior Matrix V1 ────────────────────────────────────────────────
+  // Text fields (state/message/risk/action) are sourced from BEHAVIOR_MATRIX.
+  // Pattern defaults to OVERTRADING until dominantRisk is stored in localStorage.
+  // badge (signal), image, streak, CSS, and merge strategy are unchanged.
+  // Fallback to OVERTRADING_DICT fields if matrix entry is missing.
+  const matrixEntry = getBehaviorMatrixEntry('OVERTRADING', level);
+  // ─────────────────────────────────────────────────────────────────────
 
   if (!data) return;
 
@@ -4092,30 +4128,29 @@ function render() {
     img.src = data.imageTrading;
   }
 
-  // etat
+  // etat — matrix source, fallback to dict
   const etat = document.getElementById("overtrading-etat");
-  if (etat && data.etat) {
-    etat.textContent = data.etat;
+  if (etat) {
+    etat.textContent = matrixEntry?.state || data.etat || "";
   }
 
-  // message
+  // message — matrix source, fallback to dict
   const message = document.getElementById("overtrading-message");
-  if (message && data.message) {
-    message.textContent = data.message;
+  if (message) {
+    message.textContent = matrixEntry?.message || data.message || "";
   }
 
-  // risque
+  // risque — matrix source, fallback to dict
   const risque = document.getElementById("overtrading-risque");
-  if (risque && data.risque) {
-    risque.textContent = `Risque : ${data.risque}`;
+  if (risque) {
+    risque.textContent = `Risque : ${matrixEntry?.risk || data.risque || ""}`;
   }
 
-  // action — escalade vers reaction si intensité active
+  // action — matrix source; escalade vers reaction dict si intensité active et matrix absent
   const action = document.getElementById("overtrading-action");
   if (action) {
-    const actionText = isIntense
-      ? (data.reaction?.[0] || data.action?.[0] || "")
-      : (data.action?.[0] || "");
+    const actionText = matrixEntry?.action
+      || (isIntense ? (data.reaction?.[0] || data.action?.[0] || "") : (data.action?.[0] || ""));
     action.textContent = actionText;
   }
 }

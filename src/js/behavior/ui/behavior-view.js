@@ -8,8 +8,9 @@ import { importBinanceSpot } from '../import/uploader.js';
 import { computeMetrics, tradeSize } from '../analytics/metrics.js';
 import { detectStyle, detectStyleTransitions, isShiftMoreAggressive } from '../analytics/style.js';
 import { detectPatterns, tagTrades } from '../analytics/patterns.js';
-import { computeScore     } from '../analytics/scoring.js';
-import { computeCoaching  } from '../analytics/coaching.js';
+import { computeScore          } from '../analytics/scoring.js';
+import { computeCoaching       } from '../analytics/coaching.js';
+import { buildBehaviorBridgeOutput } from '../behavior-bridge.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -37,6 +38,17 @@ function mount(root) {
     coaching    = computeCoaching(patterns, metrics, score);
     style       = detectStyle(trades, metrics);
     transitions = detectStyleTransitions(trades, style?.key);
+
+    // ── Behavior Bridge — storage-mediated merge ──────────────────────────
+    // Translates the historical score (0–100) into a Guard level (1–5) and
+    // stores it for render.js to read. render.js applies Math.max() against
+    // the instant guard level — historical may raise caution, never reduce it.
+    // The timestamp is stored so render.js can expire the value after 7 days.
+    // This does NOT overwrite payload.behavior.overtradingLevel in engine.js.
+    const bridgeOutput = buildBehaviorBridgeOutput(score);
+    behaviorRepo.set('guardLevel', bridgeOutput.guardLevel);
+    behaviorRepo.set('guardLevelUpdatedAt', Date.now());
+    // ─────────────────────────────────────────────────────────────────────
 
     // Expose le niveau de cohérence au moteur principal (lecture seule via localStorage)
     if (transitions && transitions.localStyles.length > 0) {

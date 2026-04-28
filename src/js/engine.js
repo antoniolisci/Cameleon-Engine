@@ -366,6 +366,14 @@ export function buildPayload(v, previousPayload = null) {
     updated_at: new Date().toISOString(),
     marketReading,
     decision: { ...decision, bestAlternative },
+    // ── Behavior Guard (instant) ─────────────────────────────────────────
+    // overtradingLevel is the INSTANT Behavior Guard.
+    // It is computed from the current form state + engine score on every run.
+    // It is NOT the historical CSV/XLS Behavior Analysis module (src/js/behavior/).
+    // Future integration: the historical module may supply its own level, but it
+    // must be merged here explicitly — not by overwriting overtradingLevel directly.
+    // See: src/js/behavior/README.md
+    // ─────────────────────────────────────────────────────────────────────
     behavior: {
       overtradingLevel
     }
