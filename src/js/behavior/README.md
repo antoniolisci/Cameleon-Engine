@@ -62,16 +62,43 @@ This module:
 
 ---
 
-## Future integration — TODO
+## Current integration — V3 (stable)
 
-The historical module could eventually produce its own pressure level (1–5) derived
-from past behavioral patterns. If that is implemented:
+The storage-mediated bridge is active. After each CSV import, `behavior-view.js` writes
+the following keys to `localStorage` under the `cameleon.behavior.v1.*` namespace:
 
-- It must **not** overwrite `payload.behavior.overtradingLevel` directly.
-- A **merge strategy** must be defined explicitly (e.g. `max()`, weighted average,
-  or a separate field like `payload.behavior.historicalLevel`).
-- The merge point belongs in `engine.js` → `buildPayload()`, inside the
-  `behavior: { ... }` object, with both values preserved independently.
-- The render layer can then decide which level to display or how to combine them.
+| Key | Value | Written by |
+|---|---|---|
+| `guardLevel` | Integer 1–5 | `behavior-view.js` after every import |
+| `guardLevelUpdatedAt` | `Date.now()` timestamp | `behavior-view.js` after every import |
+| `dominantRisk` | Pattern string or absent | `behavior-view.js` — only if a dominant pattern exists |
+| `dominantRiskUpdatedAt` | `Date.now()` timestamp | `behavior-view.js` — only when `dominantRisk` is written |
+| `coherenceLevel` | String enum | `behavior-view.js` after every import |
 
-Until that strategy is defined, the two systems remain intentionally disconnected.
+`render.js` reads all keys and applies the following rules:
+
+- **`guardLevel`** — valid if: is a number, in [1–5], timestamp exists, age < 7 days.
+  Fallback: `1` (no effect on merge).
+- **`dominantRisk`** — valid if: is a string, in known pattern keys, timestamp exists, age < 7 days.
+  Fallback: `'OVERTRADING'` (V1/V2 compatible).
+- Both TTLs are **7 days** — same contract, same expiry window.
+
+The active pattern is exposed on the `#overtrading-block` DOM element as
+`data-ot-pattern` for DevTools traceability. No UI layout change.
+
+### Merge rule
+
+```
+finalLevel = Math.max(instantGuardLevel, historicalGuardLevel)
+```
+
+Historical behavior may raise caution but must never reduce the instant guard level.
+`engine.js` and `buildPayload()` are not involved in this merge.
+
+### Integration contract
+
+- `payload.behavior.overtradingLevel` is set exclusively by `engine.js` / `buildPayload()`.
+- The bridge must not overwrite it directly.
+- Any future V4 merge (e.g. weighted average, dual display) must define an explicit
+  strategy and apply it at the `behavior: { ... }` object in `buildPayload()`,
+  or remain in the render layer with both values preserved independently.
