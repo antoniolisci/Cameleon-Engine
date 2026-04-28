@@ -48,6 +48,9 @@ function mount(root) {
     const bridgeOutput = buildBehaviorBridgeOutput(score);
     behaviorRepo.set('guardLevel', bridgeOutput.guardLevel);
     behaviorRepo.set('guardLevelUpdatedAt', Date.now());
+    if (bridgeOutput.dominantRisk) {
+      behaviorRepo.set('dominantRisk', bridgeOutput.dominantRisk);
+    }
     // ─────────────────────────────────────────────────────────────────────
 
     // Expose le niveau de cohérence au moteur principal (lecture seule via localStorage)
