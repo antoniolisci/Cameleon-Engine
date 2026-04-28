@@ -4076,20 +4076,27 @@ function render() {
   const level = Math.max(instantLevel, historicalLevel);
   const data = OVERTRADING_DICT[level];
 
-  // ── Behavior Matrix V2 — dynamic pattern routing ─────────────────────
+  // ── Behavior Matrix V3 — hardened dynamic pattern routing ────────────
   // Text fields (state/message/risk/action) are sourced from BEHAVIOR_MATRIX.
   // Pattern is read from localStorage (written by behavior-view.js after CSV import).
-  // Validated against the known pattern keys — invalid or absent → OVERTRADING.
-  // V1 fallback intact: if no dominantRisk is stored, OVERTRADING is used silently.
+  // dominantRisk is validated for type, known key, and 7-day expiry.
+  // Mirrors the guardLevel expiry contract — same TTL, same fallback rule.
+  // If absent, invalid, or expired → pattern = OVERTRADING (V1/V2 compatible).
   // badge (signal), image, streak, CSS, and merge strategy are unchanged.
   // Fallback to OVERTRADING_DICT fields if matrix entry is missing.
   const _VALID_PATTERNS = ['OVERTRADING', 'FOMO', 'REVENGE', 'HESITATION', 'OVERCONFIDENCE'];
+  const _SEVEN_DAYS_MS  = 7 * 24 * 60 * 60 * 1000;
   let _pattern = 'OVERTRADING';
   try {
-    const _raw = JSON.parse(localStorage.getItem('cameleon.behavior.v1.dominantRisk'));
-    if (typeof _raw === 'string' && _VALID_PATTERNS.includes(_raw)) _pattern = _raw;
+    const _rawPattern = JSON.parse(localStorage.getItem('cameleon.behavior.v1.dominantRisk'));
+    const _rawPatTs   = JSON.parse(localStorage.getItem('cameleon.behavior.v1.dominantRiskUpdatedAt'));
+    const _patValid   = typeof _rawPattern === 'string' && _VALID_PATTERNS.includes(_rawPattern);
+    const _patFresh   = typeof _rawPatTs === 'number' && (Date.now() - _rawPatTs) < _SEVEN_DAYS_MS;
+    if (_patValid && _patFresh) _pattern = _rawPattern;
   } catch { /* localStorage unavailable — stay at OVERTRADING */ }
   const matrixEntry = getBehaviorMatrixEntry(_pattern, level);
+  // Traceability: expose active pattern as data attribute on the existing block element.
+  // No layout change — data-ot-pattern is a DevTools-visible hook only.
   // ─────────────────────────────────────────────────────────────────────
 
   if (!data) return;
@@ -4113,7 +4120,8 @@ function render() {
   // severity class sur le bloc
   const block = document.getElementById("overtrading-block");
   if (block) {
-    block.dataset.otLevel = level;
+    block.dataset.otLevel   = level;
+    block.dataset.otPattern = _pattern;
     block.classList.remove("ot-warning", "ot-alerte", "ot-danger", "ot-intense", "ot-critical");
     if (level <= 2)       block.classList.add("ot-warning");
     else if (level === 3) block.classList.add("ot-alerte");

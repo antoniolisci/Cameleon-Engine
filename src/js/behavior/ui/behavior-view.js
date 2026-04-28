@@ -50,6 +50,7 @@ function mount(root) {
     behaviorRepo.set('guardLevelUpdatedAt', Date.now());
     if (bridgeOutput.dominantRisk) {
       behaviorRepo.set('dominantRisk', bridgeOutput.dominantRisk);
+      behaviorRepo.set('dominantRiskUpdatedAt', Date.now());
     }
     // ─────────────────────────────────────────────────────────────────────
 
