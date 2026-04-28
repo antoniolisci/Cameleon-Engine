@@ -4076,12 +4076,20 @@ function render() {
   const level = Math.max(instantLevel, historicalLevel);
   const data = OVERTRADING_DICT[level];
 
-  // ── Behavior Matrix V1 ────────────────────────────────────────────────
+  // ── Behavior Matrix V2 — dynamic pattern routing ─────────────────────
   // Text fields (state/message/risk/action) are sourced from BEHAVIOR_MATRIX.
-  // Pattern defaults to OVERTRADING until dominantRisk is stored in localStorage.
+  // Pattern is read from localStorage (written by behavior-view.js after CSV import).
+  // Validated against the known pattern keys — invalid or absent → OVERTRADING.
+  // V1 fallback intact: if no dominantRisk is stored, OVERTRADING is used silently.
   // badge (signal), image, streak, CSS, and merge strategy are unchanged.
   // Fallback to OVERTRADING_DICT fields if matrix entry is missing.
-  const matrixEntry = getBehaviorMatrixEntry('OVERTRADING', level);
+  const _VALID_PATTERNS = ['OVERTRADING', 'FOMO', 'REVENGE', 'HESITATION', 'OVERCONFIDENCE'];
+  let _pattern = 'OVERTRADING';
+  try {
+    const _raw = JSON.parse(localStorage.getItem('cameleon.behavior.v1.dominantRisk'));
+    if (typeof _raw === 'string' && _VALID_PATTERNS.includes(_raw)) _pattern = _raw;
+  } catch { /* localStorage unavailable — stay at OVERTRADING */ }
+  const matrixEntry = getBehaviorMatrixEntry(_pattern, level);
   // ─────────────────────────────────────────────────────────────────────
 
   if (!data) return;
