@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Constellium — Cameleon Engine</title>
+  <link rel="icon" href="data:,">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0f;
+      color: #c8cad4;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .cst-header {
+      background: #0d0d14;
+      border-bottom: 1px solid #1e1e2e;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .cst-header-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cst-header-seal {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+      border: 1px solid #3a3a5c;
+      flex-shrink: 0;
+    }
+
+    .cst-header-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e8eaf0;
+      letter-spacing: 0.02em;
+    }
+
+    .cst-header-subtitle {
+      font-size: 11px;
+      color: #6b6d7a;
+      margin-top: 2px;
+      font-style: italic;
+    }
+
+    .cst-back-btn {
+      background: #13131f;
+      border: 1px solid #2a2a40;
+      color: #8b8d9a;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .cst-back-btn:hover {
+      border-color: #4a4a6a;
+      color: #c8cad4;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .cst-main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 32px 80px;
+    }
+
+    /* ── Hero ────────────────────────────────────────────────── */
+    .cst-hero {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .cst-hero-title {
+      font-size: 36px;
+      font-weight: 800;
+      color: #e8eaf0;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .cst-hero-subtitle {
+      font-size: 16px;
+      color: #7a7c8a;
+      font-style: italic;
+      margin-bottom: 40px;
+    }
+
+    .cst-hero-img {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 12px;
+      border: 1px solid #1e1e2e;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* ── Narrative ───────────────────────────────────────────── */
+    .cst-section {
+      margin-bottom: 48px;
+    }
+
+    .cst-narrative {
+      color: #9a9caa;
+      font-size: 15px;
+      line-height: 1.9;
+    }
+
+    .cst-narrative p {
+      margin-bottom: 14px;
+    }
+
+    .cst-narrative p:last-child {
+      margin-bottom: 0;
+    }
+
+    .cst-narrative strong {
+      color: #c8cad4;
+      font-weight: 600;
+    }
+
+    /* ── Section title ───────────────────────────────────────── */
+    .cst-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4a4c5a;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1a1a28;
+    }
+
+    /* ── Guide image ─────────────────────────────────────────── */
+    .cst-guide-img {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #1e1e2e;
+      display: block;
+    }
+
+    /* ── Force blocks ────────────────────────────────────────── */
+    .cst-forces {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cst-force {
+      background: #0d0d16;
+      border: 1px solid #1a1a28;
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .cst-force-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .cst-force-name {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #e8eaf0;
+    }
+
+    .cst-force-role {
+      font-size: 13px;
+      color: #5a5c6a;
+      font-weight: 400;
+    }
+
+    .cst-force-question {
+      font-size: 13px;
+      color: #6b6d7a;
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+
+    .cst-force-levels {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cst-force-level {
+      font-size: 13px;
+      color: #7a7c8a;
+      display: flex;
+      gap: 10px;
+    }
+
+    .cst-force-level-label {
+      color: #c8cad4;
+      font-weight: 600;
+      min-width: 70px;
+      flex-shrink: 0;
+    }
+
+    /* ── How to use ──────────────────────────────────────────── */
+    .cst-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cst-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 14px 20px;
+      background: #0d0d16;
+      border: 1px solid #1a1a28;
+      border-radius: 8px;
+    }
+
+    .cst-step-num {
+      font-size: 11px;
+      font-weight: 800;
+      color: #3a3c4a;
+      min-width: 20px;
+      padding-top: 1px;
+    }
+
+    .cst-step-text {
+      font-size: 14px;
+      color: #9a9caa;
+    }
+
+    /* ── Final rule ──────────────────────────────────────────── */
+    .cst-rule-block {
+      background: #0a0a12;
+      border: 1px solid #2a2a40;
+      border-left: 3px solid #3a3a6a;
+      border-radius: 8px;
+      padding: 28px 32px;
+      text-align: center;
+    }
+
+    .cst-rule-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #4a4c6a;
+      margin-bottom: 14px;
+    }
+
+    .cst-rule-main {
+      font-size: 17px;
+      color: #c8cad4;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .cst-rule-main em {
+      font-style: normal;
+      color: #e8eaf0;
+      font-weight: 600;
+    }
+
+    .cst-rule-sub {
+      font-size: 13px;
+      color: #5a5c6a;
+      font-style: italic;
+    }
+
+    /* ── Quick recap ─────────────────────────────────────────── */
+    .cst-recap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+
+    .cst-recap-item {
+      background: #0d0d16;
+      border: 1px solid #1a1a28;
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+
+    .cst-recap-name {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #e8eaf0;
+      margin-bottom: 4px;
+    }
+
+    .cst-recap-question {
+      font-size: 13px;
+      color: #6b6d7a;
+    }
+
+    /* ── Warning ─────────────────────────────────────────────── */
+    .cst-warning {
+      background: #100d10;
+      border: 1px solid #2a1a2a;
+      border-left: 3px solid #5a2a5a;
+      border-radius: 8px;
+      padding: 24px 28px;
+    }
+
+    .cst-warning-intro {
+      font-size: 14px;
+      color: #8a7a8a;
+      margin-bottom: 14px;
+    }
+
+    .cst-warning-rules {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .cst-warning-rules li {
+      font-size: 14px;
+      color: #c8aac8;
+      font-weight: 600;
+    }
+
+    .cst-warning-note {
+      font-size: 13px;
+      color: #6a5a6a;
+      font-style: italic;
+      padding-top: 12px;
+      border-top: 1px solid #2a1a2a;
+    }
+
+    /* ── Divider ─────────────────────────────────────────────── */
+    .cst-divider {
+      height: 1px;
+      background: #1a1a28;
+      margin: 48px 0;
+    }
+
+    @media (max-width: 600px) {
+      .cst-main { padding: 32px 20px 60px; }
+      .cst-header { padding: 16px 20px; }
+      .cst-hero-title { font-size: 26px; }
+      .cst-recap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="cst-header">
+    <div class="cst-header-brand">
+      <div class="cst-header-seal"></div>
+      <div>
+        <div class="cst-header-title">Cameleon Engine</div>
+        <div class="cst-header-subtitle">Guide Constellium</div>
+      </div>
+    </div>
+    <a class="cst-back-btn" href="index.html">← Retour au moteur</a>
+  </header>
+
+  <main class="cst-main">
+
+    <!-- Hero -->
+    <div class="cst-hero">
+      <h1 class="cst-hero-title">Le Constellium</h1>
+      <p class="cst-hero-subtitle">Tu n'es pas là pour deviner le marché. Tu es là pour le lire.</p>
+      <img class="cst-hero-img" src="../assets/images/constellium-main.png" alt="Constellium — Vue principale">
+    </div>
+
+    <!-- Narrative -->
+    <section class="cst-section">
+      <div class="cst-narrative">
+        <p>Le Constellium n'est pas un second moteur.</p>
+        <p>C'est une aide à la lecture.</p>
+        <p>Il sert à remplir les champs avec plus de clarté, sans remplacer la décision du Caméléon Engine.</p>
+      </div>
+    </section>
+
+    <div class="cst-divider"></div>
+
+    <!-- Main narrative block -->
+    <section class="cst-section">
+      <div class="cst-section-title">Constellium</div>
+      <div class="cst-narrative">
+        <p>Tu n'es pas là pour deviner le marché.<br>Tu es là pour le lire.</p>
+        <p>Le prix bouge, mais ce n'est que la surface.</p>
+        <p>En dessous, cinq forces décrivent l'état réel du contexte : la cohérence, l'intensité, la lisibilité, la solidité et le risque.</p>
+        <p>Le Constellium ne te dit pas quoi faire.<br>Il t'aide à voir plus clairement.</p>
+        <p>Tu remplis ce que tu observes.<br>Le moteur fait le tri.</p>
+      </div>
+    </section>
+
+    <!-- Guide image -->
+    <section class="cst-section">
+      <img class="cst-guide-img" src="../assets/images/constellium-guide.png" alt="Constellium — Guide de lecture">
+    </section>
+
+    <div class="cst-divider"></div>
+
+    <!-- Forces -->
+    <section class="cst-section">
+      <div class="cst-section-title">Les cinq forces</div>
+      <div class="cst-forces">
+
+        <div class="cst-force">
+          <div class="cst-force-header">
+            <span class="cst-force-name">Éther</span>
+            <span class="cst-force-role">Cohérence du contexte</span>
+          </div>
+          <div class="cst-force-question">Question : est-ce que tout va dans le même sens ?</div>
+          <div class="cst-force-levels">
+            <div class="cst-force-level"><span class="cst-force-level-label">Fort</span><span>Marché clair, éléments alignés.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Stable</span><span>Contexte normal, rien d'anormal.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Faible</span><span>Contradictions, doute, lecture confuse.</span></div>
+          </div>
+        </div>
+
+        <div class="cst-force">
+          <div class="cst-force-header">
+            <span class="cst-force-name">Feu</span>
+            <span class="cst-force-role">Intensité du mouvement</span>
+          </div>
+          <div class="cst-force-question">Question : est-ce que le marché pousse vraiment ?</div>
+          <div class="cst-force-levels">
+            <div class="cst-force-level"><span class="cst-force-level-label">Fort</span><span>Impulsion forte, accélération visible.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Moyen</span><span>Mouvement présent mais contrôlé.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Faible</span><span>Marché lent, mou, sans énergie.</span></div>
+          </div>
+        </div>
+
+        <div class="cst-force">
+          <div class="cst-force-header">
+            <span class="cst-force-name">Air</span>
+            <span class="cst-force-role">Lisibilité du setup</span>
+          </div>
+          <div class="cst-force-question">Question : est-ce que tu vois une opportunité claire ?</div>
+          <div class="cst-force-levels">
+            <div class="cst-force-level"><span class="cst-force-level-label">Fort</span><span>Setup évident.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Émergent</span><span>Setup en formation.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Faible</span><span>Bruit, rien de propre.</span></div>
+          </div>
+        </div>
+
+        <div class="cst-force">
+          <div class="cst-force-header">
+            <span class="cst-force-name">Terre</span>
+            <span class="cst-force-role">Solidité du niveau</span>
+          </div>
+          <div class="cst-force-question">Question : est-ce que le niveau tient vraiment ?</div>
+          <div class="cst-force-levels">
+            <div class="cst-force-level"><span class="cst-force-level-label">Fort</span><span>Support / résistance solide.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Stable</span><span>Structure correcte.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Faible</span><span>Terrain fragile, risque de cassure.</span></div>
+          </div>
+        </div>
+
+        <div class="cst-force">
+          <div class="cst-force-header">
+            <span class="cst-force-name">Eau</span>
+            <span class="cst-force-role">Risque caché</span>
+          </div>
+          <div class="cst-force-question">Question : est-ce qu'il y a un danger ?</div>
+          <div class="cst-force-levels">
+            <div class="cst-force-level"><span class="cst-force-level-label">Faible</span><span>Environnement sain.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Sous risque</span><span>Tension, incertitude.</span></div>
+            <div class="cst-force-level"><span class="cst-force-level-label">Explosive</span><span>Danger élevé, volatilité / piège possible.</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="cst-divider"></div>
+
+    <!-- How to use -->
+    <section class="cst-section">
+      <div class="cst-section-title">Comment utiliser le Constellium</div>
+      <div class="cst-steps">
+        <div class="cst-step"><span class="cst-step-num">1.</span><span class="cst-step-text">Observe le marché.</span></div>
+        <div class="cst-step"><span class="cst-step-num">2.</span><span class="cst-step-text">Ne cherche pas à prédire.</span></div>
+        <div class="cst-step"><span class="cst-step-num">3.</span><span class="cst-step-text">Choisis simplement ce que tu vois.</span></div>
+        <div class="cst-step"><span class="cst-step-num">4.</span><span class="cst-step-text">Si tu hésites, choisis le niveau le plus prudent.</span></div>
+        <div class="cst-step"><span class="cst-step-num">5.</span><span class="cst-step-text">Si plusieurs champs sont flous, ne fais rien.</span></div>
+      </div>
+    </section>
+
+    <!-- Final rule -->
+    <section class="cst-section">
+      <div class="cst-rule-block">
+        <div class="cst-rule-label">Règle du Caméléon</div>
+        <div class="cst-rule-main">si tu ne sais pas remplir,<br><em>tu ne dois pas agir.</em></div>
+        <div class="cst-rule-sub">L'absence de décision est déjà une décision.</div>
+      </div>
+    </section>
+
+    <div class="cst-divider"></div>
+
+    <!-- Quick recap -->
+    <section class="cst-section">
+      <div class="cst-section-title">Lecture rapide</div>
+      <div class="cst-recap">
+        <div class="cst-recap-item">
+          <div class="cst-recap-name">Éther</div>
+          <div class="cst-recap-question">Tout est-il aligné ou contradictoire ?</div>
+        </div>
+        <div class="cst-recap-item">
+          <div class="cst-recap-name">Feu</div>
+          <div class="cst-recap-question">Le marché pousse-t-il vraiment ?</div>
+        </div>
+        <div class="cst-recap-item">
+          <div class="cst-recap-name">Air</div>
+          <div class="cst-recap-question">Vois-tu un setup clair ?</div>
+        </div>
+        <div class="cst-recap-item">
+          <div class="cst-recap-name">Terre</div>
+          <div class="cst-recap-question">Le niveau tient-il vraiment ?</div>
+        </div>
+        <div class="cst-recap-item" style="grid-column: 1 / -1;">
+          <div class="cst-recap-name">Eau</div>
+          <div class="cst-recap-question">Y a-t-il un danger caché ?</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Warning -->
+    <section class="cst-section">
+      <div class="cst-warning">
+        <div class="cst-warning-intro">Si tu ne sais pas comment remplir ces champs :</div>
+        <ul class="cst-warning-rules">
+          <li>→ ne fais rien</li>
+          <li>→ observe uniquement</li>
+        </ul>
+        <div class="cst-warning-note">Une mauvaise lecture crée une mauvaise décision.</div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>

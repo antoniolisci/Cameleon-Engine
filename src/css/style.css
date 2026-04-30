@@ -1803,6 +1803,241 @@ h1 {
   line-height: 1.55;
 }
 
+.prefill-warning {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: #1a1208;
+  border: 1px solid #3a2a10;
+  border-left: 3px solid #a06020;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
+.prefill-warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.prefill-warning-body strong {
+  display: block;
+  color: #c89050;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.prefill-warning-body p {
+  margin-bottom: 4px;
+}
+
+.prefill-warning-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Constellium Panel ───────────────────────────────────────────────── */
+
+.cst-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 480px;
+  min-width: 420px;
+  max-width: 520px;
+  z-index: 9999;
+  pointer-events: none;
+}
+.cst-panel[hidden] { display: none; }
+.cst-panel.active  { pointer-events: auto; }
+
+@media (max-width: 700px) {
+  .cst-panel {
+    width: 92vw;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+.cst-panel-card {
+  position: relative;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(12,16,28,0.98), rgba(6,8,14,0.98));
+  border-left: 1px solid rgba(245,208,111,0.28);
+  box-shadow:
+    -18px 0 44px rgba(0,0,0,0.75),
+    inset 1px 0 0 rgba(255,255,255,0.04);
+  padding: 28px 24px;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+  color: #e6e8ef;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245,208,111,0.35) transparent;
+}
+.cst-panel-card::-webkit-scrollbar        { width: 6px; }
+.cst-panel-card::-webkit-scrollbar-track  { background: transparent; }
+.cst-panel-card::-webkit-scrollbar-thumb  {
+  background: rgba(245,208,111,0.28);
+  border-radius: 999px;
+}
+.cst-panel.active .cst-panel-card { transform: translateX(0); }
+
+.cst-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #c8cad4;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.cst-close-btn:hover {
+  color: #ffffff;
+  border-color: rgba(245,208,111,0.35);
+  background: rgba(245,208,111,0.08);
+}
+
+.cst-panel-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+  padding-right: 60px;
+}
+
+.cst-sub {
+  font-size: 12px;
+  color: #9aa0b3;
+  font-style: italic;
+  margin: 0 0 18px;
+}
+
+/* ── Explanation inner content ─────────────────────────────────────── */
+
+.cst-expl {
+  font-size: 13px;
+}
+
+.cst-context-line {
+  background: rgba(245,208,111,0.08);
+  border: 1px solid rgba(245,208,111,0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #f5d06f;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.cst-expl-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cst-expl-row {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+.cst-expl-row:hover { border-color: rgba(245,208,111,0.22); }
+
+.cst-expl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.cst-expl-label {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cst-expl-value {
+  color: #f5d06f;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(245,208,111,0.10);
+  border: 1px solid rgba(245,208,111,0.24);
+  white-space: nowrap;
+}
+
+.cst-expl-desc {
+  color: #bfc3d4;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+.cst-expl-sentence {
+  color: #8f96aa;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+
+.cst-expl-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  color: #4a4c62;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.cst-legal-block {
+  margin-top: 20px;
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #bfc3d4;
+}
+
+.cst-legal-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f5d06f;
+  margin-bottom: 10px;
+}
+
+.cst-legal-block p {
+  margin: 0 0 10px;
+}
+
+.cst-legal-block p:last-child {
+  margin-bottom: 0;
+}
+
 .tab-btn {
   border-radius: 999px;
   padding: 11px 16px;
