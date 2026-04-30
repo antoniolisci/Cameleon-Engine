@@ -1182,25 +1182,12 @@ h1 {
   gap: 24px;
 }
 
-.moteur-flow > .verdict-shell {
-  order: 1;
-}
-
-.moteur-flow > .master-card {
-  order: 2;
-}
-
-.moteur-flow > .structured-shell {
-  order: 3;
-}
-
-.moteur-flow > .publications-shell {
-  order: 4;
-}
-
-.moteur-flow > .navigation-shell {
-  order: 5;
-}
+.moteur-flow > .verdict-shell       { order: 1; }
+.moteur-flow > .pourquoi-shell      { order: 2; }
+.moteur-flow > .master-card         { order: 3; }
+.moteur-flow > .structured-shell    { order: 4; }
+.moteur-flow > .publications-shell  { order: 5; }
+.moteur-flow > .navigation-shell    { order: 6; }
 
 .stack,
 .side-panel,
@@ -5187,6 +5174,65 @@ body {
   opacity: 1;
 }
 
+.market-filter-warning {
+  font-size: 11px;
+  color: #e57373;
+  opacity: 0.8;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* ── Behaviour visual priority hierarchy — 5 états ──────────────────────────
+   Source: #hero-split[data-bhv-state] + body[data-behavior-state]
+           set by _applyBehaviorStateSweep() at end of render().
+   Priority: OVERTRADING > FOMO > STRESS > NEUTRE > CALME.
+   OVERTRADING — critical stop (opacity 0.4, red glow on LDC card)
+   FOMO        — hard block   (opacity 0.5, red glow on LDC card)
+   STRESS      — soft block   (opacity 0.72, amber glow on LDC card)
+   NEUTRE/CALME — no override
+   No layout change. No reflow. Opacity transition only.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* OVERTRADING — market block severely dimmed (full stop state) */
+#hero-split[data-bhv-state="overtrading"] .hero-block.hero-market {
+  opacity: 0.4;
+  transition: opacity 0.25s;
+}
+
+/* FOMO — market block secondary (verdict visible but not primary) */
+#hero-split[data-bhv-state="fomo"] .hero-block.hero-market {
+  opacity: 0.5;
+  transition: opacity 0.25s;
+}
+
+/* STRESS — market block attenuated (~70%) */
+#hero-split[data-bhv-state="stress"] .hero-block.hero-market {
+  opacity: 0.72;
+  transition: opacity 0.25s;
+}
+
+/* OVERTRADING — LDC card: critical red glow (may not be triggered by decisionState) */
+body[data-behavior-state="overtrading"] .hero-bottom-zone > .lecture-day-card {
+  box-shadow:
+    0 0 0 1px rgba(210, 55, 55, 0.65),
+    0 10px 40px rgba(210, 55, 55, 0.28) !important;
+  border-color: rgba(210, 55, 55, 0.45) !important;
+}
+
+/* FOMO — LDC blocked card: red glow → visual dominance */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] {
+  box-shadow:
+    0 0 0 1px rgba(210, 55, 55, 0.5),
+    0 8px 36px rgba(210, 55, 55, 0.2) !important;
+}
+
+/* STRESS — LDC protect card: amber glow (L2 priority) */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] {
+  box-shadow:
+    0 0 0 1px rgba(210, 140, 30, 0.38),
+    0 6px 24px rgba(210, 140, 30, 0.16) !important;
+}
+
 .status-aligned  { color: #00ff88; }
 .status-ready    { color: #4fa8ff; }
 .status-tension  { color: #ffaa00; }
@@ -7215,4 +7261,102 @@ body[data-behavior-pattern="drift"]::before {
 body[data-behavior-pattern="discipline"]::before {
   opacity: calc(0.11 * var(--behavior-intensity));
   background: radial-gradient(circle at 50% 30%, rgba(0,245,212,0.20), transparent 55%);
+}
+
+/* ── Lecture & Décision — card fusion ────────────────────────────────── */
+
+.pourquoi-shell {
+  border-color: rgba(var(--state-rgb), 0.24);
+}
+
+/* STATUS colors */
+.status-green  { color: #22c55e; font-weight: 600; text-shadow: 0 0 8px rgba(34,197,94,0.4); }
+.status-orange { color: #f59e0b; font-weight: 600; text-shadow: 0 0 8px rgba(245,158,11,0.4); }
+.status-red    { color: #ef4444; font-weight: 600; text-shadow: 0 0 8px rgba(239,68,68,0.4); }
+
+@keyframes statusBreath {
+  0%   { opacity: 0.85; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.85; }
+}
+.status-green,
+.status-orange,
+.status-red { animation: statusBreath 2.5s ease-in-out infinite; }
+
+/* Primary zone — STATUS + phrase centrale */
+#whyDecisionPrimary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.why-status-label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.why-central-phrase {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Secondary — sections list */
+#whyDecisionSecondary {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.why-decision-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.why-decision-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.why-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.why-section-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+}
+
+.why-bhv-risk {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.why-action-strong {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.why-action-detail {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
 }

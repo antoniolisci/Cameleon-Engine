@@ -1,6 +1,6 @@
 import { MARKET_DICTIONARY } from "./dictionary.js";
 import { OVERTRADING_DICT } from "./overtrading-dictionary.js";
-import { getBehaviorMatrixEntry } from "./behavior/behavior-matrix.js";
+import { getBehaviorMatrixEntry, getDisciplineImage } from "./behavior/behavior-matrix.js";
 import { updateBehavior, resetBehavior } from "./behavior.js";
 import { getAdaptiveMessage } from "./tone.js";
 import {
@@ -2115,6 +2115,34 @@ function renderHero(payload) {
   setText("market-regime",  cockpit.market.label);
   setText("market-score",   String(payload.score));
   setText("market-verdict", cockpit.market.verdict);
+
+  // ── Behaviour filter warning — visual override only ──────────────────
+  // Soft warning inserted below "Verdict" when emotion_state is fomo or stress.
+  // Does not alter verdict text, engine output, or any scoring/decision logic.
+  (function () {
+    const verdictRow = $("market-verdict")?.parentElement;
+    if (!verdictRow) return;
+    let filterEl = verdictRow.parentElement?.querySelector(".market-filter-warning");
+    if (!filterEl) {
+      filterEl = document.createElement("div");
+      filterEl.className = "market-filter-warning";
+      verdictRow.insertAdjacentElement("afterend", filterEl);
+    }
+    const _emo = (payload.emotion_state || "").toLowerCase();
+    if (_emo === "fomo") {
+      filterEl.textContent = "Filtre comportemental actif — opportunité bloquée";
+      filterEl.hidden = false;
+      filterEl.style.opacity = "0.3"; // redundant with STOP card — dimmed to L3
+    } else if (_emo === "stress") {
+      filterEl.textContent = "Tension détectée — opportunité non exploitable";
+      filterEl.hidden = false;
+      filterEl.style.opacity = ""; // full L2 visibility for stress
+    } else {
+      filterEl.hidden = true;
+      filterEl.style.opacity = "";
+    }
+  })();
+
   setText("market-context", cockpit.market.description || "-");
   setText("decision-status",     tradingStatusFormatted);
   setText("decision-posture",    cockpit.market.posture);
@@ -2156,6 +2184,21 @@ function renderHero(payload) {
   if (heroSection) {
     const isWarning = ["BLOCKED", "PROTECT", "TENSION"].includes(decisionState.state);
     heroSection.classList.toggle("hero-warning", isWarning);
+  }
+
+  // ── Behaviour visual hierarchy — data-bhv-state on #hero-split ───────────
+  // CSS uses this to dim the market block when emotion takes priority.
+  // No engine or scoring logic involved.
+  const _heroSplitEl = $("hero-split");
+  if (_heroSplitEl) {
+    _heroSplitEl.dataset.bhvState = (payload.emotion_state || "neutral").toLowerCase();
+  }
+
+  // FOMO hard block — override all visible action labels to "Observer uniquement".
+  // Visual consistency only. Payload, engine, and decision logic are untouched.
+  if ((payload.emotion_state || "").toLowerCase() === "fomo") {
+    setText("heroDecisionAction", "Observer uniquement");
+    setText("decision-action",    "Observer uniquement");
   }
 
   // P4 — contexte snapshotable mis à jour (enregistrement manuel uniquement)
@@ -2686,58 +2729,97 @@ function renderDecisionPanel() {
 }
 
 function buildWhyReasons(payload) {
-  const candidates = [];
+  const emotion      = payload.emotion_state || 'neutral';
+  const market       = (payload.market_state || 'range').toLowerCase();
+  const risk         = payload.trigger_level || 'Faible';
+  const score        = payload.score ?? 50;
+  const instantLevel = payload.behavior?.overtradingLevel || 1;
+  // effectiveLevel — mirrors visual layer: calm caps behavioral display at 2.
+  const effectiveLevel = (emotion === 'calm') ? Math.min(instantLevel, 2) : instantLevel;
 
-  if (payload.validation?.state === "rejected")
-    candidates.push({ key: "validation", priority: 100, text: "Validation refusée. Aucune entrée n'est méritée." });
+  // ── Override: validation refusée ────────────────────────────────────
+  if (payload.validation?.state === 'rejected') {
+    return [
+      { text: 'PROTECTION' },
+      { text: 'Validation refusée. Aucune condition d\'entrée n\'est remplie.' },
+      { text: 'Risque : entrée sans cadre validé.' },
+      { text: 'Action : aucune position. Reprendre uniquement après validation.' }
+    ];
+  }
 
-  const alignment = payload.alignment || "";
-  if (alignment === "Veto humain")
-    candidates.push({ key: "veto", priority: 95, text: "Veto humain actif. La décision revient au trader." });
+  // ── Override: veto humain ────────────────────────────────────────────
+  if ((payload.alignment || '') === 'Veto humain') {
+    return [
+      { text: 'ATTENTE' },
+      { text: 'Veto humain actif. La décision revient au trader.' },
+      { text: 'Risque : agir contre son propre cadre.' },
+      { text: 'Action : attendre la levée du veto avant toute exécution.' }
+    ];
+  }
 
-  const stateLabels = {
-    range:       "Pas de signal exploitable. Rester en dehors évite un risque inutile.",
-    compression: "Le marché se construit. Attendre est parfois la meilleure décision.",
-    expansion:   "Momentum présent. Entrer uniquement sur signal propre et validé.",
-    defense:     "Contexte risqué. Le risque impose une réduction d'exposition immédiate.",
-    riskoff:     "Marché hostile. Le capital doit être protégé en priorité."
+  // ── STATUS — PROTECTION / EXECUTION / ATTENTE ────────────────────────
+  const isProtection = effectiveLevel >= 4
+    || market === 'defense'
+    || market === 'riskoff';
+
+  const isExecution = !isProtection
+    && market === 'expansion'
+    && score > 70
+    && (emotion === 'calm' || emotion === 'neutral')
+    && effectiveLevel <= 2;
+
+  const status = isProtection ? 'PROTECTION' : isExecution ? 'EXECUTION' : 'ATTENTE';
+
+  // ── Contexte marché ──────────────────────────────────────────────────
+  const contextMap = {
+    expansion:   risk === 'Élevé'
+      ? 'Momentum présent, mais risque élevé sur le contexte global.'
+      : 'Momentum présent. Structure favorable à une lecture directionnelle.',
+    range:       'Marché sans signal exploitable. Aucune opportunité qualifiée.',
+    compression: 'Marché en attente de direction. Structure en construction.',
+    defense:     'Contexte de correction actif. Pression vendeuse dominante.',
+    riskoff:     'Marché hostile. Aversion au risque généralisée.'
   };
-  const stateKey = (payload.market_state || "range").toLowerCase();
-  if (stateLabels[stateKey])
-    candidates.push({ key: "state", priority: 80, text: stateLabels[stateKey] });
+  const context = contextMap[market] || 'Contexte non qualifié. Observer avant d\'agir.';
 
-  const risk = payload.trigger_level || "";
-  if (risk === "Élevé")
-    candidates.push({ key: "risk", priority: 70, text: "Risque élevé. L'exposition doit être réduite, pas augmentée." });
-  else if (risk === "Moyen")
-    candidates.push({ key: "risk", priority: 60, text: "Risque moyen. Taille normale, aucune prise de risque supplémentaire." });
+  // ── Risque ───────────────────────────────────────────────────────────
+  let riskText;
+  if (effectiveLevel >= 4) {
+    riskText = 'Risque : pression comportementale critique. Surexposition probable.';
+  } else if (emotion === 'fomo') {
+    riskText = 'Risque : entrée impulsive sur mouvement déjà amorcé.';
+  } else if (emotion === 'stress') {
+    riskText = 'Risque : décision réactive sous pression émotionnelle.';
+  } else if (emotion === 'calm' && isExecution) {
+    riskText = 'Risque : faible. Filtre émotionnel validé, contexte favorable.';
+  } else if (emotion === 'calm') {
+    riskText = 'Risque : contexte marché uniquement. Opérateur stable.';
+  } else {
+    riskText = 'Risque : modéré. Aucun biais détecté, signal à confirmer.';
+  }
 
-  const score = payload.score ?? 50;
-  if (score < 30)
-    candidates.push({ key: "score", priority: 55, text: "Score insuffisant. Sans signal clair, aucune entrée n'est justifiée." });
-  else if (score < 50)
-    candidates.push({ key: "score", priority: 50, text: "Confiance modérée. Forcer une position augmente le risque inutilement." });
-  else if (score < 70)
-    candidates.push({ key: "score", priority: 45, text: "Score acceptable. Observer sans précipiter la décision." });
-  else
-    candidates.push({ key: "score", priority: 40, text: "Score solide. Le contexte mérite une décision structurée." });
+  // ── Action ───────────────────────────────────────────────────────────
+  let action;
+  if (status === 'PROTECTION' && (market === 'defense' || market === 'riskoff')) {
+    action = 'Action : pas d\'entrée nouvelle. Protéger le capital en priorité.';
+  } else if (status === 'PROTECTION' && effectiveLevel >= 4) {
+    action = 'Action : stopper toute nouvelle position. Réduire l\'exposition immédiatement.';
+  } else if (status === 'EXECUTION') {
+    action = 'Action : exécution possible. Signal confirmé requis. Taille légère.';
+  } else if (emotion === 'fomo') {
+    action = 'Action : ne pas entrer. Attendre un signal propre sans pression émotionnelle.';
+  } else if (emotion === 'stress') {
+    action = 'Action : pause obligatoire. Reprendre uniquement après stabilisation.';
+  } else {
+    action = 'Action : observer uniquement. Attendre un signal clair avant d\'agir.';
+  }
 
-  const emotion = payload.emotion_state || "";
-  if (emotion === "stress")
-    candidates.push({ key: "emotion", priority: 35, text: "État de stress. Agir sous pression augmente le risque d'erreur." });
-  else if (emotion === "fomo")
-    candidates.push({ key: "emotion", priority: 35, text: "FOMO détecté. Forcer une entrée émotionnelle est risqué." });
-  else if (emotion === "calm")
-    candidates.push({ key: "emotion", priority: 10, text: "État calme. Le filtre émotionnel est validé." });
-
-  if (alignment === "Fragile")
-    candidates.push({ key: "alignment", priority: 30, text: "Alignement fragile. Signal peu fiable, observer seulement." });
-
-  const fire = payload.constellium?.fire || "";
-  if (fire === "weak")
-    candidates.push({ key: "btc", priority: 20, text: "Constellium faible. La confirmation est insuffisante pour agir." });
-
-  return candidates.sort((a, b) => b.priority - a.priority).slice(0, 3);
+  return [
+    { text: status },
+    { text: context },
+    { text: riskText },
+    { text: action }
+  ];
 }
 
 function renderWhyDecision(payload) {
@@ -2745,20 +2827,76 @@ function renderWhyDecision(payload) {
   const secondary = $("whyDecisionSecondary");
   if (!primary || !secondary) return;
 
-  primary.textContent = "";
+  primary.innerHTML = "";
+  primary.classList.remove('status-green', 'status-orange', 'status-red');
   secondary.innerHTML = "";
 
   const reasons = buildWhyReasons(payload);
   if (!reasons.length) return;
 
-  primary.textContent = reasons[0].text;
+  const statusText = reasons[0].text;
 
-  reasons.slice(1).forEach((r) => {
-    const li = document.createElement("li");
-    li.className = "why-decision-item";
-    li.textContent = r.text;
+  // ── STATUS + phrase centrale ─────────────────────────────────────────
+  const statusMap = {
+    'EXECUTION':  { icon: '🟢', cls: 'status-green',  phrase: 'SIGNAL CONFIRMÉ — EXÉCUTION POSSIBLE' },
+    'ATTENTE':    { icon: '🟡', cls: 'status-orange', phrase: 'AUCUNE OPPORTUNITÉ VALIDÉE'            },
+    'PROTECTION': { icon: '🔴', cls: 'status-red',    phrase: 'CAPITAL À PROTÉGER EN PRIORITÉ'       }
+  };
+  const sm = statusMap[statusText];
+  if (sm) {
+    primary.classList.add(sm.cls);
+    primary.innerHTML =
+      `<span class="why-status-label">${sm.icon} ${statusText}</span>` +
+      `<span class="why-central-phrase">${sm.phrase}</span>`;
+  } else {
+    primary.textContent = statusText;
+  }
+
+  // ── Helper: section li with label + content ──────────────────────────
+  function addSection(icon, label, htmlContent) {
+    const li = document.createElement('li');
+    li.className = 'why-decision-item';
+    li.innerHTML =
+      `<span class="why-section-label">${icon} ${label}</span>` +
+      `<span class="why-section-text">${htmlContent}</span>`;
     secondary.appendChild(li);
-  });
+  }
+
+  // ── CONTEXTE ─────────────────────────────────────────────────────────
+  if (reasons[1]) addSection('📊', 'CONTEXTE', reasons[1].text);
+
+  // ── RISQUE ───────────────────────────────────────────────────────────
+  if (reasons[2]) {
+    addSection('⚠️', 'RISQUE', reasons[2].text.replace(/^Risque\s*:\s*/i, ''));
+  }
+
+  // ── COMPORTEMENT — état utilisateur uniquement (payload.emotion_state)
+  // Source : emotion_state déclaré par l'opérateur dans le formulaire courant.
+  // Ne dépend ni du score marché, ni de overtradingLevel, ni de localStorage.
+  const _bhvEmotionMap = {
+    calm:    { state: 'Calme',        risk: 'Aucun biais comportemental détecté' },
+    neutral: { state: 'Observation',  risk: 'Aucun biais fort détecté' },
+    stress:  { state: 'Sous tension', risk: 'Décision réactive possible' },
+    fomo:    { state: 'FOMO actif',   risk: "Risque d'entrée impulsive" }
+  };
+  const _bhvKey = (payload.emotion_state || 'neutral').toLowerCase();
+  const bhv = _bhvEmotionMap[_bhvKey] || _bhvEmotionMap['neutral'];
+  addSection('🧠', 'COMPORTEMENT',
+    `${bhv.state}<br><span class="why-bhv-risk">Risque : ${bhv.risk}</span>`);
+
+  // ── ACTION — texte fort selon statut + détail ─────────────────────────
+  const strongMap = {
+    'EXECUTION':  'EXÉCUTION POSSIBLE — TAILLE LÉGÈRE',
+    'ATTENTE':    'NE PAS TRADER',
+    'PROTECTION': 'PROTÉGER LE CAPITAL'
+  };
+  const strong = strongMap[statusText] || '';
+  const detail = reasons[3] ? reasons[3].text.replace(/^Action\s*:\s*/i, '') : '';
+  const actionHtml = strong
+    ? `<strong class="why-action-strong">${strong}</strong>` +
+      (detail ? `<br><span class="why-action-detail">${detail}</span>` : '')
+    : (detail || '—');
+  addSection('🎯', 'ACTION', actionHtml);
 }
 
 function getDecisionAwareActionPlan(payload) {
@@ -4046,6 +4184,132 @@ function render() {
   renderBehaviorRepetition();
   sanitizeVisibleText();
 
+  // ── BEHAVIOUR STATE — unified 5-state visual sweep ──────────────────────
+  // Last operation in render(), runs after ALL sub-functions.
+  // Derives effective behavioral state and overrides all visible action labels.
+  // Priority: OVERTRADING > FOMO > STRESS > NEUTRE > CALME.
+  // Sources: payload.behavior.overtradingLevel (instant) + localStorage guardLevel (historical).
+  // Payload, engine, scoring, decision logic: untouched.
+  (function _applyBehaviorStateSweep() {
+
+    // ── Derive behavioral state ────────────────────────────────────────
+    let _otLevel = currentPayload?.behavior?.overtradingLevel || 1;
+    try {
+      const _rawLvl = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevel'));
+      const _rawTs  = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevelUpdatedAt'));
+      const _7D = 7 * 24 * 60 * 60 * 1000;
+      if (typeof _rawLvl === 'number' && _rawLvl >= 1 && _rawLvl <= 5
+       && typeof _rawTs  === 'number' && (Date.now() - _rawTs) < _7D) {
+        _otLevel = Math.max(_otLevel, _rawLvl);
+      }
+    } catch { /* localStorage unavailable */ }
+
+    const _emo = (currentPayload?.emotion_state || 'neutral').toLowerCase();
+    const _bhvState =
+      _otLevel >= 4       ? 'OVERTRADING'
+      : _emo === 'fomo'   ? 'FOMO'
+      : _emo === 'stress' ? 'STRESS'
+      : _emo === 'neutral' ? 'NEUTRE'
+      : 'CALME';
+
+    // Global CSS hook — body[data-behavior-state]
+    document.body.dataset.behaviorState = _bhvState.toLowerCase();
+
+    // Sync #hero-split[data-bhv-state] — authoritative source (overrides renderHero emotion-only value)
+    const _heroSplitEl = $('hero-split');
+    if (_heroSplitEl) _heroSplitEl.dataset.bhvState = _bhvState.toLowerCase();
+
+    // ── Mapping per state ────────────────────────────────────────────────
+    const _BHV_MAP = {
+      OVERTRADING: {
+        action:       'STOP — fermer la plateforme',
+        ltAction:     'Arrêt total — aucune action',
+        ltStatus:     'Arrêt total',
+        execType:     'Aucune exécution',
+        agentAction:  'Stopper. Fermer. Ne pas reouvrir.',
+        heroAllowed:  'STOP — aucune nouvelle position',
+        heroPriority: 'Stop comportemental',
+        allowedList:  ['STOP — fermer la plateforme'],
+        // LDC override: decisionState may not reflect overtradingLevel
+        ldcMain:      '⛔ Stop comportemental',
+        ldcSub:       'Overtrading détecté — aucune nouvelle position autorisée.',
+        ldcState:     'blocked'
+      },
+      FOMO: {
+        action:       'Observer uniquement',
+        ltAction:     'Observer uniquement — aucune exécution',
+        ltStatus:     'En pause',
+        execType:     'Aucune exécution',
+        agentAction:  'Observer. Ne pas entrer.',
+        heroAllowed:  'Observer uniquement',
+        heroPriority: 'Pause obligatoire',
+        allowedList:  ['Observer uniquement'],
+        ldcMain:      null, // getHeroCopy() already outputs correct text for fomo
+        ldcSub:       null,
+        ldcState:     null
+      },
+      STRESS: {
+        action:       'Réduire / attendre',
+        ltAction:     "Réduire l'exposition",
+        ltStatus:     'Exposition réduite',
+        execType:     'Réduit — surveillance uniquement',
+        agentAction:  'Réduire. Ne pas forcer.',
+        heroAllowed:  'Réduire / attendre',
+        heroPriority: 'Tension détectée',
+        allowedList:  ['Réduire / attendre'],
+        ldcMain:      null, // getHeroCopy() already outputs correct text for stress
+        ldcSub:       null,
+        ldcState:     null
+      }
+      // NEUTRE / CALME: no entry → no override
+    };
+
+    const _map = _BHV_MAP[_bhvState];
+    if (!_map) return; // CALME / NEUTRE — UI unchanged
+
+    // ── Apply overrides — all action-carrying DOM IDs ─────────────────
+    // Core action labels (hero, split, mantra, navigation, pilotage, score)
+    setText('verdictNext',            _map.action);
+    setText('heroDecisionAction',     _map.action);
+    setText('decision-action',        _map.action);
+    setText('mantraOperationnelMain', _map.action);
+    setText('tradingStatusNote',      _map.action);
+    setText('executionFrame',         _map.action);
+    setText('action',                 _map.action);
+    setText('score-action',           _map.action);
+    setText('cs-action',              _map.action);
+
+    // Live trade management (gestion de position)
+    setText('ltImmediateAction', _map.ltAction);
+    setText('ltTradeStatus',     _map.ltStatus);
+
+    // Execution level panel
+    setText('execActionType', _map.execType);
+
+    // Sidebar — active agent
+    setText('active-agent-action', _map.agentAction);
+
+    // Hero overlay (static in HTML — set dynamically here)
+    setText('heroAllowedDetail',  _map.heroAllowed);
+    setText('heroPriorityDetail', _map.heroPriority);
+
+    // Allowed actions list (actions autorisées)
+    renderList('allowedActions', _map.allowedList);
+
+    // rules-allowed (renderAgentRules innerHTML — replace text only, no reflow)
+    const _rulesEl = $('rules-allowed');
+    if (_rulesEl) _rulesEl.textContent = _map.action;
+
+    // LDC card override — only when decisionState doesn't already reflect the state
+    if (_map.ldcMain) setText('lectureDayMain', _map.ldcMain);
+    if (_map.ldcSub)  setText('lectureDaySub',  _map.ldcSub);
+    if (_map.ldcState) {
+      const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
+      if (_ldcCard) _ldcCard.dataset.ldcState = _map.ldcState;
+    }
+
+  })();
+
   // ── Overtrading Block — Merged Behavior Guard ────────────────────────
   // The final level is the MAX of two independent sources:
   //   1. Instant Guard  — computed by engine.js / buildPayload() on every run.
@@ -4074,7 +4338,14 @@ function render() {
   } catch { /* localStorage unavailable — stay at 1 */ }
 
   const level = Math.max(instantLevel, historicalLevel);
-  const data = OVERTRADING_DICT[level];
+
+  // Protective UX — émotion calme plafonne le niveau visuel à 2.
+  // L'opérateur calme ne doit pas voir "Sur-engagement" ou "Saturation".
+  // Les effets moteur (engagement REDUCED, etc.) restent basés sur le level réel.
+  const _emotion = appState?.form?.emotion || '';
+  const effectiveLevel = (_emotion === 'calm') ? Math.min(level, 2) : level;
+
+  const data = OVERTRADING_DICT[effectiveLevel];
 
   // ── Behavior Matrix V3 — hardened dynamic pattern routing ────────────
   // Text fields (state/message/risk/action) are sourced from BEHAVIOR_MATRIX.
@@ -4094,7 +4365,7 @@ function render() {
     const _patFresh   = typeof _rawPatTs === 'number' && (Date.now() - _rawPatTs) < _SEVEN_DAYS_MS;
     if (_patValid && _patFresh) _pattern = _rawPattern;
   } catch { /* localStorage unavailable — stay at OVERTRADING */ }
-  const matrixEntry = getBehaviorMatrixEntry(_pattern, level);
+  const matrixEntry = getBehaviorMatrixEntry(_pattern, effectiveLevel);
   // Traceability: expose active pattern as data attribute on the existing block element.
   // No layout change — data-ot-pattern is a DevTools-visible hook only.
   // ─────────────────────────────────────────────────────────────────────
@@ -4113,61 +4384,69 @@ function render() {
   }
 
   const streakCount  = overtradingStreak.count;
-  const isIntense    = streakCount >= 3 && level >= 3;
-  const isCritical   = (streakCount >= 5 && level >= 4) || (level === 5 && streakCount >= 3);
+  const isIntense    = streakCount >= 3 && effectiveLevel >= 3;
+  const isCritical   = (streakCount >= 5 && effectiveLevel >= 4) || (effectiveLevel === 5 && streakCount >= 3);
   // ─────────────────────────────────────────────────────────────
 
   // severity class sur le bloc
   const block = document.getElementById("overtrading-block");
   if (block) {
-    block.dataset.otLevel   = level;
+    block.dataset.otLevel   = effectiveLevel;
     block.dataset.otPattern = _pattern;
     block.classList.remove("ot-warning", "ot-alerte", "ot-danger", "ot-intense", "ot-critical");
-    if (level <= 2)       block.classList.add("ot-warning");
-    else if (level === 3) block.classList.add("ot-alerte");
-    else                  block.classList.add("ot-danger");
+    if (effectiveLevel <= 2)       block.classList.add("ot-warning");
+    else if (effectiveLevel === 3) block.classList.add("ot-alerte");
+    else                           block.classList.add("ot-danger");
     if (isCritical)       block.classList.add("ot-critical");
     else if (isIntense)   block.classList.add("ot-intense");
   }
 
-  // badge — signal + streak si intensité active
+  // narration comportementale — état utilisateur uniquement (emotion_state)
+  // Source : currentPayload.emotion_state. Ni localStorage, ni overtradingLevel, ni dominantRisk.
+  const _emotionNarMap = {
+    calm:    { badge: 'LECTURE PROPRE', state: 'Calme',       message: 'Aucune pression comportementale détectée.', risk: 'Aucun biais comportemental', action: 'Continuer à observer. Attendre un signal clair.' },
+    neutral: { badge: 'OBSERVATION',   state: 'Neutre',       message: 'Aucun biais fort détecté.',                 risk: 'Signal émotionnel neutre',    action: 'Observer uniquement. Ne pas anticiper.' },
+    stress:  { badge: 'SOUS PRESSION', state: 'Sous tension', message: 'Pression émotionnelle détectée.',           risk: 'Décision réactive possible',  action: 'Pause courte. Reprendre après stabilisation.' },
+    fomo:    { badge: 'FOMO ACTIF',    state: 'Impulsion',    message: "Risque d'entrée émotionnelle.",             risk: "Entrée impulsive possible",   action: "Ne pas entrer. Attendre un signal propre." }
+  };
+  const _emotionKey = (currentPayload?.emotion_state || 'neutral').toLowerCase();
+  const _nar = _emotionNarMap[_emotionKey] || _emotionNarMap['neutral'];
+
   const badge = document.getElementById("overtrading-badge");
   if (badge) {
-    badge.textContent = isIntense
-      ? `${data.signal || ""} · ${streakCount}×`
-      : (data.signal || "");
+    badge.textContent = _nar.badge;
   }
 
-  // image
+  // image — DISCIPLINE pour level 1–2 (état positif), sinon matrix ou OVERTRADING_DICT
   const img = document.getElementById("overtrading-img");
-  if (img && data.imageTrading) {
-    img.src = data.imageTrading;
+  if (img) {
+    img.src = (effectiveLevel <= 2)
+      ? (getDisciplineImage(effectiveLevel) || matrixEntry?.image || data.imageTrading || '')
+      : (matrixEntry?.image || data.imageTrading || '');
   }
 
-  // etat — matrix source, fallback to dict
+  // etat — état utilisateur depuis emotion_state
   const etat = document.getElementById("overtrading-etat");
   if (etat) {
-    etat.textContent = matrixEntry?.state || data.etat || "";
+    etat.textContent = _nar.state;
   }
 
-  // message — matrix source, fallback to dict
+  // message — état utilisateur depuis emotion_state
   const message = document.getElementById("overtrading-message");
   if (message) {
-    message.textContent = matrixEntry?.message || data.message || "";
+    message.textContent = _nar.message;
   }
 
-  // risque — matrix source, fallback to dict
+  // risque — état utilisateur depuis emotion_state
   const risque = document.getElementById("overtrading-risque");
   if (risque) {
-    risque.textContent = `Risque : ${matrixEntry?.risk || data.risque || ""}`;
+    risque.textContent = `Risque : ${_nar.risk}`;
   }
 
-  // action — matrix source; escalade vers reaction dict si intensité active et matrix absent
+  // action — état utilisateur depuis emotion_state
   const action = document.getElementById("overtrading-action");
   if (action) {
-    const actionText = matrixEntry?.action
-      || (isIntense ? (data.reaction?.[0] || data.action?.[0] || "") : (data.action?.[0] || ""));
-    action.textContent = actionText;
+    action.textContent = _nar.action;
   }
 }
 
