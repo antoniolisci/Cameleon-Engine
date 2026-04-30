@@ -253,6 +253,29 @@ function renderDecision(payload, behaviorState) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── renderOperational ────────────────────────────────────────────────────────
+// Single entry point for all operational panels.
+// FOMO / OVERTRADING: workingPayload forces BLOCKED/NONE — defensive values rendered.
+// STRESS / CALME / NEUTRE: payload passed unchanged — existing logic applies.
+// The 6 operational functions are not modified.
+function renderOperational(payload, behaviorState) {
+  const bhvState = behaviorState || getBehaviorState(payload);
+
+  const workingPayload =
+    (bhvState === 'FOMO' || bhvState === 'OVERTRADING')
+      ? { ...payload, engagement_level: 'NONE',
+          decisionState: { ...(payload.decisionState || {}), state: 'BLOCKED' } }
+      : payload;
+
+  renderExecutionLevel(workingPayload);
+  renderPositionManagement(workingPayload);
+  renderTradeScenarios(workingPayload);
+  renderRiskManagement(workingPayload);
+  renderTradeSetup(workingPayload);
+  renderLiveTradeManagement(workingPayload);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function setText(id, value) {
   const element = $(id);
   if (element) element.textContent = repairMojibake(value ?? "");
@@ -4332,12 +4355,7 @@ function render() {
   renderBehaviorState(currentPayload);
   renderMentalReset(currentPayload);
   applyFocusState(currentPayload);
-  renderExecutionLevel(currentPayload);
-  renderPositionManagement(currentPayload);
-  renderTradeScenarios(currentPayload);
-  renderRiskManagement(currentPayload);
-  renderTradeSetup(currentPayload);
-  renderLiveTradeManagement(currentPayload);
+  renderOperational(currentPayload, getBehaviorState(currentPayload));
   renderJournalDecision(currentPayload);
   renderDecisionHistory();
   renderDecisionInsights();
