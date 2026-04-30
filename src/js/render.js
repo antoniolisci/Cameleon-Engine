@@ -141,6 +141,118 @@ function renderBehaviorCard(payload, behaviorState, mode = 'block') {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── renderDecision ───────────────────────────────────────────────────────────
+// Authoritative source for all decision/action IDs listed below.
+// Called once in render(), after context-rendering functions.
+// CALME/NEUTRE: pass-through — identical values to former source functions.
+// STRESS/FOMO/OVERTRADING: behavioral values applied at first write, no sweep.
+// Owned IDs removed from renderHero, renderStructuredReading, renderNavigation,
+// renderPilotage, renderRightRail, renderActiveAgent.
+// CSS hooks (body.dataset.behaviorState, #hero-split[data-bhv-state]) also here.
+function renderDecision(payload, behaviorState) {
+  const cockpit  = getCockpitModel(payload);
+  const bhvState = behaviorState || getBehaviorState(payload);
+
+  // ── Pass-through values (market-derived, CALME/NEUTRE) ───────────────────
+  const _marketAction = cockpit.market.action;
+  const _execAction   = simplifyText(payload.action_recommended);
+  const _allowedList  = [cockpit.market.action, payload.action_recommended];
+
+  // Decision headlines — formerly renderRightRail
+  const _dict       = MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {};
+  const _decCopy    = getDecisionCopy(payload);
+  const _baseTitle  = _dict.decision?.centrale || _decCopy.title;
+  const _INTENT_MAP = {
+    RANGE: 'intent-neutral', COMPRESSION: 'intent-wait', BREAKOUT: 'intent-wait',
+    TREND: 'intent-wait',    DEFENSE:     'intent-danger', CHAOS:  'intent-danger',
+    UNKNOWN: 'intent-neutral'
+  };
+  const _intentCls = _INTENT_MAP[cockpit.marketKey] || 'intent-neutral';
+
+  // Agent action — formerly renderActiveAgent
+  const _agent       = payload ? getActiveAgent(payload.decision) : 'OBSERVER';
+  const _agentAction = getAgentAction(_agent);
+
+  // ── Behavioral overrides (STRESS / FOMO / OVERTRADING) ───────────────────
+  const _BHV = {
+    OVERTRADING: {
+      action:      'STOP — fermer la plateforme',
+      allowed:     ['STOP — fermer la plateforme'],
+      title:       '⛔ Stop comportemental',
+      intentCls:   'intent-danger',
+      agentAction: 'Stopper. Fermer. Ne pas rouvrir.',
+      heroAllowed: 'STOP — aucune nouvelle position',
+      heroPrio:    'Stop comportemental'
+    },
+    FOMO: {
+      action:      'Observer uniquement',
+      allowed:     ['Observer uniquement'],
+      title:       null,
+      intentCls:   null,
+      agentAction: 'Observer. Ne pas entrer.',
+      heroAllowed: 'Observer uniquement',
+      heroPrio:    'Pause obligatoire'
+    },
+    STRESS: {
+      action:      'Réduire / attendre',
+      allowed:     ['Réduire / attendre'],
+      title:       null,
+      intentCls:   null,
+      agentAction: 'Réduire. Ne pas forcer.',
+      heroAllowed: 'Réduire / attendre',
+      heroPrio:    'Tension détectée'
+    }
+  };
+  const _o = _BHV[bhvState] || null; // null for CALME/NEUTRE
+
+  // ── Resolve final values ──────────────────────────────────────────────────
+  const finalAction    = _o?.action      ?? _marketAction;
+  const finalAllowed   = _o?.allowed     ?? _allowedList;
+  const finalTitle     = _o?.title       ?? _baseTitle;
+  const finalIntentCls = _o?.intentCls   ?? _intentCls;
+  const finalAgentAct  = _o?.agentAction ?? _agentAction;
+
+  // ── Group A — action labels ───────────────────────────────────────────────
+  setText('verdictNext',            finalAction);
+  setText('heroDecisionAction',     finalAction);
+  setText('decision-action',        finalAction);
+  setText('mantraOperationnelMain', finalAction);
+  setText('tradingStatusNote',      finalAction);
+  setText('action',                 finalAction);
+  setText('executionFrame',         _o ? finalAction : _execAction);
+  renderList('allowedActions',      finalAllowed);
+
+  // ── Group B — decision headlines ─────────────────────────────────────────
+  setTextTwoLines('decisionSummaryHeadline', finalTitle, finalIntentCls);
+  setTextTwoLines('decisionPanel',           finalTitle, finalIntentCls);
+
+  // ── Group C — agent + sidebar ─────────────────────────────────────────────
+  setText('active-agent-action', finalAgentAct);
+  if (_o) {
+    // rules-allowed: only for behavioral states — CALME/NEUTRE kept in renderAgentRules()
+    const _rulesEl = $('rules-allowed');
+    if (_rulesEl) _rulesEl.textContent = finalAction;
+    // Hero overlay: only meaningful in behavioral states
+    setText('heroAllowedDetail',  _o.heroAllowed);
+    setText('heroPriorityDetail', _o.heroPrio);
+  }
+
+  // ── Group D — LDC override (OVERTRADING only) ────────────────────────────
+  // FOMO/STRESS: getHeroCopy() already outputs correct LDC text for those states.
+  if (bhvState === 'OVERTRADING') {
+    setText('lectureDayMain', '⛔ Stop comportemental');
+    setText('lectureDaySub',  'Overtrading détecté — aucune nouvelle position autorisée.');
+    const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
+    if (_ldcCard) _ldcCard.dataset.ldcState = 'blocked';
+  }
+
+  // ── CSS hooks ─────────────────────────────────────────────────────────────
+  document.body.dataset.behaviorState = bhvState.toLowerCase();
+  const _heroSplit = $('hero-split');
+  if (_heroSplit) _heroSplit.dataset.bhvState = bhvState.toLowerCase();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function setText(id, value) {
   const element = $(id);
   if (element) element.textContent = repairMojibake(value ?? "");
@@ -2181,7 +2293,6 @@ function renderHero(payload) {
   // P1 — Verdict shell
   setText("verdictImmediate", resolveVerdictLabel(payload));
   setText("verdictAllowed",   cockpit.market.posture);
-  setText("verdictNext",      cockpit.market.action);
   setText("verdictBlocked",   cockpit.market.avoid);
   setText("verdictWatch",     cockpit.market.decision);
 
@@ -2202,7 +2313,6 @@ function renderHero(payload) {
   // Hero decision grid
   setText("heroDecisionVerdict", cockpit.market.verdict);
   setText("heroDecisionAgent",   AGENT_LABELS_FR[getStateAgent(cockpit.marketKey)] || getStateAgent(cockpit.marketKey));
-  setText("heroDecisionAction",  cockpit.market.action);
   setText("heroDecisionAvoid",   cockpit.market.avoid);
 
   // P3 — hero split analyse vs décision
@@ -2241,7 +2351,6 @@ function renderHero(payload) {
   setText("market-context", cockpit.market.description || "-");
   setText("decision-status",     tradingStatusFormatted);
   setText("decision-posture",    cockpit.market.posture);
-  setText("decision-action",     cockpit.market.action);
   setText("decision-risk",       cockpit.market.avoid);
   setText("decision-validation", getValidationLabel(payload));
 
@@ -2321,7 +2430,6 @@ function renderStructuredReading(payload) {
   setText("signalNarratifMain", structureSignal === "Aucun" ? cockpit.market.decision : `${structureSignal} sur ${zoneSignal}`);
   setText("structuredValidationText", validationSummary);
   setText("engineJournalStatus", `Validation ${cockpit.validation}`);
-  setText("mantraOperationnelMain", cockpit.market.action);
 }
 
 function renderNavigation(payload) {
@@ -2386,7 +2494,6 @@ function renderNavigation(payload) {
     ? "Aucune entrée précise validée."
     : simplifyText(payload.validation?.summary));
   setText("tradingStatus", formatStatus(payload.trading_status));
-  setText("tradingStatusNote", cockpit.market.action);
   const navDict = MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {};
   setText("validationBadge", navDict.posture || cockpit.market.posture);
   setText("validationSummary", simplifyText(payload.validation?.summary));
@@ -2395,8 +2502,6 @@ function renderNavigation(payload) {
     ? "Lecture cohérente."
     : `Alignement : ${payload.alignment}.`);
   setText("profileReaction", simplifyText(payload.profile_reaction));
-  setText("executionFrame", simplifyText(payload.action_recommended));
-  renderList("allowedActions", [cockpit.market.action, payload.action_recommended]);
   renderList("blockedActions", [cockpit.market.avoid]);
   renderList("postureActions", [cockpit.market.posture, payload.validation?.summary]);
   renderList("priorityActions", [cockpit.market.decision, ...(payload.trigger_intelligent?.reasons || [])]);
@@ -2443,7 +2548,6 @@ function renderPilotage(payload) {
   renderList("whyBlock", whyItems);
   renderList("inconsistencyBlock", inconsistencies.length ? inconsistencies : ["Aucune incohérence critique détectée."]);
 
-  setText("action", simplifyText(payload.action_recommended) || cockpit.market.action);
   setText("summary", simplifyText(payload.summary) || simplifyText(payload.validation?.summary) || cockpit.market.description);
   setText("coreText", "Priorité à la préservation du capital — engagement limité.");
   setText("attackText", `Filtre adaptatif : ${cockpit.actionMode.description}`);
@@ -2471,13 +2575,11 @@ function renderRightRail(payload) {
     UNKNOWN:     "intent-neutral"
   };
   const intentClass = INTENT_CLASS_MAP[cockpit.marketKey] || "intent-neutral";
-  setTextTwoLines("decisionSummaryHeadline", dictDecision, intentClass);
   setText("decisionSummaryText", dictRaison);
   setText("decisionAgentText", getActiveAgent(payload.decision));
   setText("decisionAvoidText", cockpit.market.avoid);
   setText("alertLevel", cockpit.market.label);
   setText("trafficLight", `Validation ${cockpit.validation}`);
-  setTextTwoLines("decisionPanel", dictDecision, intentClass);
   setText("ultraShortPanel", dictRaison);
 
   setQueryText(".structured-shell .card-desc", "Trois repères. Lecture immédiate.");
@@ -2695,9 +2797,8 @@ function getAgentAction(agent) {
 function renderActiveAgent() {
   const agent  = currentPayload ? getActiveAgent(currentPayload.decision) : "OBSERVER";
   const action = getAgentAction(agent);
-  setText("active-agent",        AGENT_LABELS_FR[agent] || agent);
-  setText("active-agent-action", action);
-  setText("cerveau-synthesis",   getStateSynthesis(getCockpitModel(currentPayload)?.marketKey || "UNKNOWN"));
+  setText("active-agent",      AGENT_LABELS_FR[agent] || agent);
+  setText("cerveau-synthesis", getStateSynthesis(getCockpitModel(currentPayload)?.marketKey || "UNKNOWN"));
 }
 
 const RULES_MAP = {
@@ -4253,116 +4354,9 @@ function render() {
   renderBehaviorProfile();
   renderPsychProfile();
   renderBehaviorRepetition();
+  renderDecision(currentPayload, getBehaviorState(currentPayload));
+
   sanitizeVisibleText();
-
-  // ── BEHAVIOUR STATE — unified 5-state visual sweep ──────────────────────
-  // Last operation in render(), runs after ALL sub-functions.
-  // Derives effective behavioral state and overrides all visible action labels.
-  // Priority: OVERTRADING > FOMO > STRESS > NEUTRE > CALME.
-  // Sources: payload.behavior.overtradingLevel (instant) + localStorage guardLevel (historical).
-  // Payload, engine, scoring, decision logic: untouched.
-  (function _applyBehaviorStateSweep() {
-
-    // ── Derive behavioral state ────────────────────────────────────────
-    const _bhvState = getBehaviorState(currentPayload);
-
-    // Global CSS hook — body[data-behavior-state]
-    document.body.dataset.behaviorState = _bhvState.toLowerCase();
-
-    // Sync #hero-split[data-bhv-state] — authoritative source (overrides renderHero emotion-only value)
-    const _heroSplitEl = $('hero-split');
-    if (_heroSplitEl) _heroSplitEl.dataset.bhvState = _bhvState.toLowerCase();
-
-    // ── Mapping per state ────────────────────────────────────────────────
-    const _BHV_MAP = {
-      OVERTRADING: {
-        action:       'STOP — fermer la plateforme',
-        ltAction:     'Arrêt total — aucune action',
-        ltStatus:     'Arrêt total',
-        execType:     'Aucune exécution',
-        agentAction:  'Stopper. Fermer. Ne pas reouvrir.',
-        heroAllowed:  'STOP — aucune nouvelle position',
-        heroPriority: 'Stop comportemental',
-        allowedList:  ['STOP — fermer la plateforme'],
-        // LDC override: decisionState may not reflect overtradingLevel
-        ldcMain:      '⛔ Stop comportemental',
-        ldcSub:       'Overtrading détecté — aucune nouvelle position autorisée.',
-        ldcState:     'blocked'
-      },
-      FOMO: {
-        action:       'Observer uniquement',
-        ltAction:     'Observer uniquement — aucune exécution',
-        ltStatus:     'En pause',
-        execType:     'Aucune exécution',
-        agentAction:  'Observer. Ne pas entrer.',
-        heroAllowed:  'Observer uniquement',
-        heroPriority: 'Pause obligatoire',
-        allowedList:  ['Observer uniquement'],
-        ldcMain:      null, // getHeroCopy() already outputs correct text for fomo
-        ldcSub:       null,
-        ldcState:     null
-      },
-      STRESS: {
-        action:       'Réduire / attendre',
-        ltAction:     "Réduire l'exposition",
-        ltStatus:     'Exposition réduite',
-        execType:     'Réduit — surveillance uniquement',
-        agentAction:  'Réduire. Ne pas forcer.',
-        heroAllowed:  'Réduire / attendre',
-        heroPriority: 'Tension détectée',
-        allowedList:  ['Réduire / attendre'],
-        ldcMain:      null, // getHeroCopy() already outputs correct text for stress
-        ldcSub:       null,
-        ldcState:     null
-      }
-      // NEUTRE / CALME: no entry → no override
-    };
-
-    const _map = _BHV_MAP[_bhvState];
-    if (!_map) return; // CALME / NEUTRE — UI unchanged
-
-    // ── Apply overrides — all action-carrying DOM IDs ─────────────────
-    // Core action labels (hero, split, mantra, navigation, pilotage, score)
-    setText('verdictNext',            _map.action);
-    setText('heroDecisionAction',     _map.action);
-    setText('decision-action',        _map.action);
-    setText('mantraOperationnelMain', _map.action);
-    setText('tradingStatusNote',      _map.action);
-    setText('executionFrame',         _map.action);
-    setText('action',                 _map.action);
-    setText('score-action',           _map.action);
-    setText('cs-action',              _map.action);
-
-    // Live trade management (gestion de position)
-    setText('ltImmediateAction', _map.ltAction);
-    setText('ltTradeStatus',     _map.ltStatus);
-
-    // Execution level panel
-    setText('execActionType', _map.execType);
-
-    // Sidebar — active agent
-    setText('active-agent-action', _map.agentAction);
-
-    // Hero overlay (static in HTML — set dynamically here)
-    setText('heroAllowedDetail',  _map.heroAllowed);
-    setText('heroPriorityDetail', _map.heroPriority);
-
-    // Allowed actions list (actions autorisées)
-    renderList('allowedActions', _map.allowedList);
-
-    // rules-allowed (renderAgentRules innerHTML — replace text only, no reflow)
-    const _rulesEl = $('rules-allowed');
-    if (_rulesEl) _rulesEl.textContent = _map.action;
-
-    // LDC card override — only when decisionState doesn't already reflect the state
-    if (_map.ldcMain) setText('lectureDayMain', _map.ldcMain);
-    if (_map.ldcSub)  setText('lectureDaySub',  _map.ldcSub);
-    if (_map.ldcState) {
-      const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
-      if (_ldcCard) _ldcCard.dataset.ldcState = _map.ldcState;
-    }
-
-  })();
 
   // ── Overtrading Block — Merged Behavior Guard ────────────────────────
   // The final level is the MAX of two independent sources:
