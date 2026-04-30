@@ -57,6 +57,8 @@ export function computeScore(v) {
   if (v.dxy === "down") score += 5;
   if (v.btc === "strong") score += 8;
   if (v.btc === "weak") score -= 12;
+  if (v.water === "explosive") score -= 10;
+  if (v.water === "risk")      score -= 5;
   return Math.max(0, Math.min(100, score));
 }
 

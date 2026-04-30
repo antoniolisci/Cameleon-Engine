@@ -64,7 +64,8 @@ function getBehaviorState(payload) {
   } catch { /* localStorage unavailable */ }
 
   const _emo = (payload?.emotion_state || 'neutral').toLowerCase();
-  if (_otLevel >= 4)         return 'OVERTRADING';
+  const _effectiveOt = (_emo === 'calm') ? Math.min(_otLevel, 2) : _otLevel;
+  if (_effectiveOt >= 4)     return 'OVERTRADING';
   if (_emo === 'fomo')       return 'FOMO';
   if (_emo === 'stress')     return 'STRESS';
   if (_emo === 'neutral')    return 'NEUTRE';
@@ -274,6 +275,23 @@ function renderOperational(payload, behaviorState) {
   renderTradeSetup(workingPayload);
   renderLiveTradeManagement(workingPayload);
 }
+
+// ── Card wrappers ─────────────────────────────────────────────────────────────
+
+function renderMarketContext(payload) {
+  renderHero(payload);
+  renderLightContext(payload);
+  renderStructuredReading(payload);
+  renderConfidenceContext(payload);
+}
+
+function renderDebugCard() {
+  renderMarketStateBrain();
+  renderDebugBrain();
+  renderDecisionPanel();
+  renderDiagnostics();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function setText(id, value) {
@@ -406,17 +424,20 @@ function extractConfidenceCtx(payload) {
   };
   const FIRE_MAP      = { strong: 80, medium: 50, weak: 20 };
   const STRUCTURE_MAP = {
-    hh_hl: 85, lh_ll: 75, breakout: 70, retest: 75,
-    high_range: 60, low_range: 60, breakout_level: 65, middle: 30, none: 10
+    compression_breakout: 70,
+    real_breakout:        90,
+    sweep_reclaim:        75,
+    none:                 10
   };
   const RISK_MAP      = { "Élevé": 80, "Moyen": 50, "Faible": 20 };
   const ALIGNMENT_MAP = { "Bon": 85, "Moyen": 55, "Fragile": 35, "Veto humain": 10 };
 
-  const marketState = STATE_MAP[payload.market_state]                        ?? "Range";
-  const volatility  = FIRE_MAP[payload.constellium?.fire]                    ?? 40;
-  const structure   = STRUCTURE_MAP[payload.setup_inputs?.structure_signal]  ?? 30;
-  const risk        = RISK_MAP[payload.trigger_level]                        ?? 50;
-  const alignment   = ALIGNMENT_MAP[payload.alignment]                       ?? 40;
+  const marketState  = STATE_MAP[payload.market_state]                        ?? "Range";
+  const volatility   = FIRE_MAP[payload.constellium?.fire]                    ?? 40;
+  const structure    = STRUCTURE_MAP[payload.setup_inputs?.structure_signal]  ?? 30;
+  const risk         = RISK_MAP[payload.trigger_level]                        ?? 50;
+  const _earthBonus  = payload.constellium?.earth === "strong" ? 5 : 0;
+  const alignment    = Math.min(100, (ALIGNMENT_MAP[payload.alignment] ?? 40) + _earthBonus);
 
   return { marketState, volatility, structure, risk, alignment };
 }
@@ -2768,11 +2789,7 @@ function sanitizeVisibleText(root = document.body) {
 }
 
 function renderMarketStateBrain() {
-  const state      = (currentPayload?.market_state || "range").toUpperCase();
-  const confidence = String(currentPayload?.score ?? 50);
   const volatility = VOLATILITY_MAP[currentPayload?.trigger_level] || "low";
-  setText("market-regime",  BRAIN_STATE_LABELS_FR[state] || state);
-  setText("market-score",   confidence);
   setText("market-context", VOLATILITY_FR[volatility] || volatility);
 }
 
@@ -4268,10 +4285,14 @@ function renderConfidenceContext(payload) {
       + (qual(payload.constellium?.fire) - 50) * 0.3
     )),
 
-    structure: payload.setup_inputs?.structure_signal === "compression_breakout" ? 90 :
-               payload.setup_inputs?.structure_signal === "real_breakout"         ? 90 :
-               payload.setup_inputs?.structure_signal === "sweep_reclaim"         ? 70 :
-               payload.setup_inputs?.structure_signal === "none"                  ? 20 : 50,
+    structure: (() => {
+      const _base = payload.setup_inputs?.structure_signal === "compression_breakout" ? 90 :
+                    payload.setup_inputs?.structure_signal === "real_breakout"         ? 90 :
+                    payload.setup_inputs?.structure_signal === "sweep_reclaim"         ? 70 :
+                    payload.setup_inputs?.structure_signal === "none"                  ? 20 : 50;
+      const _zoneBonus = { middle: -10, low_range: 10, high_range: 10, breakout_level: 15 };
+      return Math.min(100, Math.max(0, _base + (_zoneBonus[payload.setup_inputs?.zone_signal] ?? 0)));
+    })(),
 
     volatility: payload.market_state === "riskoff"     ? 90 :
                 payload.market_state === "defense"     ? 80 :
@@ -4331,18 +4352,12 @@ function render() {
   const _root = document.querySelector("#app") || document.body;
   if (_ds?.state) _root.dataset.decisionState = _ds.state.toLowerCase();
 
-  renderMarketStateBrain();
-  renderDebugBrain();
-  renderDecisionPanel();
   renderActiveAgent();
   renderAgentRules();
   renderCerveauAgent();
   renderHeader(currentPayload);
-  renderHero(currentPayload);
-  renderConfidenceContext(currentPayload);
+  renderMarketContext(currentPayload);
   renderWhyDecision(currentPayload);
-  renderLightContext(currentPayload);
-  renderStructuredReading(currentPayload);
   renderNavigation(currentPayload);
   renderPublications(currentPayload);
   renderPilotage(currentPayload);
@@ -4366,7 +4381,7 @@ function render() {
   renderBehaviorCoach();
   renderMetaLayer();
   renderHistory();
-  renderDiagnostics();
+  renderDebugCard();
   renderTraderMemory();
   renderTraderSignature();
   renderBehaviorProfile();
