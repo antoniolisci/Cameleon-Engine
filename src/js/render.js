@@ -46,6 +46,101 @@ const TAB_FOCUS_TARGETS = {
   memoire: "historyList"
 };
 
+// ── getBehaviorState ─────────────────────────────────────────────────────────
+// Single source of truth for the effective behavioral state.
+// Priority: OVERTRADING > FOMO > STRESS > NEUTRE > CALME.
+// Sources: payload.behavior.overtradingLevel (instant) + localStorage guardLevel (historical, 7-day TTL).
+// No engine, scoring, or decision logic involved.
+function getBehaviorState(payload) {
+  let _otLevel = payload?.behavior?.overtradingLevel || 1;
+  try {
+    const _rawLvl = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevel'));
+    const _rawTs  = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevelUpdatedAt'));
+    const _7D = 7 * 24 * 60 * 60 * 1000;
+    if (typeof _rawLvl === 'number' && _rawLvl >= 1 && _rawLvl <= 5
+     && typeof _rawTs  === 'number' && (Date.now() - _rawTs) < _7D) {
+      _otLevel = Math.max(_otLevel, _rawLvl);
+    }
+  } catch { /* localStorage unavailable */ }
+
+  const _emo = (payload?.emotion_state || 'neutral').toLowerCase();
+  if (_otLevel >= 4)         return 'OVERTRADING';
+  if (_emo === 'fomo')       return 'FOMO';
+  if (_emo === 'stress')     return 'STRESS';
+  if (_emo === 'neutral')    return 'NEUTRE';
+  return 'CALME';
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── renderBehaviorCard ───────────────────────────────────────────────────────
+// Unified behavioral card renderer. Single map for all 5 states.
+// mode='block' → writes overtrading-block DOM IDs directly.
+// mode='why'   → returns { state, risk } for injection into renderWhyDecision.
+// Does not write overtrading-img (handled separately by the level/discipline logic).
+function renderBehaviorCard(payload, behaviorState, mode = 'block') {
+  const _bhvMap = {
+    CALME: {
+      badge:    'LECTURE PROPRE',
+      state:    'Calme',
+      message:  'Aucune pression comportementale détectée.',
+      risk:     'Aucun biais comportemental',
+      action:   'Continuer à observer. Attendre un signal clair.',
+      whyState: 'Calme',
+      whyRisk:  'Aucun biais comportemental détecté'
+    },
+    NEUTRE: {
+      badge:    'OBSERVATION',
+      state:    'Neutre',
+      message:  'Aucun biais fort détecté.',
+      risk:     'Signal émotionnel neutre',
+      action:   'Observer uniquement. Ne pas anticiper.',
+      whyState: 'Observation',
+      whyRisk:  'Aucun biais fort détecté'
+    },
+    STRESS: {
+      badge:    'SOUS PRESSION',
+      state:    'Sous tension',
+      message:  'Pression émotionnelle détectée.',
+      risk:     'Décision réactive possible',
+      action:   'Pause courte. Reprendre après stabilisation.',
+      whyState: 'Sous tension',
+      whyRisk:  'Décision réactive possible'
+    },
+    FOMO: {
+      badge:    'FOMO ACTIF',
+      state:    'Impulsion',
+      message:  "Risque d'entrée émotionnelle.",
+      risk:     'Entrée impulsive possible',
+      action:   "Ne pas entrer. Attendre un signal propre.",
+      whyState: 'FOMO actif',
+      whyRisk:  "Risque d'entrée impulsive"
+    },
+    OVERTRADING: {
+      badge:    'SURTRADING',
+      state:    'Sur-engagement',
+      message:  'Suractivité confirmée. Tu forces le marché.',
+      risk:     'Destruction progressive du capital',
+      action:   'Stopper toute nouvelle entrée.',
+      whyState: 'Sur-engagement',
+      whyRisk:  'Destruction progressive du capital'
+    }
+  };
+  const _e = _bhvMap[behaviorState] || _bhvMap['NEUTRE'];
+
+  if (mode === 'block') {
+    const badge = $('overtrading-badge');   if (badge)   badge.textContent = _e.badge;
+    const etat  = $('overtrading-etat');    if (etat)    etat.textContent  = _e.state;
+    const msg   = $('overtrading-message'); if (msg)     msg.textContent   = _e.message;
+    const risk  = $('overtrading-risque');  if (risk)    risk.textContent  = `Risque : ${_e.risk}`;
+    const act   = $('overtrading-action');  if (act)     act.textContent   = _e.action;
+  }
+
+  if (mode === 'why') {
+    return { state: _e.whyState, risk: _e.whyRisk };
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function setText(id, value) {
   const element = $(id);
   if (element) element.textContent = repairMojibake(value ?? "");
@@ -2186,21 +2281,6 @@ function renderHero(payload) {
     heroSection.classList.toggle("hero-warning", isWarning);
   }
 
-  // ── Behaviour visual hierarchy — data-bhv-state on #hero-split ───────────
-  // CSS uses this to dim the market block when emotion takes priority.
-  // No engine or scoring logic involved.
-  const _heroSplitEl = $("hero-split");
-  if (_heroSplitEl) {
-    _heroSplitEl.dataset.bhvState = (payload.emotion_state || "neutral").toLowerCase();
-  }
-
-  // FOMO hard block — override all visible action labels to "Observer uniquement".
-  // Visual consistency only. Payload, engine, and decision logic are untouched.
-  if ((payload.emotion_state || "").toLowerCase() === "fomo") {
-    setText("heroDecisionAction", "Observer uniquement");
-    setText("decision-action",    "Observer uniquement");
-  }
-
   // P4 — contexte snapshotable mis à jour (enregistrement manuel uniquement)
   latestSnapshotContext = { payload, cockpit, decisionState, tradingStatusFormatted };
 }
@@ -2870,19 +2950,10 @@ function renderWhyDecision(payload) {
     addSection('⚠️', 'RISQUE', reasons[2].text.replace(/^Risque\s*:\s*/i, ''));
   }
 
-  // ── COMPORTEMENT — état utilisateur uniquement (payload.emotion_state)
-  // Source : emotion_state déclaré par l'opérateur dans le formulaire courant.
-  // Ne dépend ni du score marché, ni de overtradingLevel, ni de localStorage.
-  const _bhvEmotionMap = {
-    calm:    { state: 'Calme',        risk: 'Aucun biais comportemental détecté' },
-    neutral: { state: 'Observation',  risk: 'Aucun biais fort détecté' },
-    stress:  { state: 'Sous tension', risk: 'Décision réactive possible' },
-    fomo:    { state: 'FOMO actif',   risk: "Risque d'entrée impulsive" }
-  };
-  const _bhvKey = (payload.emotion_state || 'neutral').toLowerCase();
-  const bhv = _bhvEmotionMap[_bhvKey] || _bhvEmotionMap['neutral'];
+  // ── COMPORTEMENT — source unique renderBehaviorCard (mode 'why')
+  const _bhv = renderBehaviorCard(payload, getBehaviorState(payload), 'why');
   addSection('🧠', 'COMPORTEMENT',
-    `${bhv.state}<br><span class="why-bhv-risk">Risque : ${bhv.risk}</span>`);
+    `${_bhv.state}<br><span class="why-bhv-risk">Risque : ${_bhv.risk}</span>`);
 
   // ── ACTION — texte fort selon statut + détail ─────────────────────────
   const strongMap = {
@@ -4193,24 +4264,7 @@ function render() {
   (function _applyBehaviorStateSweep() {
 
     // ── Derive behavioral state ────────────────────────────────────────
-    let _otLevel = currentPayload?.behavior?.overtradingLevel || 1;
-    try {
-      const _rawLvl = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevel'));
-      const _rawTs  = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevelUpdatedAt'));
-      const _7D = 7 * 24 * 60 * 60 * 1000;
-      if (typeof _rawLvl === 'number' && _rawLvl >= 1 && _rawLvl <= 5
-       && typeof _rawTs  === 'number' && (Date.now() - _rawTs) < _7D) {
-        _otLevel = Math.max(_otLevel, _rawLvl);
-      }
-    } catch { /* localStorage unavailable */ }
-
-    const _emo = (currentPayload?.emotion_state || 'neutral').toLowerCase();
-    const _bhvState =
-      _otLevel >= 4       ? 'OVERTRADING'
-      : _emo === 'fomo'   ? 'FOMO'
-      : _emo === 'stress' ? 'STRESS'
-      : _emo === 'neutral' ? 'NEUTRE'
-      : 'CALME';
+    const _bhvState = getBehaviorState(currentPayload);
 
     // Global CSS hook — body[data-behavior-state]
     document.body.dataset.behaviorState = _bhvState.toLowerCase();
@@ -4401,21 +4455,8 @@ function render() {
     else if (isIntense)   block.classList.add("ot-intense");
   }
 
-  // narration comportementale — état utilisateur uniquement (emotion_state)
-  // Source : currentPayload.emotion_state. Ni localStorage, ni overtradingLevel, ni dominantRisk.
-  const _emotionNarMap = {
-    calm:    { badge: 'LECTURE PROPRE', state: 'Calme',       message: 'Aucune pression comportementale détectée.', risk: 'Aucun biais comportemental', action: 'Continuer à observer. Attendre un signal clair.' },
-    neutral: { badge: 'OBSERVATION',   state: 'Neutre',       message: 'Aucun biais fort détecté.',                 risk: 'Signal émotionnel neutre',    action: 'Observer uniquement. Ne pas anticiper.' },
-    stress:  { badge: 'SOUS PRESSION', state: 'Sous tension', message: 'Pression émotionnelle détectée.',           risk: 'Décision réactive possible',  action: 'Pause courte. Reprendre après stabilisation.' },
-    fomo:    { badge: 'FOMO ACTIF',    state: 'Impulsion',    message: "Risque d'entrée émotionnelle.",             risk: "Entrée impulsive possible",   action: "Ne pas entrer. Attendre un signal propre." }
-  };
-  const _emotionKey = (currentPayload?.emotion_state || 'neutral').toLowerCase();
-  const _nar = _emotionNarMap[_emotionKey] || _emotionNarMap['neutral'];
-
-  const badge = document.getElementById("overtrading-badge");
-  if (badge) {
-    badge.textContent = _nar.badge;
-  }
+  // narration comportementale — source unique renderBehaviorCard()
+  renderBehaviorCard(currentPayload, getBehaviorState(currentPayload));
 
   // image — DISCIPLINE pour level 1–2 (état positif), sinon matrix ou OVERTRADING_DICT
   const img = document.getElementById("overtrading-img");
@@ -4423,30 +4464,6 @@ function render() {
     img.src = (effectiveLevel <= 2)
       ? (getDisciplineImage(effectiveLevel) || matrixEntry?.image || data.imageTrading || '')
       : (matrixEntry?.image || data.imageTrading || '');
-  }
-
-  // etat — état utilisateur depuis emotion_state
-  const etat = document.getElementById("overtrading-etat");
-  if (etat) {
-    etat.textContent = _nar.state;
-  }
-
-  // message — état utilisateur depuis emotion_state
-  const message = document.getElementById("overtrading-message");
-  if (message) {
-    message.textContent = _nar.message;
-  }
-
-  // risque — état utilisateur depuis emotion_state
-  const risque = document.getElementById("overtrading-risque");
-  if (risque) {
-    risque.textContent = `Risque : ${_nar.risk}`;
-  }
-
-  // action — état utilisateur depuis emotion_state
-  const action = document.getElementById("overtrading-action");
-  if (action) {
-    action.textContent = _nar.action;
   }
 }
 
