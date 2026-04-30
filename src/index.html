@@ -658,9 +658,21 @@
                       <div class="form-grid" id="marketFields"></div>
                       <div class="memory-actions compact-actions">
                         <button id="prefillBtn" class="mode-btn compact-btn" type="button">
-                          <div class="mode-btn-title">Précharger Constellium</div>
-                          <div class="mode-btn-desc">Complète automatiquement la lecture élémentaire selon l'état de marché.</div>
+                          <div class="mode-btn-title">Tester une lecture Constellium</div>
+                          <div class="mode-btn-desc">Simulation pédagogique — à vérifier avant usage.</div>
                         </button>
+                        <button class="mode-btn compact-btn" type="button" onclick="window.location.href='constellium.html'">
+                          <div class="mode-btn-title">Lire le Constellium</div>
+                          <div class="mode-btn-desc">Comprendre avant d'agir.</div>
+                        </button>
+                      </div>
+                      <div id="prefillWarning" class="prefill-warning" hidden>
+                        <span class="prefill-warning-icon">⚠️</span>
+                        <div class="prefill-warning-body">
+                          <strong>Ceci n'est pas une décision.</strong>
+                          <p>C'est une lecture proposée.<br>Si tu ne la comprends pas, ne l'utilise pas.</p>
+                          <p>Le moteur ne valide rien tant que tu ne comprends pas.</p>
+                        </div>
                       </div>
                     </section>
                     <section class="side-card">
@@ -1199,6 +1211,52 @@
 
   <script type="module" src="./js/render.js"></script>
   <script type="module" src="./js/behavior/behavior-main.js"></script>
+
+  <div id="constelliumPanel" class="cst-panel" hidden>
+    <div class="cst-panel-card">
+      <button id="closeConstellium" class="cst-close-btn">Fermer</button>
+      <h3 class="cst-panel-title">LECTURE DU CONSTELLIUM</h3>
+      <p class="cst-sub">Pourquoi ces choix ont été proposés</p>
+      <div id="constelliumExplanation" class="cst-expl">
+        <div class="cst-context-line" id="explContextLine"></div>
+        <div class="cst-expl-lines">
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">ÉTHER</span><span class="cst-expl-value" id="explEther">—</span></div>
+            <div class="cst-expl-desc">Lecture globale du contexte (alignement ou contradiction)</div>
+            <div class="cst-expl-sentence" id="explEtherSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">FEU</span><span class="cst-expl-value" id="explFire">—</span></div>
+            <div class="cst-expl-desc">Énergie et intensité du mouvement</div>
+            <div class="cst-expl-sentence" id="explFireSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">AIR</span><span class="cst-expl-value" id="explAir">—</span></div>
+            <div class="cst-expl-desc">Clarté du setup</div>
+            <div class="cst-expl-sentence" id="explAirSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">TERRE</span><span class="cst-expl-value" id="explEarth">—</span></div>
+            <div class="cst-expl-desc">Solidité du niveau</div>
+            <div class="cst-expl-sentence" id="explEarthSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">EAU</span><span class="cst-expl-value" id="explWater">—</span></div>
+            <div class="cst-expl-desc">Risque potentiel</div>
+            <div class="cst-expl-sentence" id="explWaterSentence"></div>
+          </div>
+        </div>
+        <div class="cst-expl-footer">Lecture indicative — aucune validation moteur.</div>
+        <div class="cst-legal-block">
+          <div class="cst-legal-title">⚠️ Cadre d'utilisation</div>
+          <p>Les informations fournies par ce module sont issues d'un traitement algorithmique et sont communiquées à titre indicatif uniquement.</p>
+          <p>Elles ne constituent ni un conseil en investissement, ni une recommandation personnalisée, ni une incitation à agir sur les marchés financiers.</p>
+          <p>L'utilisateur reste seul décisionnaire de ses actions et assume l'entière responsabilité des conséquences de ses choix.</p>
+          <p>Le trading et l'investissement comportent des risques élevés, incluant un risque de perte partielle ou totale du capital.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

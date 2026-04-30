@@ -4662,6 +4662,51 @@ function bindControls() {
     fillForm(appState.form);
     refresh();
     focusPanel("marketFields");
+    const _w = $("prefillWarning");
+    if (_w) _w.hidden = false;
+    const _panel = $("constelliumPanel");
+    const _expl  = $("constelliumExplanation");
+    if (_panel && _expl) {
+      const _lbls = {
+        ether: { stable: 'Stable', strong: 'Fort',      weak: 'Faible'      },
+        fire:  { weak:   'Faible', medium: 'Moyen',     strong: 'Fort'       },
+        air:   { weak:   'Faible', emerging: 'Émergent', strong: 'Fort'      },
+        earth: { weak:   'Faible', stable: 'Stable',    strong: 'Fort'       },
+        water: { weak:   'Faible', risk: 'Sous risque', explosive: 'Explosive' }
+      };
+      const _sentences = {
+        ether: { strong: 'Contexte fortement aligné.', stable: 'Lecture cohérente du contexte global.', weak: 'Contradictions ou manque de clarté.' },
+        fire:  { strong: 'Forte impulsion détectée.',  medium: 'Intensité modérée.',                    weak: 'Marché peu actif.' },
+        air:   { strong: 'Setup clair et exploitable.', emerging: 'Setup en formation.',                weak: 'Aucune opportunité nette.' },
+        earth: { strong: 'Niveau solide et fiable.',   stable: 'Structure correcte.',                   weak: 'Niveau fragile.' },
+        water: { weak:   'Risque faible.',             risk: 'Tension présente.',                 explosive: 'Risque élevé.' }
+      };
+      const _f = collectForm();
+      const _fill = (id, key, map) => { const el = $(id); if (el) el.textContent = map[_f[key] || ''] || 'Neutre'; };
+      const _sent = (id, key, map) => { const el = $(id); if (el) el.textContent = map[_f[key] || ''] || ''; };
+      _fill('explEther', 'ether', _lbls.ether);  _sent('explEtherSentence', 'ether', _sentences.ether);
+      _fill('explFire',  'fire',  _lbls.fire);   _sent('explFireSentence',  'fire',  _sentences.fire);
+      _fill('explAir',   'air',   _lbls.air);    _sent('explAirSentence',   'air',   _sentences.air);
+      _fill('explEarth', 'earth', _lbls.earth);  _sent('explEarthSentence', 'earth', _sentences.earth);
+      _fill('explWater', 'water', _lbls.water);  _sent('explWaterSentence', 'water', _sentences.water);
+      const _mktLabels = { range: 'Range', compression: 'Compression', expansion: 'Expansion', defense: 'Mode défensif', riskoff: 'Instable' };
+      const _emoLabels = { calm: 'Calme', neutral: 'Neutre', stress: 'Sous tension', fomo: 'FOMO' };
+      const _mkt = _mktLabels[_f.market]  || _f.market  || 'Indéfini';
+      const _emo = _emoLabels[_f.emotion] || _f.emotion || 'Indéfini';
+      const _ctx = $('explContextLine');
+      if (_ctx) _ctx.textContent = `Contexte actuel : ${_mkt} — ${_emo}`;
+
+      _panel.hidden = false;
+      requestAnimationFrame(() => _panel.classList.add('active'));
+
+      const _closeBtn = $('closeConstellium');
+      if (_closeBtn) {
+        _closeBtn.onclick = () => {
+          _panel.classList.remove('active');
+          setTimeout(() => { _panel.hidden = true; }, 300);
+        };
+      }
+    }
   });
 
   $("saveBtn")?.addEventListener("click", saveDay);
