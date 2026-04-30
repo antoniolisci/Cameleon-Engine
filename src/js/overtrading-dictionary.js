@@ -16,7 +16,7 @@ export const OVERTRADING_DICT = {
       "Forcer un trade"
     ],
     imageChameleon: "../assets/images/overtrading/niveau_1_chameleon.jpg",
-    imageTrading: "../assets/images/overtrading/niveau_1_trading.jpg",
+    imageTrading: "../assets/images/overtrading/overtrading_lvl1_mild.png",
     message: "Tu observes. Tu n’agis pas."
   },
 
@@ -42,7 +42,7 @@ export const OVERTRADING_DICT = {
       "Multiplier les setups"
     ],
     imageChameleon: "../assets/images/overtrading/niveau_2_chameleon.jpg",
-    imageTrading: "../assets/images/overtrading/niveau_2_trading.jpg",
+    imageTrading: "../assets/images/overtrading/overtrading_lvl2_active.png",
     message: "Tu commences à chercher une opportunité."
   },
 
@@ -69,7 +69,7 @@ export const OVERTRADING_DICT = {
       "Sur-analyser"
     ],
     imageChameleon: "../assets/images/overtrading/niveau_3_chameleon.jpg",
-    imageTrading: "../assets/images/overtrading/niveau_3_trading.jpg",
+    imageTrading: "../assets/images/overtrading/overtrading_lvl3_reactive.png",
     message: "Tu n’analyses plus. Tu fixes."
   },
 
@@ -96,7 +96,7 @@ export const OVERTRADING_DICT = {
       "Revenge trade"
     ],
     imageChameleon: "../assets/images/overtrading/niveau_4_chameleon.jpg",
-    imageTrading: "../assets/images/overtrading/niveau_4_trading.jpg",
+    imageTrading: "../assets/images/overtrading/overtrading_lvl4_emotional.png",
     message: "Tu forces le marché."
   },
 
@@ -123,7 +123,7 @@ export const OVERTRADING_DICT = {
       "Continuer à trader"
     ],
     imageChameleon: "../assets/images/overtrading/niveau_5_chameleon.jpg",
-    imageTrading: "../assets/images/overtrading/niveau_5_trading.jpg",
+    imageTrading: "../assets/images/overtrading/overtrading_lvl5_chaos.png",
     message: "Tu n’es plus en contrôle."
   }
 };

@@ -37,31 +37,36 @@ export const BEHAVIOR_MATRIX = {
       state:   'Calme',
       message: 'Rythme normal. Aucun signal de suractivité.',
       risk:    'Aucun',
-      action:  'Maintenir le rythme actuel. Observer sans forcer.'
+      action:  'Maintenir le rythme actuel. Observer sans forcer.',
+      image:   '../assets/images/overtrading/overtrading_lvl1_mild.png'
     },
     2: {
       state:   'Tension légère',
       message: 'Légère accélération du rythme détectée.',
       risk:    'FOMO latent',
-      action:  'Ralentir. Attendre un signal clair avant la prochaine entrée.'
+      action:  'Ralentir. Attendre un signal clair avant la prochaine entrée.',
+      image:   '../assets/images/overtrading/overtrading_lvl2_active.png'
     },
     3: {
       state:   'Fixation',
       message: 'Tu multiplies les trades sans signal valide.',
       risk:    'Perte de sélectivité',
-      action:  'Pause de 20 minutes. Réévaluer le contexte à froid.'
+      action:  'Pause de 20 minutes. Réévaluer le contexte à froid.',
+      image:   '../assets/images/overtrading/overtrading_lvl3_reactive.png'
     },
     4: {
       state:   'Sur-engagement',
       message: 'Suractivité confirmée. Tu forces le marché.',
       risk:    'Destruction progressive du capital',
-      action:  'Stopper toute nouvelle entrée. Réduire la taille de position de 50%.'
+      action:  'Stopper toute nouvelle entrée. Réduire la taille de position de 50%.',
+      image:   '../assets/images/overtrading/overtrading_lvl4_emotional.png'
     },
     5: {
       state:   'Saturation',
       message: 'Surtrading critique. Le marché est devenu un terrain de forçage.',
       risk:    'Destruction rapide du capital',
-      action:  'STOP TOTAL. Fermer la plateforme. Reprendre uniquement après stabilisation.'
+      action:  'STOP TOTAL. Fermer la plateforme. Reprendre uniquement après stabilisation.',
+      image:   '../assets/images/overtrading/overtrading_lvl5_chaos.png'
     }
   },
 
@@ -72,31 +77,36 @@ export const BEHAVIOR_MATRIX = {
       state:   'Calme',
       message: 'Aucune impulsion détectée. Tu attends les setups.',
       risk:    'Aucun',
-      action:  'Continuer à attendre la confirmation avant d\'agir.'
+      action:  'Continuer à attendre la confirmation avant d\'agir.',
+      image:   '../assets/images/fomo/fomo_lvl1_curiosity.png'
     },
     2: {
       state:   'Tension légère',
       message: 'Tu surveilles le marché avec impatience.',
       risk:    'Entrée prématurée',
-      action:  'Poser un scénario écrit avant d\'entrer. Ne pas anticiper.'
+      action:  'Poser un scénario écrit avant d\'entrer. Ne pas anticiper.',
+      image:   '../assets/images/fomo/fomo_lvl2_attraction.png'
     },
     3: {
       state:   'Fixation',
       message: 'Tu te focalises sur une opportunité au détriment du cadre.',
       risk:    'Entrée hors setup, exposition non maîtrisée',
-      action:  'Sortir de l\'écran 15 minutes. L\'opportunité n\'est pas la dernière.'
+      action:  'Sortir de l\'écran 15 minutes. L\'opportunité n\'est pas la dernière.',
+      image:   '../assets/images/fomo/fomo_lvl3_tension.png'
     },
     4: {
       state:   'Sur-engagement',
       message: 'Tu entres sur des mouvements déjà amorcés, sans valeur.',
       risk:    'Achat de sommet, vente de creux',
-      action:  'Interdire toute entrée non planifiée. Revenir à la liste de setups définis.'
+      action:  'Interdire toute entrée non planifiée. Revenir à la liste de setups définis.',
+      image:   '../assets/images/fomo/fomo_lvl4_impulse.png'
     },
     5: {
       state:   'Saturation',
       message: 'Le FOMO dicte chaque décision. Aucune lucidité restante.',
       risk:    'Perte totale de contrôle sur les entrées',
-      action:  'STOP TOTAL. Aucune position nouvelle. Attendre 24h avant de reprendre.'
+      action:  'STOP TOTAL. Aucune position nouvelle. Attendre 24h avant de reprendre.',
+      image:   '../assets/images/fomo/fomo_lvl5_trap.png'
     }
   },
 
@@ -107,31 +117,36 @@ export const BEHAVIOR_MATRIX = {
       state:   'Calme',
       message: 'Aucun signal de compensation émotionnelle.',
       risk:    'Aucun',
-      action:  'Continuer à appliquer le cadre habituel.'
+      action:  'Continuer à appliquer le cadre habituel.',
+      image:   '../assets/images/revenge/revenge_lvl1_frustration.png'
     },
     2: {
       state:   'Tension légère',
       message: 'Légère tendance à ré-entrer rapidement après une perte.',
       risk:    'Décision réactive',
-      action:  'Imposer un délai minimum de 30 minutes après chaque perte avant toute nouvelle entrée.'
+      action:  'Imposer un délai minimum de 30 minutes après chaque perte avant toute nouvelle entrée.',
+      image:   '../assets/images/revenge/revenge_lvl2_recover.png'
     },
     3: {
       state:   'Fixation',
       message: 'Tu cherches à récupérer la perte précédente.',
       risk:    'Biais émotionnel actif, prise de risque accrue',
-      action:  'Sortir du marché. Écrire ce que tu ressens avant de revenir.'
+      action:  'Sortir du marché. Écrire ce que tu ressens avant de revenir.',
+      image:   '../assets/images/revenge/revenge_lvl3_forced.png'
     },
     4: {
       state:   'Sur-engagement',
       message: 'Revenge trading confirmé. Chaque trade est une tentative de récupération.',
       risk:    'Aggravation systématique des pertes',
-      action:  'Couper immédiatement toute position. Aucun trade autorisé avant demain.'
+      action:  'Couper immédiatement toute position. Aucun trade autorisé avant demain.',
+      image:   '../assets/images/revenge/revenge_lvl4_spiral.png'
     },
     5: {
       state:   'Saturation',
       message: 'Tu trades exclusivement pour récupérer. La perte contrôle tes décisions.',
       risk:    'Destruction complète du capital de session',
-      action:  'STOP TOTAL. Fermer la plateforme. Traiter la perte émotionnellement avant de reprendre.'
+      action:  'STOP TOTAL. Fermer la plateforme. Traiter la perte émotionnellement avant de reprendre.',
+      image:   '../assets/images/revenge/revenge_lvl5_collapse.png'
     }
   },
 
@@ -206,6 +221,28 @@ export const BEHAVIOR_MATRIX = {
   }
 
 };
+
+// ── Discipline images — positive / mirror state ───────────────────────────
+// Shown in the Overtrading block when level <= 2 (no behavioral pressure).
+// Not a routing pattern — display only, no engine connection.
+const _DISCIPLINE_IMAGES = {
+  1: '../assets/images/discipline/discipline_lvl1_calm.png',
+  2: '../assets/images/discipline/discipline_lvl2_observe.png',
+  3: '../assets/images/discipline/discipline_lvl3_align.png',
+  4: '../assets/images/discipline/discipline_lvl4_master.png',
+  5: '../assets/images/discipline/discipline_lvl5_detach.png'
+};
+
+/**
+ * Returns the discipline image path for a given level (1–5).
+ * Falls back to level 1 if the value is invalid.
+ *
+ * @param {number} level — Integer 1–5.
+ * @returns {string}     — Relative path to the discipline image.
+ */
+export function getDisciplineImage(level) {
+  return _DISCIPLINE_IMAGES[level] || _DISCIPLINE_IMAGES[1];
+}
 
 // ── Valid pattern keys ────────────────────────────────────────────────────
 const VALID_PATTERNS = Object.keys(BEHAVIOR_MATRIX);

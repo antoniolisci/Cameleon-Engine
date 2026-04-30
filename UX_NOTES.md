@@ -20,6 +20,8 @@ Chaque phrase doit :
 
 
 
+\- **Calibration comportementale V2 :** émotion Neutre doit amortir le niveau comportemental comme Calme, afin d'éviter un affichage Sur-engagement / Overtrading niveau 4 quand l'opérateur est neutre. (engine.js — ligne `overtradingAdj`, ajouter malus pour `v.emotion === "neutral"`)
+
 \- "Le marché se construit." → trop vague
 
 \- "n'est méritée." → incomplet
