@@ -184,6 +184,16 @@ img {
   border-radius: 14px;
   border: 1px solid rgba(var(--state-rgb), 0.22);
   flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.video-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .brand-title {
@@ -292,6 +302,17 @@ img {
   height: 42px;
   border-radius: 999px;
   border: 1px solid rgba(var(--state-rgb), 0.22);
+  overflow: hidden;
+}
+
+.video-circle {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  display: block;
+  pointer-events: none;
 }
 
 .sidebar-nav {
@@ -7594,4 +7615,72 @@ body[data-behavior-pattern="discipline"]::before {
 .why-action-detail {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Premium Decision Block ──────────────────────────────────── */
+.premium-decision-block {
+  text-align: center;
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: rgba(var(--state-rgb), 0.06);
+  border: 1px solid rgba(var(--state-rgb), 0.14);
+}
+.pdv-label {
+  display: block;
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  margin-bottom: 6px;
+  color: rgba(var(--state-rgb), 1);
+}
+.pdv-label.pdv-exec    { color: #7dffc7; }
+.pdv-label.pdv-wait    { color: rgba(var(--state-rgb), 0.9); }
+.pdv-label.pdv-protect { color: #ffd36e; }
+.pdv-label.pdv-stop    { color: #ff7b7b; }
+.pdv-label.pdv-caution { color: #ffc36e; }
+.pdv-info {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0.45;
+  text-transform: uppercase;
+}
+
+.no-trade-block {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 180, 0, 0.08);
+  border: 1px solid rgba(255, 180, 0, 0.25);
+  text-align: center;
+}
+
+.nt-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffd36e;
+}
+
+.nt-sub {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.nt-hidden {
+  display: none;
+}
+
+.video-main {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 55% center;
+  transform: scale(0.92);
+  transform-origin: center;
+  display: block;
+  pointer-events: none;
 }
