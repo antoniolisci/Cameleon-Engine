@@ -194,6 +194,7 @@ img {
   display: block;
   border-radius: inherit;
   pointer-events: none;
+  animation: videoLogoPulse 7s ease-in-out infinite;
 }
 
 .brand-title {
@@ -313,6 +314,7 @@ img {
   border-radius: 50%;
   display: block;
   pointer-events: none;
+  animation: videoCirclePulse 5.5s ease-in-out infinite;
 }
 
 .sidebar-nav {
@@ -7679,8 +7681,23 @@ body[data-behavior-pattern="discipline"]::before {
   height: 100%;
   object-fit: cover;
   object-position: 55% center;
-  transform: scale(0.92);
   transform-origin: center;
   display: block;
   pointer-events: none;
+  animation: videoMainBreath 9s ease-in-out infinite;
+}
+
+@keyframes videoLogoPulse {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50%       { filter: brightness(1.08); transform: scale(1.015); }
+}
+
+@keyframes videoCirclePulse {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50%       { filter: brightness(1.12); transform: scale(1.025); }
+}
+
+@keyframes videoMainBreath {
+  0%, 100% { filter: brightness(1);    transform: scale(0.92); }
+  50%       { filter: brightness(1.06); transform: scale(0.94); }
 }
