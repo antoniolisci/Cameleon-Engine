@@ -1,7 +1,7 @@
 import { MARKET_DICTIONARY } from "./dictionary.js";
 import { OVERTRADING_DICT } from "./overtrading-dictionary.js";
 import { getBehaviorMatrixEntry, getDisciplineImage } from "./behavior/behavior-matrix.js";
-import { updateBehavior, resetBehavior } from "./behavior.js";
+import { updateBehavior, resetBehavior, getAdaptiveTone } from "./behavior.js";
 import { getAdaptiveMessage } from "./tone.js";
 import {
   AUTO_FILL_PRESETS,
@@ -69,7 +69,32 @@ function getBehaviorState(payload) {
   if (_emo === 'fomo')       return 'FOMO';
   if (_emo === 'stress')     return 'STRESS';
   if (_emo === 'neutral')    return 'NEUTRE';
+
+  // Secondary safety override from behavior.js adaptive tone (score-based, decay-aware)
+  const _tone = getAdaptiveTone();
+  if (_tone === 'tilt')                    return 'OVERTRADING';
+  if (_tone === 'tension')                 return 'STRESS';
+  // hesitation only upgrades CALME (the fallback) — never downgrades confirmed states
+  if (_tone === 'hesitation')              return 'NEUTRE';
+
   return 'CALME';
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Setup validation guard ───────────────────────────────────────────────────
+// Returns true when human validation is accepted AND a structure signal exists.
+// Used to prevent behavior from blocking an already-validated setup.
+function _isValidatedSetup(payload) {
+  const validState = payload?.validation?.state;
+  const structure  = payload?.setup_inputs?.structure_signal;
+  return validState === 'accepted' && !!structure && structure !== 'none';
+}
+
+// Returns true when a BLOCKED state should be treated as CAUTION in the UI.
+// decisionState is BLOCKED (from FOMO emotion) but setup is fully validated.
+function _isCautionOverride(payload) {
+  const ds = payload?.decisionState ?? computeDecisionState(payload);
+  return ds?.state === "BLOCKED" && _isValidatedSetup(payload);
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -204,7 +229,22 @@ function renderDecision(payload, behaviorState) {
       heroPrio:    'Tension détectée'
     }
   };
-  const _o = _BHV[bhvState] || null; // null for CALME/NEUTRE
+  let _o = _BHV[bhvState] || null; // null for CALME/NEUTRE
+
+  // ── Validated setup safety valve (FOMO / OVERTRADING only) ───────────────
+  // If human validation = accepted AND structure signal present →
+  // downgrade to reduced engagement instead of absolute STOP.
+  if (_o && (bhvState === 'FOMO' || bhvState === 'OVERTRADING') && _isValidatedSetup(payload)) {
+    _o = {
+      action:      'Prudence comportementale — taille réduite',
+      allowed:     ['Engagement réduit', 'Attendre confirmation supplémentaire'],
+      title:       null,
+      intentCls:   'intent-wait',
+      agentAction: 'Setup validé — exécuter en taille réduite uniquement.',
+      heroAllowed: 'Engagement réduit',
+      heroPrio:    bhvState === 'OVERTRADING' ? 'Surtrading — setup validé' : 'FOMO — setup validé'
+    };
+  }
 
   // ── Resolve final values ──────────────────────────────────────────────────
   const finalAction    = _o?.action      ?? _marketAction;
@@ -238,13 +278,21 @@ function renderDecision(payload, behaviorState) {
     setText('heroPriorityDetail', _o.heroPrio);
   }
 
-  // ── Group D — LDC override (OVERTRADING only) ────────────────────────────
+  // ── Group D — LDC override (OVERTRADING only, unvalidated setups) ──────────
   // FOMO/STRESS: getHeroCopy() already outputs correct LDC text for those states.
+  // Validated setup: downgrade to caution message instead of hard stop.
   if (bhvState === 'OVERTRADING') {
-    setText('lectureDayMain', '⛔ Stop comportemental');
-    setText('lectureDaySub',  'Overtrading détecté — aucune nouvelle position autorisée.');
-    const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
-    if (_ldcCard) _ldcCard.dataset.ldcState = 'blocked';
+    if (_isValidatedSetup(payload)) {
+      setText('lectureDayMain', '⚠️ Prudence comportementale');
+      setText('lectureDaySub',  'Overtrading détecté — setup validé, taille réduite obligatoire.');
+      const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
+      if (_ldcCard) _ldcCard.dataset.ldcState = 'caution';
+    } else {
+      setText('lectureDayMain', '⛔ Stop comportemental');
+      setText('lectureDaySub',  'Overtrading détecté — aucune nouvelle position autorisée.');
+      const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
+      if (_ldcCard) _ldcCard.dataset.ldcState = 'blocked';
+    }
   }
 
   // ── Group E — Premium Decision Block ─────────────────────────────────────
@@ -259,24 +307,32 @@ function renderDecision(payload, behaviorState) {
       'PROTECTION': 'pdv-protect', 'ATTENTION': 'pdv-caution',
       'STOP': 'pdv-stop', 'PAUSE': 'pdv-caution', 'RÉDUCTION': 'pdv-caution'
     };
-    const _pv = bhvState === 'OVERTRADING' ? 'STOP'
-      : bhvState === 'FOMO'   ? 'PAUSE'
-      : bhvState === 'STRESS' ? 'RÉDUCTION'
+    const _bhvValidated = (bhvState === 'OVERTRADING' || bhvState === 'FOMO') && _isValidatedSetup(payload);
+    const _pv = _bhvValidated                   ? 'RÉDUCTION'
+      : bhvState === 'OVERTRADING'              ? 'STOP'
+      : bhvState === 'FOMO'                     ? 'PAUSE'
+      : bhvState === 'STRESS'                   ? 'RÉDUCTION'
       : _S2V[payload.decisionState?.state] || 'ATTENTE';
     const _pc  = _V2C[_pv] || 'pdv-wait';
     const _pct = computeConfidence(extractConfidenceCtx(payload));
     const _pvEl = $('premiumVerdictLabel');
     if (_pvEl) { _pvEl.textContent = _pv; _pvEl.className = `pdv-label ${_pc}`; }
-    setText('premiumInfoLine', `Score : ${payload.score ?? '—'} · Lisibilité : ${_pct} · Mode : ${formatEngineMode(payload.engine_mode)}`);
+    const _isBhvActive = bhvState === 'FOMO' || bhvState === 'OVERTRADING';
+    const _bhvLabel    = bhvState === 'FOMO' ? 'FOMO' : 'Surtrading';
+    const _infoLine    = _isBhvActive
+      ? `Comportement : ${_bhvLabel} · Lisibilité : ${_pct} · Mode prudent`
+      : `Score : ${payload.score ?? '—'} · Lisibilité : ${_pct} · Mode : ${formatEngineMode(payload.engine_mode)}`;
+    setText('premiumInfoLine', _infoLine);
   }
 
   // ── Group F — No-Trade Block ──────────────────────────────────────────────
   const noTradeBlock = document.getElementById('noTradeBlock');
   if (noTradeBlock) {
+    const _validatedSetup = _isValidatedSetup(payload);
     const isNoTrade =
       payload.decisionState?.state === 'WAIT' ||
-      payload.decisionState?.state === 'BLOCKED' ||
-      bhvState === 'OVERTRADING';
+      (payload.decisionState?.state === 'BLOCKED' && !_validatedSetup) ||
+      (bhvState === 'OVERTRADING' && !_validatedSetup);
     if (isNoTrade) {
       noTradeBlock.classList.remove('nt-hidden');
     } else {
@@ -293,16 +349,21 @@ function renderDecision(payload, behaviorState) {
 
 // ── renderOperational ────────────────────────────────────────────────────────
 // Single entry point for all operational panels.
-// FOMO / OVERTRADING: workingPayload forces BLOCKED/NONE — defensive values rendered.
+// FOMO / OVERTRADING + no validation: workingPayload forces BLOCKED/NONE.
+// FOMO / OVERTRADING + validated setup: workingPayload uses REDUCED engagement only.
 // STRESS / CALME / NEUTRE: payload passed unchanged — existing logic applies.
 // The 6 operational functions are not modified.
 function renderOperational(payload, behaviorState) {
   const bhvState = behaviorState || getBehaviorState(payload);
 
+  const _isFomoOt    = bhvState === 'FOMO' || bhvState === 'OVERTRADING';
+  const _setupValid  = _isValidatedSetup(payload);
   const workingPayload =
-    (bhvState === 'FOMO' || bhvState === 'OVERTRADING')
+    _isFomoOt && !_setupValid
       ? { ...payload, engagement_level: 'NONE',
           decisionState: { ...(payload.decisionState || {}), state: 'BLOCKED' } }
+      : _isFomoOt && _setupValid
+      ? { ...payload, engagement_level: 'REDUCED' }
       : payload;
 
   renderExecutionLevel(workingPayload);
@@ -1116,6 +1177,10 @@ function getHeroCopy(payload) {
   const ds = payload.decisionState ?? computeDecisionState(payload);
 
   if (ds.state === "BLOCKED") {
+    // Validated setup: caution copy instead of stop
+    if (_isValidatedSetup(payload)) {
+      return { title: "⚠️ Prudence comportementale", subtitle: "Setup validé — exécution partielle autorisée, taille réduite." };
+    }
     const emotion = (payload.emotion_state || "").toLowerCase();
     switch (emotion) {
       case "fomo":
@@ -2214,7 +2279,11 @@ function renderGuidanceBlock() {
   const state  = ds?.state || "WAIT";
   const market = (currentPayload.market_state || "").toLowerCase();
 
+  // Caution override: BLOCKED + validated setup → treat as CAUTION, not STOP
+  const effectiveState = _isCautionOverride(currentPayload) ? "CAUTION" : state;
+
   const MODE = {
+    CAUTION: "PRUDENCE",
     BLOCKED: "BLOQUÉ",
     PROTECT: "PROTECTION",
     WAIT:    "ATTENTE",
@@ -2223,6 +2292,7 @@ function renderGuidanceBlock() {
   };
 
   const FORBIDDEN = {
+    CAUTION: [],
     BLOCKED: ["Entrer en position"],
     PROTECT: ["Nouvelle entrée"],
     WAIT:    ["Forcer une entrée"],
@@ -2231,6 +2301,7 @@ function renderGuidanceBlock() {
   };
 
   const ALLOWED = {
+    CAUTION: ["Engagement réduit", "Taille réduite"],
     BLOCKED: ["Observer"],
     PROTECT: ["Réduire exposition"],
     WAIT:    ["Observer", "Attendre validation"],
@@ -2239,6 +2310,7 @@ function renderGuidanceBlock() {
   };
 
   const FOCUS = {
+    CAUTION: "Taille réduite — attendre confirmation supplémentaire",
     BLOCKED: "Protection du capital",
     PROTECT: "Gestion des positions",
     WAIT:    "Cassure + validation",
@@ -2256,6 +2328,7 @@ function renderGuidanceBlock() {
   };
 
   const HEADLINE = {
+    CAUTION: "⚠️ PRUDENCE",
     BLOCKED: "⛔ STOP",
     PROTECT: "🛡️ PROTÈGE",
     WAIT:    "⏳ ATTENDS",
@@ -2263,12 +2336,12 @@ function renderGuidanceBlock() {
     READY:   "🚀 GO",
   };
 
-  const modeLabel   = MODE[state] || "ATTENTE";
-  const headlineText = HEADLINE[state] || "⏳ ATTENDS";
-  const forbidden   = FORBIDDEN[state] || [];
-  const allowed     = ALLOWED[state] || ["Observer"];
-  const focus       = FOCUS[state] || "Lecture du marché";
-  const contextText = CONTEXT[market] || "Analyse en cours";
+  const modeLabel    = MODE[effectiveState]     || "ATTENTE";
+  const headlineText = HEADLINE[effectiveState] || "⏳ ATTENDS";
+  const forbidden    = FORBIDDEN[effectiveState] || [];
+  const allowed      = ALLOWED[effectiveState]  || ["Observer"];
+  const focus        = FOCUS[effectiveState]    || "Lecture du marché";
+  const contextText  = CONTEXT[market] || "Analyse en cours";
 
   document.body.dataset.guidanceState = state;
 
@@ -2368,7 +2441,8 @@ function renderHero(payload) {
       ALIGNED: "aligned",
       TENSION: "tension"
     };
-    ldcCard.dataset.ldcState = LDC_STATE_MAP[ds] || "wait";
+    const _rawLdcState = LDC_STATE_MAP[ds] || "wait";
+    ldcCard.dataset.ldcState = (ds === "BLOCKED" && _isValidatedSetup(payload)) ? "caution" : _rawLdcState;
   }
 
   // P1 — Verdict shell
@@ -2416,9 +2490,12 @@ function renderHero(payload) {
     }
     const _emo = (payload.emotion_state || "").toLowerCase();
     if (_emo === "fomo") {
-      filterEl.textContent = "Filtre comportemental actif — opportunité bloquée";
+      const _fomoValidated = _isValidatedSetup(payload);
+      filterEl.textContent = _fomoValidated
+        ? "Filtre comportemental actif — engagement réduit"
+        : "Filtre comportemental actif — opportunité bloquée";
       filterEl.hidden = false;
-      filterEl.style.opacity = "0.3"; // redundant with STOP card — dimmed to L3
+      filterEl.style.opacity = _fomoValidated ? "" : "0.3"; // dimmed only when fully blocked
     } else if (_emo === "stress") {
       filterEl.textContent = "Tension détectée — opportunité non exploitable";
       filterEl.hidden = false;
@@ -2450,6 +2527,11 @@ function renderHero(payload) {
   if (heroStatusEl) {
     heroStatusEl.className = `hero-status ${decisionState.cls}`;
     heroStatusEl.textContent = decisionState.label;
+    // Validated setup: soften BLOCAGE badge to PRUDENCE
+    if (decisionState.state === "BLOCKED" && _isValidatedSetup(payload)) {
+      heroStatusEl.textContent = "PRUDENCE";
+      heroStatusEl.className   = "hero-status status-protect";
+    }
   }
 
   // hero h1 dynamique selon decisionState
@@ -3135,6 +3217,84 @@ function renderWhyDecision(payload) {
   });
 }
 
+// ── renderPrudenceBlock ──────────────────────────────────────────────────────
+// Central dominant block when FOMO/OVERTRADING + validated setup (CAUTION).
+// Suppresses competing behavioral blocks when active.
+function renderPrudenceBlock(payload) {
+  const el = document.getElementById('prudenceExpertBlock');
+  if (!el) return;
+
+  const active = _isCautionOverride(payload);
+
+  // Toggle visibility + dominant class
+  el.style.display = active ? '' : 'none';
+  el.classList.toggle('prudence-expert-shell--active', active);
+
+  // Suppress competing behavioral blocks when PRUDENCE is central
+  const _otBlock = document.getElementById('overtrading-block');
+  if (_otBlock) _otBlock.style.display = active ? 'none' : '';
+
+  if (!active) return;
+
+  const body = el.querySelector('.prudence-expert-body');
+  if (!body) return;
+
+  const _rows = [
+    { label: 'CAUSE',  text: 'FOMO / sur-engagement actif.' },
+    { label: 'IMPACT', text: "Le setup existe, mais l'exécution normale devient dangereuse." },
+    { label: 'ACTION', text: 'Taille réduite obligatoire. Engagement partiel uniquement. Aucune impulsion.' }
+  ];
+
+  body.innerHTML = '';
+  _rows.forEach(({ label, text }) => {
+    const row = document.createElement('div');
+    row.className = 'prudence-expert-row';
+    row.innerHTML =
+      `<span class="prudence-expert-label">${label}</span>` +
+      `<span class="prudence-expert-text">${text}</span>`;
+    body.appendChild(row);
+  });
+}
+
+// ── State video system ────────────────────────────────────────────────────────
+// Maps engine state → contextual video. PRUDENCE (override) has highest priority.
+// Real states: BLOCKED / PROTECT / WAIT / READY / ALIGNED / TENSION
+function getVideoFromPayload(payload) {
+  if (_isCautionOverride(payload))              return 'prudence.mp4';
+  const state = payload?.decisionState?.state;
+  if (state === 'BLOCKED' || state === 'PROTECT') return 'stop.mp4';
+  if (state === 'ALIGNED' || state === 'READY')   return 'execution.mp4';
+  return 'attente.mp4'; // WAIT, TENSION, unknown
+}
+
+function renderStateVideo(payload) {
+  const videoEl = document.querySelector('.video-main');
+  if (!videoEl) return;
+
+  const nextFile = getVideoFromPayload(payload);
+  const nextSrc  = `../assets/video/${nextFile}`;
+
+  // Guard — no reload if source unchanged
+  if (videoEl.dataset.src === nextSrc) return;
+
+  // Clean transition sequence
+  videoEl.pause();
+  videoEl.classList.remove('loaded');
+
+  videoEl.src = nextSrc;
+  videoEl.dataset.src = nextSrc;
+
+  // Full media-element reset (required when changing src on existing element)
+  videoEl.load();
+
+  // Reveal only after first frame is ready
+  videoEl.onloadeddata = () => {
+    videoEl.classList.add('loaded');
+    videoEl.play().catch(() => {});
+  };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function getDecisionAwareActionPlan(payload) {
   const ds = computeDecisionState(payload);
 
@@ -3281,6 +3441,18 @@ const PLAN_TONE_MAP = {
 function renderActionPlan(payload) {
   const container = $("actionPlan");
   if (!container) return;
+
+  // PRUDENCE active → block redundant, PRUDENCE block owns the messaging
+  if (_isCautionOverride(payload)) {
+    container.style.display = 'none';
+    return;
+  }
+  // Behavioral STOP (unvalidated) → guidance block owns the messaging
+  if (payload.decisionState?.state === 'BLOCKED' && !_isValidatedSetup(payload)) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = '';
 
   const lines = getActionPlan(payload);
   const tone  = PLAN_TONE_MAP[payload.decisionState?.state] || "neutral";
@@ -3604,6 +3776,19 @@ function getExecutionLevel(payload) {
 }
 
 function renderExecutionLevel(payload) {
+  // Validated setup + REDUCED engagement → intercept before BLOCKED lock
+  const _validatedReduced =
+    _isValidatedSetup(payload) &&
+    payload?.engagement_level === 'REDUCED';
+
+  if (_validatedReduced) {
+    setText("execPermission", "⚠️ Réduit");
+    setText("execActionType", "Exécution partielle autorisée");
+    setText("execIntensity",  "Réduite");
+    setText("execRisk",       "Élevé");
+    return;
+  }
+
   // PRIORITÉ ABSOLUE — verrou décisionnel
   if (payload.decisionState?.state === "BLOCKED") {
     setText("execPermission", "❌ Bloqué");
@@ -3692,6 +3877,17 @@ function getPositionManagement(payload) {
 }
 
 function renderPositionManagement(payload) {
+  // PRUDENCE override → bypass BLOCKED lock
+  if (_isCautionOverride(payload)) {
+    setText("pmSize",    "Réduite");
+    setText("pmMode",    "Observation active");
+    setText("pmEntry",   "Entrée partielle possible");
+    setText("pmExit",    "Gestion serrée");
+    setText("pmMaxRisk", "Élevé");
+    setText("pmStatus",  "Engagement réduit");
+    return;
+  }
+
   // PRIORITÉ ABSOLUE — validation rejetée ou engagement nul
   if (payload.decisionState?.state === "BLOCKED" || payload.engagement_level === "NONE") {
     setText("pmSize",    "0%");
@@ -3866,6 +4062,15 @@ function getRiskManagement(payload) {
 }
 
 function renderRiskManagement(payload) {
+  // PRUDENCE override → bypass BLOCKED / zero-risk lock
+  if (_isCautionOverride(payload)) {
+    setText("rmRiskPerTrade", "0.5%");
+    setText("rmPositionSize", "Réduite");
+    setText("rmMaxExposure",  "Contrôlée");
+    setText("rmRrMinimum",    "≥ 2.5");
+    return;
+  }
+
   // PRIORITÉ ABSOLUE — engagement nul
   if (payload.engagement_level === "NONE") {
     setText("rmRiskPerTrade", "0%");
@@ -4383,6 +4588,7 @@ function render() {
   renderHeader(currentPayload);
   renderMarketContext(currentPayload);
   renderWhyDecision(currentPayload);
+  renderPrudenceBlock(currentPayload);
   renderNavigation(currentPayload);
   renderPublications(currentPayload);
   renderPilotage(currentPayload);
@@ -4413,6 +4619,7 @@ function render() {
   renderPsychProfile();
   renderBehaviorRepetition();
   renderDecision(currentPayload, getBehaviorState(currentPayload));
+  renderStateVideo(currentPayload);
 
   sanitizeVisibleText();
 

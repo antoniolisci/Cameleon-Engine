@@ -5728,6 +5728,11 @@ body[data-behavior-state="overtrading"] .hero-bottom-zone > .lecture-day-card {
   min-height: 360px;
   overflow: hidden;
   border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050505;
+  box-sizing: border-box;
 }
 
 .hero-logo .hero-visual-frame img {
@@ -7619,6 +7624,49 @@ body[data-behavior-pattern="discipline"]::before {
   color: rgba(255, 255, 255, 0.55);
 }
 
+/* ── Prudence Expert Block ───────────────────────────────────── */
+.prudence-expert-shell {
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.prudence-expert-shell--active {
+  border-color: rgba(245, 158, 11, 0.55);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.prudence-expert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.prudence-expert-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.prudence-expert-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.prudence-expert-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(245, 158, 11, 0.7);
+}
+
+.prudence-expert-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+}
+
 /* ── Premium Decision Block ──────────────────────────────────── */
 .premium-decision-block {
   text-align: center;
@@ -7673,18 +7721,24 @@ body[data-behavior-pattern="discipline"]::before {
   display: none;
 }
 
+/* ── State video — hero (.video-main) ───────────────────────────── */
 .video-main {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 55% center;
-  transform-origin: center;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  object-position: center center;
   display: block;
+  margin: auto;
+  background: #050505;
   pointer-events: none;
-  animation: videoMainBreath 9s ease-in-out infinite;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.video-main.loaded {
+  opacity: 1;
 }
 
 @keyframes videoLogoPulse {
@@ -7695,9 +7749,4 @@ body[data-behavior-pattern="discipline"]::before {
 @keyframes videoCirclePulse {
   0%, 100% { filter: brightness(1); transform: scale(1); }
   50%       { filter: brightness(1.12); transform: scale(1.025); }
-}
-
-@keyframes videoMainBreath {
-  0%, 100% { filter: brightness(1);    transform: scale(0.92); }
-  50%       { filter: brightness(1.06); transform: scale(0.94); }
 }
