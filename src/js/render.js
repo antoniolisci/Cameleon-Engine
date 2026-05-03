@@ -247,6 +247,43 @@ function renderDecision(payload, behaviorState) {
     if (_ldcCard) _ldcCard.dataset.ldcState = 'blocked';
   }
 
+  // ── Group E — Premium Decision Block ─────────────────────────────────────
+  {
+    const _S2V = {
+      BLOCKED: 'PROTECTION', PROTECT: 'PROTECTION',
+      WAIT:    'ATTENTE',    READY:   'ATTENTE',
+      ALIGNED: 'EXÉCUTION',  TENSION: 'ATTENTION'
+    };
+    const _V2C = {
+      'EXÉCUTION': 'pdv-exec',  'ATTENTE':    'pdv-wait',
+      'PROTECTION': 'pdv-protect', 'ATTENTION': 'pdv-caution',
+      'STOP': 'pdv-stop', 'PAUSE': 'pdv-caution', 'RÉDUCTION': 'pdv-caution'
+    };
+    const _pv = bhvState === 'OVERTRADING' ? 'STOP'
+      : bhvState === 'FOMO'   ? 'PAUSE'
+      : bhvState === 'STRESS' ? 'RÉDUCTION'
+      : _S2V[payload.decisionState?.state] || 'ATTENTE';
+    const _pc  = _V2C[_pv] || 'pdv-wait';
+    const _pct = computeConfidence(extractConfidenceCtx(payload));
+    const _pvEl = $('premiumVerdictLabel');
+    if (_pvEl) { _pvEl.textContent = _pv; _pvEl.className = `pdv-label ${_pc}`; }
+    setText('premiumInfoLine', `Score : ${payload.score ?? '—'} · Lisibilité : ${_pct} · Mode : ${formatEngineMode(payload.engine_mode)}`);
+  }
+
+  // ── Group F — No-Trade Block ──────────────────────────────────────────────
+  const noTradeBlock = document.getElementById('noTradeBlock');
+  if (noTradeBlock) {
+    const isNoTrade =
+      payload.decisionState?.state === 'WAIT' ||
+      payload.decisionState?.state === 'BLOCKED' ||
+      bhvState === 'OVERTRADING';
+    if (isNoTrade) {
+      noTradeBlock.classList.remove('nt-hidden');
+    } else {
+      noTradeBlock.classList.add('nt-hidden');
+    }
+  }
+
   // ── CSS hooks ─────────────────────────────────────────────────────────────
   document.body.dataset.behaviorState = bhvState.toLowerCase();
   const _heroSplit = $('hero-split');
@@ -2546,7 +2583,13 @@ function renderNavigation(payload) {
     ? "Lecture cohérente."
     : `Alignement : ${payload.alignment}.`);
   setText("profileReaction", simplifyText(payload.profile_reaction));
-  renderList("blockedActions", [cockpit.market.avoid]);
+  const _bhvBlocked = {
+    OVERTRADING: 'Aucune action — stop obligatoire',
+    FOMO:        'Ne pas entrer sur impulsion',
+    STRESS:      'Ne pas augmenter l\'exposition'
+  };
+  const _bhvStateNav = getBehaviorState(payload);
+  renderList("blockedActions", [_bhvBlocked[_bhvStateNav] || cockpit.market.avoid]);
   renderList("postureActions", [cockpit.market.posture, payload.validation?.summary]);
   renderList("priorityActions", [cockpit.market.decision, ...(payload.trigger_intelligent?.reasons || [])]);
   setText("tableMiniSummary", simplifyText(payload.summary));
@@ -3073,42 +3116,23 @@ function renderWhyDecision(payload) {
     primary.textContent = statusText;
   }
 
-  // ── Helper: section li with label + content ──────────────────────────
-  function addSection(icon, label, htmlContent) {
+  // ── 4-line premium breakdown ──────────────────────────────────────────
+  const _bhvState = getBehaviorState(payload);
+  const _BHV_FR   = { CALME: 'Calme', NEUTRE: 'Neutre', STRESS: 'Stress', FOMO: 'FOMO', OVERTRADING: 'Overtrading' };
+  const _lines = [
+    { label: 'Marché',       value: STATE_LABELS[payload.market_state] || payload.market_state || '—' },
+    { label: 'Risque',       value: payload.trigger_level || '—' },
+    { label: 'Comportement', value: _BHV_FR[_bhvState] || _bhvState },
+    { label: 'Action',       value: simplifyText(payload.action_recommended) || '—' }
+  ];
+  _lines.forEach(({ label, value }) => {
     const li = document.createElement('li');
     li.className = 'why-decision-item';
     li.innerHTML =
-      `<span class="why-section-label">${icon} ${label}</span>` +
-      `<span class="why-section-text">${htmlContent}</span>`;
+      `<span class="why-section-label">${label}</span>` +
+      `<span class="why-section-text">${value}</span>`;
     secondary.appendChild(li);
-  }
-
-  // ── CONTEXTE ─────────────────────────────────────────────────────────
-  if (reasons[1]) addSection('📊', 'CONTEXTE', reasons[1].text);
-
-  // ── RISQUE ───────────────────────────────────────────────────────────
-  if (reasons[2]) {
-    addSection('⚠️', 'RISQUE', reasons[2].text.replace(/^Risque\s*:\s*/i, ''));
-  }
-
-  // ── COMPORTEMENT — source unique renderBehaviorCard (mode 'why')
-  const _bhv = renderBehaviorCard(payload, getBehaviorState(payload), 'why');
-  addSection('🧠', 'COMPORTEMENT',
-    `${_bhv.state}<br><span class="why-bhv-risk">Risque : ${_bhv.risk}</span>`);
-
-  // ── ACTION — texte fort selon statut + détail ─────────────────────────
-  const strongMap = {
-    'EXECUTION':  'EXÉCUTION POSSIBLE — TAILLE LÉGÈRE',
-    'ATTENTE':    'NE PAS TRADER',
-    'PROTECTION': 'PROTÉGER LE CAPITAL'
-  };
-  const strong = strongMap[statusText] || '';
-  const detail = reasons[3] ? reasons[3].text.replace(/^Action\s*:\s*/i, '') : '';
-  const actionHtml = strong
-    ? `<strong class="why-action-strong">${strong}</strong>` +
-      (detail ? `<br><span class="why-action-detail">${detail}</span>` : '')
-    : (detail || '—');
-  addSection('🎯', 'ACTION', actionHtml);
+  });
 }
 
 function getDecisionAwareActionPlan(payload) {
@@ -4349,6 +4373,7 @@ function render() {
 
   // Liaison visuelle globale — source : decisionState
   const _ds = currentPayload.decisionState ?? computeDecisionState(currentPayload);
+  currentPayload.decisionState = _ds;
   const _root = document.querySelector("#app") || document.body;
   if (_ds?.state) _root.dataset.decisionState = _ds.state.toLowerCase();
 

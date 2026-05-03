@@ -14,7 +14,18 @@
     <header class="saas-header">
       <div class="saas-header-inner">
         <div class="brand-wrap">
-          <div class="brand-seal"></div>
+          <div class="brand-seal">
+            <video
+              class="video-logo"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="auto"
+            >
+              <source src="../assets/video/cameleon_engine_logo_fond_noir_simple.mp4" type="video/mp4">
+            </video>
+          </div>
           <div>
             <div class="brand-title">Cameleon Engine</div>
             <div class="brand-subtitle">Shell visuel premium V7.3.2e · moteur adaptatif V4.5 modulaire</div>
@@ -32,7 +43,18 @@
 
     <div class="layout">
       <aside class="floating-sidebar">
-        <div class="sidebar-head"><div class="sidebar-seal"></div></div>
+        <div class="sidebar-head"><div class="sidebar-seal">
+          <video
+            class="video-circle"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+          >
+            <source src="../assets/video/Logo_rond_cameleon_noir_doree.MP4" type="video/mp4">
+          </video>
+        </div></div>
         <div class="sidebar-nav">
           <button class="side-tab active" id="sideTabMoteur" type="button" data-tab-target="moteur">
             <div class="side-tab-icon">M</div>
@@ -253,7 +275,16 @@
 
                 <div class="hero-logo">
                   <div class="hero-visual-frame" aria-hidden="true">
-                    <img src="../assets/images/cameleon-logo.png" alt="Cameleon Engine">
+                    <video
+                      class="video-main"
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                      preload="auto"
+                    >
+                      <source src="../assets/video/camleon_doré_avec_chaine.mp4" type="video/mp4">
+                    </video>
                   </div>
                 </div>
               </div>
@@ -304,6 +335,14 @@
                   <p class="card-desc">Lecture validée. Action définie.</p>
                 </div>
                 <div class="state-pill" id="signalNarratifPill">Lecture active</div>
+              </div>
+              <div id="premiumDecisionBlock" class="premium-decision-block">
+                <div id="premiumVerdictLabel" class="pdv-label">—</div>
+                <div id="premiumInfoLine" class="pdv-info">Score : — · Lisibilité : — · Mode : —</div>
+              </div>
+              <div id="noTradeBlock" class="no-trade-block nt-hidden">
+                <div class="nt-title">Aucune position recommandée</div>
+                <div class="nt-sub">Le moteur indique qu'il est préférable de ne pas agir.</div>
               </div>
               <div class="action-directive">
                 <div class="tiny-label">Verdict</div>
