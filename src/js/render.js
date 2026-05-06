@@ -171,6 +171,7 @@ function renderBehaviorCard(payload, behaviorState, mode = 'block') {
 function renderDecision(payload, behaviorState) {
   const cockpit  = getCockpitModel(payload);
   const bhvState = behaviorState || getBehaviorState(payload);
+  const fd       = payload.finalDecision; // voix finale unifiée — source dominante
 
   // ── Pass-through values (market-derived, CALME/NEUTRE) ───────────────────
   const _marketAction = cockpit.market.action;
@@ -246,13 +247,18 @@ function renderDecision(payload, behaviorState) {
   const finalIntentCls = _o?.intentCls   ?? _intentCls;
   const finalAgentAct  = _o?.agentAction ?? _agentAction;
 
+  // Labels dominants pilotés par finalDecision — fallback : ancienne logique
+  const _fdLabel   = fd?.label   ?? finalAction;
+  const _fdMessage = fd?.message ?? finalAction;
+
   // ── Group A — action labels ───────────────────────────────────────────────
-  setText('verdictNext',            finalAction);
-  setText('heroDecisionAction',     finalAction);
-  setText('decision-action',        finalAction);
-  setText('mantraOperationnelMain', finalAction);
-  setText('tradingStatusNote',      finalAction);
-  setText('action',                 finalAction);
+  // Dominant : fd.label (verdict premium) — détails secondaires : finalAction (inchangé)
+  setText('verdictNext',            _fdLabel);
+  setText('heroDecisionAction',     _fdLabel);
+  setText('decision-action',        finalAction);      // détail — inchangé
+  setText('mantraOperationnelMain', finalAction);      // détail — inchangé
+  setText('tradingStatusNote',      _fdMessage);       // message principal
+  setText('action',                 finalAction);      // détail — inchangé
   setText('executionFrame',         _o ? finalAction : _execAction);
   renderList('allowedActions',      finalAllowed);
 
@@ -269,6 +275,11 @@ function renderDecision(payload, behaviorState) {
     // Hero overlay: only meaningful in behavioral states
     setText('heroAllowedDetail',  _o.heroAllowed);
     setText('heroPriorityDetail', _o.heroPrio);
+  } else if (fd?.isSilenced) {
+    // Passthrough silencé (decisionState BLOCKED/PROTECT, bhvState NEUTRE/CALME)
+    // Le moteur brut est défensif mais aucun _BHV n'a pris la main — fd pilote l'overlay
+    setText('heroAllowedDetail',  fd.label);
+    setText('heroPriorityDetail', fd.message);
   }
 
   // ── Group D — LDC override (OVERTRADING only, unvalidated setups) ──────────
@@ -300,19 +311,25 @@ function renderDecision(payload, behaviorState) {
       'PROTECTION': 'pdv-protect', 'ATTENTION': 'pdv-caution',
       'STOP': 'pdv-stop', 'PAUSE': 'pdv-caution', 'RÉDUCTION': 'pdv-caution'
     };
-    const _bhvValidated = (bhvState === 'OVERTRADING' || bhvState === 'FOMO') && _isValidatedSetup(payload);
-    const _pv = _bhvValidated                   ? 'RÉDUCTION'
-      : bhvState === 'OVERTRADING'              ? 'STOP'
-      : bhvState === 'FOMO'                     ? 'PAUSE'
-      : bhvState === 'STRESS'                   ? 'RÉDUCTION'
-      : _S2V[payload.decisionState?.state] || 'ATTENTE';
+    // Source : fd.verdict (voix dominante) — fallback : ancienne logique comportementale
+    const _pv = fd
+      ? (_S2V[fd.verdict] || 'ATTENTE')
+      : (() => {
+          const _bhvValidated = (bhvState === 'OVERTRADING' || bhvState === 'FOMO') && _isValidatedSetup(payload);
+          return _bhvValidated            ? 'RÉDUCTION'
+            : bhvState === 'OVERTRADING' ? 'STOP'
+            : bhvState === 'FOMO'        ? 'PAUSE'
+            : bhvState === 'STRESS'      ? 'RÉDUCTION'
+            : _S2V[payload.decisionState?.state] || 'ATTENTE';
+        })();
     const _pc  = _V2C[_pv] || 'pdv-wait';
     const _pct = computeConfidence(extractConfidenceCtx(payload));
     const _pvEl = $('premiumVerdictLabel');
     if (_pvEl) { _pvEl.textContent = _pv; _pvEl.className = `pdv-label ${_pc}`; }
-    const _isBhvActive = bhvState === 'FOMO' || bhvState === 'OVERTRADING';
-    const _bhvLabel    = bhvState === 'FOMO' ? 'FOMO' : 'Surtrading';
-    const _infoLine    = _isBhvActive
+    // _infoLine : "Mode prudent" piloté par fd.isSilenced (cohérent avec voix dominante)
+    const _silenced    = fd?.isSilenced ?? (bhvState === 'FOMO' || bhvState === 'OVERTRADING');
+    const _bhvLabel    = fd?.behaviorState ?? bhvState;
+    const _infoLine    = _silenced
       ? `Comportement : ${_bhvLabel} · Lisibilité : ${_pct} · Mode prudent`
       : `Score : ${payload.score ?? '—'} · Lisibilité : ${_pct} · Mode : ${formatEngineMode(payload.engine_mode)}`;
     setText('premiumInfoLine', _infoLine);
@@ -1472,6 +1489,101 @@ function computeDecisionState(payload) {
     label:   "ATTENTE",
     cls:     "status-wait",
     message: "Lecture insuffisante — observer sans agir"
+  };
+}
+
+// ── PHASE 2 — Voix finale unifiée ─────────────────────────────────────────────
+// Source unique de vérité : decisionState × behaviorState.
+// Résultat injecté dans payload.finalDecision par buildCurrentPayload().
+// label / message / behaviorState non branchés UI — infrastructure uniquement.
+function computeFinalDecision(decisionState, behaviorState, payload) {
+  const ds     = decisionState?.state ?? 'WAIT';
+  const bState = typeof behaviorState === 'string'
+    ? behaviorState
+    : (behaviorState?.label ?? 'NEUTRE'); // OVERTRADING/FOMO/STRESS/NEUTRE/CALME
+  const valid  = _isValidatedSetup(payload);
+
+  // Mapping decisionState → displayMode (chemin passthrough)
+  const _dsToDisplay = {
+    BLOCKED: 'stop', PROTECT: 'protect', WAIT: 'wait',
+    READY: 'observe', TENSION: 'observe', ALIGNED: 'execute',
+  };
+
+  // Voix comportementale — priorité sur l'engine quand état dégradé
+  if (bState === 'OVERTRADING') {
+    if (!valid) return {
+      verdict: 'BLOCKED', source: 'behavioral', displayMode: 'stop', isSilenced: true,
+      label: 'Overtrading verrouillé',
+      message: 'Suractivité comportementale détectée. Exécution suspendue.',
+      behaviorState: 'OVERTRADING',
+    };
+    return {
+      verdict: 'PROTECT', source: 'behavioral', displayMode: 'protect', isSilenced: false,
+      label: 'Protection active',
+      message: 'Signal validé malgré l\'exposition comportementale. Taille réduite.',
+      behaviorState: 'OVERTRADING',
+    };
+  }
+
+  if (bState === 'FOMO') {
+    if (!valid) return {
+      verdict: 'BLOCKED', source: 'behavioral', displayMode: 'stop', isSilenced: true,
+      label: 'FOMO verrouillé',
+      message: 'Pression comportementale détectée. Exécution suspendue.',
+      behaviorState: 'FOMO',
+    };
+    return {
+      verdict: 'PROTECT', source: 'behavioral', displayMode: 'protect', isSilenced: false,
+      label: 'Protection active',
+      message: 'Signal présent, mais le moteur protège l\'exécution.',
+      behaviorState: 'FOMO',
+    };
+  }
+
+  if (bState === 'STRESS') {
+    if (ds === 'BLOCKED') return {
+      verdict: 'BLOCKED', source: 'behavioral', displayMode: 'stop', isSilenced: true,
+      label: 'Verrouillage tension',
+      message: 'État de tension combiné à un contexte défavorable. Pause recommandée.',
+      behaviorState: 'STRESS',
+    };
+    return {
+      verdict: 'PROTECT', source: 'behavioral', displayMode: 'protect', isSilenced: false,
+      label: 'Protection active',
+      message: 'Tension comportementale présente. Engagement réduit.',
+      behaviorState: 'STRESS',
+    };
+  }
+
+  // Passthrough — état comportemental neutre ou calme
+  const displayMode = _dsToDisplay[ds] ?? 'wait';
+  const isSilenced  = ds === 'BLOCKED' || ds === 'PROTECT';
+
+  const _dsToLabel = {
+    BLOCKED: 'Bloqué',
+    PROTECT: 'Protection active',
+    WAIT:    'Attente',
+    READY:   'Prêt à observer',
+    TENSION: 'Tension de marché',
+    ALIGNED: 'Exécution possible',
+  };
+  const _dsToMessage = {
+    BLOCKED: 'Contexte défavorable. Aucune exposition recommandée.',
+    PROTECT: 'Signal présent, mais le moteur protège l\'exécution.',
+    WAIT:    'Lecture en cours. Aucune action prioritaire.',
+    READY:   'Structure lisible. Confirmation en attente.',
+    TENSION: 'Lecture partielle. Exposition limitée si signal net.',
+    ALIGNED: 'Conditions alignées. Validation et timing restent prioritaires.',
+  };
+
+  return {
+    verdict:       ds,
+    source:        'engine',
+    displayMode,
+    isSilenced,
+    label:         _dsToLabel[ds]   ?? 'Attente',
+    message:       _dsToMessage[ds] ?? 'Lecture en cours.',
+    behaviorState: bState,
   };
 }
 
@@ -3120,17 +3232,29 @@ function buildWhyReasons(payload) {
   }
 
   // ── STATUS — PROTECTION / EXECUTION / ATTENTE ────────────────────────
-  const isProtection = effectiveLevel >= 4
-    || market === 'defense'
-    || market === 'riskoff';
+  // Source : payload.finalDecision.verdict (voix dominante) — fallback : ancienne logique.
+  const fd = payload.finalDecision;
 
-  const isExecution = !isProtection
-    && market === 'expansion'
-    && score > 70
-    && (emotion === 'calm' || emotion === 'neutral')
-    && effectiveLevel <= 2;
-
-  const status = isProtection ? 'PROTECTION' : isExecution ? 'EXECUTION' : 'ATTENTE';
+  let status;
+  if (fd) {
+    const _fdToStatus = {
+      BLOCKED: 'PROTECTION', PROTECT: 'PROTECTION',
+      WAIT:    'ATTENTE',    READY:   'ATTENTE',    TENSION: 'ATTENTE',
+      ALIGNED: 'EXECUTION',
+    };
+    status = _fdToStatus[fd.verdict] ?? 'ATTENTE';
+  } else {
+    // Fallback — comportement original si fd absent
+    const isProtection = effectiveLevel >= 4
+      || market === 'defense'
+      || market === 'riskoff';
+    const isExecution = !isProtection
+      && market === 'expansion'
+      && score > 70
+      && (emotion === 'calm' || emotion === 'neutral')
+      && effectiveLevel <= 2;
+    status = isProtection ? 'PROTECTION' : isExecution ? 'EXECUTION' : 'ATTENTE';
+  }
 
   // ── Contexte marché ──────────────────────────────────────────────────
   const contextMap = {
@@ -4560,6 +4684,10 @@ function render() {
   const _root = document.querySelector("#app") || document.body;
   if (_ds?.state) _root.dataset.decisionState = _ds.state.toLowerCase();
 
+  // Hooks dataset Phase 2 — infrastructure uniquement, aucun CSS ne les consume encore
+  document.body.dataset.displayMode = currentPayload.finalDecision?.displayMode || 'wait';
+  document.body.dataset.isSilenced  = String(currentPayload.finalDecision?.isSilenced ?? false);
+
   renderActiveAgent();
   renderAgentRules();
   renderCerveauAgent();
@@ -4579,7 +4707,7 @@ function render() {
   renderBehaviorState(currentPayload);
   renderMentalReset(currentPayload);
   applyFocusState(currentPayload);
-  renderOperational(currentPayload, getBehaviorState(currentPayload));
+  renderOperational(currentPayload, currentPayload.finalDecision?.behaviorState ?? getBehaviorState(currentPayload));
   renderJournalDecision(currentPayload);
   renderDecisionHistory();
   renderDecisionInsights();
@@ -4596,7 +4724,7 @@ function render() {
   renderBehaviorProfile();
   renderPsychProfile();
   renderBehaviorRepetition();
-  renderDecision(currentPayload, getBehaviorState(currentPayload));
+  renderDecision(currentPayload, currentPayload.finalDecision?.behaviorState ?? getBehaviorState(currentPayload));
 
   sanitizeVisibleText();
 
@@ -4686,7 +4814,7 @@ function render() {
   }
 
   // narration comportementale — source unique renderBehaviorCard()
-  renderBehaviorCard(currentPayload, getBehaviorState(currentPayload));
+  renderBehaviorCard(currentPayload, currentPayload.finalDecision?.behaviorState ?? getBehaviorState(currentPayload));
 
   // image — DISCIPLINE pour level 1–2 (état positif), sinon matrix ou OVERTRADING_DICT
   const img = document.getElementById("overtrading-img");
@@ -4703,6 +4831,8 @@ function buildCurrentPayload() {
   currentPayload = payload;
   appState.lastPayload = payload;
   payload.decisionState = computeDecisionState(payload);
+  const _bState = getBehaviorState(payload);
+  payload.finalDecision = computeFinalDecision(payload.decisionState, _bState, payload);
 
   return payload;
 }
@@ -4771,12 +4901,22 @@ function activateTab(tab) {
 }
 
 function setActionMode(payload) {
-  const activeMode = deriveActionModeKey(payload);
+  const activeMode = deriveActionModeKey(payload); // moteur brut — non modifié
+
+  // Override visuel si finalDecision impose un silence offensif
+  const fd        = payload.finalDecision;
+  const silenced  = fd?.isSilenced === true;
+  let visualMode  = activeMode;
+  if (silenced) {
+    // BLOCKED → ATTENTE (suspension totale) / PROTECT → SOCLE (retenue défensive)
+    visualMode = (fd.verdict === 'PROTECT') ? 'SOCLE' : 'ATTENTE';
+  }
+
   const states = {
-    modeCoreBtn: activeMode === "SOCLE",
-    modeAttackBtn: activeMode === "ATTAQUE",
-    modeSniperBtn: activeMode === "SNIPER",
-    modeWaitBtn: activeMode === "ATTENTE"
+    modeCoreBtn:   visualMode === "SOCLE",
+    modeAttackBtn: visualMode === "ATTAQUE",
+    modeSniperBtn: visualMode === "SNIPER",
+    modeWaitBtn:   visualMode === "ATTENTE"
   };
 
   Object.entries(states).forEach(([id, active]) => {
@@ -4785,6 +4925,14 @@ function setActionMode(payload) {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
+
+  // Data-attribute discret sur le conteneur — futur CSS "Mode offensif suspendu"
+  const container = $("modeCoreBtn")?.closest(".mode-actions");
+  if (container) {
+    container.dataset.silenced = String(silenced);
+    if (silenced) container.dataset.silencedVerdict = fd.verdict;
+    else          delete container.dataset.silencedVerdict;
+  }
 }
 
 function applyPresetToForm(preset) {
