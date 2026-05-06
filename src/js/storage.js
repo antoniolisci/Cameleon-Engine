@@ -159,6 +159,34 @@ export const backups = {
   },
 };
 
+// ── Behavior guard — helpers lecture cross-module ─────────────
+// Ces clés sont écrites par behavior-repo.js (namespace cameleon.behavior.v1.*).
+// Ces helpers permettent à render.js de les lire sans appel localStorage brut.
+// Ne pas écrire via ces helpers — écriture réservée au module behavior.
+
+const _BHV_NS  = 'cameleon.behavior.v1.';
+const _BHV_TTL = 7 * 24 * 60 * 60 * 1000; // 7 jours
+
+export const behaviorGuard = {
+  /**
+   * Retourne le niveau historique (1–5) si présent et non expiré (< 7 jours).
+   * Retourne null si absent, invalide ou expiré.
+   */
+  readHistoricalLevel() {
+    try {
+      const rawLevel = localStorage.getItem(_BHV_NS + 'guardLevel');
+      const rawTs    = localStorage.getItem(_BHV_NS + 'guardLevelUpdatedAt');
+      const level    = rawLevel !== null ? JSON.parse(rawLevel) : null;
+      const ts       = rawTs    !== null ? JSON.parse(rawTs)    : null;
+      if (typeof level !== 'number' || level < 1 || level > 5)          return null;
+      if (typeof ts    !== 'number' || (Date.now() - ts) >= _BHV_TTL)   return null;
+      return level;
+    } catch {
+      return null;
+    }
+  }
+};
+
 // ── Storage health ────────────────────────────────────────────
 
 export function canUseStorage() {

@@ -129,7 +129,7 @@ export function scoreVolatility(v, config = DEFAULT_VOLATILITY_CONFIG) {
  */
 export function interpretScore(score) {
   const s = clamp(score);
-  const threshold = THRESHOLDS.find(t => s >= t.min && s < t.max)
+  const threshold = THRESHOLDS.find(t => s >= t.min && s <= t.max)
     ?? THRESHOLDS[THRESHOLDS.length - 1];
   return {
     label:      threshold.label,
