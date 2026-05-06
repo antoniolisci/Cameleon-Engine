@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.js";
-import { backups } from "./storage.js";
+import { backups, behaviorGuard } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeUXState } from "./ux-state.js";
@@ -53,15 +53,8 @@ const TAB_FOCUS_TARGETS = {
 // No engine, scoring, or decision logic involved.
 function getBehaviorState(payload) {
   let _otLevel = payload?.behavior?.overtradingLevel || 1;
-  try {
-    const _rawLvl = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevel'));
-    const _rawTs  = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevelUpdatedAt'));
-    const _7D = 7 * 24 * 60 * 60 * 1000;
-    if (typeof _rawLvl === 'number' && _rawLvl >= 1 && _rawLvl <= 5
-     && typeof _rawTs  === 'number' && (Date.now() - _rawTs) < _7D) {
-      _otLevel = Math.max(_otLevel, _rawLvl);
-    }
-  } catch { /* localStorage unavailable */ }
+  const _historicalLvl = behaviorGuard.readHistoricalLevel();
+  if (_historicalLvl !== null) _otLevel = Math.max(_otLevel, _historicalLvl);
 
   const _emo = (payload?.emotion_state || 'neutral').toLowerCase();
   const _effectiveOt = (_emo === 'calm') ? Math.min(_otLevel, 2) : _otLevel;
@@ -435,10 +428,16 @@ function setWidth(id, value) {
 
 // ─── Score animation ──────────────────────────────────────────
 
-let _scoreAnimTimer = null;
+let _scoreAnimTimer = null;  // debounce handle (setTimeout/clearTimeout — cf. renderScoreCard)
+let _scoreAnimFrame = null;  // rAF handle (cancelAnimationFrame — cf. animateScore)
 
 function animateScore(el, to, duration = 600) {
   if (!el) return;
+  // Annuler le frame rAF précédent avant d'en démarrer un nouveau.
+  if (_scoreAnimFrame !== null) {
+    cancelAnimationFrame(_scoreAnimFrame);
+    _scoreAnimFrame = null;
+  }
   const from  = parseInt(el.textContent, 10) || 0;
   if (from === to) return;
   const start = performance.now();
@@ -446,13 +445,30 @@ function animateScore(el, to, duration = 600) {
     const progress = Math.min((now - start) / duration, 1);
     const eased    = 1 - Math.pow(1 - progress, 3); // easeOutCubic
     el.textContent = Math.round(from + (to - from) * eased);
-    if (progress < 1) requestAnimationFrame(frame);
+    if (progress < 1) {
+      _scoreAnimFrame = requestAnimationFrame(frame);
+    } else {
+      _scoreAnimFrame = null;
+    }
   }
-  requestAnimationFrame(frame);
+  _scoreAnimFrame = requestAnimationFrame(frame);
 }
 
 // ─── Confidence Score — moteur de calcul ─────────────────────
-
+//
+// ⚠️ DEUX SYSTÈMES DE CONFIDENCE COEXISTENT ACTUELLEMENT :
+//
+//   1. confidence-score.js → computeConfidenceScore()
+//      Formule : trend(30%) + structure(30%) + volatility(25%) + volume(15%)
+//      Utilisé par : buildMarketContext(), renderConfidencePanel(), debug brain.
+//
+//   2. computeConfidence() ci-dessous (local render.js)
+//      Formule : structure(35%) + alignment(30%) + volatility(var) - risk(40%) + bonus marché
+//      Utilisé par : Premium Verdict Block (premiumInfoLine).
+//
+//   Ces deux formules produisent des scores différents pour le même contexte.
+//   TODO (Phase 2) : unifier sur confidence-score.js et supprimer computeConfidence().
+//
 /**
  * Calcule le Confidence Score à partir du contexte moteur.
  * Formule : structure(35%) + alignment(30%) + volatility(variable) - risk(40%)
@@ -3256,44 +3272,6 @@ function renderPrudenceBlock(payload) {
   });
 }
 
-// ── State video system ────────────────────────────────────────────────────────
-// Maps engine state → contextual video. PRUDENCE (override) has highest priority.
-// Real states: BLOCKED / PROTECT / WAIT / READY / ALIGNED / TENSION
-function getVideoFromPayload(payload) {
-  if (_isCautionOverride(payload))              return 'prudence.mp4';
-  const state = payload?.decisionState?.state;
-  if (state === 'BLOCKED' || state === 'PROTECT') return 'stop.mp4';
-  if (state === 'ALIGNED' || state === 'READY')   return 'execution.mp4';
-  return 'attente.mp4'; // WAIT, TENSION, unknown
-}
-
-function renderStateVideo(payload) {
-  const videoEl = document.querySelector('.video-main');
-  if (!videoEl) return;
-
-  const nextFile = getVideoFromPayload(payload);
-  const nextSrc  = `../assets/video/${nextFile}`;
-
-  // Guard — no reload if source unchanged
-  if (videoEl.dataset.src === nextSrc) return;
-
-  // Clean transition sequence
-  videoEl.pause();
-  videoEl.classList.remove('loaded');
-
-  videoEl.src = nextSrc;
-  videoEl.dataset.src = nextSrc;
-
-  // Full media-element reset (required when changing src on existing element)
-  videoEl.load();
-
-  // Reveal only after first frame is ready
-  videoEl.onloadeddata = () => {
-    videoEl.classList.add('loaded');
-    videoEl.play().catch(() => {});
-  };
-}
-// ─────────────────────────────────────────────────────────────────────────────
 
 function getDecisionAwareActionPlan(payload) {
   const ds = computeDecisionState(payload);
@@ -4619,7 +4597,6 @@ function render() {
   renderPsychProfile();
   renderBehaviorRepetition();
   renderDecision(currentPayload, getBehaviorState(currentPayload));
-  renderStateVideo(currentPayload);
 
   sanitizeVisibleText();
 
@@ -4641,14 +4618,8 @@ function render() {
   const instantLevel = currentPayload?.behavior?.overtradingLevel || 1;
 
   let historicalLevel = 1;
-  try {
-    const _rawLevel = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevel'));
-    const _rawTs    = JSON.parse(localStorage.getItem('cameleon.behavior.v1.guardLevelUpdatedAt'));
-    const _SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-    const _isValidLevel  = typeof _rawLevel === 'number' && _rawLevel >= 1 && _rawLevel <= 5;
-    const _isValidTs     = typeof _rawTs === 'number' && (Date.now() - _rawTs) < _SEVEN_DAYS_MS;
-    if (_isValidLevel && _isValidTs) historicalLevel = _rawLevel;
-  } catch { /* localStorage unavailable — stay at 1 */ }
+  const _storedLvl = behaviorGuard.readHistoricalLevel();
+  if (_storedLvl !== null) historicalLevel = _storedLvl;
 
   const level = Math.max(instantLevel, historicalLevel);
 
