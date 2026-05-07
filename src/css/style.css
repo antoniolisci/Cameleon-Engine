@@ -7337,6 +7337,13 @@ body[data-action-level="EXECUTE"] button {
 
 body[data-action-level="LOCKED"] .decision-anchor {
   opacity: 0.6;
+  border-left: 2px solid rgba(220, 80, 80, 0.38);
+  box-shadow: inset 3px 0 10px rgba(220, 80, 80, 0.06);
+}
+
+body[data-action-level="OBSERVE"] .decision-anchor {
+  border-left: 2px solid rgba(255, 209, 102, 0.32);
+  box-shadow: inset 3px 0 10px rgba(255, 209, 102, 0.05);
 }
 
 body[data-action-level="EXECUTE"] .decision-anchor {
