@@ -3276,7 +3276,7 @@ function buildWhyReasons(payload) {
     riskText = 'Risque : entrée impulsive sur mouvement déjà amorcé.';
   } else if (emotion === 'stress') {
     riskText = 'Risque : décision réactive sous pression émotionnelle.';
-  } else if (emotion === 'calm' && isExecution) {
+  } else if (emotion === 'calm' && status === 'EXECUTION') {
     riskText = 'Risque : faible. Filtre émotionnel validé, contexte favorable.';
   } else if (emotion === 'calm') {
     riskText = 'Risque : contexte marché uniquement. Opérateur stable.';
