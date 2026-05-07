@@ -5728,11 +5728,6 @@ body[data-behavior-state="overtrading"] .hero-bottom-zone > .lecture-day-card {
   min-height: 360px;
   overflow: hidden;
   border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #050505;
-  box-sizing: border-box;
 }
 
 .hero-logo .hero-visual-frame img {
@@ -7721,24 +7716,19 @@ body[data-behavior-pattern="discipline"]::before {
   display: none;
 }
 
-/* ── State video — hero (.video-main) ───────────────────────────── */
+/* ── Hero video (.video-main) ───────────────────────────────────── */
 .video-main {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   width: 100%;
-  height: auto;
-  max-height: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: contain;
-  object-position: center center;
+  height: 100%;
+  object-fit: cover;
+  object-position: 55% center;
+  transform: scale(0.92);
+  transform-origin: center;
   display: block;
-  margin: auto;
-  background: #050505;
   pointer-events: none;
-  transition: opacity 0.3s ease;
-  opacity: 0;
-}
-
-.video-main.loaded {
-  opacity: 1;
 }
 
 @keyframes videoLogoPulse {
@@ -7750,3 +7740,4 @@ body[data-behavior-pattern="discipline"]::before {
   0%, 100% { filter: brightness(1); transform: scale(1); }
   50%       { filter: brightness(1.12); transform: scale(1.025); }
 }
+
