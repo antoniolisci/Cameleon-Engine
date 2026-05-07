@@ -3215,9 +3215,9 @@ function buildWhyReasons(payload) {
   if (payload.validation?.state === 'rejected') {
     return [
       { text: 'PROTECTION' },
-      { text: 'Validation refusée. Aucune condition d\'entrée n\'est remplie.' },
-      { text: 'Risque : entrée sans cadre validé.' },
-      { text: 'Action : aucune position. Reprendre uniquement après validation.' }
+      { text: 'Setup incomplet. Le moteur ne valide pas l\'entrée.' },
+      { text: 'Entrer maintenant, c\'est trader sans base solide.' },
+      { text: 'Rester hors position. Reprendre quand le setup est propre.' }
     ];
   }
 
@@ -3225,9 +3225,9 @@ function buildWhyReasons(payload) {
   if ((payload.alignment || '') === 'Veto humain') {
     return [
       { text: 'ATTENTE' },
-      { text: 'Veto humain actif. La décision revient au trader.' },
-      { text: 'Risque : agir contre son propre cadre.' },
-      { text: 'Action : attendre la levée du veto avant toute exécution.' }
+      { text: 'Décision manuelle. Le moteur s\'efface.' },
+      { text: 'Sans le moteur, le biais humain reprend la main.' },
+      { text: 'Reprendre avec le moteur dès que possible.' }
     ];
   }
 
@@ -3259,45 +3259,45 @@ function buildWhyReasons(payload) {
   // ── Contexte marché ──────────────────────────────────────────────────
   const contextMap = {
     expansion:   risk === 'Élevé'
-      ? 'Momentum présent, mais risque élevé sur le contexte global.'
-      : 'Momentum présent. Structure favorable à une lecture directionnelle.',
-    range:       'Marché sans signal exploitable. Aucune opportunité qualifiée.',
-    compression: 'Marché en attente de direction. Structure en construction.',
-    defense:     'Contexte de correction actif. Pression vendeuse dominante.',
-    riskoff:     'Marché hostile. Aversion au risque généralisée.'
+      ? 'Le marché avance, mais le risque global est trop élevé pour suivre.'
+      : 'Structure claire. Le marché offre une direction lisible.',
+    range:       'Pas de signal exploitable. Le marché ne propose rien de concret.',
+    compression: 'Le marché cherche sa direction. Rien à faire pour l\'instant.',
+    defense:     'Le marché corrige. Les vendeurs ont l\'avantage.',
+    riskoff:     'Conditions dégradées. Ce n\'est pas le moment de trader.'
   };
-  const context = contextMap[market] || 'Contexte non qualifié. Observer avant d\'agir.';
+  const context = contextMap[market] || 'Contexte peu lisible. Mieux vaut observer avant de décider.';
 
   // ── Risque ───────────────────────────────────────────────────────────
   let riskText;
   if (effectiveLevel >= 4) {
-    riskText = 'Risque : pression comportementale critique. Surexposition probable.';
+    riskText = 'Trop de positions ouvertes. Le risque s\'accumule.';
   } else if (emotion === 'fomo') {
-    riskText = 'Risque : entrée impulsive sur mouvement déjà amorcé.';
+    riskText = 'Attention : entrer maintenant, c\'est courir après le marché.';
   } else if (emotion === 'stress') {
-    riskText = 'Risque : décision réactive sous pression émotionnelle.';
+    riskText = 'Décider sous pression augmente les erreurs. Pause d\'abord.';
   } else if (emotion === 'calm' && status === 'EXECUTION') {
-    riskText = 'Risque : faible. Filtre émotionnel validé, contexte favorable.';
+    riskText = 'État stable, contexte favorable. Risque bien contenu.';
   } else if (emotion === 'calm') {
-    riskText = 'Risque : contexte marché uniquement. Opérateur stable.';
+    riskText = 'Aucun biais détecté. Seul le marché reste à surveiller.';
   } else {
-    riskText = 'Risque : modéré. Aucun biais détecté, signal à confirmer.';
+    riskText = 'Rien d\'alarmant. Signal à confirmer avant d\'agir.';
   }
 
   // ── Action ───────────────────────────────────────────────────────────
   let action;
   if (status === 'PROTECTION' && (market === 'defense' || market === 'riskoff')) {
-    action = 'Action : pas d\'entrée nouvelle. Protéger le capital en priorité.';
+    action = 'Pas d\'entrée. Protéger ce qui est en place.';
   } else if (status === 'PROTECTION' && effectiveLevel >= 4) {
-    action = 'Action : stopper toute nouvelle position. Réduire l\'exposition immédiatement.';
+    action = 'Stopper. Réduire avant de prendre la moindre décision.';
   } else if (status === 'EXECUTION') {
-    action = 'Action : exécution possible. Signal confirmé requis. Taille légère.';
+    action = 'Exécution possible. Signal confirmé, taille maîtrisée.';
   } else if (emotion === 'fomo') {
-    action = 'Action : ne pas entrer. Attendre un signal propre sans pression émotionnelle.';
+    action = 'Ne pas entrer. Attendre un signal propre, sans précipitation.';
   } else if (emotion === 'stress') {
-    action = 'Action : pause obligatoire. Reprendre uniquement après stabilisation.';
+    action = 'Pause obligatoire. Reprendre une fois calme.';
   } else {
-    action = 'Action : observer uniquement. Attendre un signal clair avant d\'agir.';
+    action = 'Observer. Agir seulement quand le signal est clair.';
   }
 
   return [
