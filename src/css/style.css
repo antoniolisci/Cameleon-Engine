@@ -7350,11 +7350,25 @@ body[data-action-level="EXECUTE"] .decision-anchor {
   border-color: rgba(80, 200, 120, 0.25);
 }
 
-body[data-action-level="LOCKED"]  .action-score { color: #ff6b6b; }
-body[data-action-level="OBSERVE"] .action-score { color: #ffd166; }
+body[data-action-level="LOCKED"]  .action-score {
+  color: #ff6b6b;
+  text-shadow: 0 0 10px rgba(220, 80, 80, 0.28);
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+body[data-action-level="OBSERVE"] .action-score {
+  color: #ffd166;
+  text-shadow: 0 0 8px rgba(255, 209, 102, 0.22);
+  letter-spacing: 0.03em;
+}
 body[data-action-level="PREPARE"] .action-score { color: #fcbf49; }
 body[data-action-level="LIMITED"] .action-score { color: #80ed99; }
-body[data-action-level="EXECUTE"] .action-score { color: #00f5d4; }
+body[data-action-level="EXECUTE"] .action-score {
+  color: #00f5d4;
+  text-shadow: 0 0 10px rgba(0, 245, 212, 0.24);
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
 
 /* ============================
    SCORE HIERARCHY — visual priority
