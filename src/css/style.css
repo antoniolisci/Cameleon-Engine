@@ -7027,16 +7027,15 @@ html.onboarding-seen .onboarding-overlay {
 
 
 .guidance-headline {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   text-align: center;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
 }
 
 
 /* Soft friction — only actions, NOT inputs */
 body[data-guidance-state="BLOCKED"] .moteur-flow button {
-  cursor: not-allowed;
   opacity: 0.6;
 }
 
@@ -7097,8 +7096,8 @@ body[data-guidance-state="WAIT"] .guidance-card {
 
 body[data-guidance-state="BLOCKED"] .moteur-flow,
 body[data-guidance-state="BLOCKED"] .side-panel {
-  opacity: 0.38;
-  filter: saturate(0.58) brightness(0.78) contrast(0.92);
+  opacity: 0.52;
+  filter: saturate(0.72) brightness(0.88) contrast(0.96);
   transition: opacity var(--ux-transition) ease, filter var(--ux-transition) ease;
 }
 
@@ -7344,7 +7343,7 @@ body[data-action-level="EXECUTE"] .action-plan {
 }
 
 body[data-action-level="LOCKED"] button {
-  opacity: 0.5;
+  opacity: 0.62;
   transition: all 0.35s ease;
 }
 

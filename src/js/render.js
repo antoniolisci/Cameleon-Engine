@@ -2411,12 +2411,12 @@ function renderGuidanceBlock() {
   const effectiveState = _isCautionOverride(currentPayload) ? "CAUTION" : state;
 
   const MODE = {
-    CAUTION: "PRUDENCE",
-    BLOCKED: "BLOQUÉ",
-    PROTECT: "PROTECTION",
-    WAIT:    "ATTENTE",
-    TENSION: "TENSION",
-    READY:   "PRÊT",
+    CAUTION: "Prudence",
+    BLOCKED: "Bloqué",
+    PROTECT: "Protection",
+    WAIT:    "Attente",
+    TENSION: "Tension",
+    READY:   "Prêt",
   };
 
   const FORBIDDEN = {
@@ -2424,7 +2424,7 @@ function renderGuidanceBlock() {
     BLOCKED: ["Entrer en position"],
     PROTECT: ["Nouvelle entrée"],
     WAIT:    ["Forcer une entrée"],
-    TENSION: ["Entrer full size"],
+    TENSION: ["Entrée pleine taille"],
     READY:   [],
   };
 
@@ -2441,27 +2441,27 @@ function renderGuidanceBlock() {
     CAUTION: "Taille réduite — attendre confirmation supplémentaire",
     BLOCKED: "Protection du capital",
     PROTECT: "Gestion des positions",
-    WAIT:    "Cassure + validation",
+    WAIT:    "Cassure et validation",
     TENSION: "Qualité du signal",
-    READY:   "Setup + timing",
+    READY:   "Setup et timing",
   };
 
   const CONTEXT = {
     compression: "Marché en compression — mouvement en préparation",
     range:       "Marché sans direction claire",
     expansion:   "Volatilité élevée — faux signaux fréquents",
-    defense:     "Phase défensive — prudence",
+    defense:     "Phase défensive — attendre la stabilisation",
     chaos:       "Structure instable — risque élevé",
-    riskoff:     "Contexte risk-off",
+    riskoff:     "Marché en mode risk-off",
   };
 
   const HEADLINE = {
-    CAUTION: "⚠️ PRUDENCE",
-    BLOCKED: "⛔ STOP",
-    PROTECT: "🛡️ PROTÈGE",
-    WAIT:    "⏳ ATTENDS",
-    TENSION: "⚠️ RÉDUIS",
-    READY:   "🚀 GO",
+    CAUTION: "Prudence",
+    BLOCKED: "Position bloquée",
+    PROTECT: "Protection active",
+    WAIT:    "En attente",
+    TENSION: "Réduire l'exposition",
+    READY:   "Signal disponible",
   };
 
   const modeLabel    = MODE[effectiveState]     || "ATTENTE";
@@ -2484,17 +2484,17 @@ function renderGuidanceBlock() {
       </div>
 
       <div class="guidance-block guidance-block--forbidden">
-        <div class="label">⛔ INTERDIT</div>
+        <div class="label">À éviter</div>
         ${forbidden.length ? forbidden.map(l => `<div>→ ${l}</div>`).join("") : `<div>—</div>`}
       </div>
 
       <div class="guidance-block guidance-block--allowed">
-        <div class="label">✅ AUTORISÉ</div>
+        <div class="label">Possible</div>
         ${allowed.map(l => `<div>→ ${l}</div>`).join("")}
       </div>
 
       <div class="guidance-block guidance-block--focus">
-        <div class="label">🎯 FOCUS</div>
+        <div class="label">Priorité</div>
         <div>${focus}</div>
       </div>
 
@@ -3380,9 +3380,9 @@ function renderPrudenceBlock(payload) {
   if (!body) return;
 
   const _rows = [
-    { label: 'CAUSE',  text: 'Sur-engagement ou FOMO détecté.' },
-    { label: 'IMPACT', text: "Le setup tient, mais trader normalement ici augmente le risque." },
-    { label: 'ACTION', text: 'Taille réduite. Une seule entrée à la fois. Pas d\'impulsion.' }
+    { label: 'Détection', text: 'Suractivité ou FOMO détecté sur la période récente.' },
+    { label: 'Contexte',  text: "Le setup est valide. Une exécution standard augmenterait le risque." },
+    { label: 'Posture',   text: 'Taille réduite. Une entrée à la fois. Rester méthodique.' }
   ];
 
   body.innerHTML = '';
@@ -3469,58 +3469,58 @@ function getActionPlan(payload) {
     switch (emotion) {
       case "fomo":
         return [
-          "Maintenant → Stop immédiat",
-          "Préparer → Couper écran / attendre reset",
-          "Interdit → Toute entrée"
+          "Pause immédiate. Le FOMO est actif.",
+          "S'éloigner de l'écran. Attendre un retour au calme.",
+          "Aucune entrée tant que l'état FOMO persiste."
         ];
       case "revenge":
         return [
-          "Maintenant → Stop immédiat",
-          "Préparer → Revenir au plan strict",
-          "Interdit → Augmenter taille / forcer trade"
+          "Stopper. Le revenge trading augmente les pertes.",
+          "Revenir au plan de base, sans improvisation.",
+          "Aucune augmentation de taille. Aucune entrée forcée."
         ];
       case "overtrading":
         return [
-          "Maintenant → Ralentir fortement",
-          "Préparer → Réduire fréquence",
-          "Interdit → Multiplier les entrées"
+          "Réduire la fréquence d'entrée immédiatement.",
+          "Espacer les décisions. Moins d'entrées, plus de sélectivité.",
+          "Pas d'accumulation de positions supplémentaires."
         ];
       case "tilt":
         return [
-          "Maintenant → Arrêt immédiat",
-          "Préparer → Quitter session",
-          "Interdit → Toute activité trading"
+          "Arrêt de session recommandé. Le tilt perturbe le jugement.",
+          "Reprendre uniquement après une pause complète.",
+          "Aucune décision dans cet état."
         ];
       default:
         return [
-          "Maintenant → Stop immédiat",
-          "Préparer → Revenir au plan",
-          "Interdit → Forcer une entrée"
+          "Position bloquée. Revenir au plan avant d'agir.",
+          "Relire le plan de session. Identifier la prochaine zone valide.",
+          "Pas d'entrée forcée hors signal validé."
         ];
     }
   }
 
   if (state === "PROTECT") {
     return [
-      "Maintenant → Réduire exposition",
-      "Préparer → Nettoyer positions fragiles",
-      "Interdit → Augmenter taille"
+      "Réduction d'exposition prioritaire.",
+      "Identifier et alléger les positions à risque.",
+      "Aucune augmentation de taille dans ce contexte."
     ];
   }
 
   if (state === "NEUTRAL" || state === "WAIT") {
     return [
-      "Maintenant → Observer",
-      "Préparer → Identifier niveau clé",
-      "Interdit → Entrée impulsive"
+      "Observation active. Aucun signal exploitable.",
+      "Repérer les zones de prix à surveiller.",
+      "Pas d'entrée sans signal structuré."
     ];
   }
 
   if (state === "ALIGNED") {
     return [
-      "Maintenant → Exécuter propre",
-      "Préparer → Plan de sortie",
-      "Interdit → Sur-engagement"
+      "Exécution possible sur signal confirmé.",
+      "Définir le plan de sortie avant l'entrée.",
+      "Pas de sur-engagement — taille maîtrisée."
     ];
   }
 
@@ -4585,10 +4585,10 @@ function renderBehaviorInfluence() {
   let level = null;
   try { level = JSON.parse(localStorage.getItem(BHV_KEY)); } catch {}
   const TEXT = {
-    'Élevée':  'Cadre respecté. Aucune influence comportementale particulière.',
-    'Bonne':   'Discipline correcte. Éviter d\'accélérer inutilement.',
-    'Moyenne': 'Vigilance : ralentir légèrement et revenir au cadre habituel.',
-    'Faible':  'Prudence renforcée : risque de dérive comportementale.'
+    'Élevée':  'Cadre respecté. Rien à signaler.',
+    'Bonne':   'Discipline correcte. Maintenir le rythme.',
+    'Moyenne': 'Légère dérive détectée. Ralentir et revenir au cadre.',
+    'Faible':  'Dérive comportementale probable. Prudence renforcée.'
   };
   const panel = $('bhvInfluencePanel');
   if (!panel) return;
@@ -4618,17 +4618,17 @@ function computeAlertStats() {
 }
 
 function computeMetaMessage(stats) {
-  if (stats.overreaction >= 2) return "⚠️ Tu sur-réagis régulièrement";
-  if (stats.hesitation   >= 3) return "⚠️ Tu hésites souvent";
-  if (stats.instability  >= 2) return "⚠️ Comportement instable";
-  return "Comportement global stable";
+  if (stats.overreaction >= 2) return "Réactions excessives détectées sur la période.";
+  if (stats.hesitation   >= 3) return "Hésitations fréquentes sur la période.";
+  if (stats.instability  >= 2) return "Comportement irrégulier détecté.";
+  return "Comportement stable sur la période.";
 }
 
 function computeBehaviorBadge(stats) {
   const total = stats.hesitation + stats.overreaction + stats.instability;
-  if (total <= 1) return "🟢 Stable";
-  if (total <= 3) return "🟡 À surveiller";
-  return "🔴 Instable";
+  if (total <= 1) return "Stable";
+  if (total <= 3) return "À surveiller";
+  return "Instable";
 }
 
 function renderMetaLayer() {
