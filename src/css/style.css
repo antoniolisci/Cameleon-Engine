@@ -7226,11 +7226,41 @@ body[data-guidance-state="BLOCKED"] .side-panel > * {
 }
 
 .decision-btn:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .decision-btn.alt {
   opacity: 0.6;
+}
+
+.decision-btn.selected {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.9);
+  opacity: 1;
+}
+
+.decision-btn.alt.selected {
+  border-color: rgba(255, 100, 100, 0.28);
+  background: rgba(255, 100, 100, 0.05);
+  color: rgba(255, 180, 180, 0.85);
+  opacity: 1;
+}
+
+.decision-override-msg {
+  font-size: 0.72rem;
+  color: rgba(255, 180, 160, 0.75);
+  text-align: center;
+  padding: 4px 6px 0;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.4s ease, max-height 0.4s ease;
+}
+
+.decision-override-msg.visible {
+  opacity: 1;
+  max-height: 40px;
 }
 
 /* ============================
@@ -7573,9 +7603,10 @@ body[data-behavior-pattern="discipline"]::before {
 }
 
 .why-status-label {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  opacity: 0.88;
 }
 
 .why-central-phrase {

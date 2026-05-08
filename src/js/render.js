@@ -3324,9 +3324,9 @@ function renderWhyDecision(payload) {
 
   // ── STATUS + phrase centrale ─────────────────────────────────────────
   const statusMap = {
-    'EXECUTION':  { icon: '🟢', cls: 'status-green',  phrase: 'SIGNAL CONFIRMÉ — EXÉCUTION POSSIBLE' },
-    'ATTENTE':    { icon: '🟡', cls: 'status-orange', phrase: 'AUCUNE OPPORTUNITÉ VALIDÉE'            },
-    'PROTECTION': { icon: '🔴', cls: 'status-red',    phrase: 'CAPITAL À PROTÉGER EN PRIORITÉ'       }
+    'EXECUTION':  { icon: '🟢', cls: 'status-green',  phrase: 'Signal confirmé. Exécution possible.'  },
+    'ATTENTE':    { icon: '🟡', cls: 'status-orange', phrase: 'Rien à saisir pour l\'instant.'         },
+    'PROTECTION': { icon: '🔴', cls: 'status-red',    phrase: 'Protéger le capital en priorité.'      }
   };
   const sm = statusMap[statusText];
   if (sm) {
@@ -3340,7 +3340,7 @@ function renderWhyDecision(payload) {
 
   // ── 4-line premium breakdown ──────────────────────────────────────────
   const _bhvState = getBehaviorState(payload);
-  const _BHV_FR   = { CALME: 'Calme', NEUTRE: 'Neutre', STRESS: 'Stress', FOMO: 'FOMO', OVERTRADING: 'Overtrading' };
+  const _BHV_FR   = { CALME: 'Calme', NEUTRE: 'Neutre', STRESS: 'Stress', FOMO: 'FOMO', OVERTRADING: 'Sur-engagement' };
   const _lines = [
     { label: 'Marché',       value: STATE_LABELS[payload.market_state] || payload.market_state || '—' },
     { label: 'Risque',       value: payload.trigger_level || '—' },
@@ -3380,9 +3380,9 @@ function renderPrudenceBlock(payload) {
   if (!body) return;
 
   const _rows = [
-    { label: 'CAUSE',  text: 'FOMO / sur-engagement actif.' },
-    { label: 'IMPACT', text: "Le setup existe, mais l'exécution normale devient dangereuse." },
-    { label: 'ACTION', text: 'Taille réduite obligatoire. Engagement partiel uniquement. Aucune impulsion.' }
+    { label: 'CAUSE',  text: 'Sur-engagement ou FOMO détecté.' },
+    { label: 'IMPACT', text: "Le setup tient, mais trader normalement ici augmente le risque." },
+    { label: 'ACTION', text: 'Taille réduite. Une seule entrée à la fois. Pas d\'impulsion.' }
   ];
 
   body.innerHTML = '';
@@ -3599,10 +3599,10 @@ function computeActionScoreUX(payload) {
 
 function getActionScoreLabel(score) {
   if (score <= 10) return "Hors marché";
-  if (score <= 30) return "Observation";
-  if (score <= 55) return "Préparation";
-  if (score <= 75) return "Action limitée";
-  return "Action autorisée";
+  if (score <= 30) return "En observation";
+  if (score <= 55) return "En préparation";
+  if (score <= 75) return "Exposition réduite";
+  return "Prêt à agir";
 }
 
 function renderActionScore(payload) {
@@ -3618,12 +3618,12 @@ function renderActionScore(payload) {
   const block = document.createElement("div");
   block.className = "action-score-block link-engagement";
   block.innerHTML = `
-    <div class="action-score-title">Niveau d'engagement</div>
+    <div class="action-score-title">Engagement</div>
     <div class="action-score">${actionScore} <span style="font-size:0.7em;font-weight:400">/ 100</span></div>
     <div class="action-score-label">${label}</div>
     <div class="engine-score-secondary">
-      <div>Marché lisible : ${engineScore}/100</div>
-      <div class="engine-score-note">N'implique pas une entrée.</div>
+      <div>Lisibilité marché : ${engineScore}/100</div>
+      <div class="engine-score-note">Score de lecture, pas d'entrée.</div>
     </div>
   `;
   card.appendChild(block);
@@ -3687,9 +3687,72 @@ function renderDecisionAnchor() {
         <div class="decision-btn">Je suis le moteur</div>
         <div class="decision-btn alt">Je passe outre</div>
       </div>
+      <div class="decision-override-msg"></div>
       <div class="behavior-feedback"></div>
     </div>
   `);
+}
+
+function bindDecisionAnchor() {
+  const anchor = document.querySelector(".decision-anchor");
+  if (!anchor) return;
+
+  // ── Restore visuel depuis localStorage ──────────────────────────────
+  let lastChoice = null;
+  try {
+    const raw = localStorage.getItem("cameleon_user_decisions_v1");
+    if (raw) {
+      const entries = JSON.parse(raw);
+      if (Array.isArray(entries) && entries.length > 0) {
+        lastChoice = entries[entries.length - 1].userChoice;
+      }
+    }
+  } catch { /* silencieux */ }
+
+  const btns = anchor.querySelectorAll(".decision-btn");
+  if (!btns[0] || !btns[1]) return;
+
+  if (lastChoice === "follow")   btns[0].classList.add("selected");
+  if (lastChoice === "override") btns[1].classList.add("selected");
+
+  // ── Handler commun ───────────────────────────────────────────────────
+  function handleChoice(userChoice) {
+    btns[0].classList.toggle("selected", userChoice === "follow");
+    btns[1].classList.toggle("selected", userChoice === "override");
+
+    // ── Feedback override ──────────────────────────────────────────────
+    const msg = anchor.querySelector(".decision-override-msg");
+    if (msg) {
+      if (userChoice === "override") {
+        msg.textContent = "Décision manuelle enregistrée. Le moteur considère ce contexte comme risqué.";
+        msg.classList.add("visible");
+        setTimeout(() => msg.classList.remove("visible"), 8000);
+      } else {
+        msg.classList.remove("visible");
+      }
+    }
+
+    try {
+      let actionLevel = "UNKNOWN";
+      if (typeof computeActionScoreUX === "function" && typeof currentPayload !== "undefined") {
+        actionLevel = getActionLevel(computeActionScoreUX(currentPayload));
+      }
+
+      let entries = [];
+      const raw = localStorage.getItem("cameleon_user_decisions_v1");
+      if (raw) entries = JSON.parse(raw);
+      if (!Array.isArray(entries)) entries = [];
+
+      entries.push({ timestamp: Date.now(), userChoice, actionLevel });
+      if (entries.length > 50) entries = entries.slice(-50);
+
+      localStorage.setItem("cameleon_user_decisions_v1", JSON.stringify(entries));
+    } catch { /* silencieux */ }
+  }
+
+  // ── Attach handlers ──────────────────────────────────────────────────
+  btns[0].addEventListener("click", () => handleChoice("follow"));
+  btns[1].addEventListener("click", () => handleChoice("override"));
 }
 
 const BEHAVIOR_MEMORY_KEY = "cameleon_behavior_memory_v1";
@@ -4704,6 +4767,7 @@ function render() {
   document.body.setAttribute("data-action-level", getActionLevel(computeActionScoreUX(currentPayload)));
   renderBehaviorFeedback();
   renderDecisionAnchor();
+  bindDecisionAnchor();
   renderBehaviorState(currentPayload);
   renderMentalReset(currentPayload);
   applyFocusState(currentPayload);
