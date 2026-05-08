@@ -3276,6 +3276,8 @@ function buildWhyReasons(payload) {
     riskText = 'Attention : entrer maintenant, c\'est courir après le marché.';
   } else if (emotion === 'stress') {
     riskText = 'Décider sous pression augmente les erreurs. Pause d\'abord.';
+  } else if (emotion === 'calm' && status === 'PROTECTION') {
+    riskText = 'Retour au calme. Vigilance maintenue sur la période récente.';
   } else if (emotion === 'calm' && status === 'EXECUTION') {
     riskText = 'État stable, contexte favorable. Risque bien contenu.';
   } else if (emotion === 'calm') {
@@ -3341,10 +3343,19 @@ function renderWhyDecision(payload) {
   // ── 4-line premium breakdown ──────────────────────────────────────────
   const _bhvState = getBehaviorState(payload);
   const _BHV_FR   = { CALME: 'Calme', NEUTRE: 'Neutre', STRESS: 'Stress', FOMO: 'FOMO', OVERTRADING: 'Sur-engagement' };
+  const _ds = payload.decisionState?.state;
+  const _bhvLabel = (() => {
+    const base = _BHV_FR[_bhvState] || _bhvState;
+    if (['CALME', 'NEUTRE'].includes(_bhvState) &&
+        (_ds === 'BLOCKED' || _ds === 'PROTECT' || _isCautionOverride(payload))) {
+      return `${base} — vigilance maintenue`;
+    }
+    return base;
+  })();
   const _lines = [
     { label: 'Marché',       value: STATE_LABELS[payload.market_state] || payload.market_state || '—' },
     { label: 'Risque',       value: payload.trigger_level || '—' },
-    { label: 'Comportement', value: _BHV_FR[_bhvState] || _bhvState },
+    { label: 'Comportement', value: _bhvLabel },
     { label: 'Action',       value: simplifyText(payload.action_recommended) || '—' }
   ];
   _lines.forEach(({ label, value }) => {
