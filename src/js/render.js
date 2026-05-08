@@ -3682,10 +3682,10 @@ function renderDecisionAnchor() {
 
   container.insertAdjacentHTML("beforeend", `
     <div class="decision-anchor">
-      <div class="decision-title">⚡ Choix utilisateur</div>
+      <div class="decision-title">Ton choix</div>
       <div class="decision-actions">
-        <div class="decision-btn">Je respecte la lecture</div>
-        <div class="decision-btn alt">J'ignore le moteur</div>
+        <div class="decision-btn">Je suis le moteur</div>
+        <div class="decision-btn alt">Je passe outre</div>
       </div>
       <div class="behavior-feedback"></div>
     </div>
