@@ -2381,16 +2381,16 @@ function detectBehaviorCoaching(history, payload) {
   const decisionState = payload?.decisionState?.state || "";
 
   if (bad >= 3 && emotion === "fomo") {
-    return { type: "danger",  titre: "Tu forces depuis 3 cycles",          message: "Tu poursuis un mouvement que le moteur ne valide pas.", action: "Coupe les entrées et observe." };
+    return { type: "danger",  titre: "Signal de suractivité détecté",      message: "Les 3 derniers cycles ne valident pas ce type d'entrée.",              action: "Pause. Observer avant tout mouvement." };
   }
   if (medium >= 3 && ["tension", "stress"].includes(emotion)) {
-    return { type: "warning", titre: "Tension persistante",                message: "Tu n'es pas hors cadre, mais tu n'es pas propre.",     action: "Réduis la vitesse et garde une seule lecture." };
+    return { type: "warning", titre: "Tension persistante",                message: "Le cadre tient, mais la lecture n'est pas encore propre.",             action: "Ralentir. Une seule lecture à la fois." };
   }
   if (good >= 3 && ["calm", "neutral"].includes(emotion)) {
-    return { type: "good",    titre: "Retour au calme",                    message: "Tu reviens dans une posture exploitable.",             action: "Observe sans te précipiter." };
+    return { type: "good",    titre: "Retour au calme",                    message: "La posture se stabilise. Les conditions redeviennent lisibles.",        action: "Observer. Laisser le setup venir à soi." };
   }
   if ((decisionState === "WAIT" || decisionState === "BLOCKED") && emotion === "fomo") {
-    return { type: "warning", titre: "Le moteur freine, toi tu accélères", message: "Ton état émotionnel contredit la lecture actuelle.",   action: "Ne cherche pas d'entrée maintenant." };
+    return { type: "warning", titre: "Divergence état / lecture moteur",   message: "L'état émotionnel actuel ne s'aligne pas avec la lecture en cours.",   action: "Pas d'entrée dans cette configuration." };
   }
 
   return null;
