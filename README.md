@@ -1,5 +1,11 @@
 # Cameleon Engine
+## Official project links
 
+- Notion hub: https://www.notion.so/de96712256b24041a7eb7b2c9394352d
+- GitHub repository: https://github.com/antoniolisci/Cameleon-Engine
+
+Notion is the project cockpit: vision, roadmap, documentation, decisions.
+GitHub is the technical repository: source code, commits, versions, fixes.
 Sources:
 
 - `docs/source-v7.3.2e.html` = UI cockpit base
