@@ -1217,29 +1217,29 @@ function getHeroCopy(payload) {
     const emotion = (payload.emotion_state || "").toLowerCase();
     switch (emotion) {
       case "fomo":
-        return { title: "⛔ Pause obligatoire",   subtitle: "FOMO détecté — aucune exécution autorisée." };
+        return { title: "Protection comportementale",   subtitle: "Signal FOMO actif — pas d'entrée dans cet état." };
       case "revenge":
-        return { title: "⛔ Exécution interdite",        subtitle: "Comportement agressif détecté." };
+        return { title: "Protection comportementale",   subtitle: "Biais émotionnel détecté. Attendre la stabilisation." };
       case "overtrading":
-        return { title: "⛔ Ralentissement obligatoire", subtitle: "Saturation détectée — réduire l'activité immédiatement." };
+        return { title: "Pause de protection",          subtitle: "Activité trop dense. Laisser le marché respirer." };
       case "tilt":
-        return { title: "⛔ Arrêt immédiat",             subtitle: "Perte de contrôle détectée — pause obligatoire." };
+        return { title: "Pause de protection",          subtitle: "Lisibilité compromise. Reprendre quand l'état est stable." };
       default:
-        return { title: "⛔ Exécution bloquée",   subtitle: "Aucune entrée autorisée." };
+        return { title: "Cadre verrouillé",             subtitle: "Conditions comportementales non réunies." };
     }
   }
 
   switch (ds.state) {
     case "PROTECT":
-      return { title: "⚠️ Mode défensif",       subtitle: "Capital prioritaire." };
+      return { title: "Mode défensif",           subtitle: "Priorité au capital." };
     case "WAIT":
-      return { title: "⏸️ Attente",             subtitle: "Pas de setup clair." };
+      return { title: "En attente",              subtitle: "Aucun setup exploitable pour l'instant." };
     case "ALIGNED":
-      return { title: "✅ Exécution",            subtitle: "Conditions validées." };
+      return { title: "Exécution",               subtitle: "Conditions réunies." };
     case "READY":
-      return { title: "Setup prêt",              subtitle: "Signal favorable. Attendre confirmation." };
+      return { title: "Setup détecté",           subtitle: "Signal favorable. Confirmation attendue." };
     case "TENSION":
-      return { title: "Tension active",          subtitle: "Contexte fragile. Rester discipliné." };
+      return { title: "Tension active",          subtitle: "Contexte fragile. Exposition réduite conseillée." };
     default:
       return { title: "—",                      subtitle: "" };
   }
@@ -1778,35 +1778,35 @@ function computeTraderSignature(memory) {
   if (biaisDominant === "fomo" && qualiteDominante === "bad") {
     return {
       type: "danger",
-      label: "Trader impulsif",
-      message: "Tu poursuis le marché sans validation.",
-      action: "Stop. Reviens à l'attente."
+      label: "Profil réactif",
+      message: "Entrées sans attendre la validation moteur.",
+      action: "Pause. Laisser le setup venir."
     };
   }
 
   if (etatDominant === "BLOCKED" && (qualiteDominante === "bad" || qualiteDominante === "medium")) {
     return {
       type: "warning",
-      label: "Trader défensif",
-      message: "Tu es bloqué sans lecture claire.",
-      action: "Observe sans forcer."
+      label: "Profil défensif",
+      message: "Lecture bloquée sur la période récente.",
+      action: "Observer. Ne pas forcer la lecture."
     };
   }
 
   if (qualiteDominante === "good") {
     return {
       type: "good",
-      label: "Trader discipliné",
-      message: "Comportement aligné avec le moteur.",
-      action: "Continue."
+      label: "Profil discipliné",
+      message: "Comportement aligné avec la lecture moteur.",
+      action: "Maintenir cette posture."
     };
   }
 
   return {
     type: "neutral",
-    label: "Trader instable",
-    message: "Comportement incohérent.",
-    action: "Ralentis."
+    label: "Profil irrégulier",
+    message: "Lecture incohérente sur la période.",
+    action: "Ralentir. Une décision à la fois."
   };
 }
 
@@ -1831,18 +1831,18 @@ function renderTraderSignature() {
 
   if (signature.type === "danger") {
     if (memory.tendance === "Dégradation récente") {
-      label   = "Dérive active";
-      message = "Tu perds le contrôle de ton comportement.";
+      label   = "Dérive en cours";
+      message = "La posture se dégrade sur la période récente.";
     } else if (memory.tendance === "Amélioration récente") {
       label   = "Reprise de contrôle";
-      message = "Tu corriges une dérive récente.";
+      message = "Correction en cours. La tendance s'améliore.";
     }
   }
 
   if (signature.type === "good") {
     if (memory.tendance === "Dégradation récente") {
       label   = "Discipline fragile";
-      message = "Ton alignement se dégrade.";
+      message = "L'alignement se fragilise sur cette période.";
     } else if (memory.tendance === "Stable") {
       label   = "Discipline stable";
       message = "Comportement solide.";
