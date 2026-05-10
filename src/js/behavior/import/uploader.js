@@ -116,7 +116,7 @@ function loadXLSX() {
     const script  = document.createElement('script');
     script.src    = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
     script.onload  = () => resolve(window.XLSX);
-    script.onerror = () => reject(new Error('Impossible de charger le module xlsx. Utilisez un fichier CSV.'));
+    script.onerror = () => reject(new Error('Impossible de charger le module xlsx (réseau indisponible ?). Exportez votre historique en CSV depuis Binance et réessayez.'));
     document.head.appendChild(script);
   });
 }
