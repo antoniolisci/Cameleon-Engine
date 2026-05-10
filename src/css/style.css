@@ -1205,6 +1205,7 @@ h1 {
   gap: 24px;
 }
 
+.moteur-flow > .zone-conscience      { order: 0; }
 .moteur-flow > .verdict-shell       { order: 1; }
 .moteur-flow > .pourquoi-shell      { order: 2; }
 .moteur-flow > .master-card         { order: 3; }
@@ -7819,3 +7820,55 @@ body[data-behavior-pattern="discipline"]::before {
   50%       { filter: brightness(1.12); transform: scale(1.025); }
 }
 
+
+/* ── Execution Confidence Block (V2) ─────────────────────────────────────── */
+
+.exec-confidence-block {
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.exec-confidence-score {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary, #fff);
+}
+
+.exec-confidence-bar {
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  margin-bottom: 0.4rem;
+}
+
+.exec-confidence-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease, background-color 0.35s ease;
+}
+
+.exec-confidence-fill[data-tone="high"]     { background: #4ade80; }
+.exec-confidence-fill[data-tone="moderate"] { background: #facc15; }
+.exec-confidence-fill[data-tone="low"]      { background: #fb923c; }
+.exec-confidence-fill[data-tone="minimal"]  { background: #f87171; }
+.exec-confidence-fill[data-tone="none"]     { background: rgba(255,255,255,0.12); }
+
+.exec-confidence-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 0.35rem;
+}
+
+.exec-confidence-phrase {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  opacity: 0.6;
+  margin: 0;
+}

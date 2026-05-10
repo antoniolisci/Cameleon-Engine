@@ -25,6 +25,7 @@ import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.
 import { backups, behaviorGuard } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
+import { computeExecutionConfidence } from "./execution-confidence.js";
 import { computeUXState } from "./ux-state.js";
 
 const $ = (id) => document.getElementById(id);
@@ -304,7 +305,7 @@ function renderDecision(payload, behaviorState) {
       : (() => {
           const _bhvValidated = (bhvState === 'OVERTRADING' || bhvState === 'FOMO') && _isValidatedSetup(payload);
           return _bhvValidated            ? 'RÉDUCTION'
-            : bhvState === 'OVERTRADING' ? 'STOP'
+            : bhvState === 'OVERTRADING' ? 'PAUSE'
             : bhvState === 'FOMO'        ? 'PAUSE'
             : bhvState === 'STRESS'      ? 'RÉDUCTION'
             : _S2V[payload.decisionState?.state] || 'ATTENTE';
@@ -794,7 +795,7 @@ function translatePolicyAction(action) {
 // Traduction ici pour #policy-message uniquement.
 
 const POLICY_MESSAGE_FR = {
-  "Validation rejected or risk unacceptable. No execution allowed.":  "Validation refusée. Ne pas entrer. Le capital passe avant tout.",
+  "Validation rejected or risk unacceptable. No execution allowed.":  "Setup non retenu — attendre conditions claires.",
   "Defensive context. Capital preservation takes priority.":          "Contexte défensif. Le risque impose de réduire l'exposition. Aucune nouvelle entrée.",
   "No clean execution window yet.":                                   "Pas de fenêtre exploitable. Attendre est souvent la meilleure décision.",
   "Context is becoming actionable, but still incomplete.":            "Setup incomplet. Attendre confirmation évite de forcer une position.",
@@ -1222,7 +1223,7 @@ function getHeroCopy(payload) {
       case "tilt":
         return { title: "Pause de protection",          subtitle: "Lisibilité compromise. Reprendre quand l'état est stable." };
       default:
-        return { title: "Cadre verrouillé",             subtitle: "Conditions comportementales non réunies." };
+        return { title: "Contexte non favorable",         subtitle: "Conditions comportementales non réunies." };
     }
   }
 
@@ -1516,7 +1517,7 @@ function computeFinalDecision(decisionState, behaviorState, payload) {
     };
     return {
       verdict: 'PROTECT', source: 'behavioral', displayMode: 'protect', isSilenced: false,
-      label: 'Protection active',
+      label: 'Présence réduite',
       message: 'Signal validé malgré l\'exposition comportementale. Taille réduite.',
       behaviorState: 'OVERTRADING',
     };
@@ -1531,7 +1532,7 @@ function computeFinalDecision(decisionState, behaviorState, payload) {
     };
     return {
       verdict: 'PROTECT', source: 'behavioral', displayMode: 'protect', isSilenced: false,
-      label: 'Protection active',
+      label: 'Présence réduite',
       message: 'Signal présent, mais le moteur protège l\'exécution.',
       behaviorState: 'FOMO',
     };
@@ -1546,7 +1547,7 @@ function computeFinalDecision(decisionState, behaviorState, payload) {
     };
     return {
       verdict: 'PROTECT', source: 'behavioral', displayMode: 'protect', isSilenced: false,
-      label: 'Protection active',
+      label: 'Présence réduite',
       message: 'Tension comportementale présente. Engagement réduit.',
       behaviorState: 'STRESS',
     };
@@ -1557,8 +1558,8 @@ function computeFinalDecision(decisionState, behaviorState, payload) {
   const isSilenced  = ds === 'BLOCKED' || ds === 'PROTECT';
 
   const _dsToLabel = {
-    BLOCKED: 'Bloqué',
-    PROTECT: 'Protection active',
+    BLOCKED: 'En protection',
+    PROTECT: 'Présence réduite',
     WAIT:    'Attente',
     READY:   'Prêt à observer',
     TENSION: 'Tension de marché',
@@ -1691,9 +1692,9 @@ const TRADER_MEMORY_LABELS = {
     neutral: "Calme"
   },
   state: {
-    BLOCKED: "Bloqué",
+    BLOCKED: "En protection",
     WAIT: "Attente",
-    PROTECT: "Protection",
+    PROTECT: "Présence réduite",
     ACTIVE: "Actif",
     ALIGNED: "Aligné",
     READY: "Prêt",
@@ -2455,7 +2456,7 @@ function renderGuidanceBlock() {
   const HEADLINE = {
     CAUTION: "Prudence",
     BLOCKED: "Position bloquée",
-    PROTECT: "Protection active",
+    PROTECT: "Présence réduite",
     WAIT:    "En attente",
     TENSION: "Réduire l'exposition",
     READY:   "Signal disponible",
@@ -2648,7 +2649,7 @@ function renderHero(payload) {
   // hero h1 dynamique selon decisionState
   const heroH1Titles = {
     ALIGNED:  "Lecture claire. Conditions réunies.",
-    BLOCKED:  "Protection active. Retour au calme d'abord.",
+    BLOCKED:  "Présence réduite. Retour au calme d'abord.",
     PROTECT:  "Mode défensif. Capital en priorité.",
     WAIT:     "Lecture en cours. Aucun setup confirmé.",
     READY:    "Setup détecté. Confirmation attendue.",
@@ -3786,7 +3787,7 @@ function getExecutionLevel(payload) {
   const ds = payload.decisionState;
 
   if (ds.state === "BLOCKED") return {
-    permission: "Hors exécution",
+    permission: "Hors condition",
     actionType: "Aucune exécution",
     intensity:  "Nulle",
     risk:       "Élevé"
@@ -3822,35 +3823,21 @@ function getExecutionLevel(payload) {
 }
 
 function renderExecutionLevel(payload) {
-  // Validated setup + REDUCED engagement → intercept before BLOCKED lock
-  const _validatedReduced =
-    _isValidatedSetup(payload) &&
-    payload?.engagement_level === 'REDUCED';
+  const bhvState  = getBehaviorState(payload);
+  const result    = computeExecutionConfidence(payload, bhvState);
 
-  if (_validatedReduced) {
-    setText("execPermission", "Réduit");
-    return;
+  setText("execConfidenceScore", `${result.score}%`);
+  setText("execConfidenceLabel", result.label);
+  setText("execConfidencePhrase", result.phrase);
+
+  const fill = document.getElementById("execConfidenceFill");
+  if (fill) {
+    fill.style.width = `${result.score}%`;
+    fill.dataset.tone = result.tone;
   }
 
-  // PRIORITÉ ABSOLUE — verrou décisionnel
-  if (payload.decisionState?.state === "BLOCKED") {
-    setText("execPermission", "Hors exécution");
-    return;
-  }
-
-  // Base depuis decisionState
-  const level = getExecutionLevel(payload);
-
-  // Modulation par engagement_level (jamais en hausse)
-  const el = payload.engagement_level;
-  if (el === "NONE" || el === "MINIMAL") {
-    level.permission = el === "NONE" ? "Hors exécution" : "Observer";
-  } else if (el === "REDUCED") {
-    level.permission = "Réduit";
-  }
-  // NEUTRAL, FULL : base decisionState conservée
-
-  setText("execPermission", level.permission);
+  const block = document.getElementById("execConfidenceBlock");
+  if (block) block.dataset.tone = result.tone;
 }
 
 function getPositionManagement(payload) {
