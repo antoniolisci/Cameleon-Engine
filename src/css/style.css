@@ -7173,10 +7173,7 @@ body[data-guidance-state="BLOCKED"] .side-panel li {
   letter-spacing: 0.015em;
 }
 
-body[data-guidance-state="BLOCKED"] .moteur-flow > *,
-body[data-guidance-state="BLOCKED"] .side-panel > * {
-  transform: translateY(0.5px);
-}
+/* translateY(0.5px) removed — subpixel offset caused text ghosting on side-panel cards */
 
 /* ============================
    BEHAVIORAL FEEDBACK BLOCK

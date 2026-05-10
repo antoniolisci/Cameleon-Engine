@@ -112,36 +112,36 @@ function renderBehaviorCard(payload, behaviorState, mode = 'block') {
       state:    'Neutre',
       message:  'Aucun biais fort détecté.',
       risk:     'Signal émotionnel neutre',
-      action:   'Observer uniquement. Ne pas anticiper.',
+      action:   'Observer. Laisser la structure venir.',
       whyState: 'Observation',
       whyRisk:  'Aucun biais fort détecté'
     },
     STRESS: {
       badge:    'SOUS PRESSION',
       state:    'Sous tension',
-      message:  'Pression émotionnelle détectée.',
+      message:  'Pression émotionnelle présente sur la période.',
       risk:     'Décision réactive possible',
-      action:   'Pause courte. Reprendre après stabilisation.',
+      action:   'Pause. Reprendre après stabilisation.',
       whyState: 'Sous tension',
       whyRisk:  'Décision réactive possible'
     },
     FOMO: {
       badge:    'FOMO ACTIF',
       state:    'Impulsion',
-      message:  "Risque d'entrée émotionnelle.",
+      message:  "Pression d'entrée émotionnelle détectée.",
       risk:     'Entrée impulsive possible',
-      action:   "Ne pas entrer. Attendre un signal propre.",
+      action:   "Observation. Laisser le signal venir.",
       whyState: 'FOMO actif',
       whyRisk:  "Risque d'entrée impulsive"
     },
     OVERTRADING: {
       badge:    'SURTRADING',
       state:    'Sur-engagement',
-      message:  'Suractivité confirmée. Tu forces le marché.',
-      risk:     'Destruction progressive du capital',
-      action:   'Stopper toute nouvelle entrée.',
+      message:  'Suractivité détectée sur la période récente.',
+      risk:     'Capital exposé de manière excessive',
+      action:   'Pause. Aucune nouvelle entrée pour l\'instant.',
       whyState: 'Sur-engagement',
-      whyRisk:  'Destruction progressive du capital'
+      whyRisk:  'Capital exposé de manière excessive'
     }
   };
   const _e = _bhvMap[behaviorState] || _bhvMap['NEUTRE'];
@@ -196,31 +196,31 @@ function renderDecision(payload, behaviorState) {
   // ── Behavioral overrides (STRESS / FOMO / OVERTRADING) ───────────────────
   const _BHV = {
     OVERTRADING: {
-      action:      'STOP — fermer la plateforme',
-      allowed:     ['STOP — fermer la plateforme'],
-      title:       '⛔ Stop comportemental',
+      action:      'Pause comportementale',
+      allowed:     ['Pause comportementale'],
+      title:       'Suractivité détectée',
       intentCls:   'intent-danger',
-      agentAction: 'Stopper. Fermer. Ne pas rouvrir.',
-      heroAllowed: 'STOP — aucune nouvelle position',
-      heroPrio:    'Stop comportemental'
+      agentAction: 'Pause. Aucune nouvelle position.',
+      heroAllowed: 'Aucune nouvelle position',
+      heroPrio:    'Suractivité comportementale'
     },
     FOMO: {
-      action:      'Observer uniquement',
-      allowed:     ['Observer uniquement'],
+      action:      'Observation uniquement',
+      allowed:     ['Observation uniquement'],
       title:       null,
       intentCls:   null,
-      agentAction: 'Observer. Ne pas entrer.',
-      heroAllowed: 'Observer uniquement',
-      heroPrio:    'Pause obligatoire'
+      agentAction: 'Observer. Laisser passer.',
+      heroAllowed: 'Observation uniquement',
+      heroPrio:    'Pression comportementale active'
     },
     STRESS: {
-      action:      'Réduire / attendre',
-      allowed:     ['Réduire / attendre'],
+      action:      'Réduire et attendre',
+      allowed:     ['Réduire et attendre'],
       title:       null,
       intentCls:   null,
-      agentAction: 'Réduire. Ne pas forcer.',
-      heroAllowed: 'Réduire / attendre',
-      heroPrio:    'Tension détectée'
+      agentAction: 'Réduire. Laisser le marché respirer.',
+      heroAllowed: 'Réduire et attendre',
+      heroPrio:    'Tension active'
     }
   };
   let _o = _BHV[bhvState] || null; // null for CALME/NEUTRE
@@ -287,13 +287,13 @@ function renderDecision(payload, behaviorState) {
   // Validated setup: downgrade to caution message instead of hard stop.
   if (bhvState === 'OVERTRADING') {
     if (_isValidatedSetup(payload)) {
-      setText('lectureDayMain', '⚠️ Prudence comportementale');
-      setText('lectureDaySub',  'Overtrading détecté — setup validé, taille réduite obligatoire.');
+      setText('lectureDayMain', 'Prudence comportementale');
+      setText('lectureDaySub',  'Suractivité détectée — setup validé, taille réduite.');
       const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
       if (_ldcCard) _ldcCard.dataset.ldcState = 'caution';
     } else {
-      setText('lectureDayMain', '⛔ Stop comportemental');
-      setText('lectureDaySub',  'Overtrading détecté — aucune nouvelle position autorisée.');
+      setText('lectureDayMain', 'Suractivité comportementale');
+      setText('lectureDaySub',  'Suractivité détectée — aucune nouvelle position.');
       const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
       if (_ldcCard) _ldcCard.dataset.ldcState = 'blocked';
     }
@@ -1148,32 +1148,32 @@ function describeDiscipline(payload) {
 
 const HERO_COPY_MAP = {
   RANGE: {
-    title: "⛔ Aucune entrée",
-    subtitle: "Sans direction. Attendre structure propre."
+    title: "Sans direction claire",
+    subtitle: "Structure absente. Attendre la formation d'un cadre."
   },
   COMPRESSION: {
     title: "Attente structurée",
-    subtitle: "Setup en cours. Ne pas anticiper."
+    subtitle: "Setup en cours. Laisser la structure se confirmer."
   },
   BREAKOUT: {
     title: "Confirmation requise",
-    subtitle: "Cassure détectée. Attendre signal propre."
+    subtitle: "Cassure détectée. Signal propre attendu."
   },
   TREND: {
-    title: "✅ Tendance exploitable",
-    subtitle: "Direction lisible. Entrée sélective."
+    title: "Tendance lisible",
+    subtitle: "Direction confirmée. Entrée sélective."
   },
   CHAOS: {
-    title: "⛔ Aucune entrée",
-    subtitle: "Marché instable. Rester hors marché."
+    title: "Structure instable",
+    subtitle: "Lisibilité faible. Exposition réduite."
   },
   DEFENSE: {
-    title: "⚠️ Réduire immédiatement",
-    subtitle: "Capital prioritaire. Rester léger."
+    title: "Mode défensif",
+    subtitle: "Capital en priorité. Exposition réduite."
   },
   UNKNOWN: {
     title: "Lecture incomplète",
-    subtitle: "Insuffisant. Observer sans agir."
+    subtitle: "Données insuffisantes. Observer avant d'agir."
   }
 };
 
@@ -1369,7 +1369,7 @@ function computeDecisionState(payload) {
       state:   "BLOCKED",
       label:   "BLOCAGE",
       cls:     "status-block",
-      message: "⛔ FOMO détecté — aucune exécution autorisée"
+      message: "Signal FOMO actif. Exécution non recommandée."
     };
   }
   if (emotion === "stress") {
@@ -1377,7 +1377,7 @@ function computeDecisionState(payload) {
       state:   "PROTECT",
       label:   "PROTECTION",
       cls:     "status-protect",
-      message: "⚠️ Sous tension — réduire et ne pas ouvrir"
+      message: "Tension active. Réduire avant toute nouvelle position."
     };
   }
 
@@ -1388,7 +1388,7 @@ function computeDecisionState(payload) {
       state:   "BLOCKED",
       label:   "BLOCAGE",
       cls:     "status-block",
-      message: "⛔ Validation refusée — aucune exécution"
+      message: "Validation non accordée. Exécution non recommandée."
     };
   }
 
@@ -1400,7 +1400,7 @@ function computeDecisionState(payload) {
       state:   "PROTECT",
       label:   "PROTECTION",
       cls:     "status-protect",
-      message: "⚠️ Contexte risqué — réduire immédiatement"
+      message: "Contexte défensif. Réduire l'exposition."
     };
   }
 
@@ -1513,8 +1513,8 @@ function computeFinalDecision(decisionState, behaviorState, payload) {
   if (bState === 'OVERTRADING') {
     if (!valid) return {
       verdict: 'BLOCKED', source: 'behavioral', displayMode: 'stop', isSilenced: true,
-      label: 'Overtrading verrouillé',
-      message: 'Suractivité comportementale détectée. Exécution suspendue.',
+      label: 'Overtrading actif',
+      message: 'Suractivité comportementale détectée. Exécution non confirmée.',
       behaviorState: 'OVERTRADING',
     };
     return {
@@ -1528,8 +1528,8 @@ function computeFinalDecision(decisionState, behaviorState, payload) {
   if (bState === 'FOMO') {
     if (!valid) return {
       verdict: 'BLOCKED', source: 'behavioral', displayMode: 'stop', isSilenced: true,
-      label: 'FOMO verrouillé',
-      message: 'Pression comportementale détectée. Exécution suspendue.',
+      label: 'FOMO actif',
+      message: 'Pression comportementale détectée. Exécution non confirmée.',
       behaviorState: 'FOMO',
     };
     return {
@@ -1543,7 +1543,7 @@ function computeFinalDecision(decisionState, behaviorState, payload) {
   if (bState === 'STRESS') {
     if (ds === 'BLOCKED') return {
       verdict: 'BLOCKED', source: 'behavioral', displayMode: 'stop', isSilenced: true,
-      label: 'Verrouillage tension',
+      label: 'Tension active',
       message: 'État de tension combiné à un contexte défavorable. Pause recommandée.',
       behaviorState: 'STRESS',
     };
@@ -1991,44 +1991,44 @@ function computePsychProfile({ memory, signature, score, pattern }) {
   if (signature.type === "danger" && score <= 30) {
     return {
       type: "danger",
-      label: "Impulsif en dérive",
-      message: "Le comportement émotionnel domine clairement la lecture.",
-      action: "Stop total. Coupe l'initiative."
+      label: "Dérive comportementale",
+      message: "Le comportement émotionnel domine la lecture sur cette période.",
+      action: "Pause complète. Laisser la situation se stabiliser."
     };
   }
 
   if (signature.type === "warning" && pattern === "Tension") {
     return {
       type: "warning",
-      label: "Défensif sous tension",
-      message: "Tu ne passes pas à l'acte, mais la pression reste présente.",
-      action: "Ralentis et garde une lecture unique."
+      label: "Tension persistante",
+      message: "La pression reste présente sans passage à l'acte.",
+      action: "Ralentir. Une seule lecture à la fois."
     };
   }
 
   if (memory.tendance === "Amélioration récente" && score > 30 && score <= 70) {
     return {
       type: "recovery",
-      label: "En reprise de contrôle",
-      message: "La dérive se corrige, mais l'équilibre reste fragile.",
-      action: "Continue sans accélérer."
+      label: "En reprise de stabilité",
+      message: "La dérive se corrige. L'équilibre reste à consolider.",
+      action: "Maintenir le rythme sans accélérer."
     };
   }
 
   if (signature.type === "good" && score >= 80) {
     return {
       type: "good",
-      label: "Discipliné stable",
-      message: "Le comportement reste aligné avec le moteur.",
-      action: "Conserve ce rythme."
+      label: "Alignement stable",
+      message: "Le comportement reste cohérent avec la lecture moteur.",
+      action: "Maintenir cette posture."
     };
   }
 
   return {
     type: "neutral",
-    label: "Profil à surveiller",
-    message: "Le comportement existe, mais n'est pas encore clairement stabilisé.",
-    action: "Observe avant d'interpréter trop vite."
+    label: "Profil en observation",
+    message: "Comportement présent, pas encore clairement stabilisé.",
+    action: "Observer avant d'interpréter."
   };
 }
 
@@ -2286,8 +2286,8 @@ function detectSnapshotQualityPattern(history) {
     if (h.quality && counts[h.quality] !== undefined) counts[h.quality]++;
   });
 
-  if (counts.bad    >= 3) return { type: "danger",  message: "Dérive détectée — coupe immédiatement" };
-  if (counts.medium >= 3) return { type: "warning", message: "Instabilité — ralentis" };
+  if (counts.bad    >= 3) return { type: "danger",  message: "Dérive comportementale active." };
+  if (counts.medium >= 3) return { type: "warning", message: "Instabilité comportementale en cours." };
   if (counts.good   >= 3) return { type: "good",    message: "Alignement — état propre" };
 
   return null;
@@ -2311,7 +2311,7 @@ function computeBehaviorGate(history) {
 }
 
 function getBehaviorAdjustedActions(baseActions, gate) {
-  if (gate === "blocked") return ["Aucune entrée", "Réduction obligatoire", "Pause"];
+  if (gate === "blocked") return ["Aucune entrée", "Réduction recommandée", "Pause"];
   if (gate === "caution") return ["Taille réduite", "Observation", "Une seule action max"];
   return baseActions;
 }
@@ -2519,7 +2519,7 @@ function renderBehaviorCoach() {
 
   el.style.display = "block";
   const dangerLine = coaching.type === "danger"
-    ? `<div style="color:#ff4444;font-size:12px;font-weight:600;margin-bottom:6px;">⚠️ STOP — dérive active</div>`
+    ? `<div style="color:#ff4444;font-size:12px;font-weight:600;margin-bottom:6px;">Dérive active</div>`
     : "";
   el.innerHTML = `
     ${dangerLine}
@@ -2621,11 +2621,11 @@ function renderHero(payload) {
       const _fomoValidated = _isValidatedSetup(payload);
       filterEl.textContent = _fomoValidated
         ? "Filtre comportemental actif — engagement réduit"
-        : "Filtre comportemental actif — opportunité bloquée";
+        : "Filtre comportemental actif — configuration non retenue";
       filterEl.hidden = false;
       filterEl.style.opacity = _fomoValidated ? "" : "0.3"; // dimmed only when fully blocked
     } else if (_emo === "stress") {
-      filterEl.textContent = "Tension détectée — opportunité non exploitable";
+      filterEl.textContent = "Tension détectée — lecture partielle en cours";
       filterEl.hidden = false;
       filterEl.style.opacity = ""; // full L2 visibility for stress
     } else {
@@ -2728,7 +2728,7 @@ function renderNavigation(payload) {
 
   syncTabs(appState.activeTab || "moteur");
   const _stateDisplayFR = { expansion: "Cassure / Tendance" };
-  setText("marketStateTinyLabel", `Ton contexte : ${_stateDisplayFR[payload.market_state] || STATE_LABELS[payload.market_state] || payload.market_state}`);
+  setText("marketStateTinyLabel", `Contexte actuel : ${_stateDisplayFR[payload.market_state] || STATE_LABELS[payload.market_state] || payload.market_state}`);
   setText("marketStateText", `Lecture moteur : ${cockpit.market.label}`);
   setText("marketStateNote", "Lecture moteur intégrée.");
   setText("microConfidence", `${payload.score}/100`);
@@ -2794,7 +2794,7 @@ function renderNavigation(payload) {
     : `Alignement : ${payload.alignment}.`);
   setText("profileReaction", simplifyText(payload.profile_reaction));
   const _bhvBlocked = {
-    OVERTRADING: 'Aucune action — stop obligatoire',
+    OVERTRADING: 'Observation prioritaire.',
     FOMO:        'Ne pas entrer sur impulsion',
     STRESS:      'Ne pas augmenter l\'exposition'
   };
@@ -3693,7 +3693,7 @@ function renderDecisionAnchor() {
 
   container.insertAdjacentHTML("beforeend", `
     <div class="decision-anchor">
-      <div class="decision-title">Ton choix</div>
+      <div class="decision-title">Choix actuel</div>
       <div class="decision-actions">
         <div class="decision-btn">Je suis le moteur</div>
         <div class="decision-btn alt">Je passe outre</div>
