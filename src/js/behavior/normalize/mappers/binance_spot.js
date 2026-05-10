@@ -49,10 +49,6 @@ const ALIASES_FEE    = ['fee', 'commission', 'fee amount', 'transaction fee', 't
 // Pipeline unique : row quelconque → trade canonique, ou null si invalide.
 // Retourne : { timestamp, symbol, side, price, quantity, quote_value, fee }
 
-// [DEBUG TEMPORAIRE] — flag pour logger seulement la 1re ligne du fichier importé
-let _debugNormalize = false;
-export function enableTradeDebug() { _debugNormalize = true; }
-
 function normalizeTrade(row) {
   const norm = {};
   for (const [k, v] of Object.entries(row)) {
@@ -100,19 +96,6 @@ function normalizeTrade(row) {
     const rawAmount = parseNum(get(ALIASES_QUOTE));
     const computed  = price * qty;
     quote_value = (rawAmount > 0 && rawAmount >= computed * 0.5) ? rawAmount : computed;
-  }
-
-  // [DEBUG TEMPORAIRE] — à retirer après diagnostic binance_spot_trade_recent.csv
-  if (_debugNormalize) {
-    const reason = !symbol ? 'symbol vide'
-                 : !side   ? `side non reconnu ("${rawSide}")`
-                 : !price  ? 'price = 0'
-                 : !qty    ? 'qty = 0'
-                 : 'ok';
-    console.log('[bhv:norm] clés norm:', Object.keys(norm).join(', '));
-    console.log('[bhv:norm] extrait → date:%s sym:%s side:%s(%s) price:%s qty:%s | %s',
-      get(ALIASES_DATE), symbol, side, rawSide, price, qty, reason);
-    _debugNormalize = false;  // log seulement la 1re ligne, pas le flood
   }
 
   if (!symbol || !side || !price || !qty) return null;

@@ -3,7 +3,7 @@
 // { timestamp, symbol, side, price, quantity, fee } — indépendamment de la plateforme source.
 
 import { parseCSV } from './parser.js';
-import { mapBinanceSpotRow, enableTradeDebug } from '../normalize/mappers/binance_spot.js';
+import { mapBinanceSpotRow } from '../normalize/mappers/binance_spot.js';
 import { isValidTrade } from '../normalize/validator.js';
 import { validateTrades } from '../normalize/trade-validator.js';
 import { analyzeWallet } from '../wallet/wallet_analyzer.js';
@@ -141,11 +141,6 @@ async function importBinanceSpot(file) {
   const ext    = file.name.split('.').pop().toLowerCase();
   const isXLSX = ext === 'xlsx' || ext === 'xls';
 
-  // [DEBUG TEMPORAIRE]
-  console.log('[bhv:file]', { name: file.name, type: file.type, size: file.size });
-  console.log('[bhv:file] isXLSX:', isXLSX);
-  console.log('[bhv:file] branch:', isXLSX ? 'XLSX' : 'CSV');
-
   let rows;
   try {
     if (isXLSX) {
@@ -153,13 +148,6 @@ async function importBinanceSpot(file) {
     } else {
       const text = await readFileAsText(file);
       rows = parseCSV(text);
-      // [DEBUG TEMPORAIRE]
-      if (!rows || rows.length === 0) {
-        console.warn('[bhv:csv] aucune ligne parsée');
-      } else {
-        console.log('[bhv:csv] rows count:', rows.length);
-        console.log('[bhv:csv] first row:', rows[0]);
-      }
     }
   } catch (err) {
     return { ok: false, error: 'Impossible de lire le fichier. Vérifiez qu\'il n\'est pas corrompu.', trades: [] };
@@ -213,7 +201,6 @@ async function importBinanceSpot(file) {
   const trades  = [];
   let   skipped = 0;
 
-  enableTradeDebug();   // [DEBUG TEMPORAIRE] — active le log sur la 1re ligne uniquement
   for (const row of rows) {
     const trade = mapBinanceSpotRow(row, sessionId);
     if (trade && isValidTrade(trade)) {
