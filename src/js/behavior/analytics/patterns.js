@@ -7,6 +7,8 @@
 //   4. size_inconsistency — tailles de position très variables (coeff. variation élevé)
 //   5. loss_chasing       — 3 BUYs consécutifs avec taille croissante dans une fenêtre
 
+import { tradeSize } from './metrics.js';
+
 // ── Debug (mettre à true pour afficher les logs de diagnostic dans la console) ─
 const DEBUG = false;
 const dbg = (...args) => { if (DEBUG) console.debug('[bhv:patterns]', ...args); };
@@ -84,7 +86,7 @@ function tagTrades(trades, metrics) {
       prev.side === 'SELL' && curr.side === 'BUY' &&
       prev.symbol === curr.symbol &&
       curr.timestamp - prev.timestamp <= revengeGapMs &&
-      curr.quote_quantity > metrics.avgSize * REVENGE_SIZE_FACTOR
+      tradeSize(curr) > metrics.avgSize * REVENGE_SIZE_FACTOR
     ) {
       addTag(curr.timestamp, 'revenge');
     }
@@ -161,12 +163,12 @@ function detectRevenge(sorted, metrics) {
       // n'est pas une réaction émotionnelle à ce SELL.
       prev.symbol === curr.symbol &&
       curr.timestamp - prev.timestamp <= gapMs &&
-      curr.quote_quantity > metrics.avgSize * REVENGE_SIZE_FACTOR
+      tradeSize(curr) > metrics.avgSize * REVENGE_SIZE_FACTOR
     ) {
       dbg('revenge — instance :', {
         symbol:  curr.symbol,
         gap_min: Math.round((curr.timestamp - prev.timestamp) / 60000),
-        taille:  curr.quote_quantity,
+        taille:  tradeSize(curr),
         seuil:   Math.round(metrics.avgSize * REVENGE_SIZE_FACTOR)
       });
       count++;
@@ -247,7 +249,10 @@ function findRapidReentryInstances(sorted) {
 function detectSizeInconsistency(sorted, metrics) {
   if (sorted.length < SIZE_MIN_TRADES) return null;
 
-  const sizes = sorted.map(t => t.quote_quantity).filter(q => q > 0);
+  // tradeSize(t) = price × quantity — cohérent avec metrics.js.
+  // quote_quantity écarté : sur certains exports il contient la qty base (pas la valeur USDT),
+  // ce qui rendrait le CV faussement élevé ou le pattern silencieusement inactif.
+  const sizes = sorted.map(t => tradeSize(t)).filter(q => q > 0);
   if (sizes.length < SIZE_MIN_TRADES) return null;
 
   const mean = metrics.avgSize;
