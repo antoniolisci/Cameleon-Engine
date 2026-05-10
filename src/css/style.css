@@ -2175,6 +2175,36 @@ h1 {
   align-content: start;
 }
 
+/* ── Champs repliables (notes) ───────────────────────── */
+.field-collapsible {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.field-collapsible-label {
+  cursor: pointer;
+  font-size: var(--font-xs, 0.75rem);
+  color: var(--muted);
+  user-select: none;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.field-collapsible-label::before {
+  content: "+ ";
+  font-family: monospace;
+}
+
+details[open] .field-collapsible-label::before {
+  content: "− ";
+}
+
+.field-collapsible textarea {
+  width: 100%;
+  margin-top: 6px;
+}
+
 label {
   font-size: 12px;
   text-transform: uppercase;

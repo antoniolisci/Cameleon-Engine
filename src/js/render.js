@@ -1064,6 +1064,19 @@ function renderField(field) {
   }
 
   wrapper.append(label, element);
+
+  // Textarea : repliable par défaut
+  if (field.type === "textarea") {
+    const details = document.createElement("details");
+    details.className = "field-collapsible";
+    const summary = document.createElement("summary");
+    summary.className = "field-collapsible-label";
+    summary.textContent = repairMojibake(field.label);
+    label.hidden = true;               // label original masqué — summary le remplace
+    details.append(summary, element);  // textarea directement sous <details>
+    return details;
+  }
+
   return wrapper;
 }
 
@@ -3343,7 +3356,7 @@ function renderWhyDecision(payload) {
   // ── 4-line premium breakdown ──────────────────────────────────────────
   const _bhvState = getBehaviorState(payload);
   const _BHV_FR   = { CALME: 'Calme', NEUTRE: 'Neutre', STRESS: 'Stress', FOMO: 'FOMO', OVERTRADING: 'Sur-engagement' };
-  const _ds = payload.decisionState?.state;
+  const _ds = payload.decisionState?.state ?? payload.finalDecision?.verdict;
   const _bhvLabel = (() => {
     const base = _BHV_FR[_bhvState] || _bhvState;
     if (['CALME', 'NEUTRE'].includes(_bhvState) &&
