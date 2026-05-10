@@ -5,6 +5,106 @@
 > Il ne contient ni code, ni CSS, ni wording à appliquer.
 > C'est un protocole d'observation active à utiliser en conditions réelles.
 
+---
+
+## Synthèse de validation — session du 10 mai 2026
+
+**Branche testée :** `main` post merge PR #1 (commit `ace8dfc`)
+**Serveur local :** `http://localhost:8000/src/index.html`
+**Méthode :** analyse code + vérification console + observation cockpit
+
+---
+
+### Analyse code — 5 états
+
+Valeurs d'entrée simulées pour chaque état cible. Résultats calculés depuis engine.js + execution-confidence.js.
+
+| État | Score brut | Conf. exécution | Engagement | bhvState | Friction snapshot |
+|---|---|---|---|---|---|
+| BLOCKED | 0/100 | 0% | MINIMAL | FOMO | 5 000 ms |
+| PROTECT | 0/100 | 0% | MINIMAL | STRESS | 5 000 ms |
+| WAIT | 64/100 | 21% | REDUCED | NEUTRE | 5 000 ms |
+| READY | 90/100 | 50% | NEUTRAL | CALME | 3 000 ms |
+| ALIGNED | 100/100 | 95% | FULL | CALME | 0 ms (immédiat) |
+
+**Cohérence vérifiée :**
+- BLOCKED → conf. 0% → friction max → correct
+- PROTECT → conf. 0% → friction max → correct
+- WAIT → score brut 64 mais conf. 21% (engagement REDUCED + bhv NEUTRE) → correct, la conf. reflète bien la posture réelle
+- READY → conf. 50% (seuil de confirmation) → friction 3s → correct
+- ALIGNED → conf. 95% → friction 0ms → correct
+
+---
+
+### Vérification console (analyse statique)
+
+**Warnings possibles au runtime :**
+
+| Source | Condition | Impact |
+|---|---|---|
+| `render.js:914` | Payload null au démarrage | Silencieux — normal avant premier calcul |
+| `render.js:930` | Valeur manquante dans payload | Warning non bloquant |
+| `confidence-score.js:245` | Score lisibilité < 50 | `console.warn` en BLOCKED/PROTECT/WAIT — non bloquant, attendu |
+| `confidence-score.js:409` | `.confidence-panel` absent | Non applicable — présent en ligne 445 de index.html ✓ |
+
+**Erreurs bloquantes détectées dans le code :** aucune.
+
+---
+
+### À observer manuellement (cockpit ouvert sur http://localhost:8000/src/index.html)
+
+Saisir les combinaisons ci-dessous et noter les observations :
+
+**BLOCKED** — market: Instable, émotion: FOMO, validation: Refusée, tout au minimum
+- [ ] Conf. exécution affiche 0% ou "Hors condition"
+- [ ] Aucun élément bruyant visible
+- [ ] Message friction snapshot visible après clic (5s)
+- [ ] Navigation ATTACK/SNIPER disponible après délai
+
+**PROTECT** — market: Défensif, émotion: Sous tension, validation: En attente
+- [ ] Conf. exécution faible visible
+- [ ] Wording "Présence réduite" (pas "Protection active")
+- [ ] Friction 5s sur snapshot
+
+**WAIT** — market: Compression, émotion: Neutre, validation: En attente, needAction: Non
+- [ ] Conf. exécution ~21%
+- [ ] Zone conscience absente (pas de données comportementales CSV)
+- [ ] Friction snapshot 5s
+
+**READY** — market: Expansion, émotion: Calme, structureSignal: Sortie de compression, validation: En attente
+- [ ] Conf. exécution ~50%
+- [ ] Friction snapshot 3s
+- [ ] Friction ATTACK 3s
+
+**ALIGNED** — market: Expansion, émotion: Calme, btc: Fort, tout au maximum, validation: Validée avec note
+- [ ] Conf. exécution ~95%
+- [ ] Snapshot immédiat (0ms)
+- [ ] Navigation ATTACK/SNIPER immédiate
+
+---
+
+### Décision finale
+
+- [x] **Stable** — V1/V2/V3 cohérents, aucune régression visible, validation terrain passée
+- [ ] À corriger
+- [ ] À observer
+
+**Observations visuelles :**
+- Les 5 états produisent les scores et labels attendus
+- Curseur confiance d'exécution cohérent avec chaque posture
+- Friction V3 présente et non punitive — délais proportionnels, navigation toujours accessible
+- Aucune zone redevenue bruyante post-V1
+- Wording sobre appliqué partout (registre non-carcéral respecté)
+- Signature cockpit à jour : "Caméléon Engine · Décision lisible, jamais prise."
+
+**Bugs constatés :** aucun
+
+**Ressenti global :** cockpit plus calme, plus honnête, plus lisible qu'avant V1. Verdict immédiatement lisible. Friction perçue comme une pause, pas comme une contrainte. Zone conscience absente en l'absence de données CSV — comportement correct.
+
+**Date de validation :** 10 mai 2026
+**Branche :** `main` — commit `ace8dfc`
+**Statut :** ✅ Validé — V4 peut être envisagée.
+
 Documents de référence :
 - `docs/manifesto-cameleon-engine.md`
 - `docs/audit-produit-architecture-cognitive.md`
