@@ -7891,3 +7891,102 @@ body[data-behavior-pattern="discipline"]::before {
   opacity: 0.5;
   cursor: wait;
 }
+
+/* ── Page Manifeste ──────────────────────────────────────────────────────── */
+
+.manifeste-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 3rem 2rem 5rem;
+}
+
+.manifeste-accroche {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.7;
+  color: var(--muted);
+  text-align: center;
+  margin: 0 0 3rem;
+  opacity: 0.8;
+}
+
+.manifeste-section {
+  margin-bottom: 2.8rem;
+  padding-bottom: 2.8rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+}
+
+.manifeste-section:last-child {
+  border-bottom: none;
+}
+
+.manifeste-h2 {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1.4rem;
+}
+
+.manifeste-h3 {
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  margin: 1.6rem 0 0.6rem;
+}
+
+.manifeste-inner p {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  line-height: 1.88;
+  color: var(--text);
+  margin: 0 0 0.9rem;
+  font-weight: 300;
+}
+
+.manifeste-inner em {
+  font-style: italic;
+  color: var(--text-soft);
+}
+
+.manifeste-list {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  line-height: 1.88;
+  color: var(--text);
+  font-weight: 300;
+  padding-left: 1.4rem;
+  margin: 0.6rem 0 0.9rem;
+}
+
+.manifeste-list li {
+  margin-bottom: 0.5rem;
+}
+
+.manifeste-principe {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-style: italic;
+  line-height: 1.75;
+  color: var(--text-soft);
+  margin: 1.6rem 0;
+  padding: 1.4rem 1.8rem;
+  border-left: 2px solid rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.04);
+  border-radius: 0 8px 8px 0;
+}
+
+.manifeste-postface p {
+  color: var(--muted);
+  font-size: 0.96rem;
+}
+
+.manifeste-closing {
+  margin-top: 1.6rem;
+  font-style: italic;
+  opacity: 0.7;
+}
