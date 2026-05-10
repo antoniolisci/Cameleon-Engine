@@ -137,48 +137,6 @@
                 <div class="badge" id="liveClock">--:--:--</div>
               </div>
 
-              <div class="hero-kpi-grid">
-                <div class="hero-kpi-card primary">
-                  <div class="hero-chip-label">Régime dominant</div>
-                  <strong class="hero-kpi-value market-strong" id="heroMarketStrong">Range</strong>
-                </div>
-                <div class="hero-kpi-card">
-                  <div class="hero-chip-label">Verdict</div>
-                  <strong class="hero-kpi-value" id="heroVerdictValue">On attend</strong>
-                </div>
-                <div class="hero-kpi-card">
-                  <div class="hero-chip-label">Posture</div>
-                  <strong class="hero-kpi-value" id="heroPostureValue">Ne force rien.</strong>
-                </div>
-                <div class="hero-kpi-card">
-                  <div class="hero-chip-label">Risque trop élevé</div>
-                  <strong class="hero-kpi-value" id="heroAvoidValue">Ne trade pas au hasard.</strong>
-                </div>
-              </div>
-
-              <div class="hero-bar">
-                <div class="hero-chip market-badge">
-                  <div class="hero-chip-label">Régime dominant</div>
-                  <div class="hero-chip-value market-strong" id="heroBarMarket">Range</div>
-                </div>
-                <div class="hero-chip">
-                  <div class="hero-chip-label">Score</div>
-                  <div class="hero-chip-value" id="heroBarScore">50</div>
-                </div>
-                <div class="hero-chip">
-                  <div class="hero-chip-label">Lecture moteur</div>
-                  <div class="hero-chip-value" id="heroBarMode">Range cadré</div>
-                </div>
-                <div class="hero-chip">
-                  <div class="hero-chip-label">Posture</div>
-                  <div class="hero-chip-value" id="heroBarPosture">CORE prioritaire</div>
-                </div>
-                <div class="hero-chip">
-                  <div class="hero-chip-label">Journal</div>
-                  <div class="hero-chip-value" id="heroBarCount">0</div>
-                </div>
-              </div>
-
               <div class="hero-decision-grid">
                 <div class="hero-decision-card primary">
                   <span class="hero-chip-label">Verdict</span>
@@ -282,7 +240,9 @@
                       loop
                       playsinline
                       preload="auto"
-                    ></video>
+                    >
+                      <source src="../assets/video/camleon_doré_avec_chaine.mp4" type="video/mp4">
+                    </video>
                   </div>
                 </div>
               </div>
@@ -290,37 +250,6 @@
           </div>
         </section>
 
-        <div class="hero-overlay-panel">
-          <div class="hero-overlay-label">Centre de lecture</div>
-          <div class="hero-support-grid">
-            <div class="hero-support-chip">
-              <div class="tiny-label">Score</div>
-              <strong id="confidenceHero">50</strong>
-            </div>
-            <div class="hero-support-chip">
-              <div class="tiny-label">Lecture moteur</div>
-              <strong id="modeHero">Range</strong>
-            </div>
-            <div class="hero-support-chip">
-              <div class="tiny-label">Mode d'action</div>
-              <strong id="heroActionMode">Socle</strong>
-            </div>
-            <div class="hero-support-chip">
-              <div class="tiny-label">Mémoire locale</div>
-              <strong id="snapshotCountHero">0</strong>
-            </div>
-          </div>
-          <div class="hero-overlay-list">
-            <div class="hero-overlay-item">
-              <span>Action</span>
-              <strong id="heroAllowedDetail">Observer sans entrer.</strong>
-            </div>
-            <div class="hero-overlay-item">
-              <span>Décision</span>
-              <strong id="heroPriorityDetail">Marché bloqué. Attendre.</strong>
-            </div>
-          </div>
-        </div>
 
         <div id="guidanceCard" class="side-card guidance-card" style="display:none;"></div>
 
@@ -345,6 +274,10 @@
               <div class="action-directive">
                 <div class="tiny-label">Verdict</div>
                 <strong id="verdictImmediate">On attend</strong>
+              </div>
+              <div class="action-directive">
+                <div class="tiny-label">Autorisation</div>
+                <strong id="execPermission" class="muted">—</strong>
               </div>
               <div class="action-zone">
                 <div class="action-panel do">
@@ -385,35 +318,6 @@
               <ul id="whyDecisionSecondary" class="why-secondary"></ul>
             </section>
 
-            <section class="card structured-shell tab-panel active" data-tab-panel="moteur">
-              <div class="card-head">
-                <div>
-                  <h2 class="card-title">Lecture rapide</h2>
-                  <p class="card-desc">Comprendre l'écran en quelques secondes.</p>
-                </div>
-              </div>
-              <div class="structured-grid">
-                <article class="structured-card">
-                  <div class="tiny-label">État de marché</div>
-                  <h3>Ce que le marché fait</h3>
-                  <p id="structuredMarketText">Le prix tourne sans direction claire.</p>
-                  <div class="structured-accent"><span id="journalMiniStructure">Range</span></div>
-                </article>
-                <article class="structured-card">
-                  <div class="tiny-label">Mode d'action</div>
-                  <h3>Comment agir</h3>
-                  <p id="structuredProfileText">On protège le capital avant tout.</p>
-                  <div class="structured-accent"><span id="signalNarratifMain">Socle</span></div>
-                </article>
-                <article class="structured-card">
-                  <div class="tiny-label">Décision</div>
-                  <h3>Ce que tu fais</h3>
-                  <p id="structuredValidationText">Le marché est bloqué. Attends une sortie claire.</p>
-                  <div class="structured-accent"><span id="engineJournalStatus">Attente</span> · <span id="mantraOperationnelMain">Pas clair. Ne pas agir.</span></div>
-                </article>
-              </div>
-            </section>
-
             <section class="master-card tab-panel active" data-tab-panel="moteur">
               <div class="card-head">
                 <div>
@@ -450,67 +354,12 @@
                   <div class="insight-quote" id="engineJournalMain">Le moteur garde la structure avant l’impulsion.</div>
                   <div class="insight-sub" id="signalNarratifSub">Le filtre émotionnel et la validation humaine gardent toujours la main sur l’exécution.</div>
                 </div>
-                <div class="micro-summary-panel">
-                  <div class="tiny-label">Synthèse courte</div>
-                  <div class="micro-summary-grid">
-                    <div class="micro-summary-item">
-                      <div class="tiny-label">Niveau d’alerte</div>
-                      <strong id="microAlertLevelText">Faible</strong>
-                    </div>
-                    <div class="micro-summary-item">
-                      <div class="tiny-label">Lecture ultra-courte</div>
-                      <strong id="microUltraShortText">Range · patience active</strong>
-                    </div>
-                    <div class="micro-summary-item subtle">
-                      <div class="tiny-label">Risque vécu</div>
-                      <strong id="journalMiniRisk">Sous contrôle</strong>
-                    </div>
-                    <div class="micro-summary-item subtle">
-                      <div class="tiny-label">Discipline active</div>
-                      <strong id="journalMiniAction">Observation</strong>
-                    </div>
-                  </div>
-                </div>
               </div>
               <div class="bhv-influence-panel" id="bhvInfluencePanel">
                 <div class="tiny-label">Influence comportementale</div>
                 <div class="bhv-influence-body">
                   <span class="bhv-influence-level" id="bhvInfluenceLevel">—</span>
                   <span class="bhv-influence-text" id="bhvInfluenceText">Aucune analyse comportementale chargée.</span>
-                </div>
-              </div>
-              <div class="master-grid">
-                <div class="master-left">
-                  <div class="master-xxl">
-                    <div class="master-state-title">État maître</div>
-                    <div class="master-state-name" id="masterStateName">Range</div>
-                    <div class="master-state-note" id="masterStateNote">Le moteur protège le CORE et attend un avantage plus net.</div>
-                    <div class="master-badges">
-                      <span class="master-badge"><span class="dot blue"></span><span id="masterConfidenceText">Score stable</span></span>
-                      <span class="master-badge"><span class="dot warn"></span><span id="masterRiskText">Risque contenu</span></span>
-                      <span class="master-badge"><span class="dot green"></span><span id="masterModeText">Mode : range</span></span>
-                    </div>
-                  </div>
-                  <div class="insight-box">
-                    <div class="tiny-label">Insight moteur</div>
-                    <div class="insight-quote" id="insightQuote">Le moteur garde la structure avant l'impulsion.</div>
-                    <div class="insight-sub" id="insightSub">Le setup brut passe ensuite dans le filtre profil, émotion et validation.</div>
-                  </div>
-                </div>
-                <div class="master-right">
-                  <div class="command-box">
-                    <div class="tiny-label">Décision immédiate</div>
-                    <div class="command-grid">
-                      <div class="command-card"><h4>Autorisé maintenant</h4><div class="value" id="allowedNow">Observer les bornes propres</div></div>
-                      <div class="command-card"><h4>Interdit maintenant</h4><div class="value" id="blockedNow">Forcer une entrée</div></div>
-                      <div class="command-card"><h4>À surveiller</h4><div class="value" id="watchNow">Validation du setup</div></div>
-                      <div class="command-card"><h4>Priorité suivante</h4><div class="value" id="nextPriority">Attendre une zone claire</div></div>
-                    </div>
-                  </div>
-                  <div class="next-step-box">
-                    <div class="tiny-label">Phrase directrice</div>
-                    <div class="insight-quote directive-line" id="directiveLine">Tiens le cadre. Refuse la précipitation.</div>
-                  </div>
                 </div>
               </div>
             </section>
@@ -648,49 +497,7 @@
                     <div id="policy-message" class="policy-message"></div>
                   </div>
 
-                  <div class="agent-grid">
-                    <div class="agent-card">
-                      <div class="tiny-label">Mission</div>
-                      <div class="agent-role" id="profileReaction">Réaction profil : aucune lecture pour le moment.</div>
-                      <div class="action-columns">
-                        <div class="action-box">
-                          <h4>Actions autorisées</h4>
-                          <div class="action-list" id="allowedActions"></div>
-                        </div>
-                        <div class="action-box">
-                          <h4>Actions interdites</h4>
-                          <div class="action-list" id="blockedActions"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="agent-card">
-                      <div class="tiny-label">Cadre d'exécution</div>
-                      <div class="agent-role" id="executionFrame">Le moteur attend une lecture structurée avant toute exécution.</div>
-                      <div class="action-columns">
-                        <div class="action-box">
-                          <h4>Posture recommandée</h4>
-                          <div class="action-list" id="postureActions"></div>
-                        </div>
-                        <div class="action-box">
-                          <h4>Priorités immédiates</h4>
-                          <div class="action-list" id="priorityActions"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div class="table-shell">
-                    <div class="tiny-label">Sortie du moteur</div>
-                    <div class="table-mini-summary" id="tableMiniSummary">Le payload relit le contexte, le profil et la validation dans un seul passage.</div>
-                    <div class="payload-grid">
-                      <div class="payload-item"><span>Marché proposé</span><strong id="autoMarket">Aucune donnée</strong></div>
-                      <div class="payload-item"><span>Score proposé</span><strong id="autoScore">Aucune donnée</strong></div>
-                      <div class="payload-item"><span>Mode proposé</span><strong id="autoMode">Aucune donnée</strong></div>
-                      <div class="payload-item"><span>ATTACK brut</span><strong id="autoAttack">Aucune donnée</strong></div>
-                      <div class="payload-item"><span>SNIPER brut</span><strong id="autoSniper">Aucune donnée</strong></div>
-                      <div class="payload-item"><span>Réaction finale</span><strong id="profileFiltered">Aucune donnée</strong></div>
-                    </div>
-                  </div>
                 </div>
 
                 <div class="tab-panel" data-tab-panel="pilotage">
@@ -804,6 +611,19 @@
                       <div class="mode-btn-title">Mémoriser cet état</div>
                     </button>
                   </div>
+
+                  <div class="table-shell">
+                    <div class="tiny-label">Sortie du moteur</div>
+                    <div class="table-mini-summary" id="tableMiniSummary">Le payload relit le contexte, le profil et la validation dans un seul passage.</div>
+                    <div class="payload-grid">
+                      <div class="payload-item"><span>Marché proposé</span><strong id="autoMarket">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>Score proposé</span><strong id="autoScore">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>Mode proposé</span><strong id="autoMode">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>ATTACK brut</span><strong id="autoAttack">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>SNIPER brut</span><strong id="autoSniper">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>Réaction finale</span><strong id="profileFiltered">Aucune donnée</strong></div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="tab-panel" data-tab-panel="memoire">
@@ -863,6 +683,80 @@
                       <div class="mem-zone-label">Action</div>
                       <div id="behaviorCoachCard" class="side-card" style="display:none;"></div>
                     </div>
+
+                    <!-- JOURNAL DE DÉCISION -->
+                    <section class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Journal de décision</h2>
+                          <p class="card-desc">Mémoire contextuelle de la lecture. Ces données n'influencent pas le moteur.</p>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Validation</strong>
+                          <div id="jdValidationState" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Note de validation</strong>
+                          <div id="jdValidationNote" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Note de session</strong>
+                          <div id="jdJournalNote" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Résumé moteur</strong>
+                          <div id="jdMoteurSummary" class="muted">—</div>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <h3>Dernières décisions</h3>
+                        <div id="jdHistory"></div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Pattern détecté</strong>
+                          <div id="jdPattern" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Score décision</strong>
+                          <div id="jdScore" class="muted">—</div>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Alerte comportementale</strong>
+                          <div id="jdAlert" class="muted">—</div>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Analyse globale</strong>
+                          <div id="jdMetaMessage" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>État comportement</strong>
+                          <div id="jdMetaBadge" class="muted">—</div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <!-- DIAGNOSTIC MÉMOIRE -->
+                    <section class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Diagnostic mémoire</h2>
+                          <p class="card-desc">Contrôle du stockage local et du volume de lectures archivées.</p>
+                        </div>
+                      </div>
+                      <div class="diagnostic-grid">
+                        <div class="diagnostic-item"><div class="tiny-label">Stockage</div><div id="storageStatus">Disponible</div></div>
+                        <div class="diagnostic-item"><div class="tiny-label">Taille estimée</div><div id="storageSize">0 KB</div></div>
+                        <div class="diagnostic-item"><div class="tiny-label">Dernière écriture</div><div id="lastSaved">Aucune</div></div>
+                        <div class="diagnostic-item"><div class="tiny-label">Entrées</div><div id="snapshotCount">0</div></div>
+                      </div>
+                    </section>
                   </div>
                 </div>
               </div>
@@ -874,29 +768,10 @@
               <div class="card-head">
                 <div>
                   <h2 class="card-title">Centre de décision</h2>
-                  <p class="card-desc">Verdict, posture, action, risque, décision du jour.</p>
                 </div>
               </div>
               <div class="decision-summary-card">
-                <div class="tiny-label">Verdict</div>
                 <div class="decision-summary-headline" id="decisionSummaryHeadline">On attend</div>
-                <div class="decision-summary-text" id="decisionSummaryText">Décision du moment.</div>
-                <div class="decision-rail">
-                  <div class="decision-rail-item">
-                    <div class="tiny-label">Agent</div>
-                    <strong id="decisionAgentText">OBSERVER</strong>
-                  </div>
-                  <div class="decision-rail-item warn">
-                    <div class="tiny-label">Risque trop élevé</div>
-                    <strong id="decisionAvoidText">Ne trade pas au hasard.</strong>
-                  </div>
-                </div>
-              </div>
-              <div class="history">
-                <div class="history-item"><strong>Niveau d'alerte</strong><div id="alertLevel" class="muted">Faible</div></div>
-                <div class="history-item"><strong>Mode</strong><div id="trafficLight" class="muted">Socle</div></div>
-                <div class="history-item"><strong>Action</strong><div id="decisionPanel" class="muted">Observe sans entrer.</div></div>
-                <div class="history-item"><strong>Décision du jour</strong><div id="ultraShortPanel" class="muted">Le marché est bloqué. Attends une sortie claire.</div></div>
               </div>
             </section>
             <section id="actionPlanCard" class="side-card plan-card">
@@ -913,32 +788,6 @@
               <div id="mentalReset"></div>
             </section>
 
-            <section class="side-card">
-              <div class="card-head">
-                <div>
-                  <h2 class="card-title">Niveau d'exécution</h2>
-                  <p class="card-desc">Degré réel d'action autorisé par le moteur.</p>
-                </div>
-              </div>
-              <div class="history">
-                <div class="history-item">
-                  <strong>Autorisation</strong>
-                  <div id="execPermission" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Type d'action</strong>
-                  <div id="execActionType" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Intensité</strong>
-                  <div id="execIntensity" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Risque</strong>
-                  <div id="execRisk" class="muted">—</div>
-                </div>
-              </div>
-            </section>
 
             <section class="side-card">
               <div class="card-head">
@@ -972,6 +821,22 @@
                   <strong>Statut position</strong>
                   <div id="pmStatus" class="muted">—</div>
                 </div>
+                <div class="history-item">
+                  <strong>Risque par trade</strong>
+                  <div id="rmRiskPerTrade" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Taille position</strong>
+                  <div id="rmPositionSize" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Exposition max</strong>
+                  <div id="rmMaxExposure" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>RR minimum</strong>
+                  <div id="rmRrMinimum" class="muted">—</div>
+                </div>
               </div>
             </section>
 
@@ -998,170 +863,6 @@
               </div>
             </section>
 
-            <section class="side-card">
-              <div class="card-head">
-                <div>
-                  <h2 class="card-title">Risk / Money Management</h2>
-                  <p class="card-desc">Niveau de risque et d'exposition selon le contexte.</p>
-                </div>
-              </div>
-              <div class="history">
-                <div class="history-item">
-                  <strong>Risque par trade</strong>
-                  <div id="rmRiskPerTrade" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Taille position</strong>
-                  <div id="rmPositionSize" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Exposition max</strong>
-                  <div id="rmMaxExposure" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>RR minimum</strong>
-                  <div id="rmRrMinimum" class="muted">—</div>
-                </div>
-              </div>
-            </section>
-
-            <section class="side-card">
-              <div class="card-head">
-                <div>
-                  <h2 class="card-title">Trade Setup / Entrée concrète</h2>
-                  <p class="card-desc">État du setup en cours et conditions d'exécution.</p>
-                </div>
-              </div>
-              <div class="history">
-                <div class="history-item">
-                  <strong>Point d'entrée</strong>
-                  <div id="tsEntryPoint" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Condition de validation</strong>
-                  <div id="tsValidationCondition" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Invalidation</strong>
-                  <div id="tsInvalidation" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Timing</strong>
-                  <div id="tsTiming" class="muted">—</div>
-                </div>
-              </div>
-            </section>
-
-            <section class="side-card">
-              <div class="card-head">
-                <div>
-                  <h2 class="card-title">Suivi de trade (live)</h2>
-                  <p class="card-desc">Gestion active une fois la fenêtre d'action ouverte.</p>
-                </div>
-              </div>
-              <div class="history">
-                <div class="history-item">
-                  <strong>Statut trade</strong>
-                  <div id="ltTradeStatus" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Action immédiate</strong>
-                  <div id="ltImmediateAction" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Si poursuite</strong>
-                  <div id="ltIfContinuation" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Si rejet</strong>
-                  <div id="ltIfRejection" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Protection</strong>
-                  <div id="ltProtection" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Gestion du gain</strong>
-                  <div id="ltGainManagement" class="muted">—</div>
-                </div>
-              </div>
-            </section>
-
-            <section class="side-card">
-              <div class="card-head">
-                <div>
-                  <h2 class="card-title">Journal de décision</h2>
-                  <p class="card-desc">Mémoire contextuelle de la lecture. Ces données n'influencent pas le moteur.</p>
-                </div>
-              </div>
-              <div class="history">
-                <div class="history-item">
-                  <strong>Validation</strong>
-                  <div id="jdValidationState" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Note de validation</strong>
-                  <div id="jdValidationNote" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Note de session</strong>
-                  <div id="jdJournalNote" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Résumé moteur</strong>
-                  <div id="jdMoteurSummary" class="muted">—</div>
-                </div>
-              </div>
-
-              <div class="history">
-                <h3>Dernières décisions</h3>
-                <div id="jdHistory"></div>
-              </div>
-
-              <div class="history">
-                <div class="history-item">
-                  <strong>Pattern détecté</strong>
-                  <div id="jdPattern" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>Score décision</strong>
-                  <div id="jdScore" class="muted">—</div>
-                </div>
-              </div>
-
-              <div class="history">
-                <div class="history-item">
-                  <strong>Alerte comportementale</strong>
-                  <div id="jdAlert" class="muted">—</div>
-                </div>
-              </div>
-
-              <div class="history">
-                <div class="history-item">
-                  <strong>Analyse globale</strong>
-                  <div id="jdMetaMessage" class="muted">—</div>
-                </div>
-                <div class="history-item">
-                  <strong>État comportement</strong>
-                  <div id="jdMetaBadge" class="muted">—</div>
-                </div>
-              </div>
-            </section>
-
-            <section class="side-card">
-              <div class="card-head">
-                <div>
-                  <h2 class="card-title">Diagnostic mémoire</h2>
-                  <p class="card-desc">Contrôle du stockage local et du volume de lectures archivées.</p>
-                </div>
-              </div>
-              <div class="diagnostic-grid">
-                <div class="diagnostic-item"><div class="tiny-label">Stockage</div><div id="storageStatus">Disponible</div></div>
-                <div class="diagnostic-item"><div class="tiny-label">Taille estimée</div><div id="storageSize">0 KB</div></div>
-                <div class="diagnostic-item"><div class="tiny-label">Dernière écriture</div><div id="lastSaved">Aucune</div></div>
-                <div class="diagnostic-item"><div class="tiny-label">Entrées</div><div id="snapshotCount">0</div></div>
-              </div>
-            </section>
             <section class="side-card secondary-technical-card">
               <div class="card-head">
                 <div>
