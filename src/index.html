@@ -137,7 +137,7 @@
                 <div class="badge" id="liveClock">--:--:--</div>
               </div>
 
-              <div class="hero-decision-grid">
+              <div class="hero-decision-grid" data-zone="observation">
                 <div class="hero-decision-card primary">
                   <span class="hero-chip-label">Verdict</span>
                   <strong class="hero-decision-mini" id="heroDecisionVerdict">CORE prioritaire</strong>
@@ -255,6 +255,19 @@
 
         <div class="main-grid">
           <div class="stack moteur-flow">
+            <section class="card zone-conscience tab-panel active" data-tab-panel="moteur" id="bhvInfluencePanel" style="display:none">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">État d'exécution</h2>
+                  <p class="card-desc">Lecture comportementale active.</p>
+                </div>
+              </div>
+              <div class="bhv-influence-body">
+                <span class="bhv-influence-level" id="bhvInfluenceLevel">—</span>
+                <span class="bhv-influence-text" id="bhvInfluenceText">Aucune analyse comportementale chargée.</span>
+              </div>
+            </section>
+
             <section class="card verdict-shell tab-panel active" data-tab-panel="moteur">
               <div class="card-head">
                 <div>
@@ -275,9 +288,14 @@
                 <div class="tiny-label">Verdict</div>
                 <strong id="verdictImmediate">On attend</strong>
               </div>
-              <div class="action-directive">
-                <div class="tiny-label">Autorisation</div>
-                <strong id="execPermission" class="muted">—</strong>
+              <div class="exec-confidence-block" id="execConfidenceBlock">
+                <div class="tiny-label">Confiance d'exécution</div>
+                <div class="exec-confidence-score" id="execConfidenceScore">—</div>
+                <div class="exec-confidence-bar">
+                  <div class="exec-confidence-fill" id="execConfidenceFill" style="width:0%"></div>
+                </div>
+                <div class="exec-confidence-label" id="execConfidenceLabel">—</div>
+                <p class="exec-confidence-phrase" id="execConfidencePhrase"></p>
               </div>
               <div class="action-zone">
                 <div class="action-panel do">
@@ -353,13 +371,6 @@
                   <div class="tiny-label">Insight moteur</div>
                   <div class="insight-quote" id="engineJournalMain">Le moteur garde la structure avant l’impulsion.</div>
                   <div class="insight-sub" id="signalNarratifSub">Le filtre émotionnel et la validation humaine gardent toujours la main sur l’exécution.</div>
-                </div>
-              </div>
-              <div class="bhv-influence-panel" id="bhvInfluencePanel">
-                <div class="tiny-label">Influence comportementale</div>
-                <div class="bhv-influence-body">
-                  <span class="bhv-influence-level" id="bhvInfluenceLevel">—</span>
-                  <span class="bhv-influence-text" id="bhvInfluenceText">Aucune analyse comportementale chargée.</span>
                 </div>
               </div>
             </section>
