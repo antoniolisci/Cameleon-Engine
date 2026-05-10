@@ -27,7 +27,7 @@ function normalizeKey(str) {
 
 const ALIASES_DATE   = ['date(utc)', 'date', 'utc time', 'utc_time', 'time', 'timestamp',
                         'trade time', 'created time', 'update time', 'open time', 'created at',
-                        'heure', 'date et heure', 'duree'];
+                        'heure', 'date et heure'];
 const ALIASES_SYMBOL = ['pair', 'symbol', 'market', 'trading pair', 'base asset', 'ticker',
                         'paire', 'paire de trading', 'asset'];
 const ALIASES_SIDE   = ['side', 'order side', 'direction', 'cote', 'sens'];
