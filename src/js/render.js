@@ -1143,7 +1143,7 @@ function describeOpportunity(payload) {
 }
 
 function describeDiscipline(payload) {
-  return { value: getValidationLabel(payload), sub: simplifyText(payload.validation.summary) || "Tu attends tant que ce n'est pas clair." };
+  return { value: getValidationLabel(payload), sub: simplifyText(payload.validation.summary) || "Attendre que la lecture soit claire." };
 }
 
 const HERO_COPY_MAP = {
@@ -1212,7 +1212,7 @@ function getHeroCopy(payload) {
   if (ds.state === "BLOCKED") {
     // Validated setup: caution copy instead of stop
     if (_isValidatedSetup(payload)) {
-      return { title: "⚠️ Prudence comportementale", subtitle: "Setup validé — exécution partielle autorisée, taille réduite." };
+      return { title: "Vigilance maintenue", subtitle: "Setup validé — exécution partielle possible, taille réduite." };
     }
     const emotion = (payload.emotion_state || "").toLowerCase();
     switch (emotion) {
@@ -1263,16 +1263,16 @@ const DECISION_COPY_MAP = {
     subtitle: "Direction claire. Entrée sélective."
   },
   CHAOS: {
-    title: "⛔ Aucune position",
-    subtitle: "Marché instable. Rester hors marché."
+    title: "Structure instable",
+    subtitle: "Lisibilité faible. Exposition réduite."
   },
   DEFENSE: {
-    title: "⚠️ Réduire le risque",
+    title: "Exposition réduite",
     subtitle: "Défensif. Aucune entrée propre."
   },
   UNKNOWN: {
-    title: "⛔ Aucune position",
-    subtitle: "Insuffisant. Décision impossible."
+    title: "Données insuffisantes",
+    subtitle: "Lecture impossible. Compléter le contexte."
   }
 };
 
@@ -3297,7 +3297,7 @@ function buildWhyReasons(payload) {
   } else if (emotion === 'fomo') {
     action = 'Ne pas entrer. Attendre un signal propre, sans précipitation.';
   } else if (emotion === 'stress') {
-    action = 'Pause obligatoire. Reprendre une fois calme.';
+    action = 'Ralentir. Reprendre quand la lecture est stable.';
   } else {
     action = 'Observer. Agir seulement quand le signal est clair.';
   }
@@ -3916,7 +3916,7 @@ function getExecutionLevel(payload) {
   const ds = payload.decisionState;
 
   if (ds.state === "BLOCKED") return {
-    permission: "❌ Bloqué",
+    permission: "Hors exécution",
     actionType: "Aucune exécution",
     intensity:  "Nulle",
     risk:       "Élevé"
@@ -3958,7 +3958,7 @@ function renderExecutionLevel(payload) {
     payload?.engagement_level === 'REDUCED';
 
   if (_validatedReduced) {
-    setText("execPermission", "⚠️ Réduit");
+    setText("execPermission", "Réduit");
     setText("execActionType", "Exécution partielle autorisée");
     setText("execIntensity",  "Réduite");
     setText("execRisk",       "Élevé");
@@ -3967,7 +3967,7 @@ function renderExecutionLevel(payload) {
 
   // PRIORITÉ ABSOLUE — verrou décisionnel
   if (payload.decisionState?.state === "BLOCKED") {
-    setText("execPermission", "❌ Bloqué");
+    setText("execPermission", "Hors exécution");
     setText("execActionType", "Aucune exécution");
     setText("execIntensity",  "Nulle");
     setText("execRisk",       "Élevé");
@@ -3980,11 +3980,11 @@ function renderExecutionLevel(payload) {
   // Modulation par engagement_level — wording + intensité uniquement (jamais en hausse)
   const el = payload.engagement_level;
   if (el === "NONE" || el === "MINIMAL") {
-    level.permission = el === "NONE" ? "❌ Suspendu" : "⚠️ Observer";
+    level.permission = el === "NONE" ? "Hors exécution" : "Observer";
     level.actionType = "Observer";
     level.intensity  = "Nulle";
   } else if (el === "REDUCED") {
-    level.permission = "⚠️ Réduit";
+    level.permission = "Réduit";
   }
   // NEUTRAL, FULL : base decisionState conservée
 
