@@ -26,6 +26,7 @@ import { backups, behaviorGuard } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
+import { applyFriction } from "./friction.js";
 import { computeUXState } from "./ux-state.js";
 
 const $ = (id) => document.getElementById(id);
@@ -4983,35 +4984,39 @@ function bindControls() {
   $("clearSnapshotBtn")?.addEventListener("click", clearSnapshotHistory);
   $("saveSnapshotBtn")?.addEventListener("click", () => {
     if (!latestSnapshotContext) return;
-    const saved = handleManualSnapshot(
-      latestSnapshotContext.payload,
-      latestSnapshotContext.cockpit,
-      latestSnapshotContext.decisionState,
-      latestSnapshotContext.tradingStatusFormatted
-    );
-    // Re-render mémoire comportementale seulement si un snapshot a été sauvegardé
-    if (saved) {
-      renderTraderMemory();
-      renderTraderSignature();
-      renderBehaviorProfile();
-      renderPsychProfile();
-      renderBehaviorRepetition();
-    }
     const btn = $("saveSnapshotBtn");
-    const label = btn?.querySelector(".mode-btn-title");
-    if (btn && label) {
-      clearTimeout(saveSnapshotFeedbackTimer);
-      // Message différent si doublon détecté
-      label.textContent = saved ? SNAPSHOT_BTN_CONFIRM : "Aucun changement détecté";
-      btn.classList.add("snapshot-confirm");
-      btn.disabled = true;
-      saveSnapshotFeedbackTimer = setTimeout(() => {
-        label.textContent = SNAPSHOT_BTN_LABEL;
-        btn.classList.remove("snapshot-confirm");
-        btn.disabled = false;
-        saveSnapshotFeedbackTimer = null;
-      }, 1200);
-    }
+    const score = currentPayload
+      ? computeExecutionConfidence(currentPayload, getBehaviorState(currentPayload)).score
+      : 100;
+    applyFriction(score, btn, "snapshotFrictionMsg", () => {
+      const saved = handleManualSnapshot(
+        latestSnapshotContext.payload,
+        latestSnapshotContext.cockpit,
+        latestSnapshotContext.decisionState,
+        latestSnapshotContext.tradingStatusFormatted
+      );
+      // Re-render mémoire comportementale seulement si un snapshot a été sauvegardé
+      if (saved) {
+        renderTraderMemory();
+        renderTraderSignature();
+        renderBehaviorProfile();
+        renderPsychProfile();
+        renderBehaviorRepetition();
+      }
+      const label = btn?.querySelector(".mode-btn-title");
+      if (btn && label) {
+        clearTimeout(saveSnapshotFeedbackTimer);
+        label.textContent = saved ? SNAPSHOT_BTN_CONFIRM : "Aucun changement détecté";
+        btn.classList.add("snapshot-confirm");
+        btn.disabled = true;
+        saveSnapshotFeedbackTimer = setTimeout(() => {
+          label.textContent = SNAPSHOT_BTN_LABEL;
+          btn.classList.remove("snapshot-confirm");
+          btn.disabled = false;
+          saveSnapshotFeedbackTimer = null;
+        }, 1200);
+      }
+    }, 'snapshot');
   });
   $("helpBtn")?.addEventListener("click", () => $("helpDialog")?.showModal());
   $("helpCloseBtn")?.addEventListener("click", () => $("helpDialog")?.close());
@@ -5038,13 +5043,25 @@ function bindControls() {
   });
 
   $("modeAttackBtn")?.addEventListener("click", () => {
-    activateTab("pilotage");
-    focusPanel("action");
+    const btn = $("modeAttackBtn");
+    const score = currentPayload
+      ? computeExecutionConfidence(currentPayload, getBehaviorState(currentPayload)).score
+      : 100;
+    applyFriction(score, btn, "attackFrictionMsg", () => {
+      activateTab("pilotage");
+      focusPanel("action");
+    }, 'offensive');
   });
 
   $("modeSniperBtn")?.addEventListener("click", () => {
-    activateTab("pilotage");
-    focusPanel("triggerBox");
+    const btn = $("modeSniperBtn");
+    const score = currentPayload
+      ? computeExecutionConfidence(currentPayload, getBehaviorState(currentPayload)).score
+      : 100;
+    applyFriction(score, btn, "sniperFrictionMsg", () => {
+      activateTab("pilotage");
+      focusPanel("triggerBox");
+    }, 'offensive');
   });
 
   $("modeWaitBtn")?.addEventListener("click", () => {

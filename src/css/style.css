@@ -7872,3 +7872,22 @@ body[data-behavior-pattern="discipline"]::before {
   opacity: 0.6;
   margin: 0;
 }
+
+/* ── Friction message (V3) ───────────────────────────────────────────────── */
+
+.friction-message {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  opacity: 0.55;
+  padding: 0.25rem 0;
+  transition: opacity 0.2s ease;
+}
+
+.friction-message:not([hidden]) {
+  display: block;
+}
+
+[data-friction-state="pending"] {
+  opacity: 0.5;
+  cursor: wait;
+}
