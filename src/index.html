@@ -76,6 +76,11 @@
             <div class="side-tab-label">Comportement</div>
             <div class="side-tab-state">Import CSV</div>
           </button>
+          <button class="side-tab" type="button" data-tab-target="manifeste">
+            <div class="side-tab-icon">§</div>
+            <div class="side-tab-label">Manifeste</div>
+            <div class="side-tab-state" id="sideStateManifeste">Doctrine</div>
+          </button>
         </div>
 
         <div id="debug-brain">
@@ -775,6 +780,192 @@
                 </div>
               </div>
             </section>
+
+                <div class="tab-panel" data-tab-panel="manifeste" hidden aria-hidden="true">
+                  <div class="manifeste-inner" id="manifeste-top">
+
+                    <p class="manifeste-accroche">Le cockpit explique quoi faire.<br>Le manifeste explique pourquoi il existe.</p>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">Préambule</h2>
+                      <p>Ce document est la doctrine stable de Caméléon Engine. Il sert de référence à toutes les décisions produit, de l'écriture d'un message à la conception d'une nouvelle fonctionnalité, du design d'une zone à l'élaboration d'une vidéo de présentation, du choix d'un wording à l'évolution du modèle économique.</p>
+                      <p>Quand un doute survient, ce document tranche. Quand une fonctionnalité est envisagée, elle se mesure à ces principes. Quand le produit grandit, il grandit dans cette continuité.</p>
+                      <p>Ce n'est pas un document marketing. C'est un document fondateur. Il dit qui le produit est avant de dire ce qu'il fait.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">I. Ce que Caméléon Engine est</h2>
+                      <p>Caméléon Engine est un cockpit cognitif de décision pour traders. Sa fonction est d'augmenter la lucidité de son utilisateur dans ses décisions de marché.</p>
+                      <p>Le mot <em>cockpit</em> est précis : c'est un poste de pilotage où l'humain reste le pilote. Le cockpit fournit des instruments de lecture, des synthèses, des points de repère. Il ne décide jamais à la place du pilote.</p>
+                      <p>Le mot <em>cognitif</em> est précis : le produit travaille au niveau de la conscience décisionnelle. Il n'opère pas le marché à la place de l'utilisateur, il opère la qualité de sa lecture.</p>
+                      <p>Le mot <em>décision</em> est précis : la valeur produite par le cockpit se mesure dans la qualité des décisions humaines qu'il rend possibles, pas dans la quantité de données qu'il affiche.</p>
+                      <p>Caméléon Engine est un <em>système de friction intelligente</em>. Il ne bloque pas, il ralentit le geste impulsif juste assez pour que la conscience rattrape la pulsion. Il rend l'action coûteuse en conscience, jamais impossible.</p>
+                      <p>Caméléon Engine est un <em>miroir lucide</em>. Il restitue à l'utilisateur une lecture de son propre état comportemental, pour lui permettre d'intégrer cette dimension dans ses décisions.</p>
+                      <p>Caméléon Engine est une <em>présence calme</em>. Il habite l'écran du trader avec une qualité de chambre habitée, sans s'éteindre, sans s'agiter, sans crier, sans flatter.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">II. Ce que Caméléon Engine n'est pas</h2>
+                      <p>Caméléon Engine n'est pas un bot. Il ne génère pas d'ordres, ne déclenche pas d'exécutions, ne pilote pas de positions à la place de l'utilisateur.</p>
+                      <p>Caméléon Engine n'est pas un système de signaux. Il ne dit jamais "achète" ou "vends". Il propose des lectures, jamais des injonctions.</p>
+                      <p>Caméléon Engine n'est pas un oracle. Il ne prétend pas voir l'avenir du marché. Ses lectures sont toujours conditionnelles, partielles, datées.</p>
+                      <p>Caméléon Engine n'est pas un système de protection autoritaire. Il ne protège pas l'utilisateur contre lui-même par la force. Il ne verrouille pas, n'interdit pas, ne sanctionne pas.</p>
+                      <p>Caméléon Engine n'est pas un dashboard. Il n'affiche pas des données simultanées en attente d'être lues. Il raconte une histoire séquentielle.</p>
+                      <p>Caméléon Engine n'est pas un produit grand public déguisé en produit pro. Il ne flatte pas, ne s'agite pas, n'utilise pas le vocabulaire de l'urgence ou de la performance pour exister.</p>
+                      <p>Caméléon Engine n'est pas un thérapeute. Il ne soigne pas le trader, ne lui donne pas de conseils de vie, ne se mêle pas de son bien-être au-delà de sa qualité de lecture décisionnelle.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">III. Philosophie produit</h2>
+                      <h3 class="manifeste-h3">Le principe d'autonomie préservée</h3>
+                      <p>L'autorité finale de toute décision appartient à l'utilisateur. À chaque instant, en toute condition, le trader conserve son pouvoir de décision plein. Le cockpit ne prend jamais ce pouvoir, ne le réduit jamais, ne le contourne jamais.</p>
+                      <p>Cette autonomie n'est pas une concession ergonomique. Elle est une condition fondatrice. Un cockpit qui retire de l'autonomie produit, à terme, un trader qui contourne le cockpit pour la reconquérir. La friction intelligente fonctionne précisément parce qu'elle ne touche jamais à cette autonomie.</p>
+                      <h3 class="manifeste-h3">Le principe de lucidité augmentée</h3>
+                      <p>La valeur du produit ne se mesure pas en signaux générés, en bonnes décisions imposées, en pertes évitées par blocage. Elle se mesure en élargissement de la conscience décisionnelle de l'utilisateur. Le cockpit ne fait pas le travail à la place de l'utilisateur — il rend le travail plus lisible.</p>
+                      <p>Un trader qui utilise le cockpit pendant des années doit pouvoir dire : je vois mieux qu'avant. Pas : je suis dépendant de cet outil. La signature de la qualité produit, c'est la lucidité accrue, pas la dépendance créée.</p>
+                      <h3 class="manifeste-h3">Le principe d'honnêteté narrative</h3>
+                      <p>Le cockpit ne ment jamais sur ce qu'il voit. Il ne minimise pas, ne dramatise pas, n'invente pas, ne camoufle pas. Quand sa lecture est partielle, il le dit. Quand elle est invalidée, il le dit. Quand il ne sait pas, il se tait.</p>
+                      <p>Cette honnêteté est l'actif principal du produit. Elle se construit en milliers de petits gestes quotidiens — chaque message, chaque transition, chaque silence. Elle se détruit en un seul geste de tromperie.</p>
+                      <h3 class="manifeste-h3">Le principe d'inversion d'intensité</h3>
+                      <p>Plus la situation devient intense, plus le cockpit devient calme. Cette inversion est la signature mature du produit. Quand le marché s'agite, l'interface ralentit. Quand tout crie autour, le cockpit chuchote. Quand l'utilisateur est tenté de réagir, le cockpit pose.</p>
+                      <p>Cette posture n'est pas un effet de style. Elle est ce qui rend le cockpit utile précisément quand il doit l'être.</p>
+                      <h3 class="manifeste-h3">Le principe de continuité</h3>
+                      <p>Le cockpit ne change jamais de personnage. Sa voix dans le silence, sa voix dans la tension, sa voix dans l'erreur, sa voix dans l'événement — toutes ces voix sont la même voix. Aucune circonstance ne justifie une rupture de tonalité.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">IV. Relation à l'utilisateur</h2>
+                      <h3 class="manifeste-h3">Le trader est l'autorité finale</h3>
+                      <p>Tout dans le produit présuppose un utilisateur intelligent, expérimenté, capable de décision en pleine conscience. Le cockpit n'éduque pas, n'infantilise pas, n'explique pas l'évidence, ne répète pas pour s'assurer d'être compris.</p>
+                      <p>Cette posture définit la cible utilisateur : un trader qui veut un compagnon mature, pas un assistant pédagogue. Le produit n'est pas pour les débutants qui cherchent à apprendre. Il est pour les praticiens qui cherchent à voir clair.</p>
+                      <h3 class="manifeste-h3">Le respect comme fondation</h3>
+                      <p>Le respect de l'utilisateur s'exprime dans des centaines de micro-gestes : pas d'exclamation, pas de majuscule d'emphase, pas de flatterie, pas de félicitation, pas de paternalisme, pas de morale, pas d'évaluation a posteriori des décisions prises.</p>
+                      <p>Le cockpit traite l'utilisateur comme un pair professionnel, pas comme un client à séduire ou à protéger. Cette posture est rare dans l'industrie. C'est précisément ce qui fait la différenciation produit.</p>
+                      <h3 class="manifeste-h3">La relation de longue durée</h3>
+                      <p>Le produit est conçu pour des relations de plusieurs années. Toutes ses décisions sont arbitrées en faveur de la durabilité, jamais de l'impact immédiat. Une fonctionnalité qui produit un effet "wow" mais qui usera après trois mois est rejetée.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">V. Rapport au marché</h2>
+                      <h3 class="manifeste-h3">Le marché est une réalité, pas un adversaire</h3>
+                      <p>Le cockpit observe le marché comme un témoin patient. Il ne le combat pas, ne le prédit pas, ne prétend pas le maîtriser. Il en restitue des lectures — des descriptions structurées de phénomènes observables.</p>
+                      <h3 class="manifeste-h3">La lecture comme acte central</h3>
+                      <p>Le cockpit produit des lectures à plusieurs niveaux : état du marché, configurations émergentes, état comportemental de l'utilisateur, confiance d'exécution comme synthèse. Ces lectures ne sont jamais des verdicts. La distinction entre lecture et verdict est fondatrice : le verdict ferme, la lecture ouvre.</p>
+                      <h3 class="manifeste-h3">L'humilité épistémique</h3>
+                      <p>Toute lecture du cockpit est implicitement conditionnée par les limites de l'observation. Le cockpit assume cette finitude dans sa grammaire quotidienne. Cette humilité est intégrée à la grammaire courante, pas accolée comme un avertissement.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">VI. Rapport au comportement</h2>
+                      <h3 class="manifeste-h3">L'état comportemental est une dimension légitime de la décision</h3>
+                      <p>Le cockpit traite l'état comportemental du trader comme une donnée objectivable, au même titre que la structure de marché. Cette légitimité est fondatrice : elle pose que la décision de trading n'est pas seulement technique, mais aussi conditionnée par l'état du décideur.</p>
+                      <h3 class="manifeste-h3">Les cinq états du Caméléon</h3>
+                      <p>Le système comportemental est articulé autour de cinq états : Ancré, En Veille Active, Friction, Dérive, Rupture. Ces états ne sont pas des niveaux de gravité. Ce sont des lectures qualitatives d'un état d'être. Aucun état n'est une faute. Aucun état n'est une perfection.</p>
+                      <h3 class="manifeste-h3">Le miroir, jamais le juge</h3>
+                      <p>La zone comportementale est un miroir, pas un tribunal. Elle restitue ce qu'elle voit, sans évaluation morale, sans dramatisation, sans flatterie. Le caméléon décrit, il ne juge pas.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">VII. Rapport à l'incertitude</h2>
+                      <h3 class="manifeste-h3">L'incertitude est constitutive</h3>
+                      <p>Le cockpit ne prétend pas voir avec certitude. Toute synthèse est partielle, datée, conditionnée. Cette incertitude n'est pas un défaut à camoufler — c'est une propriété intégrée du produit, visible en permanence dans sa grammaire.</p>
+                      <h3 class="manifeste-h3">L'erreur comme dimension</h3>
+                      <p>Le cockpit reconnaît trois types d'erreur : la lecture incomplète (état permanent), l'invalidation par le marché (cas fréquent), l'erreur intrinsèque (cas rare). Aucune ne déclenche d'excuse, de drame ou de réécriture de l'histoire.</p>
+                      <h3 class="manifeste-h3">La confiance comme construction lente</h3>
+                      <p>La confiance utilisateur ne se construit pas par des promesses ou des démonstrations spectaculaires. Elle se construit par la constance de l'honnêteté sur des milliers d'interactions.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">VIII. Manière de parler</h2>
+                      <h3 class="manifeste-h3">Une voix unique</h3>
+                      <p>Le cockpit a une voix linguistique unique, présente dans toutes ses zones, dans toutes ses circonstances. Cette voix est posée, jamais agitée — factuelle, jamais persuasive — sobre, jamais dramatique — respectueuse, jamais paternaliste — humble, jamais servile — continue, jamais discontinue.</p>
+                      <h3 class="manifeste-h3">Vocabulaire à bannir</h3>
+                      <p>Le cockpit ne dit jamais : interdit, bloqué, suspendu, verrouillé, refusé — attention, danger, alerte, risque élevé — opportunité, signal, go, feu vert, feu rouge — bravo, bien joué, excellent, parfait — prends une pause, calme-toi, reprends-toi — désolé, excusez-moi, erreur regrettable.</p>
+                      <h3 class="manifeste-h3">Règles formelles</h3>
+                      <p>Pas de point d'exclamation, jamais. Pas de majuscule d'emphase, jamais. Pas de gras dans les messages d'interface. Pas d'emoji. Une phrase par zone en conditions normales.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">IX. Manière de se taire</h2>
+                      <p>Le cockpit habite le silence comme il habite la parole. La qualité du silence d'un cockpit est ce qui distingue un produit professionnel d'un produit grand public. Un produit qui redoute le silence le remplit de bruit. Un produit qui respecte le silence l'honore comme une couleur du réel.</p>
+                      <p>Premier principe — ne jamais commenter l'absence par soustraction. Le cockpit ne dit pas "aucun setup détecté", "marché calme", "pas d'opportunité". Il décrit ce qui est, jamais ce qui manque.</p>
+                      <p>Deuxième principe — la micro-vie visuelle. Pendant le silence, le cockpit reste vivant par des signaux non-narratifs minimaux.</p>
+                      <p>Troisième principe — la respiration linguistique. Quand un état dure des heures, ses formulations peuvent évoluer lentement sans que le contenu change.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">X. Manière de ne jamais bloquer</h2>
+                      <h3 class="manifeste-h3">La friction au lieu de l'interdiction</h3>
+                      <p>Le cockpit n'a aucun mécanisme de blocage punitif. À aucun moment, dans aucune circonstance, il ne retire à l'utilisateur la capacité d'agir. Cette règle est absolue et n'admet aucune exception.</p>
+                      <h3 class="manifeste-h3">La règle d'or de l'autonomie</h3>
+                      <p>À chaque instant, l'utilisateur peut exécuter ce qu'il veut. Le cockpit n'a qu'un pouvoir : celui de rendre la décision lisible. Il n'a pas le pouvoir de l'empêcher. Cette asymétrie est volontaire, fondatrice, non-négociable.</p>
+                      <h3 class="manifeste-h3">Le paradoxe productif</h3>
+                      <p>Plus l'état du trader se dégrade, plus le cockpit devient calme et silencieux. Ce silence grave produit le plus souvent la bonne décision, là où une alerte aurait été défiée et un blocage contourné. La friction maximale est aussi la plus silencieuse. Quand le cockpit se tait gravement, l'utilisateur s'entend lui-même.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XI. Architecture des zones</h2>
+                      <p>Le cockpit s'organise en quatre zones narratives qui travaillent comme une seule conscience qui pense à travers quatre voix.</p>
+                      <p><em>Marché</em> — la voix du témoin patient. Décrit le contexte extérieur en continu, sans verdict, sans charge émotionnelle.</p>
+                      <p><em>Setup</em> — la voix de l'événement. Silencieuse 80% du temps. Précise et brève quand elle parle.</p>
+                      <p><em>Comportemental</em> — la voix du miroir intime. Restitue l'état du trader avec une tonalité plus humaine, plus organique.</p>
+                      <p><em>Confiance</em> — la voix de la synthèse. Le seul point de vérité visuel autorisé à parler fort. Ferme le récit en réconciliant les trois autres lectures.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XII. Doctrine visuelle</h2>
+                      <p>Aucune couleur ne déclenche une émotion plus forte que la lecture rationnelle qu'elle accompagne. Le rouge agressif est strictement banni. Les feux de circulation sont strictement bannis.</p>
+                      <p>Aucune animation ne décore. Le mouvement signale, toujours. Les transitions sont lentes : 600 à 1200ms en conditions normales, 1000 à 1500ms en conditions de tension.</p>
+                      <p>Pas de gras dans les messages d'interface. La graisse est agressive ; le produit cherche la présence calme. Pas de majuscules dans les messages, jamais.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XIII. Doctrine économique</h2>
+                      <p>Modèle SaaS, accès gratuit limité et abonnement payant. La version gratuite est honnête, la version payante apporte une valeur claire. Aucun mécanisme de freemium agressif.</p>
+                      <p>Le produit ne vend pas des indicateurs. Il vend de la lucidité maintenue dans la tempête. Le produit ne vend pas de performance, de résultats, de promesses de rentabilité.</p>
+                      <p>Le produit ne fait pas de publicité dans son interface. Les notifications restent strictement liées à la fonction de lecture.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XIV. Doctrine d'extension</h2>
+                      <h3 class="manifeste-h3">Le test du manifeste</h3>
+                      <p>Toute nouvelle fonctionnalité doit pouvoir être validée contre ce manifeste. Si une fonctionnalité contredit l'un des principes énoncés ici, elle est rejetée — quelle que soit son utilité apparente.</p>
+                      <h3 class="manifeste-h3">Extensions incompatibles</h3>
+                      <p>Sont incompatibles avec la doctrine : tout système d'exécution automatique, tout système de signaux poussés, tout dispositif de gamification, toute fonctionnalité de validation sociale, toute publicité ou monétisation tierce, tout système qui retirerait de l'autonomie à l'utilisateur.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XV. Test de cohérence</h2>
+                      <p>Toute décision produit peut être validée contre cette grille en cinq questions.</p>
+                      <ol class="manifeste-list">
+                        <li>Est-ce que cette décision préserve l'autonomie de l'utilisateur ?</li>
+                        <li>Est-ce que cette décision augmente la lucidité ou crée la dépendance ?</li>
+                        <li>Est-ce que cette décision respecte la voix unique du cockpit ?</li>
+                        <li>Est-ce que cette décision honore l'incertitude constitutive ?</li>
+                        <li>Est-ce que cette décision tient en condition de tension extrême ?</li>
+                      </ol>
+                      <p>Une décision qui passe ces cinq tests est compatible avec la doctrine. Une décision qui en échoue à un seul mérite d'être retravaillée.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XVI. Principe directeur unique</h2>
+                      <p>Si tout ce manifeste devait se réduire à une seule phrase :</p>
+                      <blockquote class="manifeste-principe">
+                        Caméléon Engine est une présence calme qui rend la décision lisible sans la prendre.
+                      </blockquote>
+                      <p>Cette phrase contient tout. La calme posture. La présence. La lisibilité. La décision. Le respect de l'utilisateur. C'est la boussole.</p>
+                    </div>
+
+                    <div class="manifeste-section manifeste-postface">
+                      <h2 class="manifeste-h2">Postface</h2>
+                      <p>Ce manifeste n'est pas figé. Il peut évoluer — mais seulement par approfondissement, jamais par renoncement. Une évolution qui consoliderait la doctrine est légitime. Une évolution qui contredirait l'un des principes fondateurs serait une rupture, pas une croissance.</p>
+                      <p>Le produit que vous construisez est rare. Il appartient à une catégorie où peu de produits existent vraiment : celle des outils qui respectent l'intelligence de leurs utilisateurs sans rien rabaisser de leur exigence. Cette rareté est un actif. Elle se protège par la fidélité à la doctrine.</p>
+                      <p class="manifeste-closing">Caméléon Engine n'est pas un produit. C'est une posture. Le manifeste est sa colonne vertébrale.</p>
+                    </div>
+
+                  </div>
+                </div>
+
           </div>
 
           <aside class="side-panel">

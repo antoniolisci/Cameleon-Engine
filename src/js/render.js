@@ -41,11 +41,12 @@ let fieldEventsBound = false;
 let controlEventsBound = false;
 let clockTimer = null;
 const STATIC_HERO_VISUAL = "../assets/images/cameleon-logo.png";
-const VALID_TABS = new Set(["moteur", "pilotage", "memoire"]);
+const VALID_TABS = new Set(["moteur", "pilotage", "memoire", "manifeste"]);
 const TAB_FOCUS_TARGETS = {
-  moteur: "marketStateText",
-  pilotage: "marketFields",
-  memoire: "historyList"
+  moteur:    "marketStateText",
+  pilotage:  "marketFields",
+  memoire:   "historyList",
+  manifeste: "manifeste-top"
 };
 
 // ── getBehaviorState ─────────────────────────────────────────────────────────
@@ -4806,9 +4807,10 @@ function syncTabs(activeTab) {
     button.setAttribute("aria-selected", String(active));
   });
 
-  setText("sideStateMoteur", nextTab === "moteur" ? "Actif" : "Prêt");
-  setText("sideStatePilotage", nextTab === "pilotage" ? "Actif" : "Prêt");
-  setText("sideStateMemoire", nextTab === "memoire" ? "Actif" : "Prêt");
+  setText("sideStateMoteur",    nextTab === "moteur"    ? "Actif"    : "Prêt");
+  setText("sideStatePilotage",  nextTab === "pilotage"  ? "Actif"    : "Prêt");
+  setText("sideStateMemoire",   nextTab === "memoire"   ? "Actif"    : "Prêt");
+  setText("sideStateManifeste", nextTab === "manifeste" ? "Lecture"  : "Doctrine");
 }
 
 function activateTab(tab) {
