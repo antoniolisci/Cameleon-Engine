@@ -1,6 +1,7 @@
 # Cameleon Engine
 
-**Shell visuel V7.3.2e · Moteur adaptatif V4.5**
+- Notion hub: https://www.notion.so/de96712256b24041a7eb7b2c9394352d
+- GitHub repository: https://github.com/antoniolisci/Cameleon-Engine
 
 Application d'aide à la décision pour le trading spot. Produit un diagnostic de marché structuré, un niveau d'engagement autorisé, et une analyse comportementale basée sur l'historique réel de trades.
 
