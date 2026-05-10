@@ -92,12 +92,18 @@ function normalizeTrade(row) {
   // Quantité base asset.
   // Cas Binance réel : Amount = base qty, Total = quote value.
   // Si les colonnes qty standard sont absentes mais Amount + Total coexistent,
-  // Amount est la quantité (pas la valeur quote).
+  // le fallback Amount → qty est appliqué uniquement si Total / Amount ≈ price (±10%).
+  // Cela confirme que Amount est bien la quantité base (pas la valeur quote) :
+  //   qty_base × price ≈ total  →  total / amount ≈ price
+  // Sans cette vérification, un export où Amount = valeur USDT produirait une qty fausse.
   let qty = parseNum(get(ALIASES_QTY));
   const amountVal = parseNum(get(['amount']));
   const totalVal  = parseNum(get(['total']));
-  if (qty === 0 && amountVal > 0 && totalVal > 0) {
-    qty = amountVal;
+  if (qty === 0 && amountVal > 0 && totalVal > 0 && price > 0) {
+    const impliedPrice = totalVal / amountVal;
+    if (impliedPrice >= price * 0.9 && impliedPrice <= price * 1.1) {
+      qty = amountVal;
+    }
   }
 
   // quote_value : valeur monétaire en quote asset (ex : USDT).
