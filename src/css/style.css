@@ -1,4 +1,6 @@
 :root {
+  --ux-breath: 4.8s;
+  --ux-transition: 0.28s;
   --font-ui: "Segoe UI", "Aptos", "Trebuchet MS", sans-serif;
   --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   --bg: #060606;
@@ -182,6 +184,17 @@ img {
   border-radius: 14px;
   border: 1px solid rgba(var(--state-rgb), 0.22);
   flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.video-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: videoLogoPulse 7s ease-in-out infinite;
 }
 
 .brand-title {
@@ -290,6 +303,18 @@ img {
   height: 42px;
   border-radius: 999px;
   border: 1px solid rgba(var(--state-rgb), 0.22);
+  overflow: hidden;
+}
+
+.video-circle {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  display: block;
+  pointer-events: none;
+  animation: videoCirclePulse 5.5s ease-in-out infinite;
 }
 
 .sidebar-nav {
@@ -341,6 +366,53 @@ img {
   border-color: rgba(var(--state-rgb), 0.34);
   background: linear-gradient(180deg, rgba(var(--state-rgb), 0.16), rgba(255, 255, 255, 0.03));
   color: var(--state-text);
+}
+
+.snapshot-confirm {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+  opacity: 1;
+}
+
+.snapshot-quality-bad {
+  animation: snapPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes snapPulse {
+  0%   { box-shadow: 0 0 0 rgba(255, 68, 68, 0); }
+  50%  { box-shadow: 0 0 8px rgba(255, 68, 68, 0.6); }
+  100% { box-shadow: 0 0 0 rgba(255, 68, 68, 0); }
+}
+
+.snapshot-quality-medium {
+  animation: snapGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes snapGlow {
+  0%   { box-shadow: 0 0 0 rgba(255, 170, 0, 0); }
+  50%  { box-shadow: 0 0 6px rgba(255, 170, 0, 0.4); }
+  100% { box-shadow: 0 0 0 rgba(255, 170, 0, 0); }
+}
+
+.snapshot-quality-good {
+  box-shadow: 0 0 4px rgba(0, 255, 136, 0.25);
+}
+
+/* ── Trading Policy — visual gate ──────────────────────────── */
+.policy-action-allowed {
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.28);
+}
+
+.policy-action-forbidden {
+  box-shadow: 0 0 0 1px rgba(255, 68, 68, 0.22);
+}
+
+.policy-message {
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.38);
+  font-style: italic;
+  line-height: 1.45;
+  min-height: 16px;
 }
 
 .side-tab.active::before {
@@ -606,6 +678,7 @@ h1 {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012)),
     radial-gradient(circle at top left, rgba(var(--state-rgb), 0.08), transparent 34%);
+  min-width: 0;
 }
 
 .hero-kpi-card.primary {
@@ -621,25 +694,17 @@ h1 {
   color: var(--state-text);
   font-weight: 800;
   letter-spacing: -0.04em;
-  font-size: 24px;
-  line-height: 1.1;
-}
-
-#heroPostureValue {
-  font-size: 18px;
-  line-height: 1.25;
+  font-size: 22px;
+  line-height: 1.15;
   white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  overflow: visible;
+  min-width: 0;
 }
 
 #heroBarMode {
   font-size: 14px;
   line-height: 1.3;
   white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  min-width: 0;
 }
 
 .lecture-day-card {
@@ -908,7 +973,7 @@ h1 {
 }
 
 .hero-decision-main {
-  font-size: clamp(20px, 2vw, 29px);
+  font-size: clamp(16px, 1.5vw, 22px);
   line-height: 1.14;
 }
 
@@ -942,6 +1007,7 @@ h1 {
   display: grid;
   align-content: space-between;
   gap: 8px;
+  min-width: 0;
 }
 
 .hero-bar .hero-chip:nth-child(4) {
@@ -988,11 +1054,17 @@ h1 {
 }
 
 .hero-chip-value {
-  font-size: 19px;
+  font-size: 17px;
+  white-space: normal;
+  line-height: 1.3;
+  min-width: 0;
 }
 
 .market-strong {
-  font-size: 34px;
+  font-size: clamp(16px, 1.8vw, 24px);
+  white-space: normal;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .engine-journal-live,
@@ -1124,6 +1196,8 @@ h1 {
   gap: 24px;
   margin-top: 24px;
   align-items: start;
+  position: relative;
+  transition: opacity 0.25s ease;
 }
 
 .moteur-flow {
@@ -1131,25 +1205,13 @@ h1 {
   gap: 24px;
 }
 
-.moteur-flow > .verdict-shell {
-  order: 1;
-}
-
-.moteur-flow > .master-card {
-  order: 2;
-}
-
-.moteur-flow > .structured-shell {
-  order: 3;
-}
-
-.moteur-flow > .publications-shell {
-  order: 4;
-}
-
-.moteur-flow > .navigation-shell {
-  order: 5;
-}
+.moteur-flow > .zone-conscience      { order: 0; }
+.moteur-flow > .verdict-shell       { order: 1; }
+.moteur-flow > .pourquoi-shell      { order: 2; }
+.moteur-flow > .master-card         { order: 3; }
+.moteur-flow > .structured-shell    { order: 4; }
+.moteur-flow > .publications-shell  { order: 5; }
+.moteur-flow > .navigation-shell    { order: 6; }
 
 .stack,
 .side-panel,
@@ -1765,6 +1827,241 @@ h1 {
   line-height: 1.55;
 }
 
+.prefill-warning {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: #1a1208;
+  border: 1px solid #3a2a10;
+  border-left: 3px solid #a06020;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
+.prefill-warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.prefill-warning-body strong {
+  display: block;
+  color: #c89050;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.prefill-warning-body p {
+  margin-bottom: 4px;
+}
+
+.prefill-warning-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Constellium Panel ───────────────────────────────────────────────── */
+
+.cst-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 480px;
+  min-width: 420px;
+  max-width: 520px;
+  z-index: 9999;
+  pointer-events: none;
+}
+.cst-panel[hidden] { display: none; }
+.cst-panel.active  { pointer-events: auto; }
+
+@media (max-width: 700px) {
+  .cst-panel {
+    width: 92vw;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+.cst-panel-card {
+  position: relative;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(12,16,28,0.98), rgba(6,8,14,0.98));
+  border-left: 1px solid rgba(245,208,111,0.28);
+  box-shadow:
+    -18px 0 44px rgba(0,0,0,0.75),
+    inset 1px 0 0 rgba(255,255,255,0.04);
+  padding: 28px 24px;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+  color: #e6e8ef;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245,208,111,0.35) transparent;
+}
+.cst-panel-card::-webkit-scrollbar        { width: 6px; }
+.cst-panel-card::-webkit-scrollbar-track  { background: transparent; }
+.cst-panel-card::-webkit-scrollbar-thumb  {
+  background: rgba(245,208,111,0.28);
+  border-radius: 999px;
+}
+.cst-panel.active .cst-panel-card { transform: translateX(0); }
+
+.cst-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #c8cad4;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.cst-close-btn:hover {
+  color: #ffffff;
+  border-color: rgba(245,208,111,0.35);
+  background: rgba(245,208,111,0.08);
+}
+
+.cst-panel-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+  padding-right: 60px;
+}
+
+.cst-sub {
+  font-size: 12px;
+  color: #9aa0b3;
+  font-style: italic;
+  margin: 0 0 18px;
+}
+
+/* ── Explanation inner content ─────────────────────────────────────── */
+
+.cst-expl {
+  font-size: 13px;
+}
+
+.cst-context-line {
+  background: rgba(245,208,111,0.08);
+  border: 1px solid rgba(245,208,111,0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #f5d06f;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.cst-expl-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cst-expl-row {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+.cst-expl-row:hover { border-color: rgba(245,208,111,0.22); }
+
+.cst-expl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.cst-expl-label {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cst-expl-value {
+  color: #f5d06f;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(245,208,111,0.10);
+  border: 1px solid rgba(245,208,111,0.24);
+  white-space: nowrap;
+}
+
+.cst-expl-desc {
+  color: #bfc3d4;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+.cst-expl-sentence {
+  color: #8f96aa;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+
+.cst-expl-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  color: #4a4c62;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.cst-legal-block {
+  margin-top: 20px;
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #bfc3d4;
+}
+
+.cst-legal-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f5d06f;
+  margin-bottom: 10px;
+}
+
+.cst-legal-block p {
+  margin: 0 0 10px;
+}
+
+.cst-legal-block p:last-child {
+  margin-bottom: 0;
+}
+
 .tab-btn {
   border-radius: 999px;
   padding: 11px 16px;
@@ -1877,6 +2174,36 @@ h1 {
   display: grid;
   gap: 8px;
   align-content: start;
+}
+
+/* ── Champs repliables (notes) ───────────────────────── */
+.field-collapsible {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.field-collapsible-label {
+  cursor: pointer;
+  font-size: var(--font-xs, 0.75rem);
+  color: var(--muted);
+  user-select: none;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.field-collapsible-label::before {
+  content: "+ ";
+  font-family: monospace;
+}
+
+details[open] .field-collapsible-label::before {
+  content: "− ";
+}
+
+.field-collapsible textarea {
+  width: 100%;
+  margin-top: 6px;
 }
 
 label {
@@ -2131,28 +2458,6 @@ pre {
   border-top: 1px solid rgba(var(--state-rgb), 0.1);
 }
 
-@keyframes pulseDot {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.18);
-    opacity: 1;
-  }
-}
-
-@keyframes panelReveal {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 @media (max-width: 1380px) {
   .hero-grid {
@@ -2334,13 +2639,13 @@ pre {
 .hero .hero-kpi-card:nth-child(3) .hero-kpi-value,
 .hero .hero-kpi-card:nth-child(4) .hero-kpi-value {
   margin-top: 10px;
-  font-size: clamp(24px, 2vw, 34px);
+  font-size: clamp(18px, 1.6vw, 24px);
   line-height: 1.08;
   letter-spacing: -0.05em;
 }
 
 .hero .hero-kpi-card:nth-child(1) .market-strong {
-  font-size: clamp(40px, 4vw, 62px);
+  font-size: clamp(18px, 2vw, 26px);
 }
 
 .lecture-day-card {
@@ -3725,6 +4030,14 @@ pre {
   padding: 24px;
 }
 
+.help-tagline {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
 .help-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3946,7 +4259,7 @@ pre {
   right: 0;
   bottom: 0;
   width: min(42%, 560px);
-  background: url("../assets/images/cameleon-logo.png") right center / contain no-repeat;
+  background: url("../../assets/images/cameleon-logo.png") right center / contain no-repeat;
   opacity: var(--hero-logo-opacity, 0.14);
   pointer-events: none;
   z-index: 0;
@@ -5038,7 +5351,7 @@ body {
 .hero-kpi-grid,
 .hero-bar,
 .hero-decision-grid,
-.onboarding-strip,
+.hero-bottom-zone > .onboarding-strip,
 .master-card .alertes-bottom-grid {
   display: grid !important;
 }
@@ -5117,6 +5430,8 @@ body {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 8px;
+  overflow: hidden;
+  min-width: 0;
 }
 
 #hero-split .hero-title {
@@ -5140,6 +5455,7 @@ body {
   font-size: 13px;
   padding: 3px 0;
   opacity: .85;
+  min-width: 0;
 }
 
 #hero-split .hero-block span {
@@ -5147,8 +5463,70 @@ body {
   opacity: 1;
 }
 
-.status-aligned { color: #00ff88; }
+.market-filter-warning {
+  font-size: 11px;
+  color: #e57373;
+  opacity: 0.8;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* ── Behaviour visual priority hierarchy — 5 états ──────────────────────────
+   Source: #hero-split[data-bhv-state] + body[data-behavior-state]
+           set by _applyBehaviorStateSweep() at end of render().
+   Priority: OVERTRADING > FOMO > STRESS > NEUTRE > CALME.
+   OVERTRADING — critical stop (opacity 0.4, red glow on LDC card)
+   FOMO        — hard block   (opacity 0.5, red glow on LDC card)
+   STRESS      — soft block   (opacity 0.72, amber glow on LDC card)
+   NEUTRE/CALME — no override
+   No layout change. No reflow. Opacity transition only.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* OVERTRADING — market block severely dimmed (full stop state) */
+#hero-split[data-bhv-state="overtrading"] .hero-block.hero-market {
+  opacity: 0.4;
+  transition: opacity 0.25s;
+}
+
+/* FOMO — market block secondary (verdict visible but not primary) */
+#hero-split[data-bhv-state="fomo"] .hero-block.hero-market {
+  opacity: 0.5;
+  transition: opacity 0.25s;
+}
+
+/* STRESS — market block attenuated (~70%) */
+#hero-split[data-bhv-state="stress"] .hero-block.hero-market {
+  opacity: 0.72;
+  transition: opacity 0.25s;
+}
+
+/* OVERTRADING — LDC card: critical red glow (may not be triggered by decisionState) */
+body[data-behavior-state="overtrading"] .hero-bottom-zone > .lecture-day-card {
+  box-shadow:
+    0 0 0 1px rgba(210, 55, 55, 0.65),
+    0 10px 40px rgba(210, 55, 55, 0.28) !important;
+  border-color: rgba(210, 55, 55, 0.45) !important;
+}
+
+/* FOMO — LDC blocked card: red glow → visual dominance */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] {
+  box-shadow:
+    0 0 0 1px rgba(210, 55, 55, 0.5),
+    0 8px 36px rgba(210, 55, 55, 0.2) !important;
+}
+
+/* STRESS — LDC protect card: amber glow (L2 priority) */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] {
+  box-shadow:
+    0 0 0 1px rgba(210, 140, 30, 0.38),
+    0 6px 24px rgba(210, 140, 30, 0.16) !important;
+}
+
+.status-aligned  { color: #00ff88; }
+.status-ready    { color: #4fa8ff; }
 .status-tension  { color: #ffaa00; }
+.status-protect  { color: #ff8c42; }
+.status-wait     { color: rgba(180, 180, 220, 0.75); }
 .status-block    { color: #ff4444; }
 
 /* ── P4 Snapshot history ───────────────────────────────── */
@@ -5177,6 +5555,194 @@ body {
   font-size: 13px;
   padding: 8px 0 4px;
   font-weight: 600;
+}
+
+/* ── Behavioral 5-level zones ───────────────────────────── */
+
+.mem-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.mem-zone-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  opacity: .35;
+  padding-bottom: 2px;
+}
+
+.mem-zone--data { gap: 4px; }
+
+.mem-zone--interpretation { opacity: .82; }
+
+.mem-zone--action .side-card {
+  padding: 16px 18px;
+  border-color: rgba(125, 255, 179, 0.22);
+  background: rgba(125, 255, 179, 0.03);
+}
+
+.mem-zone--action .mem-zone-label {
+  color: var(--ok, #7dffb3);
+  opacity: .7;
+}
+
+.mem-empty-hint {
+  font-size: 11px;
+  color: var(--muted, #bba76b);
+  opacity: .6;
+  text-align: center;
+  padding: 12px 8px;
+  margin: 0;
+}
+
+.memory-shell:has(#behaviorProfileCard[style*="block"]) .mem-empty-hint {
+  display: none;
+}
+
+/* ── UX Phase 2 — Visual hierarchy ─────────────────────── */
+
+/* Spacing between zones */
+.mem-zone { margin-top: 18px; }
+.mem-zone--data { margin-top: 14px; }
+
+/* ── 1. SIGNAL — Priority 1 ─────────────────────────────── */
+
+#behaviorAlertCard[style*="block"] {
+  padding: 14px 16px;
+  background: rgba(255, 80, 80, 0.035);
+  border-color: rgba(255, 80, 80, 0.25);
+  box-shadow: 0 0 10px rgba(255, 80, 80, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.016);
+}
+
+#preBehaviorAlertCard[style*="block"] {
+  padding: 10px 14px;
+  background: rgba(255, 180, 50, 0.04);
+  border-color: rgba(255, 180, 50, 0.22);
+}
+
+.mem-zone--signal .mem-zone-label {
+  color: var(--danger, #ff7b7b);
+  opacity: .65;
+}
+
+/* ── 2. ACTION — Priority 2 ─────────────────────────────── */
+
+.mem-zone--action .side-card {
+  padding: 18px 20px;
+  border-color: rgba(125, 255, 179, 0.35);
+  background: rgba(125, 255, 179, 0.06);
+  box-shadow: 0 0 14px rgba(125, 255, 179, 0.06),
+              inset 0 1px 0 rgba(255, 255, 255, 0.022);
+}
+
+/* Main action line — render.js injects first coaching tip as leading text */
+.mem-zone--action .side-card > div:first-of-type {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Secondary lines — lower opacity */
+.mem-zone--action .side-card > div:not(:first-of-type) {
+  opacity: .72;
+}
+
+/* ── 3. DATA — Priority 4 (background info) ──────────────── */
+
+.mem-zone--data {
+  opacity: .78;
+}
+
+.mem-zone--data .side-card {
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+/* ── 4. DIAGNOSTIC — readability ────────────────────────── */
+
+.mem-zone--diagnostic .side-card {
+  line-height: 1.7;
+}
+
+/* ── 5. INTERPRÉTATION — secondary weight ───────────────── */
+
+.mem-zone--interpretation .side-card {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.008);
+}
+
+/* ── Guidance immédiate ─────────────────────────────────── */
+
+
+.guidance-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--gold, #d4af37);
+  opacity: .85;
+  margin-bottom: 12px;
+}
+
+.guidance-section {
+  margin-bottom: 10px;
+}
+
+.guidance-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .4;
+  margin-bottom: 4px;
+}
+
+.guidance-list {
+  margin: 0;
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.guidance-list li {
+  font-size: 12px;
+  color: var(--text, #f4ecd0);
+  line-height: 1.5;
+}
+
+.guidance-list--why li {
+  opacity: .65;
+  font-size: 11px;
+}
+
+.guidance-focus {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.guidance-focus-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gold, #d4af37);
+  opacity: .7;
+  white-space: nowrap;
+}
+
+.guidance-focus-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text, #f4ecd0);
 }
 
 /* Hero visual fix */
@@ -5370,16 +5936,6 @@ body {
   background: rgba(187, 167, 107, 0.05);
 }
 
-@keyframes decisionReveal {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 @media (max-width: 600px) {
   .decision-block {
@@ -5763,3 +6319,1575 @@ body {
   letter-spacing: 0 !important;
 }
 
+
+/* ─── Secondary line — Centre de décision ───────────────────── */
+.secondary-line {
+  display: block;
+  font-size: 0.82em;
+  margin-top: 3px;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+.risk-low    { color: rgba(110, 231, 183, 0.85); }
+.risk-medium { color: rgba(251, 191,  36, 0.85); }
+.risk-high   { color: rgba(248, 113, 113, 0.85); }
+
+/* ─── Intent classes — 2e ligne Centre de décision ─────────── */
+.intent-neutral { color: rgba(156, 163, 175, 0.80); }
+.intent-wait    { color: rgba(251, 191,  36, 0.85); }
+.intent-danger  { color: rgba(248, 113, 113, 0.85); }
+
+/* ─── Intent — couleur lignes panneau Moteur Brut ────────────── */
+#debug-brain.intent-neutral .debug-brain__row strong { color: rgba(156, 163, 175, 0.80); }
+#debug-brain.intent-wait    .debug-brain__row strong { color: rgba(251, 191,  36, 0.85); }
+#debug-brain.intent-danger  .debug-brain__row strong { color: rgba(248, 113, 113, 0.85); }
+
+/* ─── Plan d'action — card dynamique ────────────────────────── */
+.plan-card {
+  border-left: 2px solid rgba(255, 255, 255, 0.06);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.plan-card.plan-neutral {
+  background: linear-gradient(160deg, rgba(152, 198, 255, 0.04), rgba(255, 255, 255, 0.008));
+  border-color: rgba(152, 198, 255, 0.14);
+}
+
+.plan-card.plan-wait {
+  background: linear-gradient(160deg, rgba(251, 191, 36, 0.04), rgba(255, 255, 255, 0.008));
+  border-color: rgba(251, 191, 36, 0.16);
+}
+
+.plan-card.plan-danger {
+  background: linear-gradient(160deg, rgba(248, 113, 113, 0.05), rgba(255, 255, 255, 0.008));
+  border-color: rgba(248, 113, 113, 0.16);
+}
+
+.plan-card.plan-active {
+  background: linear-gradient(160deg, rgba(110, 231, 183, 0.04), rgba(255, 255, 255, 0.008));
+  border-color: rgba(110, 231, 183, 0.14);
+}
+
+/* ── Signature Caméléon ─────────────────────────────────────── */
+.signature-cameleon {
+  max-width: 500px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.signature-line1 {
+  font-family: var(--font-display);
+  font-size: 0.808rem;
+  color: var(--text-soft);
+  opacity: 0.65;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+}
+
+.signature-line2 {
+  font-family: var(--font-ui);
+  font-size: 0.665rem;
+  color: var(--muted);
+  opacity: 0.45;
+  margin-top: 3px;
+  letter-spacing: 0.1em;
+}
+
+/* ── Hero warning pulse ─────────────────────────────────────── */
+@keyframes heroPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 80, 80, 0); }
+  50%       { box-shadow: 0 0 12px rgba(255, 80, 80, 0.08); }
+}
+
+.hero-warning {
+  animation: heroPulse 2.8s ease-in-out infinite;
+}
+
+/* ── Overtrading block ───────────────────────────────────────── */
+
+.overtrading-block {
+  --ot-border: var(--border-strong);
+  --ot-glow: rgba(212, 175, 55, 0.0);
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  margin-top: 20px;
+  padding: 22px 26px;
+  background: var(--panel);
+  border: 1px solid var(--ot-border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Niveaux 1–2 : warning discret (jaune) */
+.overtrading-block.ot-warning {
+  --ot-border: rgba(253, 224, 71, 0.22);
+  --ot-glow: rgba(253, 224, 71, 0.0);
+}
+
+/* Niveau 3 : alerte (orange) */
+.overtrading-block.ot-alerte {
+  --ot-border: rgba(251, 146, 60, 0.34);
+  --ot-glow: rgba(251, 146, 60, 0.12);
+  box-shadow: var(--shadow-lg), 0 0 14px 2px rgba(251, 146, 60, 0.10);
+}
+
+/* Niveaux 4–5 : danger (rouge) + pulse */
+.overtrading-block.ot-danger {
+  --ot-border: rgba(248, 113, 113, 0.42);
+  --ot-glow: rgba(248, 113, 113, 0.14);
+  animation: ot-pulse 2.8s ease-in-out infinite;
+}
+
+/* Intensité accumulée — streak >= 3 sur niveau >= 3 */
+.overtrading-block.ot-intense {
+  --ot-border: rgba(251, 146, 60, 0.52);
+  border-width: 1.5px;
+}
+
+.overtrading-block.ot-intense .overtrading-etat,
+.overtrading-block.ot-intense .overtrading-badge {
+  opacity: 1;
+}
+
+/* Intensité critique — streak >= 5 sur niveau >= 4, ou niveau 5 streak >= 3 */
+.overtrading-block.ot-critical {
+  --ot-border: rgba(248, 113, 113, 0.65);
+  border-width: 2px;
+  animation: ot-pulse 1.8s ease-in-out infinite;
+}
+
+.overtrading-block.ot-critical .overtrading-etat {
+  letter-spacing: 0.08em;
+}
+
+.overtrading-block.ot-critical .overtrading-action {
+  color: #f87171;
+  opacity: 0.9;
+  border-top-color: rgba(248, 113, 113, 0.22);
+}
+
+.overtrading-media {
+  flex: 0 0 auto;
+}
+
+.overtrading-img {
+  display: block;
+  width: 156px;
+  height: 156px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
+}
+
+.overtrading-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* Header : badge + titre */
+.overtrading-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.overtrading-badge {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.ot-warning  .overtrading-badge { color: #fde047; }
+.ot-alerte   .overtrading-badge { color: #fb923c; }
+.ot-danger   .overtrading-badge { color: #f87171; }
+
+/* Titre état */
+.overtrading-etat {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+}
+
+.ot-warning  .overtrading-etat { color: #fde047; }
+.ot-alerte   .overtrading-etat { color: #fb923c; }
+.ot-danger   .overtrading-etat { color: #f87171; }
+
+/* Phrase principale */
+.overtrading-message {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+/* Impact / risque */
+.overtrading-risque {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+/* Action conseillée */
+.overtrading-action {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  opacity: 0.75;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .overtrading-block {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .overtrading-img {
+    width: 100%;
+    height: auto;
+    max-width: 320px;
+  }
+}
+
+/* ── P6 — Hero layout restructure ──────────────────────────────── */
+
+/* hero-grid : 1 colonne, hero-copy prend toute la largeur */
+.hero > .hero-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0 !important;
+}
+
+/* hero-copy : grille 1 colonne, gap serré */
+.hero-copy {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  align-content: start !important;
+}
+
+/* Zone haute — tous les blocs directs de hero-copy = pleine largeur */
+.hero-copy > .hero-top,
+.hero-copy > .hero-kpi-grid,
+.hero-copy > .hero-bar,
+.hero-copy > .hero-decision-grid,
+.hero-copy > .engine-journal-live {
+  grid-column: 1 !important;
+}
+
+/* hero-bottom-zone : grille 3 colonnes (gauche | droite | image) */
+.hero-copy > .hero-bottom-zone {
+  grid-column: 1 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) clamp(300px, 28vw, 420px) !important;
+  column-gap: 20px !important;
+  row-gap: 14px !important;
+  align-items: stretch !important;
+}
+
+/* ── lecture-day-card : bloc maître — P6 ────────────────────────────────── */
+.hero-bottom-zone > .lecture-day-card {
+  grid-column: 1 / span 2 !important;
+  grid-row: 1 !important;
+  max-width: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: clamp(28px, 3.5vw, 44px) clamp(28px, 3.5vw, 44px) clamp(32px, 4vw, 48px) !important;
+}
+
+/* Titre — libérer la contrainte 12ch orpheline de P4, renforcer l'impact */
+.hero-bottom-zone > .lecture-day-card .lecture-day-main {
+  max-width: none !important;
+  color: var(--text) !important;
+}
+
+/* Sous-texte — alléger pour hiérarchiser sous le titre */
+.hero-bottom-zone > .lecture-day-card .lecture-day-sub {
+  font-weight: 400 !important;
+  color: rgba(245, 241, 231, 0.6) !important;
+  margin-top: 10px !important;
+}
+
+/* Zone basse — Loi du jour */
+.hero-bottom-zone > .lecture-day-card .ldc-rule {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Label "LOI DU JOUR" — substitution CSS, texte HTML masqué */
+.hero-bottom-zone > .lecture-day-card .ldc-rule-label {
+  font-size: 0 !important;
+}
+
+.hero-bottom-zone > .lecture-day-card .ldc-rule-label::before {
+  content: "LOI DU JOUR";
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--state-text);
+  opacity: 0.5;
+  margin-bottom: 7px;
+}
+
+/* Texte de la règle — plus de présence */
+.hero-bottom-zone > .lecture-day-card .ldc-rule-text {
+  font-size: 14px;
+  line-height: 1.58;
+  color: rgba(245, 241, 231, 0.78);
+  font-weight: 500;
+  max-width: 56ch;
+}
+
+/* ── États critiques LDC — source : data-ldc-state posé par renderHero() ── */
+
+/* BLOCKED — interdit, rouge sombre premium */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] {
+  border-color: rgba(210, 55, 55, 0.38) !important;
+  background-image: radial-gradient(
+    ellipse at top left,
+    rgba(185, 30, 30, 0.10) 0%,
+    transparent 55%
+  ) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] .lecture-day-main {
+  color: rgba(255, 200, 200, 0.95) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="blocked"] .lecture-day-sub {
+  color: rgba(245, 210, 210, 0.72) !important;
+}
+
+/* PROTECT — défensif, ambre chaud discret */
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] {
+  border-color: rgba(210, 140, 30, 0.32) !important;
+  background-image: radial-gradient(
+    ellipse at top left,
+    rgba(180, 110, 20, 0.08) 0%,
+    transparent 55%
+  ) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] .lecture-day-main {
+  color: rgba(255, 220, 150, 0.95) !important;
+}
+
+.hero-bottom-zone > .lecture-day-card[data-ldc-state="protect"] .lecture-day-sub {
+  color: rgba(245, 225, 185, 0.70) !important;
+}
+
+/* Pourquoi — rangée 2, colonne gauche */
+.hero-bottom-zone > .signal-narratif {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+}
+
+/* Posture — rangée 2, colonne droite */
+.hero-bottom-zone > .mantra-operationnel {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+}
+
+/* Onboarding — rangée 3, pleine largeur gauche */
+.hero-bottom-zone > .onboarding-strip {
+  grid-column: 1 / span 2 !important;
+  grid-row: 3 !important;
+}
+
+/* État du marché — rangée 4, pleine largeur gauche */
+.hero-bottom-zone > #hero-split {
+  grid-column: 1 / span 2 !important;
+  grid-row: 4 !important;
+  margin-top: 0 !important;
+}
+
+/* Image — col 3, couvre les 4 rangées */
+.hero-bottom-zone > .hero-logo {
+  grid-column: 3 !important;
+  grid-row: 1 / span 4 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-self: stretch !important;
+  min-height: 0 !important;
+  max-width: none !important;
+}
+
+/* Frame image : s'étire pour remplir toute la hauteur */
+.hero-bottom-zone > .hero-logo .hero-visual-frame {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+}
+
+/* KPI grid : 2 colonnes pour éviter les rangées incomplètes */
+.hero-kpi-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* État du marché : opacité lisible */
+.hero-kpi-card:nth-child(1) .hero-kpi-value {
+  opacity: 0.9 !important;
+}
+
+/* Action du jour — carte plus large mais équilibrée */
+.hero-decision-grid {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.5fr) minmax(0, 0.8fr) !important;
+}
+
+/* hero-overlay-panel : hors du flux hero dans le DOM — neutralisé via spec (0,2,0) > regression repair (0,1,0) */
+.main-shell > .hero-overlay-panel {
+  display: none !important;
+}
+
+/* Responsive : sous 980px, zone basse en 1 colonne */
+@media (max-width: 980px) {
+  .hero-copy > .hero-bottom-zone {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .hero-bottom-zone > .lecture-day-card,
+  .hero-bottom-zone > .signal-narratif,
+  .hero-bottom-zone > .mantra-operationnel,
+  .hero-bottom-zone > .onboarding-strip,
+  .hero-bottom-zone > #hero-split {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  .hero-bottom-zone > .hero-logo {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    min-height: 240px !important;
+  }
+
+  .hero-bottom-zone > .hero-logo .hero-visual-frame {
+    min-height: 240px !important;
+  }
+}
+
+/* ── Liaison visuelle globale — data-decision-state sur root ────────────── */
+[data-decision-state="blocked"] .hero-kpi-grid,
+[data-decision-state="blocked"] .hero-bar {
+  border-color: rgba(255, 80, 80, 0.15);
+  box-shadow: 0 0 12px rgba(255, 80, 80, 0.08);
+}
+
+[data-decision-state="protect"] .hero-kpi-grid,
+[data-decision-state="protect"] .hero-bar {
+  border-color: rgba(255, 200, 120, 0.15);
+  box-shadow: 0 0 12px rgba(255, 200, 120, 0.08);
+}
+
+[data-decision-state="aligned"] .hero-kpi-grid,
+[data-decision-state="aligned"] .hero-bar {
+  border-color: rgba(120, 255, 180, 0.15);
+  box-shadow: 0 0 12px rgba(120, 255, 180, 0.08);
+}
+
+/* ── Plan d'action — format 3 lignes ────────────────────────────────────── */
+.action-plan {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.action-plan div {
+  opacity: 0.9;
+}
+
+
+/* ── Focus state system — pilotage visuel dynamique ─────────────────────── */
+.focus-primary {
+  opacity: 1 !important;
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 24px rgba(0, 0, 0, 0.22);
+  transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  position: relative;
+  z-index: 2;
+}
+
+.focus-secondary {
+  opacity: 0.82;
+  transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+body[data-decision-state="blocked"] .focus-primary {
+  border-color: rgba(220, 60, 60, 0.28) !important;
+}
+
+body[data-decision-state="protect"] .focus-primary {
+  border-color: rgba(255, 180, 60, 0.24) !important;
+}
+
+/* ── Reset mental — bloc émotionnel contextuel ───────────────────────────── */
+.mental-reset {
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 4px 0;
+}
+
+.mental-reset div {
+  opacity: 0.88;
+}
+
+/* ── Onboarding overlay — première ouverture ─────────────────────────────── */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 6, 10, 0.88);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.onboarding-overlay:not(.hidden) {
+  opacity: 1;
+}
+
+html.onboarding-seen .onboarding-overlay {
+  display: none !important;
+}
+
+.onboarding-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.onboarding-card {
+  width: min(480px, calc(100vw - 32px));
+  padding: 36px 32px 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface, #0d1117);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transform: scale(0.98);
+  opacity: 0;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.onboarding-overlay:not(.hidden) .onboarding-card {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.onboarding-logo {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.onboarding-phrase {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0;
+}
+
+.onboarding-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.onboarding-block {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.onboarding-block p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.onboarding-btn {
+  align-self: flex-end;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.onboarding-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================
+   GUIDANCE V2 — DOMINANT BLOCK
+   ============================ */
+
+.guidance-card {
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 70%);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.07);
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 24px 28px;
+  position: relative;
+  z-index: 10;
+}
+
+.guidance-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guidance-mode {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold, #d4af37);
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.guidance-block {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.guidance-block .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+.guidance-block--forbidden {
+  border-left: 3px solid rgba(255, 70, 70, 0.7);
+}
+
+.guidance-block--allowed {
+  border-left: 3px solid rgba(80, 200, 120, 0.7);
+}
+
+.guidance-block--focus {
+  border-left: 3px solid rgba(212, 175, 55, 0.7);
+}
+
+.guidance-context {
+  font-size: 11px;
+  opacity: 0.6;
+  padding-top: 6px;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+/* ============================
+   STATE VISUAL DOMINANCE
+   ============================ */
+
+@keyframes subtlePulse {
+  0%   { opacity: 0.95; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.95; }
+}
+
+.guidance-v2[data-state="BLOCKED"] {
+  box-shadow: 0 0 24px rgba(255, 50, 50, 0.1);
+  animation: subtlePulse 3s ease-in-out infinite;
+}
+
+.guidance-v2[data-state="READY"] {
+  box-shadow: 0 0 24px rgba(80, 200, 120, 0.1);
+}
+
+.guidance-v2[data-state="WAIT"] {
+  border: 1px solid rgba(255, 200, 80, 0.25);
+  box-shadow: 0 0 24px rgba(255, 200, 80, 0.08);
+}
+
+.guidance-v2[data-state="BLOCKED"] .guidance-headline {
+  color: rgba(255, 90, 90, 0.85);
+  opacity: 0.9;
+}
+
+.guidance-v2[data-state="READY"] .guidance-headline {
+  color: rgba(125, 255, 179, 0.95);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+
+.guidance-headline {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+
+/* Soft friction — only actions, NOT inputs */
+body[data-guidance-state="BLOCKED"] .moteur-flow button {
+  opacity: 0.6;
+}
+
+/* Inputs must remain normal and usable */
+body[data-guidance-state="BLOCKED"] .moteur-flow select,
+body[data-guidance-state="BLOCKED"] .moteur-flow input {
+  cursor: default;
+  opacity: 1;
+}
+
+body[data-guidance-state="BLOCKED"] .guidance-headline {
+  color: rgba(255, 90, 90, 0.9);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+body[data-guidance-state="BLOCKED"] .guidance-card,
+body[data-guidance-state="WAIT"] .guidance-card {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body[data-guidance-state="BLOCKED"] .guidance-card {
+  filter: none;
+  z-index: 20;
+  border-color: rgba(255, 90, 90, 0.35);
+  animation: lockBreath var(--ux-breath) ease-in-out infinite;
+}
+
+@keyframes readyBreath {
+  0%, 100% { box-shadow: 0 0 24px rgba(80, 200, 120, 0.10); }
+  50%       { box-shadow: 0 0 32px rgba(80, 200, 120, 0.18); }
+}
+
+body[data-guidance-state="READY"] .guidance-card {
+  opacity: 1;
+  transform: scale(1.01);
+  border-color: rgba(80, 200, 120, 0.35);
+  animation: readyBreath var(--ux-breath) ease-in-out infinite;
+}
+
+body[data-guidance-state="READY"] .moteur-flow,
+body[data-guidance-state="READY"] .side-panel {
+  opacity: 1;
+  filter: none;
+}
+
+body[data-guidance-state="WAIT"] .guidance-card {
+  animation: subtlePulse var(--ux-breath) ease-in-out infinite;
+}
+
+/* Priority fade — secondary content */
+.moteur-flow,
+.side-panel {
+  transition: opacity var(--ux-transition) ease, filter var(--ux-transition) ease, transform var(--ux-transition) ease;
+}
+
+body[data-guidance-state="BLOCKED"] .moteur-flow,
+body[data-guidance-state="BLOCKED"] .side-panel {
+  opacity: 0.52;
+  /* filter removed — was creating stacking context conflicting with backdrop-filter on child cards */
+  transition: opacity var(--ux-transition) ease;
+}
+
+body[data-guidance-state="WAIT"] .moteur-flow,
+body[data-guidance-state="WAIT"] .side-panel {
+  opacity: 0.7;
+}
+
+/* ============================
+   UX INTENSITY — BEHAVIORAL LAYER
+   ============================ */
+
+body[data-ux-intensity="TENSION"] .moteur-flow {
+  opacity: 0.9;
+}
+
+body[data-ux-intensity="DRIFT"] .moteur-flow {
+  opacity: 0.75;
+}
+
+body[data-ux-intensity="DRIFT"] .guidance-card {
+  transform: scale(calc(1 + 0.01 * var(--behavior-intensity)));
+  border-color: rgba(255, 180, 80, 0.25);
+}
+
+body[data-ux-intensity="TENSION"] button,
+body[data-ux-intensity="DRIFT"] button {
+  transition: all 0.2s ease;
+}
+
+/* ============================
+   TENSION UX — subtle behavioral friction
+   ============================ */
+
+@keyframes lockBreath {
+  0%, 100% {
+    box-shadow: 0 0 26px rgba(255, 90, 90, 0.10);
+    transform: scale(1.01);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(255, 90, 90, 0.16);
+    transform: scale(1.012);
+  }
+}
+
+body[data-guidance-state="BLOCKED"] .moteur-flow p,
+body[data-guidance-state="BLOCKED"] .moteur-flow li,
+body[data-guidance-state="BLOCKED"] .moteur-flow span,
+body[data-guidance-state="BLOCKED"] .side-panel p,
+body[data-guidance-state="BLOCKED"] .side-panel li,
+body[data-guidance-state="BLOCKED"] .side-panel span {
+  opacity: 0.82;
+}
+
+body[data-guidance-state="BLOCKED"] .guidance-block .label {
+  opacity: 0.72;
+  letter-spacing: 0.09em;
+}
+
+/* ============================
+   UX LEVEL 4 — cognitive friction
+   ============================ */
+
+body[data-guidance-state="BLOCKED"] .moteur-flow,
+body[data-guidance-state="BLOCKED"] .side-panel {
+  line-height: 1.48;
+}
+
+body[data-guidance-state="BLOCKED"] .moteur-flow p,
+body[data-guidance-state="BLOCKED"] .moteur-flow li,
+body[data-guidance-state="BLOCKED"] .side-panel p,
+body[data-guidance-state="BLOCKED"] .side-panel li {
+  letter-spacing: 0.015em;
+}
+
+/* translateY(0.5px) removed — subpixel offset caused text ghosting on side-panel cards */
+
+/* ============================
+   BEHAVIORAL FEEDBACK BLOCK
+   ============================ */
+
+.behavior-block {
+  opacity: 0.7;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
+/* ============================
+   DECISION ANCHOR
+   ============================ */
+
+.decision-anchor {
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.decision-title {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.decision-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.decision-btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  cursor: default;
+  text-align: center;
+  transition: border-color 0.2s ease;
+  user-select: none;
+}
+
+.decision-btn:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.decision-btn.alt {
+  opacity: 0.6;
+}
+
+.decision-btn.selected {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.9);
+  opacity: 1;
+}
+
+.decision-btn.alt.selected {
+  border-color: rgba(255, 100, 100, 0.28);
+  background: rgba(255, 100, 100, 0.05);
+  color: rgba(255, 180, 180, 0.85);
+  opacity: 1;
+}
+
+.decision-override-msg {
+  font-size: 0.72rem;
+  color: rgba(255, 180, 160, 0.75);
+  text-align: center;
+  padding: 4px 6px 0;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.4s ease, max-height 0.4s ease;
+}
+
+.decision-override-msg.visible {
+  opacity: 1;
+  max-height: 40px;
+}
+
+/* ============================
+   READY STATE ENHANCEMENT
+   ============================ */
+
+body[data-guidance-state="READY"] .moteur-flow {
+  transform: scale(1.002);
+  transition: all 0.2s ease;
+}
+
+/* ============================
+   BLOCKED MICRO-FRICTION
+   ============================ */
+
+body[data-guidance-state="BLOCKED"] button {
+  transition: all 0.35s ease;
+}
+
+
+/* ============================
+   ACTION SCORE — UX display layer
+   ============================ */
+
+.action-score-block {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.action-score {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.action-score-label {
+  opacity: 0.7;
+  font-size: 0.82rem;
+}
+
+.action-score-title {
+  opacity: 0.65;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.engine-score-secondary {
+  opacity: 0.34;
+  font-size: 0.72rem;
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+.engine-score-note {
+  opacity: 0.75;
+  font-style: italic;
+}
+
+/* ============================
+   ACTION LOCK UX
+   ============================ */
+
+body[data-action-level="LOCKED"] .action-plan,
+body[data-action-level="OBSERVE"] .action-plan {
+  opacity: 0.55;
+}
+
+body[data-action-level="PREPARE"] .action-plan {
+  opacity: 0.75;
+}
+
+body[data-action-level="LIMITED"] .action-plan {
+  opacity: 0.9;
+}
+
+body[data-action-level="EXECUTE"] .action-plan {
+  opacity: 1;
+}
+
+body[data-action-level="LOCKED"] button {
+  opacity: 0.62;
+  transition: all 0.35s ease;
+}
+
+body[data-action-level="OBSERVE"] button {
+  opacity: 0.65;
+}
+
+body[data-action-level="PREPARE"] button {
+  opacity: 0.8;
+}
+
+body[data-action-level="LIMITED"] button {
+  opacity: 0.9;
+}
+
+body[data-action-level="EXECUTE"] button {
+  opacity: 1;
+  transform: scale(1.01);
+}
+
+body[data-action-level="LOCKED"] .decision-anchor {
+  opacity: 0.6;
+  border-left: 2px solid rgba(220, 80, 80, 0.38);
+  box-shadow: inset 3px 0 10px rgba(220, 80, 80, 0.06);
+}
+
+body[data-action-level="OBSERVE"] .decision-anchor {
+  border-left: 2px solid rgba(255, 209, 102, 0.32);
+  box-shadow: inset 3px 0 10px rgba(255, 209, 102, 0.05);
+}
+
+body[data-action-level="EXECUTE"] .decision-anchor {
+  border-color: rgba(80, 200, 120, 0.25);
+}
+
+body[data-action-level="LOCKED"]  .action-score {
+  color: #ff6b6b;
+  text-shadow: 0 0 10px rgba(220, 80, 80, 0.28);
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+body[data-action-level="OBSERVE"] .action-score {
+  color: #ffd166;
+  text-shadow: 0 0 8px rgba(255, 209, 102, 0.22);
+  letter-spacing: 0.03em;
+}
+body[data-action-level="PREPARE"] .action-score { color: #fcbf49; }
+body[data-action-level="LIMITED"] .action-score { color: #80ed99; }
+body[data-action-level="EXECUTE"] .action-score {
+  color: #00f5d4;
+  text-shadow: 0 0 10px rgba(0, 245, 212, 0.24);
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+/* ============================
+   SCORE HIERARCHY — visual priority
+   ============================ */
+
+/* Engine score — low priority (context only) */
+#scoreCard > .kpi-label {
+  opacity: 0.5;
+  font-size: 0.72rem;
+}
+
+#scoreCard > .kpi-value {
+  opacity: 0.6;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Readability — medium priority */
+.confidence-panel .kpi-card:first-child .kpi-label {
+  opacity: 0.75;
+  font-size: 0.75rem;
+}
+
+.confidence-panel .kpi-card:first-child .kpi-value {
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* ============================
+   VISUAL LINKING SYSTEM
+   ============================ */
+
+.active-link {
+  position: relative;
+  z-index: 2;
+}
+
+.active-link::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  opacity: 0.25;
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+/* Color mapping — link-engagement + link-mode */
+body[data-action-level="LOCKED"] .link-engagement,
+body[data-action-level="LOCKED"] .link-mode  { color: #ff6b6b; }
+
+body[data-action-level="OBSERVE"] .link-engagement,
+body[data-action-level="OBSERVE"] .link-mode  { color: #ffd166; }
+
+body[data-action-level="PREPARE"] .link-engagement,
+body[data-action-level="PREPARE"] .link-mode  { color: #fcbf49; }
+
+body[data-action-level="LIMITED"] .link-engagement,
+body[data-action-level="LIMITED"] .link-mode  { color: #80ed99; }
+
+body[data-action-level="EXECUTE"] .link-engagement,
+body[data-action-level="EXECUTE"] .link-mode  { color: #00f5d4; }
+
+/* Glow on dominant link-mode */
+body[data-action-level="EXECUTE"] .link-mode.active-link::after {
+  background: rgba(0, 245, 212, 0.25);
+}
+
+body[data-action-level="LIMITED"] .link-mode.active-link::after {
+  background: rgba(128, 237, 153, 0.2);
+}
+
+body[data-action-level="OBSERVE"] .link-mode.active-link::after {
+  background: rgba(255, 209, 102, 0.15);
+}
+
+@keyframes activeLinkBreath {
+  0%, 100% { transform: scale(1);     opacity: 0.92; }
+  50%       { transform: scale(1.006); opacity: 1;    }
+}
+
+@keyframes activeGlowBreath {
+  0%, 100% { opacity: 0.16; }
+  50%       { opacity: 0.28; }
+}
+
+.active-link {
+  animation: activeLinkBreath 4.8s ease-in-out infinite;
+  transform-origin: center;
+  letter-spacing: 0.01em;
+}
+
+body[data-action-level="EXECUTE"] .active-link {
+  letter-spacing: 0.02em;
+}
+
+.active-link::after {
+  animation: activeGlowBreath 4.8s ease-in-out infinite;
+}
+
+.focus-settling {
+  opacity: 0.82;
+  transform: scale(0.996);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.focus-settled {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+/* ============================
+   BEHAVIOR FEEDBACK — silent UX signal
+   ============================ */
+
+.behavior-feedback {
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: background var(--ux-transition) ease, opacity var(--ux-transition) ease, box-shadow var(--ux-transition) ease, transform var(--ux-transition) ease;
+}
+
+.behavior-feedback[data-behavior="positive"] {
+  background: rgba(0, 245, 212, 0.5);
+  opacity: 0.6;
+}
+
+.behavior-feedback[data-behavior="neutral"] {
+  background: rgba(255, 209, 102, 0.3);
+}
+
+.behavior-feedback[data-behavior="negative"] {
+  background: rgba(255, 107, 107, 0.25);
+  opacity: 0.3;
+}
+
+.behavior-feedback[data-memory-tone="strict"]    { box-shadow: 0 0 14px rgba(255, 107, 107, 0.18); }
+.behavior-feedback[data-memory-tone="confident"] { box-shadow: 0 0 14px rgba(0, 245, 212, 0.18); }
+.behavior-feedback[data-memory-tone="neutral"]   { box-shadow: none; }
+
+.behavior-feedback { --behavior-intensity: 0; }
+
+.behavior-feedback[data-behavior-pattern="drift"]       { transform: translateY(calc(1px * var(--behavior-intensity))); }
+.behavior-feedback[data-behavior-pattern="force"]       { box-shadow: 0 0 calc(18px * var(--behavior-intensity)) rgba(255, 107, 107, 0.25); }
+.behavior-feedback[data-behavior-pattern="discipline"]  { box-shadow: 0 0 calc(18px * var(--behavior-intensity)) rgba(0, 245, 212, 0.25); }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease, background 0.4s ease;
+}
+
+body[data-behavior-pattern="force"]::before {
+  opacity: calc(0.16 * var(--behavior-intensity));
+  background: radial-gradient(circle at 50% 30%, rgba(255,107,107,0.26), transparent 55%);
+}
+
+body[data-behavior-pattern="drift"]::before {
+  opacity: calc(0.13 * var(--behavior-intensity));
+  background: radial-gradient(circle at 50% 30%, rgba(255,209,102,0.22), transparent 55%);
+}
+
+body[data-behavior-pattern="discipline"]::before {
+  opacity: calc(0.11 * var(--behavior-intensity));
+  background: radial-gradient(circle at 50% 30%, rgba(0,245,212,0.20), transparent 55%);
+}
+
+/* ── Lecture & Décision — card fusion ────────────────────────────────── */
+
+.pourquoi-shell {
+  border-color: rgba(var(--state-rgb), 0.24);
+}
+
+/* STATUS colors */
+.status-green  { color: #22c55e; font-weight: 600; text-shadow: 0 0 8px rgba(34,197,94,0.4); }
+.status-orange { color: #f59e0b; font-weight: 600; text-shadow: 0 0 8px rgba(245,158,11,0.4); }
+.status-red    { color: #ef4444; font-weight: 600; text-shadow: 0 0 8px rgba(239,68,68,0.4); }
+
+@keyframes statusBreath {
+  0%   { opacity: 0.85; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.85; }
+}
+.status-green,
+.status-orange,
+.status-red { animation: statusBreath 2.5s ease-in-out infinite; }
+
+/* Primary zone — STATUS + phrase centrale */
+#whyDecisionPrimary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.why-status-label {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  opacity: 0.88;
+}
+
+.why-central-phrase {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Secondary — sections list */
+#whyDecisionSecondary {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.why-decision-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.why-decision-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.why-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.why-section-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+}
+
+.why-bhv-risk {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.why-action-strong {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.why-action-detail {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Prudence Expert Block ───────────────────────────────────── */
+.prudence-expert-shell {
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.prudence-expert-shell--active {
+  border-color: rgba(245, 158, 11, 0.55);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.prudence-expert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.prudence-expert-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.prudence-expert-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.prudence-expert-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(245, 158, 11, 0.7);
+}
+
+.prudence-expert-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+}
+
+/* ── Premium Decision Block ──────────────────────────────────── */
+.premium-decision-block {
+  text-align: center;
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: rgba(var(--state-rgb), 0.06);
+  border: 1px solid rgba(var(--state-rgb), 0.14);
+}
+.pdv-label {
+  display: block;
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  margin-bottom: 6px;
+  color: rgba(var(--state-rgb), 1);
+}
+.pdv-label.pdv-exec    { color: #7dffc7; }
+.pdv-label.pdv-wait    { color: rgba(var(--state-rgb), 0.9); }
+.pdv-label.pdv-protect { color: #ffd36e; }
+.pdv-label.pdv-stop    { color: #ff7b7b; }
+.pdv-label.pdv-caution { color: #ffc36e; }
+.pdv-info {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0.45;
+  text-transform: uppercase;
+}
+
+.no-trade-block {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 180, 0, 0.08);
+  border: 1px solid rgba(255, 180, 0, 0.25);
+  text-align: center;
+}
+
+.nt-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffd36e;
+}
+
+.nt-sub {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.nt-hidden {
+  display: none;
+}
+
+/* ── Hero video (.video-main) ───────────────────────────────────── */
+.video-main {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 55% center;
+  transform: scale(0.92);
+  transform-origin: center;
+  display: block;
+  pointer-events: none;
+}
+
+@keyframes videoLogoPulse {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50%       { filter: brightness(1.08); transform: scale(1.015); }
+}
+
+@keyframes videoCirclePulse {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50%       { filter: brightness(1.12); transform: scale(1.025); }
+}
+
+
+/* ── Execution Confidence Block (V2) ─────────────────────────────────────── */
+
+.exec-confidence-block {
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.exec-confidence-score {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary, #fff);
+}
+
+.exec-confidence-bar {
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  margin-bottom: 0.4rem;
+}
+
+.exec-confidence-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease, background-color 0.35s ease;
+}
+
+.exec-confidence-fill[data-tone="high"]     { background: #4ade80; }
+.exec-confidence-fill[data-tone="moderate"] { background: #facc15; }
+.exec-confidence-fill[data-tone="low"]      { background: #fb923c; }
+.exec-confidence-fill[data-tone="minimal"]  { background: #f87171; }
+.exec-confidence-fill[data-tone="none"]     { background: rgba(255,255,255,0.12); }
+
+.exec-confidence-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 0.35rem;
+}
+
+.exec-confidence-phrase {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  opacity: 0.6;
+  margin: 0;
+}
+
+/* ── Friction message (V3) ───────────────────────────────────────────────── */
+
+.friction-message {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  opacity: 0.55;
+  padding: 0.25rem 0;
+  transition: opacity 0.2s ease;
+}
+
+.friction-message:not([hidden]) {
+  display: block;
+}
+
+[data-friction-state="pending"] {
+  opacity: 0.5;
+  cursor: wait;
+}

@@ -57,6 +57,8 @@ export function computeScore(v) {
   if (v.dxy === "down") score += 5;
   if (v.btc === "strong") score += 8;
   if (v.btc === "weak") score -= 12;
+  if (v.water === "explosive") score -= 10;
+  if (v.water === "risk")      score -= 5;
   return Math.max(0, Math.min(100, score));
 }
 
@@ -142,6 +144,52 @@ export function profileMatrix(profile, engine, v) {
   return { core, attack, sniper, tradingStatus, traffic, reaction };
 }
 
+export function applyAdaptiveFilter(result, v) {
+  const out = { ...result };
+
+  // ── needAction : filtre d'engagement ─────────────────────────
+  if (v.needAction === "no") {
+    if (out.attack === "ON")  out.attack = "LIGHT";
+    if (out.sniper === "ON")  out.sniper = "WATCH";
+    out.traffic = out.traffic + " · Pas de nécessité d'agir identifiée.";
+    out.engagement_level = "REDUCED";
+  } else if (v.needAction === "maybe") {
+    out.engagement_level = "NEUTRAL";
+  } else {
+    out.engagement_level = "FULL";
+  }
+
+  // ── coreOrders : modulateur de sizing ────────────────────────
+  if (v.coreOrders === "yes")          out.sizing_factor = 1.0;
+  else if (v.coreOrders === "partial") out.sizing_factor = 0.75;
+  else                                 out.sizing_factor = 0.5;
+
+  // ── Combinaison spéciale : nécessité nulle + pas de socle ────
+  if (v.needAction === "no" && v.coreOrders === "no") {
+    out.sizing_factor    = 0.25;
+    out.engagement_level = "MINIMAL";
+  }
+
+  // ── Moteur déjà bloqué (émotion) : aucun engagement possible ─
+  if (out.tradingStatus === "NO TRADE") {
+    out.engagement_level = "NONE";
+    out.sizing_factor    = 0.0;
+  }
+
+  // ── Normalisation de cohérence ────────────────────────────────
+  if (out.engagement_level === "FULL"  && out.sizing_factor < 0.5)        out.sizing_factor = 0.5;
+  if (out.engagement_level === "NONE"  && out.sizing_factor !== 0.0)       out.sizing_factor = 0.0;
+  if (out.sizing_factor === 0.25       && out.engagement_level === "FULL") out.engagement_level = "REDUCED";
+
+  return out;
+}
+
+// Profile-aware sniper rule: on adjusted validation, ACTIVE profile keeps sniper.
+// Placed here (not in profileMatrix) because it only applies when validationState === "adjusted".
+function _downgradeSniper_adjusted(result, userProfile) {
+  if (result.sniper === "ON" && userProfile !== "ACTIVE") result.sniper = "OFF";
+}
+
 export function applyValidation(profileOut, v) {
   const result = { ...profileOut };
   let validationSummary = VALIDATION_TEXT[v.validationState];
@@ -155,7 +203,7 @@ export function applyValidation(profileOut, v) {
 
   if (v.validationState === "adjusted") {
     if (result.attack === "ON") result.attack = "LIGHT";
-    if (result.sniper === "ON" && v.userProfile !== "ACTIVE") result.sniper = "OFF";
+    _downgradeSniper_adjusted(result, v.userProfile);
     if (result.tradingStatus !== "NO TRADE") result.tradingStatus = "ADJUSTED";
   }
 
@@ -166,6 +214,12 @@ export function applyValidation(profileOut, v) {
     validationSummary = "Le setup est visible, mais la validation humaine manque encore pour ouvrir franchement la fenêtre.";
   }
 
+  // Semi-verrou contextuel : accepté sans note → sniper en observation
+  if (v.validationState === "accepted" && !(v.validationNote || "").trim()) {
+    if (result.sniper === "ON") result.sniper = "WATCH";
+    validationSummary = "Validation acceptée sans contexte écrit.";
+  }
+
   return { ...result, validationSummary };
 }
 
@@ -173,8 +227,7 @@ export function detectInconsistencies(v, profileOut) {
   const issues = [];
   if (v.market === "expansion" && v.fire === "weak") issues.push("Expansion déclarée, mais FEU reste faible.");
   if (v.market === "range" && v.ether === "weak") issues.push("Range déclaré, mais ÉTHER reste faible.");
-  if (v.userProfile === "PASSIVE" && profileOut.attack === "ON") issues.push("Profil passif, mais offensive finale encore trop agressive.");
-  if ((profileOut.sniper === "ON" || profileOut.sniper === "WATCH") && v.zoneSignal === "middle") issues.push("Lecture SNIPER activée au milieu du range.");
+if ((profileOut.sniper === "ON" || profileOut.sniper === "WATCH") && v.zoneSignal === "middle") issues.push("Lecture SNIPER activée au milieu du range.");
   if (v.validationState === "accepted" && !v.validationNote.trim()) issues.push("Validation acceptée sans note de contexte.");
   return issues;
 }
@@ -182,7 +235,40 @@ export function detectInconsistencies(v, profileOut) {
 export function buildPayload(v, previousPayload = null) {
   const engine = baseEngine(v);
   const profiled = profileMatrix(v.userProfile, engine, v);
-  const filtered = applyValidation(profiled, v);
+  const adaptive = applyAdaptiveFilter(profiled, v);
+  const filtered = applyValidation(adaptive, v);
+
+  // ── Overtrading guard ────────────────────────────────────────────────
+  // Bonus/malus constants — ajuster ici pour calibrer la sensibilité
+  const OT_BONUS_NEED_ACTION  = 1;  // +1 si nécessité réelle d'agir = Oui
+  const OT_BONUS_PENDING      = 1;  // +1 si validation humaine = En attente
+  const OT_BONUS_NO_STRUCTURE = 1;  // +1 si signal de structure = Aucun
+  const OT_BONUS_NO_MOMENTUM  = 1;  // +1 si confirmation d'élan = Aucune
+  const OT_MALUS_CALM         = 1;  // -1 si état émotionnel = Calme
+
+  const overtradingBase = engine.score > 85 ? 5 : engine.score > 70 ? 4 : engine.score > 50 ? 3 : engine.score >= 30 ? 2 : 1;
+  const overtradingAdj = (v.needAction === "yes"        ? OT_BONUS_NEED_ACTION  : 0)
+                       + (v.validationState === "pending" ? OT_BONUS_PENDING      : 0)
+                       + (v.structureSignal === "none"    ? OT_BONUS_NO_STRUCTURE : 0)
+                       + (v.momentumSignal === "none"     ? OT_BONUS_NO_MOMENTUM  : 0)
+                       - (v.emotion === "calm"            ? OT_MALUS_CALM         : 0);
+  const overtradingLevel = Math.min(5, Math.max(1, overtradingBase + overtradingAdj));
+
+  if (overtradingLevel >= 4) {
+    if (filtered.engagement_level !== "NONE") filtered.engagement_level = "REDUCED";
+    if (filtered.attack === "ON") filtered.attack = "LIGHT";
+    adaptive.engagement_level = "REDUCED";
+  }
+
+  if (overtradingLevel === 5) {
+    filtered.attack = "OFF";
+    filtered.sniper = "OFF";
+    if (filtered.tradingStatus !== "VALIDATION BLOCK") filtered.tradingStatus = "NO TRADE";
+    filtered.engagement_level = "NONE";
+    adaptive.engagement_level = "NONE";
+  }
+  // ────────────────────────────────────────────────────────────────────
+
   const { state: mState, modifier: mModifier } = mapLegacyMarketState(v.market);
   const marketReading = assessMarket(mState, mModifier);
   const decision = getDecision(marketReading);
@@ -257,7 +343,9 @@ export function buildPayload(v, previousPayload = null) {
     emotion_state: v.emotion,
     user_profile: v.userProfile,
     core_orders: v.coreOrders,
-    need_action: v.needAction,
+    need_action:      v.needAction,
+    engagement_level: adaptive.engagement_level,
+    sizing_factor:    adaptive.sizing_factor,
     constellium: { ether: v.ether, fire: v.fire, air: v.air, earth: v.earth, water: v.water },
     setup_inputs: { structure_signal: v.structureSignal, momentum_signal: v.momentumSignal, zone_signal: v.zoneSignal },
     validation: { state: v.validationState, note: v.validationNote.trim(), summary: filtered.validationSummary },
@@ -279,7 +367,18 @@ export function buildPayload(v, previousPayload = null) {
     tags,
     updated_at: new Date().toISOString(),
     marketReading,
-    decision: { ...decision, bestAlternative }
+    decision: { ...decision, bestAlternative },
+    // ── Behavior Guard (instant) ─────────────────────────────────────────
+    // overtradingLevel is the INSTANT Behavior Guard.
+    // It is computed from the current form state + engine score on every run.
+    // It is NOT the historical CSV/XLS Behavior Analysis module (src/js/behavior/).
+    // Future integration: the historical module may supply its own level, but it
+    // must be merged here explicitly — not by overwriting overtradingLevel directly.
+    // See: src/js/behavior/README.md
+    // ─────────────────────────────────────────────────────────────────────
+    behavior: {
+      overtradingLevel
+    }
   };
 }
 
