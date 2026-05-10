@@ -8011,3 +8011,23 @@ body[data-behavior-pattern="discipline"]::before {
   font-style: italic;
   opacity: 0.7;
 }
+
+.manifeste-origin-link {
+  max-width: 680px;
+  margin: 0 auto 2.8rem;
+  padding: 0 2rem;
+}
+
+.manifeste-ext-link {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.manifeste-ext-link:hover {
+  opacity: 0.85;
+}
