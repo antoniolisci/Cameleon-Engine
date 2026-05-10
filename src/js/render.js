@@ -256,15 +256,10 @@ function renderDecision(payload, behaviorState) {
   setText('verdictNext',            _fdLabel);
   setText('heroDecisionAction',     _fdLabel);
   setText('decision-action',        finalAction);      // détail — inchangé
-  setText('mantraOperationnelMain', finalAction);      // détail — inchangé
   setText('tradingStatusNote',      _fdMessage);       // message principal
   setText('action',                 finalAction);      // détail — inchangé
-  setText('executionFrame',         _o ? finalAction : _execAction);
-  renderList('allowedActions',      finalAllowed);
-
   // ── Group B — decision headlines ─────────────────────────────────────────
   setTextTwoLines('decisionSummaryHeadline', finalTitle, finalIntentCls);
-  setTextTwoLines('decisionPanel',           finalTitle, finalIntentCls);
 
   // ── Group C — agent + sidebar ─────────────────────────────────────────────
   setText('active-agent-action', finalAgentAct);
@@ -272,14 +267,6 @@ function renderDecision(payload, behaviorState) {
     // rules-allowed: only for behavioral states — CALME/NEUTRE kept in renderAgentRules()
     const _rulesEl = $('rules-allowed');
     if (_rulesEl) _rulesEl.textContent = finalAction;
-    // Hero overlay: only meaningful in behavioral states
-    setText('heroAllowedDetail',  _o.heroAllowed);
-    setText('heroPriorityDetail', _o.heroPrio);
-  } else if (fd?.isSilenced) {
-    // Passthrough silencé (decisionState BLOCKED/PROTECT, bhvState NEUTRE/CALME)
-    // Le moteur brut est défensif mais aucun _BHV n'a pris la main — fd pilote l'overlay
-    setText('heroAllowedDetail',  fd.label);
-    setText('heroPriorityDetail', fd.message);
   }
 
   // ── Group D — LDC override (OVERTRADING only, unvalidated setups) ──────────
@@ -380,8 +367,6 @@ function renderOperational(payload, behaviorState) {
   renderPositionManagement(workingPayload);
   renderTradeScenarios(workingPayload);
   renderRiskManagement(workingPayload);
-  renderTradeSetup(workingPayload);
-  renderLiveTradeManagement(workingPayload);
 }
 
 // ── Card wrappers ─────────────────────────────────────────────────────────────
@@ -389,7 +374,6 @@ function renderOperational(payload, behaviorState) {
 function renderMarketContext(payload) {
   renderHero(payload);
   renderLightContext(payload);
-  renderStructuredReading(payload);
   renderConfidenceContext(payload);
 }
 
@@ -2592,20 +2576,6 @@ function renderHero(payload) {
   setText("verdictBlocked",   cockpit.market.avoid);
   setText("verdictWatch",     cockpit.market.decision);
 
-  // P2 — Hero KPI grid
-  const shortMarketLabel = (cockpit.market.label || "").split("(")[0].trim() || cockpit.market.label;
-  setText("heroMarketStrong", shortMarketLabel);
-  setText("heroVerdictValue", cockpit.market.verdict);
-  setText("heroPostureValue", cockpit.market.posture);
-  setText("heroAvoidValue",   cockpit.market.avoid);
-
-  // Hero bar
-  setText("heroBarMarket",  shortMarketLabel);
-  setText("heroBarScore",   String(payload.score));
-  setText("heroBarMode",    formatHeroModeReading(cockpit.marketKey));
-  setText("heroBarPosture", cockpit.market.posture);
-  setText("heroBarCount",   String(Array.isArray(appState.history) ? appState.history.length : 0));
-
   // Hero decision grid
   setText("heroDecisionVerdict", cockpit.market.verdict);
   setText("heroDecisionAgent",   AGENT_LABELS_FR[getStateAgent(cockpit.marketKey)] || getStateAgent(cockpit.marketKey));
@@ -2720,20 +2690,6 @@ function renderLightContext(payload) {
   setText("alertDisciplineValue", discipline.value);
   setText("alertDisciplineSub", validationSummary);
   setText("engineJournalMain", journalLine);
-  setText("microUltraShortText", `${cockpit.market.label} · ${cockpit.actionMode.label}`);
-}
-
-function renderStructuredReading(payload) {
-  const cockpit = getCockpitModel(payload);
-  const structureSignal = formatToken(payload.setup_inputs?.structure_signal || "none");
-  const zoneSignal = formatToken(payload.setup_inputs?.zone_signal || "none");
-  const validationSummary = simplifyText(payload.validation?.summary) || cockpit.market.description;
-  setText("structuredMarketText", cockpit.market.description);
-  setText("journalMiniStructure", structureSignal === "Aucun" ? cockpit.market.label : structureSignal);
-  setText("structuredProfileText", cockpit.market.posture);
-  setText("signalNarratifMain", structureSignal === "Aucun" ? cockpit.market.decision : `${structureSignal} sur ${zoneSignal}`);
-  setText("structuredValidationText", validationSummary);
-  setText("engineJournalStatus", `Validation ${cockpit.validation}`);
 }
 
 function renderNavigation(payload) {
@@ -2805,16 +2761,6 @@ function renderNavigation(payload) {
   setText("alignmentNote", payload.alignment === "Bon"
     ? "Lecture cohérente."
     : `Alignement : ${payload.alignment}.`);
-  setText("profileReaction", simplifyText(payload.profile_reaction));
-  const _bhvBlocked = {
-    OVERTRADING: 'Observation prioritaire.',
-    FOMO:        'Ne pas entrer sur impulsion',
-    STRESS:      'Ne pas augmenter l\'exposition'
-  };
-  const _bhvStateNav = getBehaviorState(payload);
-  renderList("blockedActions", [_bhvBlocked[_bhvStateNav] || cockpit.market.avoid]);
-  renderList("postureActions", [cockpit.market.posture, payload.validation?.summary]);
-  renderList("priorityActions", [cockpit.market.decision, ...(payload.trigger_intelligent?.reasons || [])]);
   setText("tableMiniSummary", simplifyText(payload.summary));
   setText("autoMarket", cockpit.market.label);
   setText("autoScore", `${payload.score}/100`);
@@ -2885,14 +2831,6 @@ function renderRightRail(payload) {
     UNKNOWN:     "intent-neutral"
   };
   const intentClass = INTENT_CLASS_MAP[cockpit.marketKey] || "intent-neutral";
-  setText("decisionSummaryText", dictRaison);
-  setText("decisionAgentText", getActiveAgent(payload.decision));
-  setText("decisionAvoidText", cockpit.market.avoid);
-  setText("alertLevel", cockpit.market.label);
-  setText("trafficLight", `Validation ${cockpit.validation}`);
-  setText("ultraShortPanel", dictRaison);
-
-  setQueryText(".structured-shell .card-desc", "Trois repères. Lecture immédiate.");
   setQueryText(".master-card .card-desc", "État, risque, mode, validation.");
   setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(1) .card-desc", "Signaux imposant réévaluation.");
   setQueryText(".tab-panel[data-tab-panel='pilotage'] .diagnostic-grid .side-card:nth-child(2) .card-desc", "Profil et validation modulés.");
@@ -3028,7 +2966,6 @@ function renderHistory() {
   });
 
   setText("snapshotCount", String(items.length));
-  setText("snapshotCountHero", String(items.length));
 }
 
 function renderDiagnostics() {
@@ -3698,86 +3635,6 @@ function renderBehaviorFeedback() {
   container.appendChild(block);
 }
 
-function renderDecisionAnchor() {
-  const container = $("actionPlan");
-  if (!container) return;
-  const existing = container.querySelector(".decision-anchor");
-  if (existing) existing.remove();
-
-  container.insertAdjacentHTML("beforeend", `
-    <div class="decision-anchor">
-      <div class="decision-title">Choix actuel</div>
-      <div class="decision-actions">
-        <div class="decision-btn">Je suis le moteur</div>
-        <div class="decision-btn alt">Je passe outre</div>
-      </div>
-      <div class="decision-override-msg"></div>
-      <div class="behavior-feedback"></div>
-    </div>
-  `);
-}
-
-function bindDecisionAnchor() {
-  const anchor = document.querySelector(".decision-anchor");
-  if (!anchor) return;
-
-  // ── Restore visuel depuis localStorage ──────────────────────────────
-  let lastChoice = null;
-  try {
-    const raw = localStorage.getItem("cameleon_user_decisions_v1");
-    if (raw) {
-      const entries = JSON.parse(raw);
-      if (Array.isArray(entries) && entries.length > 0) {
-        lastChoice = entries[entries.length - 1].userChoice;
-      }
-    }
-  } catch { /* silencieux */ }
-
-  const btns = anchor.querySelectorAll(".decision-btn");
-  if (!btns[0] || !btns[1]) return;
-
-  if (lastChoice === "follow")   btns[0].classList.add("selected");
-  if (lastChoice === "override") btns[1].classList.add("selected");
-
-  // ── Handler commun ───────────────────────────────────────────────────
-  function handleChoice(userChoice) {
-    btns[0].classList.toggle("selected", userChoice === "follow");
-    btns[1].classList.toggle("selected", userChoice === "override");
-
-    // ── Feedback override ──────────────────────────────────────────────
-    const msg = anchor.querySelector(".decision-override-msg");
-    if (msg) {
-      if (userChoice === "override") {
-        msg.textContent = "Décision manuelle enregistrée. Le moteur considère ce contexte comme risqué.";
-        msg.classList.add("visible");
-        setTimeout(() => msg.classList.remove("visible"), 8000);
-      } else {
-        msg.classList.remove("visible");
-      }
-    }
-
-    try {
-      let actionLevel = "UNKNOWN";
-      if (typeof computeActionScoreUX === "function" && typeof currentPayload !== "undefined") {
-        actionLevel = getActionLevel(computeActionScoreUX(currentPayload));
-      }
-
-      let entries = [];
-      const raw = localStorage.getItem("cameleon_user_decisions_v1");
-      if (raw) entries = JSON.parse(raw);
-      if (!Array.isArray(entries)) entries = [];
-
-      entries.push({ timestamp: Date.now(), userChoice, actionLevel });
-      if (entries.length > 50) entries = entries.slice(-50);
-
-      localStorage.setItem("cameleon_user_decisions_v1", JSON.stringify(entries));
-    } catch { /* silencieux */ }
-  }
-
-  // ── Attach handlers ──────────────────────────────────────────────────
-  btns[0].addEventListener("click", () => handleChoice("follow"));
-  btns[1].addEventListener("click", () => handleChoice("override"));
-}
 
 const BEHAVIOR_MEMORY_KEY = "cameleon_behavior_memory_v1";
 
@@ -3972,39 +3829,28 @@ function renderExecutionLevel(payload) {
 
   if (_validatedReduced) {
     setText("execPermission", "Réduit");
-    setText("execActionType", "Exécution partielle autorisée");
-    setText("execIntensity",  "Réduite");
-    setText("execRisk",       "Élevé");
     return;
   }
 
   // PRIORITÉ ABSOLUE — verrou décisionnel
   if (payload.decisionState?.state === "BLOCKED") {
     setText("execPermission", "Hors exécution");
-    setText("execActionType", "Aucune exécution");
-    setText("execIntensity",  "Nulle");
-    setText("execRisk",       "Élevé");
     return;
   }
 
   // Base depuis decisionState
   const level = getExecutionLevel(payload);
 
-  // Modulation par engagement_level — wording + intensité uniquement (jamais en hausse)
+  // Modulation par engagement_level (jamais en hausse)
   const el = payload.engagement_level;
   if (el === "NONE" || el === "MINIMAL") {
     level.permission = el === "NONE" ? "Hors exécution" : "Observer";
-    level.actionType = "Observer";
-    level.intensity  = "Nulle";
   } else if (el === "REDUCED") {
     level.permission = "Réduit";
   }
   // NEUTRAL, FULL : base decisionState conservée
 
   setText("execPermission", level.permission);
-  setText("execActionType", level.actionType);
-  setText("execIntensity",  level.intensity);
-  setText("execRisk",       level.risk);
 }
 
 function getPositionManagement(payload) {
@@ -4790,9 +4636,6 @@ function render() {
   renderActionScore(currentPayload);
   document.body.setAttribute("data-action-level", getActionLevel(computeActionScoreUX(currentPayload)));
   renderBehaviorFeedback();
-  renderDecisionAnchor();
-  bindDecisionAnchor();
-  renderBehaviorState(currentPayload);
   renderMentalReset(currentPayload);
   applyFocusState(currentPayload);
   renderOperational(currentPayload, currentPayload.finalDecision?.behaviorState ?? getBehaviorState(currentPayload));
