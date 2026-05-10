@@ -30,8 +30,10 @@ const ALIASES_DATE   = ['date(utc)', 'date', 'utc time', 'utc_time', 'time', 'ti
                         'heure', 'date et heure', 'duree'];
 const ALIASES_SYMBOL = ['pair', 'symbol', 'market', 'trading pair', 'base asset', 'ticker',
                         'paire', 'paire de trading', 'asset'];
-const ALIASES_SIDE   = ['side', 'order side', 'direction', 'cote', 'sens',
-                        'type', 'trade type', 'bs flag', 'achat vente'];
+const ALIASES_SIDE   = ['side', 'order side', 'direction', 'cote', 'sens'];
+// 'type' et 'trade type' sont intentionnellement absents : sur certains exports Binance,
+// ces colonnes contiennent le type d'ordre (LIMIT / MARKET), pas le côté (BUY / SELL).
+// Elles sont traitées séparément dans normalizeTrade avec vérification du préfixe BUY/SELL.
 const ALIASES_PRICE  = ['price', 'avg price', 'avg. price', 'filled price', 'average price',
                         'avgtrading price', 'execution price', 'deal price', 'order price',
                         'prix', 'prix moyen', 'prix moyen rempli', 'prix d execution'];
@@ -65,8 +67,19 @@ function normalizeTrade(row) {
   const timestamp = parseDate(get(ALIASES_DATE));
   if (!timestamp) return null;
 
-  const symbol  = get(ALIASES_SYMBOL).trim().toUpperCase();
-  const rawSide = get(ALIASES_SIDE).trim().toUpperCase();
+  const symbol = get(ALIASES_SYMBOL).trim().toUpperCase();
+
+  // Résolution du côté en deux temps :
+  //   1. Colonnes explicitement dédiées au côté (side, direction, cote…)
+  //   2. Fallback sur 'type' / 'trade type' uniquement si la valeur commence par BUY ou SELL
+  //      (ex : "BUY_LIMIT" → OK ; "LIMIT" ou "MARKET" → ignoré — c'est un type d'ordre)
+  let rawSide = get(ALIASES_SIDE).trim().toUpperCase();
+  if (!rawSide) {
+    for (const col of ['type', 'trade type']) {
+      const val = (norm[col] || '').trim().toUpperCase();
+      if (val.startsWith('BUY') || val.startsWith('SELL')) { rawSide = val; break; }
+    }
+  }
 
   // Variantes FR (ACHAT/VENTE) + types composés Binance (BUY_LIMIT, SELL_MARKET, etc.)
   const side = (rawSide === 'BUY'  || rawSide.startsWith('BUY_')  || rawSide === 'LONG'  || rawSide === 'ACHAT') ? 'BUY'
