@@ -7097,8 +7097,8 @@ body[data-guidance-state="WAIT"] .guidance-card {
 body[data-guidance-state="BLOCKED"] .moteur-flow,
 body[data-guidance-state="BLOCKED"] .side-panel {
   opacity: 0.52;
-  filter: saturate(0.72) brightness(0.88) contrast(0.96);
-  transition: opacity var(--ux-transition) ease, filter var(--ux-transition) ease;
+  /* filter removed — was creating stacking context conflicting with backdrop-filter on child cards */
+  transition: opacity var(--ux-transition) ease;
 }
 
 body[data-guidance-state="WAIT"] .moteur-flow,
