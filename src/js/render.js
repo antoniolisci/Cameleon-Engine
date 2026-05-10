@@ -2342,10 +2342,10 @@ function detectPreBehaviorDrift(history) {
   const scores    = history.map(h => h.score).filter(s => s !== null && s !== undefined);
   const scoreDrop = scores.length >= 3 && scores[0] < scores[1] && scores[1] < scores[2];
 
-  if (fomoCount    >= 2)                return { type: "soft-warning", message: "Attention orientée — tu commences à chercher une opportunité" };
-  if (tensionCount >= 2)                return { type: "soft-warning", message: "Tension montante — ralentis avant de forcer" };
-  if (scoreDrop)                        return { type: "soft-warning", message: "Clarté en baisse — ne force pas" };
-  if (waitCount >= 1 && fomoCount >= 1) return { type: "soft-warning", message: "Patience fragile — risque de forcer une entrée" };
+  if (fomoCount    >= 2)                return { type: "soft-warning", message: "Signal FOMO récurrent. Vérifier avant toute entrée." };
+  if (tensionCount >= 2)                return { type: "soft-warning", message: "Tension persistante sur la période. Ralentir le rythme." };
+  if (scoreDrop)                        return { type: "soft-warning", message: "Clarté en baisse. Éviter les décisions sous pression." };
+  if (waitCount >= 1 && fomoCount >= 1) return { type: "soft-warning", message: "Patience fragile. Risque de forcer une entrée." };
   return null;
 }
 
@@ -2664,14 +2664,14 @@ function renderHero(payload) {
 
   // hero h1 dynamique selon decisionState
   const heroH1Titles = {
-    ALIGNED:  "Le cockpit qui tranche avant d'exécuter",
-    BLOCKED:  "Le cockpit qui te protège de toi-même",
-    PROTECT:  "Le cockpit qui te protège de toi-même",
-    WAIT:     "Le cockpit qui t'empêche d'entrer trop tôt",
-    READY:    "Le cockpit qui t'empêche d'entrer trop tôt",
-    TENSION:  "Le cockpit qui t'empêche d'entrer trop tôt"
+    ALIGNED:  "Lecture claire. Conditions réunies.",
+    BLOCKED:  "Protection active. Retour au calme d'abord.",
+    PROTECT:  "Mode défensif. Capital en priorité.",
+    WAIT:     "Lecture en cours. Aucun setup confirmé.",
+    READY:    "Setup détecté. Confirmation attendue.",
+    TENSION:  "Contexte fragile. Exposition réduite."
   };
-  const heroH1Text = heroH1Titles[decisionState.state] || "Le cockpit qui tranche avant d'exécuter";
+  const heroH1Text = heroH1Titles[decisionState.state] || "Lecture en cours.";
   setText("hero-h1", heroH1Text);
 
   // micro-interaction : hero-warning sur états risqués
@@ -4533,10 +4533,10 @@ function computeDecisionPattern() {
   const states = last.map(d => (d.engagement || "").toUpperCase());
 
   if (states.every(s => s === "NONE" || s === "MINIMAL"))
-    return "Tu hésites — aucune décision claire sur les 3 derniers états";
+    return "Indécision sur les 3 derniers cycles. Aucun engagement confirmé.";
 
   if (states[0] === "NONE" && states[1] === "REDUCED" && states[2] === "FULL")
-    return "Tu réduis progressivement ton engagement";
+    return "Engagement en diminution sur la période.";
 
   if (states[0] === "FULL" && states[1] === "FULL")
     return "Engagement fort maintenu";
@@ -4574,21 +4574,21 @@ function computeBehaviorAlert() {
 
   // 1. Sur-réaction (priorité max)
   if (states[0] === "FULL" && states[1] === "NONE" && states[2] === "FULL")
-    return "⚠️ Tu sur-réagis — instabilité forte";
+    return "Instabilité forte. Alternance engagement/pause trop rapide.";
 
   // 2. Hésitation
   if (states.every(s => s === "NONE" || s === "MINIMAL"))
-    return "⚠️ Tu hésites trop — aucune décision claire";
+    return "Aucune décision confirmée sur les 3 derniers cycles.";
 
   // 3. Instabilité simple
   if (new Set(states).size >= 3)
-    return "⚠️ Instabilité décisionnelle";
+    return "Lecture instable sur la période.";
 
   return "";
 }
 
 function renderBehaviorAlert() {
-  setText("jdAlert", computeBehaviorAlert() || "Aucune alerte");
+  setText("jdAlert", computeBehaviorAlert() || "—");
 }
 
 function renderBehaviorInfluence() {
