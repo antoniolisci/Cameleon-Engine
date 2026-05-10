@@ -7892,6 +7892,27 @@ body[data-behavior-pattern="discipline"]::before {
   cursor: wait;
 }
 
+/* ── Sidebar doctrine link ───────────────────────────────────────────────── */
+
+.sidebar-doctrine-link {
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.doctrine-link {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.doctrine-link:hover {
+  opacity: 0.9;
+}
+
 /* ── Page Manifeste ──────────────────────────────────────────────────────── */
 
 .manifeste-inner {
