@@ -17,7 +17,10 @@ function detectSeparator(line) {
 // ── CSV parser ────────────────────────────────────────────────────────────────
 
 function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
+  // Supprime le BOM UTF-8 (\ufeff) fréquent dans les exports Windows/Binance FR.
+  // Sans ce nettoyage, le premier header est corrompu : "\ufeffDate(UTC)" ne matche rien.
+  const clean = text.replace(/^\ufeff/, '');
+  const lines = clean.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
 
   const sep     = detectSeparator(lines[0]);

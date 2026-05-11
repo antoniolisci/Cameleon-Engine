@@ -27,7 +27,11 @@ function normalizeKey(str) {
 
 const ALIASES_DATE   = ['date(utc)', 'date', 'utc time', 'utc_time', 'time', 'timestamp',
                         'trade time', 'created time', 'update time', 'open time', 'created at',
-                        'heure', 'date et heure'];
+                        'heure', 'date et heure',
+                        // Exports Binance FR avec timezone locale : Date(UTC+2), Date(UTC+8)…
+                        // La clé normalisée "date(utc+2)" → canonicalisée en "date(utc)" ci-dessous
+                        // Ces alias sont insérés dynamiquement dans normalizeTrade — pas besoin de les lister
+                       ];
 const ALIASES_SYMBOL = ['pair', 'symbol', 'market', 'trading pair', 'base asset', 'ticker',
                         'paire', 'paire de trading', 'asset'];
 const ALIASES_SIDE   = ['side', 'order side', 'direction', 'cote', 'sens'];
@@ -36,10 +40,12 @@ const ALIASES_SIDE   = ['side', 'order side', 'direction', 'cote', 'sens'];
 // Elles sont traitées séparément dans normalizeTrade avec vérification du préfixe BUY/SELL.
 const ALIASES_PRICE  = ['price', 'avg price', 'avg. price', 'filled price', 'average price',
                         'avgtrading price', 'execution price', 'deal price', 'order price',
-                        'prix', 'prix moyen', 'prix moyen rempli', 'prix d execution'];
+                        'prix', 'prix moyen', 'prix moyen rempli', 'prix d execution',
+                        'prix d execution moyen'];       // Binance FR : "Prix d'exécution moyen"
 const ALIASES_QTY    = ['executed', 'qty', 'quantity', 'filled', 'base qty', 'base quantity',
                         'filled qty', 'executed qty', 'base amount', 'amount', 'vol',
-                        'execute', 'quantite', 'qte', 'volume execute', 'montant execute'];
+                        'execute', 'quantite', 'qte', 'volume execute', 'montant execute',
+                        'quantite executee'];            // Binance FR : "Quantité exécutée"
 const ALIASES_QUOTE  = ['amount', 'total', 'quote qty', 'quote quantity', 'value', 'quote value',
                         'quote asset', 'deal value', 'deal amount', 'turnover',
                         'montant', 'valeur totale', 'valeur'];
@@ -55,6 +61,17 @@ function normalizeTrade(row) {
   const norm = {};
   for (const [k, v] of Object.entries(row)) {
     norm[normalizeKey(k)] = v;   // normalisation accent-safe : "Côté" → "cote", "Exécuté" → "execute"
+  }
+
+  // Canonicalise les variantes de timezone sur la colonne date.
+  // Binance FR exporte parfois "Date(UTC+2)", "Date(UTC+8)"… selon la locale.
+  // normalizeKey conserve les parenthèses → "date(utc+2)" ≠ "date(utc)" dans ALIASES_DATE.
+  // Ce pass ajoute "date(utc)" dans norm si une clé UTC±N est présente,
+  // sans modifier la clé originale (préservation idempotente).
+  for (const key of Object.keys(norm)) {
+    if (/^date\(utc[+-]\d+\)$/.test(key) && norm['date(utc)'] === undefined) {
+      norm['date(utc)'] = norm[key];
+    }
   }
 
   const get = (aliases) => {

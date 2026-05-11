@@ -18,8 +18,10 @@ function normalizeHeader(str) {
   return String(str)
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')   // supprime diacritiques (accents, cédilles…)
-    .replace(/[\s_./\\-]+/g, ' ')      // normalise séparateurs variés en espace simple
+    .replace(/[\u0300-\u036f]/g, '')      // supprime diacritiques (accents, cédilles…)
+    .replace(/[\s_./\\()+\-]+/g, ' ')    // normalise séparateurs + parenthèses et +
+                                          // "Date(UTC+2)" → "date utc 2"
+                                          // "Date(UTC)"   → "date utc"
     .trim();
 }
 
@@ -51,7 +53,10 @@ function matchesField(col, signals) {
 const DETECT_DATE   = ['date(utc)', 'date', 'utc time', 'time', 'timestamp', 'trade time',
                        'heure', 'date et heure', 'created time', 'open time', 'update time', 'created at'];
 const DETECT_SYMBOL = ['pair', 'symbol', 'market', 'paire'];
-const DETECT_SIDE   = ['side', 'direction', 'cote', 'sens'];
+// 'type' inclus ici pour la CLASSIFICATION uniquement (pas pour le mapping).
+// Un export avec une colonne "Type" contenant BUY/SELL est un fichier trading valide.
+// La distinction LIMIT/MARKET vs BUY/SELL est gérée par le fallback dans normalizeTrade.
+const DETECT_SIDE   = ['side', 'direction', 'cote', 'sens', 'type'];
 const DETECT_PRICE  = ['price', 'avg price', 'filled price', 'average price',
                        'execution price', 'deal price', 'order price', 'prix', 'prix moyen'];
 const DETECT_QTY    = ['executed', 'qty', 'quantity', 'filled', 'execute', 'quantite', 'qte', 'vol'];
@@ -214,11 +219,12 @@ async function importBinanceSpot(file) {
       ? headers.slice(0, 10).join(', ') + (headers.length > 10 ? ` … (${headers.length} colonnes au total)` : '')
       : '(aucune colonne détectée)';
     console.warn('[bhv:import] fichier refusé — colonnes non reconnues : %s', headers.join(' | '));
-    return {
-      ok:    false,
-      error: `Colonnes non reconnues. Colonnes trouvées : ${colPreview}`,
-      trades: []
-    };
+    // Message spécifique si le nom du fichier ressemble à un export Binance officiel
+    const looksLikeBinance = /^binance/i.test(file.name);
+    const errorMsg = looksLikeBinance
+      ? `Export Binance détecté mais colonnes non mappées. Colonnes trouvées : ${colPreview}`
+      : `Colonnes non reconnues. Colonnes trouvées : ${colPreview}`;
+    return { ok: false, error: errorMsg, trades: [] };
   }
 
   // FORMAT B — Order History → pipeline ordres dédié

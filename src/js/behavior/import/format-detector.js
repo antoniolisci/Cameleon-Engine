@@ -17,7 +17,7 @@ function normalizeH(str) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\s_./\\-]+/g, ' ')
+    .replace(/[\s_./\\()+\-]+/g, ' ')   // aligné sur normalizeHeader — "Fee(USDT)" → "fee usdt"
     .trim();
 }
 
