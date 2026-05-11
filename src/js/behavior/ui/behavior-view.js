@@ -15,17 +15,66 @@ import { groupGridTrades } from '../analytics/grid-grouper.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
-// ── Fraîcheur du profil stratégique Order History ────────────────────────────
-// Un profil GRID est considéré "frais" s'il date de moins de 7 jours.
-// Au-delà, il est ignoré : le comportement peut avoir changé.
-const ORDER_STRATEGY_TTL_MS = 7 * 24 * 60 * 60 * 1000;  // 7 jours
+// ── Profil stratégique Order History — GRID uniquement ───────────────────────
+// Seul le profil GRID déclenche la contextualisation du scoring Trade History.
+//
+// GRID  : contextualisé — structure intentionnelle claire. Les fills sur même
+//   symbole reflètent une grille posée, pas une réaction émotionnelle.
+// DCA   : exclu — trop facilement confondu avec averaging down émotionnel.
+//   Un DCA régulier et un loss chasing progressif produisent des patterns
+//   similaires. La contextualisation serait exploitable sans garde-fou suffisant.
+// MIXTE : exclu — comportement hybride trop ambigu pour moduler le scoring.
+//   Risque d'atténuer un signal agressif réel masqué par quelques ordres grille.
+//
+// Ce choix est conservateur par conception. Tout futur ajout doit démontrer
+// que le profil est structurellement incompatible avec un comportement émotionnel.
+const ORDER_STRATEGY_TTL_MS = 7 * 24 * 60 * 60 * 1000;  // 7 jours — TTL hard cutoff
+
+// ── Debug ─────────────────────────────────────────────────────────────────────
+const DEBUG_GRID_CTX = false;
+const dbgCtx = (...args) => { if (DEBUG_GRID_CTX) console.debug('[bhv:grid-ctx]', ...args); };
+
+// ── Décroissance de la confidence selon l'âge du profil ──────────────────────
+// Évite qu'un profil GRID ancien conserve trop de poids. Fonction pure, pas de cron.
+//
+// J0–J2 → confidence pleine        (profil récent, signal fort)
+// J3–J5 → confidence × 0.60        (signal modéré, profil en cours d'expiration)
+// J6–J7 → confidence × 0.25        (signal minimal, quasi-expiré)
+// >7j   → ignoré via TTL hard cutoff (retour null avant cet appel)
+function applyConfidenceDecay(confidence, ageDays) {
+  if (ageDays <= 2) return confidence;
+  if (ageDays <= 5) return Math.round(confidence * 0.60 * 100) / 100;
+  return               Math.round(confidence * 0.25 * 100) / 100;
+}
 
 function readGridContext() {
   const osp = behaviorRepo.get('orderStrategyProfile');
-  if (!osp || osp.profile !== 'grid') return null;
-  const age = Date.now() - (osp.updatedAt || 0);
-  if (age > ORDER_STRATEGY_TTL_MS) return null;
-  return { hasGridProfile: true, gridProfileFresh: true, symbols: osp.symbols || [], confidence: osp.confidence };
+  if (!osp || osp.profile !== 'grid') {
+    dbgCtx('OFF — profil absent ou non-grid (%s)', osp?.profile ?? 'null');
+    return null;
+  }
+
+  const ageMs   = Date.now() - (osp.updatedAt || 0);
+  const ageDays = ageMs / (24 * 60 * 60 * 1000);
+  if (ageDays > 7) {
+    dbgCtx('OFF — raison: expired (âge=%.1fj)', ageDays);
+    return null;
+  }
+
+  const rawConf    = osp.confidence;
+  const confidence = typeof rawConf === 'number'
+    ? applyConfidenceDecay(rawConf, ageDays)
+    : null;
+
+  dbgCtx('ON — âge=%.1fj · confidence: %s → %s · symbols=%o',
+    ageDays, rawConf ?? 'null', confidence ?? 'null(fallback 0.5 dans scoring)', osp.symbols);
+
+  return {
+    hasGridProfile:   true,
+    gridProfileFresh: true,
+    symbols:          osp.symbols || [],
+    confidence
+  };
 }
 
 function mount(root) {
