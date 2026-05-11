@@ -11,6 +11,13 @@
 //   - risque dominant = weight × intensity, le plus fort l'emporte
 //   - profil déduit du score final
 
+// ── Debug contextualisation GRID ──────────────────────────────────────────────
+// Passer DEBUG_GRID à true pour tracer toutes les décisions de contextualisation.
+// Raisons loguées : no_symbols · symbol_mismatch · aggressive_patterns.
+// La confidence affichée est post-decay (calculée dans behavior-view.js).
+const DEBUG_GRID = false;
+const dbgGrid = (...args) => { if (DEBUG_GRID) console.debug('[bhv:grid-ctx]', ...args); };
+
 // ── Poids de base par pattern ─────────────────────────────────────────────────
 // Reflètent la dangerosité intrinsèque du comportement, indépendamment de l'intensité.
 
@@ -67,6 +74,7 @@ function getPenalty(pattern, ctx) {
           const conf   = typeof ctx.gridConfidence === 'number' ? ctx.gridConfidence : 0.5;
           const factor = 0.60 - conf * 0.25;
           base = Math.ceil(base * factor);
+          dbgGrid('pénalité modulée — conf(decayed)=%s · factor=%s · base→%d', conf.toFixed(2), factor.toFixed(3), base);
         } else {
           base = Math.ceil(base * 0.7);  // overtrading seul sans grille → atténuation légère
         }
@@ -134,32 +142,56 @@ function computeScore(patterns, metrics, gridContext = null) {
   // Overtrading est-il le seul pattern ? Si oui, contexte "actif mais cohérent".
   const hasOtherPatterns = pats.some(p => p.type !== 'overtrading');
 
-  // Contexte grille actif : uniquement si frais ET overtrading isolé.
-  // Si d'autres patterns agressifs sont présents, hasGridProfile est ignoré.
+  // ── Garde-fou patterns agressifs ─────────────────────────────────────────────
+  // La contextualisation GRID est désactivée dès qu'un autre pattern est présent.
+  // rapid_reentry, loss_chasing, revenge_trading ou size_inconsistency combinés à
+  // un overtrading signalent un comportement réellement agressif — pas une grille.
+  // Un trader grille ne bénéficie d'aucune immunité : la contextualisation module
+  // uniquement quand l'overtrading est le seul signal et la grille est cohérente.
   const gridActive = gridContext?.hasGridProfile && !hasOtherPatterns;
+  if (DEBUG_GRID) {
+    dbgGrid('gridActive=%s · hasGridProfile=%s · hasOtherPatterns=%s · confidence=%s',
+      gridActive, gridContext?.hasGridProfile ?? false, hasOtherPatterns,
+      gridContext?.confidence ?? 'n/a');
+    if (hasOtherPatterns && gridContext?.hasGridProfile) {
+      dbgGrid('contextualisation OFF — raison: aggressive_patterns (%s)',
+        pats.filter(p => p.type !== 'overtrading').map(p => p.type).join(', '));
+    }
+  }
 
   // 1. Pénalités patterns avec contexte
   let patternPenalty = 0;
   let anyGridApplied = false;   // tracé pour score.gridContextApplied
 
   pats.forEach(p => {
-    // ── Corrélation symbole GRID (V4.4) ──────────────────────────────────────
+    // ── Corrélation symbole GRID ──────────────────────────────────────────────
     // Le contexte grille ne s'applique que si les symboles ayant déclenché
     // l'overtrading correspondent aux symboles du profil GRID (Order History).
-    // gridContext.symbols = [] → aucun filtre → tous les symboles → overlap = true.
-    // p.symbols = [] → pattern sans info symbole → on laisse passer (backward compat).
+    //
+    // Règle symbols=[] : gridContext.symbols vide = profil sans symboles fiables.
+    // Contextualiser "tout par défaut" serait trop permissif — contextualisation OFF.
+    // p.symbols = [] = pattern sans info symbole = backward compat, laissé passer.
     let gridSymbolsMatch = false;
     if (p.type === 'overtrading' && gridActive) {
       const gridSyms  = gridContext?.symbols || [];
       const tradeSyms = p.symbols            || [];
-      gridSymbolsMatch =
-        gridSyms.length  === 0 ||   // Order History sans filtre symbole → s'applique à tout
-        tradeSyms.length === 0 ||   // pattern sans info symbole → backward compat
-        tradeSyms.some(s => gridSyms.includes(s));
+
+      if (gridSyms.length === 0) {
+        dbgGrid('contextualisation OFF — raison: no_symbols (gridContext.symbols vide)');
+      } else {
+        gridSymbolsMatch = tradeSyms.length === 0 || tradeSyms.some(s => gridSyms.includes(s));
+        if (DEBUG_GRID && !gridSymbolsMatch) {
+          dbgGrid('contextualisation OFF — raison: symbol_mismatch · grid=%o · trade=%o', gridSyms, tradeSyms);
+        }
+      }
     }
 
     const hasGridForPattern = p.type === 'overtrading' && gridActive && gridSymbolsMatch;
-    if (hasGridForPattern) anyGridApplied = true;
+    if (hasGridForPattern) {
+      anyGridApplied = true;
+      dbgGrid('CAS 1 actif — confidence(post-decay)=%s · grid=%o · trade=%o',
+        gridContext?.confidence ?? 'null→fallback 0.5', gridContext?.symbols, p.symbols);
+    }
 
     const ctx = {
       paceDelay,
