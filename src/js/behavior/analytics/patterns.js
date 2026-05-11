@@ -134,8 +134,9 @@ function tagTrades(trades, metrics) {
 // ── Fonctions de détection individuelles ──────────────────────────────────────
 
 function detectOvertrading(sorted) {
-  const windowMs = OVERTRADING_WINDOW_MIN * 60000;
-  let count = 0;
+  const windowMs         = OVERTRADING_WINDOW_MIN * 60000;
+  let   count            = 0;
+  const triggeredSymbols = new Set();   // V4.4 : symboles ayant déclenché au moins une fenêtre
 
   for (let i = 0; i < sorted.length; i++) {
     const sym = sorted[i].symbol;
@@ -146,17 +147,21 @@ function detectOvertrading(sorted) {
     for (let j = i; j < sorted.length && sorted[j].timestamp <= end; j++) {
       if (sorted[j].symbol === sym) inWindow++;
     }
-    if (inWindow >= OVERTRADING_MIN_TRADES) count++;
+    if (inWindow >= OVERTRADING_MIN_TRADES) {
+      count++;
+      triggeredSymbols.add(sym);
+    }
   }
 
-  dbg('overtrading — fenêtres déclenchées :', count);
+  dbg('overtrading — fenêtres déclenchées :', count, '| symboles :', [...triggeredSymbols]);
   if (count === 0) return null;
   return {
     type:        'overtrading',
     label:       'Overtrading',
     description: `${count} fenêtre(s) avec ${OVERTRADING_MIN_TRADES}+ trades en ${OVERTRADING_WINDOW_MIN} min sur le même symbole.`,
     severity:    count >= 5 ? 'high' : 'medium',
-    count
+    count,
+    symbols:     [...triggeredSymbols]   // V4.4 : utilisé par scoring.js pour la corrélation GRID
   };
 }
 
