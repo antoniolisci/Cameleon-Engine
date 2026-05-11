@@ -51,8 +51,15 @@ function getPenalty(pattern, ctx) {
 
       // Signal isolé : overtrading sans aucun autre pattern associé.
       // L'activité est élevée, mais sizing et comportement restent cohérents.
+      // Si un profil GRID récent est présent (Order History < 7 jours), la
+      // fréquence élevée peut être expliquée par une stratégie planifiée.
+      // → atténuation plus forte qu'un overtrading isolé sans contexte.
+      // Condition stricte : overtrading SEUL — dès qu'un autre pattern agressif
+      // est présent (rapid_reentry, loss_chasing…), la pénalité normale s'applique.
       if (ctx?.isIsolated) {
-        base = Math.ceil(base * 0.7);
+        base = ctx?.hasGridProfile
+          ? Math.ceil(base * 0.4)   // overtrading seul + contexte grille → atténuation forte
+          : Math.ceil(base * 0.7);  // overtrading seul sans grille → atténuation légère
       }
 
       return base;
@@ -103,7 +110,11 @@ const PROFILES = [
 
 // ── Fonction principale ────────────────────────────────────────────────────────
 
-function computeScore(patterns, metrics) {
+// gridContext : objet optionnel issu de readGridContext() dans behavior-view.js.
+// { hasGridProfile: true, gridProfileFresh: true, symbols: [], confidence: 0–1 }
+// Transmis depuis l'Order History via behaviorRepo.orderStrategyProfile.
+// N'est actif que si profil GRID détecté dans les 7 derniers jours.
+function computeScore(patterns, metrics, gridContext = null) {
   if (!metrics) return null;
   const pats = patterns || [];
 
@@ -113,12 +124,17 @@ function computeScore(patterns, metrics) {
   // Overtrading est-il le seul pattern ? Si oui, contexte "actif mais cohérent".
   const hasOtherPatterns = pats.some(p => p.type !== 'overtrading');
 
+  // Contexte grille actif : uniquement si frais ET overtrading isolé.
+  // Si d'autres patterns agressifs sont présents, hasGridProfile est ignoré.
+  const gridActive = gridContext?.hasGridProfile && !hasOtherPatterns;
+
   // 1. Pénalités patterns avec contexte
   let patternPenalty = 0;
   pats.forEach(p => {
     const ctx = {
       paceDelay,
-      isIsolated: p.type === 'overtrading' && !hasOtherPatterns
+      isIsolated:     p.type === 'overtrading' && !hasOtherPatterns,
+      hasGridProfile: p.type === 'overtrading' && gridActive
     };
     patternPenalty += getPenalty(p, ctx);
   });
@@ -154,7 +170,11 @@ function computeScore(patterns, metrics) {
   const types = new Set(pats.map(p => p.type));
   const interpretation = buildInterpretation(profile.key, dominantRisk, types);
 
-  return { score, profile, dominantRisk, interpretation };
+  // Annotation contexte grille — tracé dans le score si appliqué.
+  // Permet à behavior-view.js d'afficher une notice sans recalculer la condition.
+  const gridContextApplied = gridActive && pats.some(p => p.type === 'overtrading');
+
+  return { score, profile, dominantRisk, interpretation, gridContextApplied };
 }
 
 // ── Risque dominant ────────────────────────────────────────────────────────────

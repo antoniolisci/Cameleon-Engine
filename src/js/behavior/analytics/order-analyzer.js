@@ -86,7 +86,22 @@ function analyzeOrders(trades, rawCount = null) {
     cancelProfile
   };
 
-  return { metrics, profile, summary };
+  // ── Confiance du profil GRID ──────────────────────────────────────────────
+  // Calculée uniquement quand profile === 'grid', sinon null.
+  // regularity : régularité de l'espacement (1 = parfait, 0 = cv trop haut)
+  // coverage   : couverture statistique (1 = 10+ points de données)
+  // confidence = 0.7 × regularity + 0.3 × coverage → 0–1
+  let gridConfidence = null;
+  if (profile === 'grid' && gridSpacing !== null) {
+    const regularity = 1 - Math.min(gridSpacing.cv / 0.3, 1);
+    const coverage   = Math.min(gridSpacing.count / 10, 1);
+    gridConfidence   = Math.round((0.7 * regularity + 0.3 * coverage) * 100) / 100;
+  }
+
+  // ── Symboles impliqués ────────────────────────────────────────────────────
+  const symbols = [...new Set(sorted.map(t => t.symbol))];
+
+  return { metrics, profile, summary, confidence: gridConfidence, symbols };
 }
 
 // ── computeGridSpacing ────────────────────────────────────────────────────────
