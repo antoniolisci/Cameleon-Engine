@@ -2,7 +2,7 @@
 // Architecture extensible : le pipeline traduit tout fichier externe vers le modèle interne
 // { timestamp, symbol, side, price, quantity, fee } — indépendamment de la plateforme source.
 
-import { parseCSV, detectSeparator } from './parser.js';
+import { parseCSV, detectSeparator, splitLine } from './parser.js';
 import { mapBinanceSpotRow } from '../normalize/mappers/binance_spot.js';
 import { mapOrderRows } from '../normalize/mappers/binance_order.js';
 import { isValidTrade } from '../normalize/validator.js';
@@ -62,6 +62,45 @@ const DETECT_SIDE   = ['side', 'direction', 'cote', 'sens', 'type'];
 const DETECT_PRICE  = ['price', 'avg price', 'filled price', 'average price',
                        'execution price', 'deal price', 'order price', 'prix', 'prix moyen'];
 const DETECT_QTY    = ['executed', 'qty', 'quantity', 'filled', 'execute', 'quantite', 'qte', 'vol'];
+
+// ── Détection de la vraie ligne d'en-têtes ────────────────────────────────────
+// Certains exports Binance XLSX (et parfois CSV) commencent par des lignes de titre
+// ("Historique d'ordre Spot"), de métadonnées (Nom, E-mail…) avant le vrai tableau.
+// On scanne jusqu'à 30 lignes et on retourne l'index de la première qui contient
+// au moins 3 groupes de signaux distincts (date, paire, côté, prix, quantité, montant…).
+
+const HDR_GROUPS = [
+  ['date', 'duree', 'time', 'timestamp', 'heure', 'utc time', 'trade time',
+   'open time', 'created time', 'update time', 'created at'],
+  ['pair', 'paire', 'symbol', 'market', 'ticker', 'trading pair'],
+  ['side', 'cote', 'direction', 'sens', 'type'],
+  ['price', 'prix', 'avg price', 'prix moyen', 'deal price', 'order price'],
+  ['executed', 'execute', 'filled', 'qty', 'quantity', 'quantite', 'vol'],
+  ['amount', 'montant', 'total', 'value', 'valeur'],
+  ['fee', 'frais', 'commission', 'status', 'statut', 'order id', 'orderid'],
+];
+
+// cells : string[] — valeurs brutes d'une ligne (pas encore normalisées).
+function isHeaderRow(cells) {
+  const norm = cells.map(c => normalizeHeader(String(c || '')));
+  let matched = 0;
+  for (const group of HDR_GROUPS) {
+    if (norm.some(cell => matchesField(cell, group))) {
+      if (++matched >= 3) return true;
+    }
+  }
+  return false;
+}
+
+// rows2d : string[][] — toutes les lignes du fichier sous forme de tableaux de cellules.
+// Retourne l'index de la première ligne reconnue comme en-têtes, ou -1.
+function findHeaderRowIndex(rows2d) {
+  const limit = Math.min(30, rows2d.length);
+  for (let i = 0; i < limit; i++) {
+    if (isHeaderRow(rows2d[i])) return i;
+  }
+  return -1;
+}
 
 // ── Classification du fichier ─────────────────────────────────────────────────
 // Retourne : { level: 'FULL_TRADING' | 'PARTIAL_TRADING' | 'NON_TRADING', subtype }
@@ -132,6 +171,8 @@ function loadXLSX() {
 }
 
 // Lit un fichier .xlsx et retourne un tableau de row-objects (première feuille).
+// Utilise le mode array brut ({ header: 1 }) pour détecter la vraie ligne d'en-têtes,
+// même si le fichier commence par des lignes de titre ou de métadonnées Binance.
 async function readFileAsXLSX(file) {
   const XLSX   = await loadXLSX();
   const buffer = await new Promise((resolve, reject) => {
@@ -142,7 +183,33 @@ async function readFileAsXLSX(file) {
   });
   const workbook = XLSX.read(buffer, { type: 'array' });
   const sheet    = workbook.Sheets[workbook.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(sheet, { raw: false, defval: '' });
+
+  // Lecture en tableau 2D pour scanner librement les lignes d'en-têtes.
+  const raw2d = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+
+  const headerIdx = findHeaderRowIndex(raw2d);
+  console.log('[IMPORT DEBUG] XLSX headerRowIndex =', headerIdx,
+    headerIdx >= 0 ? `| ligne : ${JSON.stringify(raw2d[headerIdx])}` : '| introuvable');
+
+  if (headerIdx === -1) {
+    throw new Error('NO_HEADER_FOUND');
+  }
+
+  const headers = raw2d[headerIdx].map(h => String(h || '').trim());
+  console.log('[IMPORT DEBUG] XLSX detectedHeaderRow =', headers);
+
+  const rows = [];
+  for (let i = headerIdx + 1; i < raw2d.length; i++) {
+    const cells = raw2d[i];
+    // Sauter les lignes entièrement vides
+    if (!cells || cells.every(c => c === '' || c === null || c === undefined)) continue;
+    const row = {};
+    headers.forEach((h, j) => {
+      row[h] = (cells[j] !== undefined && cells[j] !== null) ? String(cells[j]).trim() : '';
+    });
+    rows.push(row);
+  }
+  return rows;
 }
 
 // ── Import pipeline ───────────────────────────────────────────────────────────
@@ -181,11 +248,28 @@ async function importBinanceSpot(file) {
       rawText  = text;
       const clean = text.replace(/^\ufeff/, '');
       rawLines = clean.trim().split(/\r?\n/);
-      rawSep   = rawLines.length > 0 ? detectSeparator(rawLines[0]) : '?';
-      rows = parseCSV(text);
+
+      // Détection du séparateur sur la première ligne non-vide
+      const firstNonEmpty = rawLines.find(l => l.trim().length > 0) || '';
+      rawSep = detectSeparator(firstNonEmpty);
+
+      // Scanner les 30 premières lignes pour trouver la vraie ligne d'en-têtes.
+      // Chaque ligne est découpée avec quote-handling pour éviter les faux négatifs.
+      const lines2d    = rawLines.map(l => splitLine(l, rawSep).map(c => c.replace(/^"|"$/g, '').trim()));
+      const csvHdrIdx  = findHeaderRowIndex(lines2d);
+      const startLine  = csvHdrIdx >= 0 ? csvHdrIdx : 0;  // fallback 0 : comportement antérieur
+      console.log('[IMPORT DEBUG] CSV headerRowIndex =', startLine,
+        csvHdrIdx >= 0 ? `| ligne : ${JSON.stringify(rawLines[startLine])}` : '| non trouvé, ligne 0 utilisée');
+
+      // Re-détecter le séparateur depuis la vraie ligne d'en-têtes (plus fiable)
+      rawSep = detectSeparator(rawLines[startLine] || '');
+      rows   = parseCSV(text, { startLine });
     }
   } catch (err) {
-    return { ok: false, error: 'Impossible de lire le fichier. Vérifiez qu\'il n\'est pas corrompu.', trades: [] };
+    const msg = err.message === 'NO_HEADER_FOUND'
+      ? 'Aucune ligne d\'en-têtes Binance trouvée dans les 30 premières lignes. Vérifiez que le fichier est un export Binance valide.'
+      : 'Impossible de lire le fichier. Vérifiez qu\'il n\'est pas corrompu.';
+    return { ok: false, error: msg, trades: [] };
   }
 
   if (!rows || rows.length === 0) {

@@ -15,19 +15,21 @@ function detectSeparator(line) {
 }
 
 // ── CSV parser ────────────────────────────────────────────────────────────────
+// startLine : index de la ligne d'en-têtes (0 par défaut).
+// Permet de sauter les lignes de titre présentes dans certains exports Binance XLSX/CSV.
 
-function parseCSV(text) {
+function parseCSV(text, { startLine = 0 } = {}) {
   // Supprime le BOM UTF-8 (\ufeff) fréquent dans les exports Windows/Binance FR.
   // Sans ce nettoyage, le premier header est corrompu : "\ufeffDate(UTC)" ne matche rien.
   const clean = text.replace(/^\ufeff/, '');
   const lines = clean.trim().split(/\r?\n/);
-  if (lines.length < 2) return [];
+  if (lines.length < startLine + 2) return [];
 
-  const sep     = detectSeparator(lines[0]);
-  const headers = splitLine(lines[0], sep).map(h => h.trim().replace(/^"|"$/g, ''));
+  const sep     = detectSeparator(lines[startLine]);
+  const headers = splitLine(lines[startLine], sep).map(h => h.trim().replace(/^"|"$/g, ''));
   const rows    = [];
 
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = startLine + 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
 
@@ -69,4 +71,4 @@ function splitLine(line, sep) {
   return result;
 }
 
-export { parseCSV, detectSeparator };
+export { parseCSV, detectSeparator, splitLine };
