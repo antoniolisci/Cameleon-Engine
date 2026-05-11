@@ -8,6 +8,23 @@
 // si les critères stricts ci-dessous sont tous satisfaits. L'objectif est
 // d'identifier une intention unique, pas de cacher un comportement agressif.
 //
+// ── LIMITATION DOCUMENTÉE ────────────────────────────────────────────────────
+// Ce module travaille exclusivement sur les timestamps d'EXÉCUTION (fill time),
+// qui est la seule information disponible dans Trade History.
+//
+// Il NE PEUT PAS reconstruire une grille d'ordres limites posés ensemble
+// mais exécutés à plusieurs heures d'écart. Exemple :
+//   10h00 : 4 limit BUY BTCUSDT placés à $95k / $94.5k / $94k / $93.5k
+//   10h05 : fill à $95k    → trade 1
+//   10h47 : fill à $94.5k  → trade 2 (gap 42 min > seuil → rupture du groupe)
+//   12h31 : fill à $94k    → trade 3
+// → aucun groupe détecté. Les 3 fills restent des trades distincts.
+//
+// Pour ce cas, Order History est la source fiable. Le pont comportemental V4.2
+// dans scoring.js permet à un profil GRID détecté en Order History de
+// contextualiser le scoring Trade History (atténuation de la pénalité
+// overtrading isolé via behaviorRepo.orderStrategyProfile).
+//
 // ── Critères de regroupement ──────────────────────────────────────────────────
 //   1. Même symbole
 //   2. Même côté (BUY ou SELL)

@@ -160,6 +160,12 @@ body.bhv-panel-open .main-shell {
   color: var(--ok, #7dffb3);
 }
 
+.bhv-msg--grid-context {
+  background: rgba(180, 160, 255, 0.07);
+  border: 1px solid rgba(180, 160, 255, 0.2);
+  color: rgba(180, 160, 255, 0.85);
+}
+
 /* ── Buttons ─────────────────────────────────────────────────────────────────── */
 
 .bhv-import-actions {

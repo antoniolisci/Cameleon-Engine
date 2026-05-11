@@ -15,6 +15,19 @@ import { groupGridTrades } from '../analytics/grid-grouper.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
+// ── Fraîcheur du profil stratégique Order History ────────────────────────────
+// Un profil GRID est considéré "frais" s'il date de moins de 7 jours.
+// Au-delà, il est ignoré : le comportement peut avoir changé.
+const ORDER_STRATEGY_TTL_MS = 7 * 24 * 60 * 60 * 1000;  // 7 jours
+
+function readGridContext() {
+  const osp = behaviorRepo.get('orderStrategyProfile');
+  if (!osp || osp.profile !== 'grid') return null;
+  const age = Date.now() - (osp.updatedAt || 0);
+  if (age > ORDER_STRATEGY_TTL_MS) return null;
+  return { hasGridProfile: true, gridProfileFresh: true, symbols: osp.symbols || [], confidence: osp.confidence };
+}
+
 function mount(root) {
   const trades            = behaviorRepo.get('trades');
   const importError       = behaviorRepo.get('importError');
@@ -31,17 +44,23 @@ function mount(root) {
   let coaching  = null;
   let style       = null;
   let transitions = null;
+  let gridContext = null;
 
   if (trades && trades.length > 0) {
     // Regroupement grille avant pattern detection.
     // Les séquences grille (même symbole/côté, intervalle court) sont consolidées
     // en un trade synthétique pour éviter les faux positifs overtrading/size_inconsistency.
+    // Limitation documentée : travaille sur timestamps d'exécution uniquement.
     const tradesForAnalysis = groupGridTrades(trades);
+
+    // Contexte stratégique Order History — lu ici, passé à computeScore.
+    // Présent uniquement si un profil GRID a été détecté dans les 7 derniers jours.
+    gridContext = readGridContext();
 
     metrics     = computeMetrics(tradesForAnalysis);
     patterns    = detectPatterns(tradesForAnalysis, metrics);
     tradeTags   = tagTrades(tradesForAnalysis, metrics);
-    score       = computeScore(patterns, metrics);
+    score       = computeScore(patterns, metrics, gridContext);
     coaching    = computeCoaching(patterns, metrics, score);
     style       = detectStyle(tradesForAnalysis, metrics);
     transitions = detectStyleTransitions(tradesForAnalysis, style?.key);
@@ -73,7 +92,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult, orderResult, validationWarning, validationWarnings });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -263,7 +282,7 @@ function buildVerdictBlock(state) {
 // ── Analysis section ──────────────────────────────────────────────────────────
 
 function buildAnalysis(state) {
-  const { metrics, patterns, trades, tradeTags, score, coaching, style, transitions } = state;
+  const { metrics, patterns, trades, tradeTags, score, coaching, style, transitions, gridContext } = state;
   if (!metrics) return '';
 
   const warningBanner = state.validationWarning
@@ -279,11 +298,18 @@ function buildAnalysis(state) {
        </ul>`
     : '';
 
+  // Notice contexte grille — affichée uniquement si le score l'a réellement appliqué.
+  // Message sobre : contexte, pas correction. Le pattern reste visible.
+  const gridContextBanner = score?.gridContextApplied
+    ? `<div class="bhv-msg bhv-msg--grid-context">Profil grille récent détecté (Order History) : certaines alertes de fréquence sont contextualisées.</div>`
+    : '';
+
   return `
     <div class="bhv-layout bhv-fade-in">
       <div class="bhv-analysis">
         ${buildVerdictBlock(state)}
         ${warningBanner}
+        ${gridContextBanner}
         ${warningsList}
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
@@ -1091,6 +1117,25 @@ async function handleImport(file, root) {
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
     behaviorRepo.set('validationWarning',  false);
     behaviorRepo.set('validationWarnings', []);
+
+    // ── Pont comportemental Order History → Trade History ─────────────────
+    // Si le profil détecté est GRID, on persiste le contexte stratégique dans
+    // une clé dédiée. Cette clé n'est jamais effacée lors d'un import Trade History
+    // ultérieur — elle lui permet de contextualiser son scoring overtrading.
+    // Un import Order History non-GRID efface explicitement le contexte précédent.
+    const oa = result.orderAnalysis;
+    if (oa && oa.profile === 'grid') {
+      behaviorRepo.set('orderStrategyProfile', {
+        profile:    'grid',
+        confidence: oa.confidence ?? null,
+        symbols:    oa.symbols    ?? [],
+        updatedAt:  Date.now(),
+        source:     'order_history'
+      });
+    } else {
+      behaviorRepo.set('orderStrategyProfile', null);
+    }
+
   } else {
     const count     = result.trades.length;
     const skip      = result.skipped;
@@ -1102,6 +1147,9 @@ async function handleImport(file, root) {
     behaviorRepo.set('importError',       null);
     behaviorRepo.set('walletResult',      null);
     behaviorRepo.set('orderResult',       null);
+    // orderStrategyProfile : intentionnellement NON effacé ici.
+    // Un profil GRID d'un Order History récent doit pouvoir contextualiser
+    // plusieurs imports Trade History successifs pendant 7 jours.
     behaviorRepo.set('importInfo',        info);
     behaviorRepo.set('trades',            result.trades);
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
