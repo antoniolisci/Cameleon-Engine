@@ -373,12 +373,19 @@ async function importBinanceSpot(file) {
   if (fileFormat === 'ORDER_HISTORY' && (level === 'FULL_TRADING' || level === 'PARTIAL_TRADING')) {
     console.debug('[bhv:import] Order History détecté — branchement pipeline ordres');
     const sessionId = `session_${Date.now()}`;
-    const { trades: orderTrades, skipped: orderSkipped } = mapOrderRows(rows, sessionId);
+    const { trades: orderTrades, skipped: orderSkipped, statusCounts } = mapOrderRows(rows, sessionId);
 
     if (orderTrades.length === 0) {
+      const statusList = Object.keys(statusCounts || {});
+      const statusHint = statusList.length > 0
+        ? ` Statuts détectés : ${statusList.join(', ')}.`
+        : '';
       return {
         ok:    false,
-        error: 'Order History importé mais aucun ordre exécuté (FILLED) trouvé. Vérifiez que l\'export contient des ordres complètement remplis.',
+        error: `Order History importé mais aucun ordre exécuté (FILLED) trouvé.${statusHint}`,
+        diagnostic: statusList.length > 0
+          ? `Statuts trouvés dans le fichier :\n${Object.entries(statusCounts).map(([k,v]) => `  ${k} × ${v}`).join('\n')}`
+          : 'Aucune colonne Statut/Status reconnue.',
         trades: []
       };
     }

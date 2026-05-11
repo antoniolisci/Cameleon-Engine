@@ -24,7 +24,8 @@ function normalizeKey(str) {
 
 const ALIASES_DATE     = ['date(utc)', 'date', 'utc time', 'time', 'timestamp',
                           'created time', 'update time', 'open time', 'created at',
-                          'order time', 'trade time', 'heure', 'date et heure'];
+                          'order time', 'trade time', 'heure', 'date et heure',
+                          'duree'];
 const ALIASES_SYMBOL   = ['pair', 'symbol', 'market', 'trading pair', 'ticker', 'paire', 'asset'];
 const ALIASES_SIDE     = ['side', 'order side', 'direction', 'cote', 'sens'];
 const ALIASES_PRICE    = ['price', 'avg price', 'avg. price', 'filled price', 'average price',
@@ -42,6 +43,23 @@ const ALIASES_STATUS   = ['status', 'statut', 'order status', 'statut ordre', 'e
 const ALIASES_ORDER_ID = ['order id', 'orderid', 'order no', 'order number', 'id ordre'];
 
 // ── Statuts reconnus comme "exécuté" ─────────────────────────────────────────
+// isFilledStatus normalise la valeur brute (lowercase + suppression diacritiques)
+// avant comparaison → couvre toutes les variantes FR/EN accentuées ou non.
+//
+// FR : Complété, Exécuté, Terminé, Rempli, Complete, Execute, Termine
+// EN : FILLED, Filled, EXECUTED, COMPLETED, COMPLETE, DONE
+
+function isFilledStatus(value) {
+  const norm = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');   // "Complété" → "complete", "Exécuté" → "execute"
+  return norm === 'filled'    || norm === 'rempli'   || norm === 'complete'  ||
+         norm === 'completed' || norm === 'execute'  || norm === 'executed'  ||
+         norm === 'termine'   || norm === 'done'     || norm === 'closed'    ||
+         norm.startsWith('filled');
+}
 
 const FILLED_STATUSES = new Set(['FILLED', 'REMPLI', 'COMPLETED', 'COMPLETE', 'DONE']);
 
@@ -55,6 +73,13 @@ function normalizeOrderRow(row) {
     norm[normalizeKey(k)] = v;
   }
 
+  // Canonicalise Date(UTC±N) → date(utc) (même logique que binance_spot.js).
+  for (const key of Object.keys(norm)) {
+    if (/^date\(utc[+-]\d+\)$/.test(key) && norm['date(utc)'] === undefined) {
+      norm['date(utc)'] = norm[key];
+    }
+  }
+
   const get = (aliases) => {
     for (const alias of aliases) {
       if (norm[alias] !== undefined && norm[alias] !== '') return norm[alias];
@@ -63,9 +88,10 @@ function normalizeOrderRow(row) {
   };
 
   // ── Statut — filtre les ordres non exécutés ───────────────────────────────
-  const rawStatus = String(get(ALIASES_STATUS)).trim().toUpperCase();
+  const rawStatus = String(get(ALIASES_STATUS)).trim();
+  console.log('[ORDER STATUS]', JSON.stringify(rawStatus));
   if (!rawStatus) return null;   // pas de statut → format inattendu
-  if (!FILLED_STATUSES.has(rawStatus) && !rawStatus.startsWith('FILLED')) return null;
+  if (!isFilledStatus(rawStatus)) return null;
 
   // ── Timestamp ─────────────────────────────────────────────────────────────
   const timestamp = parseDate(get(ALIASES_DATE));
@@ -129,10 +155,21 @@ function normalizeOrderRow(row) {
 // sessionId : identifiant de session
 
 function mapOrderRows(rows, sessionId) {
-  const trades = [];
-  let   skipped = 0;
+  const trades       = [];
+  let   skipped      = 0;
+  const statusCounts = {};   // { rawStatus: count } — pour diagnostic si 0 FILLED
 
   for (const row of rows) {
+    // Collecter les statuts bruts pour diagnostic (avant filtre)
+    const stKey  = Object.keys(row).find(k => {
+      const n = k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return n.includes('status') || n.includes('statut') || n.includes('etat');
+    });
+    if (stKey) {
+      const stVal = String(row[stKey]).trim();
+      if (stVal) statusCounts[stVal] = (statusCounts[stVal] || 0) + 1;
+    }
+
     const t = normalizeOrderRow(row);
     if (t) {
       trades.push({ ...t, session_id: sessionId, tags: [] });
@@ -141,15 +178,39 @@ function mapOrderRows(rows, sessionId) {
     }
   }
 
-  return { trades, skipped };
+  console.log('[ORDER_HISTORY] rows total =', rows.length,
+    '| filled =', trades.length, '| rejected =', skipped);
+
+  if (trades.length === 0 && Object.keys(statusCounts).length > 0) {
+    console.warn('[ORDER_HISTORY] Aucun ordre FILLED — statuts trouvés :', statusCounts);
+  }
+
+  return { trades, skipped, statusCounts };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Même logique que parseNum dans binance_spot.js : formats FR et EN supportés.
+// "0,25" → 0.25 · "1.234,56" → 1234.56 · "1,234.56" → 1234.56 · "21 500" → 21500
 function parseNum(raw) {
-  const str = String(raw || '').trim()
-    .replace(/\s(?=\d)/g, '')
-    .replace(/,(\d{3})(?=[,.\s]|$)/g, '$1');
+  let str = String(raw || '').trim()
+    .replace(/\s(?=\d)/g, '');   // espaces milliers
+
+  const hasComma = str.includes(',');
+  const hasDot   = str.includes('.');
+
+  if (hasComma && hasDot) {
+    if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
+      str = str.replace(/\./g, '').replace(',', '.');   // "1.234,56" → "1234.56"
+    } else {
+      str = str.replace(/,/g, '');                      // "1,234.56" → "1234.56"
+    }
+  } else if (hasComma) {
+    str = /,\d{3}(?:\D|$)/.test(str)
+      ? str.replace(/,/g, '')    // milliers : "1,234" → "1234"
+      : str.replace(',', '.');   // décimal  : "0,25"  → "0.25"
+  }
+
   const match = str.match(/^([\d.]+)/);
   return match ? parseFloat(match[1]) : 0;
 }
