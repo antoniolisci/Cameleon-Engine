@@ -140,16 +140,33 @@ function computeScore(patterns, metrics, gridContext = null) {
 
   // 1. Pénalités patterns avec contexte
   let patternPenalty = 0;
+  let anyGridApplied = false;   // tracé pour score.gridContextApplied
+
   pats.forEach(p => {
+    // ── Corrélation symbole GRID (V4.4) ──────────────────────────────────────
+    // Le contexte grille ne s'applique que si les symboles ayant déclenché
+    // l'overtrading correspondent aux symboles du profil GRID (Order History).
+    // gridContext.symbols = [] → aucun filtre → tous les symboles → overlap = true.
+    // p.symbols = [] → pattern sans info symbole → on laisse passer (backward compat).
+    let gridSymbolsMatch = false;
+    if (p.type === 'overtrading' && gridActive) {
+      const gridSyms  = gridContext?.symbols || [];
+      const tradeSyms = p.symbols            || [];
+      gridSymbolsMatch =
+        gridSyms.length  === 0 ||   // Order History sans filtre symbole → s'applique à tout
+        tradeSyms.length === 0 ||   // pattern sans info symbole → backward compat
+        tradeSyms.some(s => gridSyms.includes(s));
+    }
+
+    const hasGridForPattern = p.type === 'overtrading' && gridActive && gridSymbolsMatch;
+    if (hasGridForPattern) anyGridApplied = true;
+
     const ctx = {
       paceDelay,
       isIsolated:      p.type === 'overtrading' && !hasOtherPatterns,
-      hasGridProfile:  p.type === 'overtrading' && gridActive,
-      // gridConfidence : 0–1 transmis depuis order-analyzer via orderStrategyProfile.
-      // Null si gridActive est false — getPenalty ignore la valeur dans ce cas.
-      gridConfidence:  (p.type === 'overtrading' && gridActive)
-                         ? (gridContext?.confidence ?? null)
-                         : null
+      hasGridProfile:  hasGridForPattern,
+      // gridConfidence : null si corrélation symbole échoue → pénalité normale.
+      gridConfidence:  hasGridForPattern ? (gridContext?.confidence ?? null) : null
     };
     patternPenalty += getPenalty(p, ctx);
   });
@@ -185,9 +202,10 @@ function computeScore(patterns, metrics, gridContext = null) {
   const types = new Set(pats.map(p => p.type));
   const interpretation = buildInterpretation(profile.key, dominantRisk, types);
 
-  // Annotation contexte grille — tracé dans le score si appliqué.
-  // Permet à behavior-view.js d'afficher une notice sans recalculer la condition.
-  const gridContextApplied = gridActive && pats.some(p => p.type === 'overtrading');
+  // Annotation contexte grille — true uniquement si la corrélation symbole a réussi.
+  // Permet à behavior-view.js d'afficher la notice sans recalculer la condition.
+  // V4.4 : false si Order History GRID ne couvre pas les symboles de l'overtrading.
+  const gridContextApplied = anyGridApplied;
 
   return { score, profile, dominantRisk, interpretation, gridContextApplied };
 }
