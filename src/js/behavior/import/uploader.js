@@ -4,9 +4,12 @@
 
 import { parseCSV } from './parser.js';
 import { mapBinanceSpotRow } from '../normalize/mappers/binance_spot.js';
+import { mapOrderRows } from '../normalize/mappers/binance_order.js';
 import { isValidTrade } from '../normalize/validator.js';
 import { validateTrades } from '../normalize/trade-validator.js';
 import { analyzeWallet } from '../wallet/wallet_analyzer.js';
+import { detectFormat } from './format-detector.js';
+import { analyzeOrders } from '../analytics/order-analyzer.js';
 
 // ── Normalisation des en-têtes ────────────────────────────────────────────────
 // Minuscules + suppression diacritiques + normalisation séparateurs.
@@ -139,6 +142,18 @@ async function readFileAsXLSX(file) {
 
 async function importBinanceSpot(file) {
   const ext    = file.name.split('.').pop().toLowerCase();
+
+  // ── Garde ZIP ────────────────────────────────────────────────────────────────
+  // Binance propose parfois des exports zippés. Sans décompression, le fichier
+  // n'est pas lisible — on indique clairement quoi faire plutôt que de planter.
+  if (ext === 'zip') {
+    return {
+      ok:    false,
+      error: 'Format ZIP non supporté. Décompressez l\'archive et importez directement le fichier CSV ou Excel qu\'elle contient.',
+      trades: []
+    };
+  }
+
   const isXLSX = ext === 'xlsx' || ext === 'xls';
 
   let rows;
@@ -160,6 +175,7 @@ async function importBinanceSpot(file) {
   const headers        = Object.keys(rows[0]);
   const classification = classifyFile(headers);
   const { level, subtype } = classification;
+  const fileFormat     = detectFormat(headers);
 
   // NON_TRADING / wallet → pipeline wallet dédié
   if (level === 'NON_TRADING' && subtype === 'wallet') {
@@ -193,6 +209,33 @@ async function importBinanceSpot(file) {
       ok:    false,
       error: 'Format de fichier non reconnu. Vérifiez que l\'import provient d\'un historique de trades exécutés.',
       trades: []
+    };
+  }
+
+  // FORMAT B — Order History → pipeline ordres dédié
+  if (fileFormat === 'ORDER_HISTORY' && (level === 'FULL_TRADING' || level === 'PARTIAL_TRADING')) {
+    console.debug('[bhv:import] Order History détecté — branchement pipeline ordres');
+    const sessionId = `session_${Date.now()}`;
+    const { trades: orderTrades, skipped: orderSkipped } = mapOrderRows(rows, sessionId);
+
+    if (orderTrades.length === 0) {
+      return {
+        ok:    false,
+        error: 'Order History importé mais aucun ordre exécuté (FILLED) trouvé. Vérifiez que l\'export contient des ordres complètement remplis.',
+        trades: []
+      };
+    }
+
+    const orderAnalysis = analyzeOrders(orderTrades, rows.length);
+
+    return {
+      ok:           true,
+      type:         'order_history',
+      trades:       orderTrades,
+      skipped:      orderSkipped,
+      sessionId,
+      analysisQuality: level === 'PARTIAL_TRADING' ? 'partial' : 'full',
+      orderAnalysis
     };
   }
 
