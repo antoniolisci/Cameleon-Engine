@@ -47,6 +47,15 @@ function detectPatterns(trades, metrics) {
   const sorted = [...trades].sort((a, b) => a.timestamp - b.timestamp);
   const detected = [];
 
+  // Diagnostic groupes grille — aide à vérifier ce qui a été absorbé
+  const gridGroups = sorted.filter(t => t._isGridGroup);
+  if (gridGroups.length > 0) {
+    dbg('groupes grille dans le flux : %d (%s)',
+      gridGroups.length,
+      gridGroups.map(g => `${g.symbol}/${g.side}×${g._groupSize}`).join(', ')
+    );
+  }
+
   const ot = detectOvertrading(sorted);
   if (ot) detected.push(ot);
 
@@ -211,6 +220,11 @@ function detectRapidReentry(sorted) {
 // et le prochain BUY après lui (dans la fenêtre reentry).
 // v3 : toutes les recherches sont restreintes au même symbole que le SELL.
 // Un BUY sur une paire différente ne constitue pas une réentrée rapide.
+//
+// v4 : pour les trades synthétiques issus du grid-grouper (_isGridGroup = true),
+// le hold time est mesuré depuis _lastTimestamp (fin réelle du groupe), pas depuis
+// timestamp (début du groupe). Sans cette correction, BUY1→BUY2→BUY3→SELL serait
+// mesuré depuis BUY1, sous-estimant la durée de détention réelle (BUY3→SELL).
 function findRapidReentryInstances(sorted) {
   const holdMs    = RR_HOLD_MAX_MIN    * 60000;
   const reentryMs = RR_REENTRY_MAX_MIN * 60000;
@@ -228,7 +242,12 @@ function findRapidReentryInstances(sorted) {
       }
     }
     if (!prevBuy) continue;
-    if (sell.timestamp - prevBuy.timestamp > holdMs) continue;
+
+    // Pour un groupe grille, la fin effective d'entrée = _lastTimestamp.
+    // C'est le timestamp du dernier BUY du groupe — c'est depuis là qu'on est
+    // réellement "en position", pas depuis le premier BUY du groupe.
+    const prevBuyEffectiveTs = prevBuy._lastTimestamp || prevBuy.timestamp;
+    if (sell.timestamp - prevBuyEffectiveTs > holdMs) continue;
 
     // Prochain BUY APRÈS ce SELL — même symbole
     let nextBuy = null;
