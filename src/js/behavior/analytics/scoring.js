@@ -53,13 +53,23 @@ function getPenalty(pattern, ctx) {
       // L'activité est élevée, mais sizing et comportement restent cohérents.
       // Si un profil GRID récent est présent (Order History < 7 jours), la
       // fréquence élevée peut être expliquée par une stratégie planifiée.
-      // → atténuation plus forte qu'un overtrading isolé sans contexte.
       // Condition stricte : overtrading SEUL — dès qu'un autre pattern agressif
       // est présent (rapid_reentry, loss_chasing…), la pénalité normale s'applique.
+      //
+      // V4.3 — atténuation pondérée par la confiance du profil GRID (0–1) :
+      //   factor = 0.60 − confidence × 0.25
+      //   confidence = 0.0  → factor = 0.60  (grille peu fiable, bénéfice minimal)
+      //   confidence = 0.5  → factor = 0.475 (grille modérément régulière)
+      //   confidence = 1.0  → factor = 0.35  (grille dense et régulière, atténuation max)
+      // Fallback si confidence absente : 0.5 (comportement V4.2 ≈ 0.4, légèrement plus conservateur)
       if (ctx?.isIsolated) {
-        base = ctx?.hasGridProfile
-          ? Math.ceil(base * 0.4)   // overtrading seul + contexte grille → atténuation forte
-          : Math.ceil(base * 0.7);  // overtrading seul sans grille → atténuation légère
+        if (ctx?.hasGridProfile) {
+          const conf   = typeof ctx.gridConfidence === 'number' ? ctx.gridConfidence : 0.5;
+          const factor = 0.60 - conf * 0.25;
+          base = Math.ceil(base * factor);
+        } else {
+          base = Math.ceil(base * 0.7);  // overtrading seul sans grille → atténuation légère
+        }
       }
 
       return base;
@@ -133,8 +143,13 @@ function computeScore(patterns, metrics, gridContext = null) {
   pats.forEach(p => {
     const ctx = {
       paceDelay,
-      isIsolated:     p.type === 'overtrading' && !hasOtherPatterns,
-      hasGridProfile: p.type === 'overtrading' && gridActive
+      isIsolated:      p.type === 'overtrading' && !hasOtherPatterns,
+      hasGridProfile:  p.type === 'overtrading' && gridActive,
+      // gridConfidence : 0–1 transmis depuis order-analyzer via orderStrategyProfile.
+      // Null si gridActive est false — getPenalty ignore la valeur dans ce cas.
+      gridConfidence:  (p.type === 'overtrading' && gridActive)
+                         ? (gridContext?.confidence ?? null)
+                         : null
     };
     patternPenalty += getPenalty(p, ctx);
   });
