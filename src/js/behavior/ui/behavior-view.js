@@ -80,6 +80,7 @@ function readGridContext() {
 function mount(root) {
   const trades            = behaviorRepo.get('trades');
   const importError       = behaviorRepo.get('importError');
+  const importDiagnostic  = behaviorRepo.get('importDiagnostic');
   const importInfo        = behaviorRepo.get('importInfo');
   const walletResult      = behaviorRepo.get('walletResult');
   const orderResult       = behaviorRepo.get('orderResult');
@@ -141,7 +142,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -187,6 +188,7 @@ function buildImportCard(state) {
       </div>
 
       ${state.importError ? `<div class="bhv-msg bhv-msg--error">${escHtml(state.importError)}</div>` : ''}
+      ${state.importDiagnostic ? `<pre class="bhv-msg bhv-msg--diagnostic">${escHtml(state.importDiagnostic)}</pre>` : ''}
       ${state.importInfo  ? `<div class="bhv-msg bhv-msg--info">${escHtml(state.importInfo)}</div>`  : ''}
 
       ${(state.trades || state.walletResult || state.orderResult) ? `
@@ -1137,6 +1139,7 @@ async function handleImport(file, root) {
 
   if (!result.ok) {
     behaviorRepo.set('importError',       result.error);
+    behaviorRepo.set('importDiagnostic',  result.diagnostic ?? null);
     behaviorRepo.set('importInfo',        null);
     behaviorRepo.set('trades',            null);
     behaviorRepo.set('walletResult',      null);
@@ -1146,6 +1149,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('validationWarnings', []);
   } else if (result.type === 'wallet') {
     behaviorRepo.set('importError',        null);
+    behaviorRepo.set('importDiagnostic',   null);
     behaviorRepo.set('trades',             null);
     behaviorRepo.set('walletResult',       result);
     behaviorRepo.set('orderResult',        null);
@@ -1159,6 +1163,7 @@ async function handleImport(file, root) {
     const pl    = n => n !== 1;
     const info  = `${count} ordre${pl(count) ? 's' : ''} FILLED importé${pl(count) ? 's' : ''} · ${skip} ignoré${pl(skip) ? 's' : ''} · Order History`;
     behaviorRepo.set('importError',        null);
+    behaviorRepo.set('importDiagnostic',   null);
     behaviorRepo.set('trades',             result.trades);
     behaviorRepo.set('walletResult',       null);
     behaviorRepo.set('orderResult',        result.orderAnalysis);
@@ -1194,6 +1199,7 @@ async function handleImport(file, root) {
       ? `Données partielles — ${count} trade${pl(count) ? 's' : ''} exploitable${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''} · analyse indicative`
       : `${count} trade${pl(count) ? 's' : ''} importé${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''}`;
     behaviorRepo.set('importError',       null);
+    behaviorRepo.set('importDiagnostic',  null);
     behaviorRepo.set('walletResult',      null);
     behaviorRepo.set('orderResult',       null);
     // orderStrategyProfile : intentionnellement NON effacé ici.

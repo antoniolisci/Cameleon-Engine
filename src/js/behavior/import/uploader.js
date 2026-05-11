@@ -2,7 +2,7 @@
 // Architecture extensible : le pipeline traduit tout fichier externe vers le modèle interne
 // { timestamp, symbol, side, price, quantity, fee } — indépendamment de la plateforme source.
 
-import { parseCSV } from './parser.js';
+import { parseCSV, detectSeparator } from './parser.js';
 import { mapBinanceSpotRow } from '../normalize/mappers/binance_spot.js';
 import { mapOrderRows } from '../normalize/mappers/binance_order.js';
 import { isValidTrade } from '../normalize/validator.js';
@@ -10,6 +10,8 @@ import { validateTrades } from '../normalize/trade-validator.js';
 import { analyzeWallet } from '../wallet/wallet_analyzer.js';
 import { detectFormat } from './format-detector.js';
 import { analyzeOrders } from '../analytics/order-analyzer.js';
+
+console.info('[BEHAVIOR IMPORT VERSION] 52cab1a Binance FR fix loaded');
 
 // ── Normalisation des en-têtes ────────────────────────────────────────────────
 // Minuscules + suppression diacritiques + normalisation séparateurs.
@@ -163,12 +165,23 @@ async function importBinanceSpot(file) {
   console.log('[bhv:import] fichier : "%s" · extension : %s · type lu : %s',
     file.name, ext, isXLSX ? 'xlsx/xls (SheetJS)' : 'texte (CSV)');
 
+  // ── Collecte des données brutes pour le diagnostic ───────────────────────────
+  let rawText    = null;
+  let rawLines   = null;
+  let rawSep     = null;
+  let hasBOM     = false;
+
   let rows;
   try {
     if (isXLSX) {
       rows = await readFileAsXLSX(file);
     } else {
       const text = await readFileAsText(file);
+      hasBOM   = text.startsWith('\ufeff');
+      rawText  = text;
+      const clean = text.replace(/^\ufeff/, '');
+      rawLines = clean.trim().split(/\r?\n/);
+      rawSep   = rawLines.length > 0 ? detectSeparator(rawLines[0]) : '?';
       rows = parseCSV(text);
     }
   } catch (err) {
@@ -180,11 +193,46 @@ async function importBinanceSpot(file) {
   }
 
   const headers        = Object.keys(rows[0]);
+  const headersNorm    = headers.map(normalizeHeader);
+
+  // ── Diagnostic console ────────────────────────────────────────────────────────
+  console.group('[IMPORT DEBUG]');
+  console.log('Fichier       :', file.name);
+  console.log('Extension     :', ext);
+  console.log('Taille        :', file.size, 'octets');
+  if (!isXLSX) {
+    console.log('BOM UTF-8     :', hasBOM ? 'OUI \\ufeff détecté et supprimé' : 'non');
+    console.log('Lignes brutes :', rawLines?.length ?? '?');
+    console.log('Séparateur    :', JSON.stringify(rawSep));
+    console.log('1ère ligne    :', rawLines?.[0] ?? '?');
+  }
+  console.log('Headers bruts :', headers);
+  console.log('Headers norm  :', headersNorm);
+  console.groupEnd();
+
   console.log('[bhv:import] colonnes trouvées (%d) : %s', headers.length, headers.join(' | '));
 
   const classification = classifyFile(headers);
   const { level, subtype } = classification;
   const fileFormat     = detectFormat(headers);
+
+  // ── Complément diagnostic : signaux de classification ────────────────────────
+  {
+    const h = headersNorm;
+    const signals = {
+      date:   h.some(c => matchesField(c, DETECT_DATE))   ? '✅' : '❌',
+      symbol: h.some(c => matchesField(c, DETECT_SYMBOL)) ? '✅' : '❌',
+      side:   h.some(c => matchesField(c, DETECT_SIDE))   ? '✅' : '❌',
+      price:  h.some(c => matchesField(c, DETECT_PRICE))  ? '✅' : '❌',
+      qty:    h.some(c => matchesField(c, DETECT_QTY))    ? '✅' : '❌',
+    };
+    console.group('[IMPORT DEBUG] Classification');
+    console.log('Signaux trading :', signals);
+    console.log('Level / Subtype :', level, '/', subtype);
+    console.log('Format détecté  :', fileFormat);
+    console.groupEnd();
+  }
+
   console.log('[bhv:import] classification → %s/%s · format → %s', level, subtype, fileFormat);
 
   // NON_TRADING / wallet → pipeline wallet dédié
@@ -224,7 +272,13 @@ async function importBinanceSpot(file) {
     const errorMsg = looksLikeBinance
       ? `Export Binance détecté mais colonnes non mappées. Colonnes trouvées : ${colPreview}`
       : `Colonnes non reconnues. Colonnes trouvées : ${colPreview}`;
-    return { ok: false, error: errorMsg, trades: [] };
+    const h = headersNorm;
+    const diagLines = [
+      `Bloqué en : NON_TRADING (classification)`,
+      `date:${h.some(c => matchesField(c, DETECT_DATE)) ? '✅' : '❌'} symbol:${h.some(c => matchesField(c, DETECT_SYMBOL)) ? '✅' : '❌'} side:${h.some(c => matchesField(c, DETECT_SIDE)) ? '✅' : '❌'} price:${h.some(c => matchesField(c, DETECT_PRICE)) ? '✅' : '❌'} qty:${h.some(c => matchesField(c, DETECT_QTY)) ? '✅' : '❌'}`,
+      `Colonnes normalisées : ${headersNorm.join(' | ')}`,
+    ];
+    return { ok: false, error: errorMsg, diagnostic: diagLines.join('\n'), trades: [] };
   }
 
   // FORMAT B — Order History → pipeline ordres dédié
@@ -273,7 +327,7 @@ async function importBinanceSpot(file) {
       ? 'Certaines colonnes ont été détectées mais aucun trade valide n\'a pu être extrait. Les données sont peut-être dans un format non supporté.'
       : 'Aucun trade valide trouvé. Vérifiez que l\'export correspond à des ordres exécutés (pas annulés ou en attente).';
     console.debug('[bhv:import] 0 trades extraits | level=%s | colonnes=%s', level, headers.join(', '));
-    return { ok: false, error: hint, trades: [] };
+    return { ok: false, error: hint, diagnostic: `Bloqué en : 0 trades extraits (mapping/validation)\nColonnes normalisées : ${headersNorm.join(' | ')}`, trades: [] };
   }
 
   const analysisQuality = level === 'PARTIAL_TRADING' ? 'partial' : 'full';
