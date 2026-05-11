@@ -1,0 +1,174 @@
+// Normalise une ligne d'Order History Binance vers le format canonique interne.
+//
+// Format B — Order History : contient Order ID + Status/Statut.
+// Seuls les ordres FILLED sont extraits pour l'analyse comportementale.
+// Les ordres NEW, CANCELED, PARTIALLY_FILLED sont ignorés (pas d'exécution réelle).
+//
+// Canonical output :
+//   { timestamp, symbol, side, price, quantity, quote_value, fee,
+//     orderId, status, fillRate }
+//
+// fillRate : fraction exécutée (0–1), utile pour l'analyse de fill rate.
+
+// ── Normalisation de clé ───────────────────────────────────────────────────────
+function normalizeKey(str) {
+  return String(str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s_./\\-]+/g, ' ')
+    .trim();
+}
+
+// ── Tables d'alias ────────────────────────────────────────────────────────────
+
+const ALIASES_DATE     = ['date(utc)', 'date', 'utc time', 'time', 'timestamp',
+                          'created time', 'update time', 'open time', 'created at',
+                          'order time', 'trade time', 'heure', 'date et heure'];
+const ALIASES_SYMBOL   = ['pair', 'symbol', 'market', 'trading pair', 'ticker', 'paire', 'asset'];
+const ALIASES_SIDE     = ['side', 'order side', 'direction', 'cote', 'sens'];
+const ALIASES_PRICE    = ['price', 'avg price', 'avg. price', 'filled price', 'average price',
+                          'execution price', 'deal price', 'order price', 'last price',
+                          'prix', 'prix moyen', 'prix d execution'];
+const ALIASES_QTY      = ['executed qty', 'filled qty', 'executed', 'filled', 'qty', 'quantity',
+                          'base qty', 'base quantity', 'amount', 'execute', 'quantite'];
+const ALIASES_ORDER_QTY = ['order quantity', 'original qty', 'orig qty', 'quantite ordre',
+                            'quantite initiale'];
+const ALIASES_QUOTE    = ['total', 'quote qty', 'quote quantity', 'value', 'deal value',
+                          'montant', 'valeur totale'];
+const ALIASES_FEE      = ['fee', 'commission', 'fee amount', 'transaction fee', 'trading fee',
+                          'frais', 'frais de transaction'];
+const ALIASES_STATUS   = ['status', 'statut', 'order status', 'statut ordre', 'etat'];
+const ALIASES_ORDER_ID = ['order id', 'orderid', 'order no', 'order number', 'id ordre'];
+
+// ── Statuts reconnus comme "exécuté" ─────────────────────────────────────────
+
+const FILLED_STATUSES = new Set(['FILLED', 'REMPLI', 'COMPLETED', 'COMPLETE', 'DONE']);
+
+// ── normalizeOrderRow ─────────────────────────────────────────────────────────
+// row : objet brut (clés brutes du CSV/XLSX)
+// Retourne un objet canonique ou null si l'ordre n'est pas exécuté.
+
+function normalizeOrderRow(row) {
+  const norm = {};
+  for (const [k, v] of Object.entries(row)) {
+    norm[normalizeKey(k)] = v;
+  }
+
+  const get = (aliases) => {
+    for (const alias of aliases) {
+      if (norm[alias] !== undefined && norm[alias] !== '') return norm[alias];
+    }
+    return '';
+  };
+
+  // ── Statut — filtre les ordres non exécutés ───────────────────────────────
+  const rawStatus = String(get(ALIASES_STATUS)).trim().toUpperCase();
+  if (!rawStatus) return null;   // pas de statut → format inattendu
+  if (!FILLED_STATUSES.has(rawStatus) && !rawStatus.startsWith('FILLED')) return null;
+
+  // ── Timestamp ─────────────────────────────────────────────────────────────
+  const timestamp = parseDate(get(ALIASES_DATE));
+  if (!timestamp) return null;
+
+  // ── Symbole ───────────────────────────────────────────────────────────────
+  const symbol = get(ALIASES_SYMBOL).trim().toUpperCase();
+
+  // ── Côté ──────────────────────────────────────────────────────────────────
+  let rawSide = get(ALIASES_SIDE).trim().toUpperCase();
+  if (!rawSide) {
+    for (const col of ['type', 'trade type', 'order type']) {
+      const val = (norm[col] || '').trim().toUpperCase();
+      if (val.startsWith('BUY') || val.startsWith('SELL')) { rawSide = val; break; }
+    }
+  }
+  const side = (rawSide === 'BUY'  || rawSide.startsWith('BUY_')  || rawSide === 'LONG'  || rawSide === 'ACHAT') ? 'BUY'
+             : (rawSide === 'SELL' || rawSide.startsWith('SELL_') || rawSide === 'SHORT' || rawSide === 'VENTE') ? 'SELL'
+             : rawSide;
+
+  // ── Prix ──────────────────────────────────────────────────────────────────
+  const price = parseNum(get(ALIASES_PRICE));
+
+  // ── Quantité exécutée ─────────────────────────────────────────────────────
+  const qty = parseNum(get(ALIASES_QTY));
+
+  // ── Quantité initiale (pour fill rate) ────────────────────────────────────
+  const orderQty = parseNum(get(ALIASES_ORDER_QTY)) || qty;
+
+  // ── Quote value ───────────────────────────────────────────────────────────
+  const totalVal  = parseNum(get(ALIASES_QUOTE));
+  const quote_value = totalVal > 0 ? totalVal : price * qty;
+
+  // ── Frais ─────────────────────────────────────────────────────────────────
+  const fee = parseNum(get(ALIASES_FEE));
+
+  // ── Order ID ──────────────────────────────────────────────────────────────
+  const orderId = get(ALIASES_ORDER_ID) || null;
+
+  if (!symbol || !side || !price || !qty) return null;
+
+  const fillRate = orderQty > 0 ? Math.min(qty / orderQty, 1) : 1;
+
+  return {
+    timestamp,
+    symbol,
+    side,
+    price,
+    quantity:      qty,
+    quote_value,
+    quote_quantity: quote_value,
+    fee,
+    orderId,
+    status:        rawStatus,
+    fillRate
+  };
+}
+
+// ── mapOrderRows ──────────────────────────────────────────────────────────────
+// Convertit un tableau de lignes brutes en trades canoniques filtrés (FILLED seulement).
+// sessionId : identifiant de session
+
+function mapOrderRows(rows, sessionId) {
+  const trades = [];
+  let   skipped = 0;
+
+  for (const row of rows) {
+    const t = normalizeOrderRow(row);
+    if (t) {
+      trades.push({ ...t, session_id: sessionId, tags: [] });
+    } else {
+      skipped++;
+    }
+  }
+
+  return { trades, skipped };
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function parseNum(raw) {
+  const str = String(raw || '').trim()
+    .replace(/\s(?=\d)/g, '')
+    .replace(/,(\d{3})(?=[,.\s]|$)/g, '$1');
+  const match = str.match(/^([\d.]+)/);
+  return match ? parseFloat(match[1]) : 0;
+}
+
+function parseDate(str) {
+  if (!str) return null;
+  str = str.trim();
+  if (/^\d{10}$/.test(str)) return parseInt(str, 10) * 1000;
+  if (/^\d{13}$/.test(str)) return parseInt(str, 10);
+  const shortYear = str.match(/^(\d{2})-(\d{2})-(\d{2})\s(\d{2}:\d{2}:\d{2})$/);
+  if (shortYear) {
+    const iso = `20${shortYear[1]}-${shortYear[2]}-${shortYear[3]}T${shortYear[4]}Z`;
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? null : d.getTime();
+  }
+  const normalized = str.replace(' ', 'T');
+  const suffix = (normalized.includes('Z') || normalized.includes('+')) ? '' : 'Z';
+  const d = new Date(normalized + suffix);
+  return isNaN(d.getTime()) ? null : d.getTime();
+}
+
+export { normalizeOrderRow, mapOrderRows, FILLED_STATUSES };

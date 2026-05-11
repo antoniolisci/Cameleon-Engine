@@ -11,6 +11,7 @@ import { detectPatterns, tagTrades } from '../analytics/patterns.js';
 import { computeScore          } from '../analytics/scoring.js';
 import { computeCoaching       } from '../analytics/coaching.js';
 import { buildBehaviorBridgeOutput } from '../behavior-bridge.js';
+import { groupGridTrades } from '../analytics/grid-grouper.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -19,6 +20,7 @@ function mount(root) {
   const importError       = behaviorRepo.get('importError');
   const importInfo        = behaviorRepo.get('importInfo');
   const walletResult      = behaviorRepo.get('walletResult');
+  const orderResult       = behaviorRepo.get('orderResult');
   const validationWarning  = behaviorRepo.get('validationWarning');
   const validationWarnings = behaviorRepo.get('validationWarnings');
 
@@ -31,13 +33,18 @@ function mount(root) {
   let transitions = null;
 
   if (trades && trades.length > 0) {
-    metrics     = computeMetrics(trades);
-    patterns    = detectPatterns(trades, metrics);
-    tradeTags   = tagTrades(trades, metrics);
+    // Regroupement grille avant pattern detection.
+    // Les séquences grille (même symbole/côté, intervalle court) sont consolidées
+    // en un trade synthétique pour éviter les faux positifs overtrading/size_inconsistency.
+    const tradesForAnalysis = groupGridTrades(trades);
+
+    metrics     = computeMetrics(tradesForAnalysis);
+    patterns    = detectPatterns(tradesForAnalysis, metrics);
+    tradeTags   = tagTrades(tradesForAnalysis, metrics);
     score       = computeScore(patterns, metrics);
     coaching    = computeCoaching(patterns, metrics, score);
-    style       = detectStyle(trades, metrics);
-    transitions = detectStyleTransitions(trades, style?.key);
+    style       = detectStyle(tradesForAnalysis, metrics);
+    transitions = detectStyleTransitions(tradesForAnalysis, style?.key);
 
     // ── Behavior Bridge — storage-mediated merge ──────────────────────────
     // Translates the historical score (0–100) into a Guard level (1–5) and
@@ -66,7 +73,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult, validationWarning, validationWarnings });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importInfo, walletResult, orderResult, validationWarning, validationWarnings });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -81,12 +88,13 @@ function buildShell(state) {
     <div class="bhv-shell">
       <div class="bhv-header">
         <h2 class="bhv-title">Analyse comportementale</h2>
-        <p class="bhv-subtitle">Import CSV Binance Spot · V3</p>
+        <p class="bhv-subtitle">Import CSV / Excel Binance · V4</p>
       </div>
       ${buildImportCard(state)}
       ${buildSessionsCard(state)}
-      ${state.trades       ? buildAnalysis(state)
-          : state.walletResult ? buildWalletAnalysis(state.walletResult)
+      ${state.trades && !state.orderResult ? buildAnalysis(state)
+          : state.orderResult              ? buildOrderAnalysis(state.orderResult)
+          : state.walletResult             ? buildWalletAnalysis(state.walletResult)
           : ''}
     </div>`;
 }
@@ -98,7 +106,7 @@ function buildImportCard(state) {
     <div class="bhv-card bhv-import-card${state.importInfo ? ' bhv-pulse-ok' : ''}">
       <div class="bhv-card-head">
         <span class="bhv-card-title">Import CSV</span>
-        <span class="bhv-card-desc">Export Binance Spot · colonnes : Date(UTC), Pair, Side, Price, Executed, Amount, Fee</span>
+        <span class="bhv-card-desc">Trade History ou Order History Binance · CSV ou Excel</span>
       </div>
 
       <div class="bhv-drop-zone" id="bhvDropZone">
@@ -113,7 +121,7 @@ function buildImportCard(state) {
       ${state.importError ? `<div class="bhv-msg bhv-msg--error">${escHtml(state.importError)}</div>` : ''}
       ${state.importInfo  ? `<div class="bhv-msg bhv-msg--info">${escHtml(state.importInfo)}</div>`  : ''}
 
-      ${(state.trades || state.walletResult) ? `
+      ${(state.trades || state.walletResult || state.orderResult) ? `
         <div class="bhv-import-actions">
           <button class="bhv-btn bhv-btn--danger" id="bhvClearBtn" type="button">Effacer les données</button>
         </div>` : ''}
@@ -381,6 +389,86 @@ function buildWalletAnalysis(result) {
         </div>
       </div>
 
+    </div>`;
+}
+
+// ── Order History analysis panel ──────────────────────────────────────────────
+// Rendered when the imported file is an Order History (Format B).
+// Shows strategy profile, fill rate, directional ratio, grid spacing.
+
+function buildOrderAnalysis(result) {
+  if (!result) return '';
+  const { metrics: m, profile, summary } = result;
+
+  const profileLabel = {
+    grid:        'Grille',
+    dca:         'DCA',
+    opportuniste: 'Opportuniste',
+    mixte:       'Mixte',
+    inconnu:     'Inconnu'
+  }[profile] || profile;
+
+  const profileColor = {
+    grid:        'ok',
+    dca:         'ok',
+    opportuniste: 'warn',
+    mixte:       'neutral',
+    inconnu:     'neutral'
+  }[profile] || 'neutral';
+
+  const pct = v => v != null ? `${Math.round(v * 100)} %` : '—';
+  const num  = (v, dec = 1) => v != null ? v.toFixed(dec) : '—';
+
+  return `
+    <div class="bhv-analysis bhv-fade-in">
+      <div class="bhv-card">
+        <div class="bhv-card-head">
+          <span class="bhv-card-title">Analyse Order History</span>
+          <span class="bhv-card-desc">Format B · ordres exécutés (FILLED)</span>
+        </div>
+        <div class="bhv-dominant-banner bhv-dominant-banner--${profileColor}">
+          <span class="bhv-dominant-label">Profil détecté</span>
+          <span class="bhv-dominant-value">${escHtml(profileLabel)}</span>
+        </div>
+        ${m ? `
+        <div class="bhv-stat-grid">
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Ordres FILLED</div>
+            <div class="bhv-stat-value">${m.tradeCount}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Taux d'exéc.</div>
+            <div class="bhv-stat-value">${pct(m.fillRate)}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Sens dominant</div>
+            <div class="bhv-stat-value">${escHtml(m.majorSide || '—')}</div>
+          </div>
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Ratio directionnel</div>
+            <div class="bhv-stat-value">${pct(m.directionalRatio)}</div>
+          </div>
+          ${m.avgHoldMin != null ? `
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Durée moy. détention</div>
+            <div class="bhv-stat-value">${m.avgHoldMin < 60 ? Math.round(m.avgHoldMin) + ' min' : (m.avgHoldMin / 60).toFixed(1) + ' h'}</div>
+          </div>` : ''}
+          ${m.gridSpacing != null ? `
+          <div class="bhv-stat">
+            <div class="bhv-stat-label">Espacement grille</div>
+            <div class="bhv-stat-value">${pct(m.gridSpacing)}</div>
+          </div>` : ''}
+        </div>` : ''}
+        <div class="bhv-dominant-banner bhv-dominant-banner--neutral" style="margin-top:0.75rem">
+          <span class="bhv-dominant-label">Lecture</span>
+          <span class="bhv-dominant-value">${escHtml(summary)}</span>
+        </div>
+        ${m && m.cancelProfile !== 'none' ? `
+        <div class="bhv-reading-line" style="margin-top:0.5rem">
+          <span class="bhv-reading-dot bhv-reading-dot--${m.cancelProfile === 'heavy' ? 'danger' : 'warn'}"></span>
+          <span>Annulations : profil <strong>${escHtml(m.cancelProfile)}</strong></span>
+        </div>` : ''}
+      </div>
     </div>`;
 }
 
@@ -932,6 +1020,7 @@ function bindEvents(root, state) {
       behaviorRepo.set('trades',       session.trades);
       behaviorRepo.set('importError',  null);
       behaviorRepo.set('walletResult', null);
+      behaviorRepo.set('orderResult',  null);
       behaviorRepo.set('importInfo',   `Session "${session.name}" chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''}`);
       mount(root);
     });
@@ -976,6 +1065,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('importInfo',        null);
     behaviorRepo.set('trades',            null);
     behaviorRepo.set('walletResult',      null);
+    behaviorRepo.set('orderResult',       null);
     behaviorRepo.set('analysisQuality',    null);
     behaviorRepo.set('validationWarning',  false);
     behaviorRepo.set('validationWarnings', []);
@@ -983,8 +1073,22 @@ async function handleImport(file, root) {
     behaviorRepo.set('importError',        null);
     behaviorRepo.set('trades',             null);
     behaviorRepo.set('walletResult',       result);
+    behaviorRepo.set('orderResult',        null);
     behaviorRepo.set('importInfo',         result.message);
     behaviorRepo.set('analysisQuality',    null);
+    behaviorRepo.set('validationWarning',  false);
+    behaviorRepo.set('validationWarnings', []);
+  } else if (result.type === 'order_history') {
+    const count = result.trades.length;
+    const skip  = result.skipped;
+    const pl    = n => n !== 1;
+    const info  = `${count} ordre${pl(count) ? 's' : ''} FILLED importé${pl(count) ? 's' : ''} · ${skip} ignoré${pl(skip) ? 's' : ''} · Order History`;
+    behaviorRepo.set('importError',        null);
+    behaviorRepo.set('trades',             result.trades);
+    behaviorRepo.set('walletResult',       null);
+    behaviorRepo.set('orderResult',        result.orderAnalysis);
+    behaviorRepo.set('importInfo',         info);
+    behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
     behaviorRepo.set('validationWarning',  false);
     behaviorRepo.set('validationWarnings', []);
   } else {
@@ -997,6 +1101,7 @@ async function handleImport(file, root) {
       : `${count} trade${pl(count) ? 's' : ''} importé${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''}`;
     behaviorRepo.set('importError',       null);
     behaviorRepo.set('walletResult',      null);
+    behaviorRepo.set('orderResult',       null);
     behaviorRepo.set('importInfo',        info);
     behaviorRepo.set('trades',            result.trades);
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
