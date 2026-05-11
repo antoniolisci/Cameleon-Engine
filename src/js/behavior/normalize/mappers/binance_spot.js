@@ -28,6 +28,10 @@ function normalizeKey(str) {
 const ALIASES_DATE   = ['date(utc)', 'date', 'utc time', 'utc_time', 'time', 'timestamp',
                         'trade time', 'created time', 'update time', 'open time', 'created at',
                         'heure', 'date et heure',
+                        // Export Binance FR — certains fichiers utilisent "Durée" comme première
+                        // colonne (libellé ambigu, mais contient parfois le timestamp de transaction).
+                        // À valider via les logs [RAW ROW] : si la valeur est un datetime → correct.
+                        'duree',
                         // Exports Binance FR avec timezone locale : Date(UTC+2), Date(UTC+8)…
                         // La clé normalisée "date(utc+2)" → canonicalisée en "date(utc)" ci-dessous
                         // Ces alias sont insérés dynamiquement dans normalizeTrade — pas besoin de les lister
@@ -81,8 +85,13 @@ function normalizeTrade(row) {
     return '';
   };
 
-  const timestamp = parseDate(get(ALIASES_DATE));
-  if (!timestamp) return null;
+  const rawDate = get(ALIASES_DATE);
+  const timestamp = parseDate(rawDate);
+  if (!timestamp) {
+    console.warn('[bhv:map] ❌ timestamp null — clés norm:', Object.keys(norm).join(', '));
+    console.warn('[bhv:map]    valeur date brute:', JSON.stringify(rawDate) || '(aucune clé date matchée)');
+    return null;
+  }
 
   const symbol = get(ALIASES_SYMBOL).trim().toUpperCase();
 
@@ -134,8 +143,20 @@ function normalizeTrade(row) {
     quote_value = (rawAmount > 0 && rawAmount >= computed * 0.5) ? rawAmount : computed;
   }
 
-  if (!symbol || !side || !price || !qty) return null;
+  if (!symbol || !side || !price || !qty) {
+    console.warn('[bhv:map] ❌ champ manquant — symbol=%s side=%s price=%s qty=%s',
+      symbol || '(vide)', side || '(vide)', price, qty);
+    console.warn('[bhv:map]    bruts → date=%s sym=%s side=%s price=%s qty=%s fee=%s',
+      JSON.stringify(rawDate),
+      JSON.stringify(get(ALIASES_SYMBOL)),
+      JSON.stringify(get(ALIASES_SIDE)),
+      JSON.stringify(get(ALIASES_PRICE)),
+      JSON.stringify(get(ALIASES_QTY)),
+      JSON.stringify(get(ALIASES_FEE)));
+    return null;
+  }
 
+  console.log('[MAPPED TRADE]', { timestamp, symbol, side, price, quantity: qty, quote_value, fee });
   return { timestamp, symbol, side, price, quantity: qty, quote_value, fee };
 }
 
@@ -156,15 +177,42 @@ function mapBinanceSpotRow(row, sessionId) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-// Extrait la valeur numérique d'une chaîne pouvant contenir un suffixe asset.
-// "0.001 BTC" → 0.001 · "21.50 USDT" → 21.50 · "21,500" → 21500 (virgule milliers)
+// Extrait la valeur numérique d'une chaîne — formats FR et EN supportés.
+//
+// Formats reconnus :
+//   "0,25"        → 0.25    (virgule décimale FR)
+//   "42000,50"    → 42000.5 (virgule décimale FR)
+//   "1.234,56"    → 1234.56 (milliers point + décimale virgule — FR)
+//   "1,234.56"    → 1234.56 (milliers virgule + décimale point — EN)
+//   "21 500"      → 21500   (espace comme séparateur de milliers)
+//   "0.001 BTC"   → 0.001   (suffixe asset ignoré)
 function parseNum(raw) {
-  const str = String(raw || '').trim()
-    // Supprimer les espaces comme séparateurs de milliers ("21 500" → "21500")
-    .replace(/\s(?=\d)/g, '')
-    // Virgule comme séparateur de milliers si suivie de 3 chiffres et d'un autre séparateur
-    // ou en fin : "21,500" → "21500" (mais "21,50" reste "21,50" → traité comme décimal)
-    .replace(/,(\d{3})(?=[,.\s]|$)/g, '$1');
+  let str = String(raw || '').trim()
+    .replace(/\s(?=\d)/g, '');   // espaces milliers : "21 500" → "21500"
+
+  const hasComma = str.includes(',');
+  const hasDot   = str.includes('.');
+
+  if (hasComma && hasDot) {
+    // Les deux séparateurs présents — le dernier en position est le décimal.
+    if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
+      // Format européen : "1.234,56" → "1234.56"
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else {
+      // Format US/standard : "1,234.56" → "1234.56"
+      str = str.replace(/,/g, '');
+    }
+  } else if (hasComma) {
+    // Virgule seule.
+    // Si exactement 3 chiffres après la virgule (puis non-chiffre ou fin) → milliers.
+    // Sinon → décimale FR : "0,25" → "0.25".
+    if (/,\d{3}(?:\D|$)/.test(str)) {
+      str = str.replace(/,/g, '');   // milliers : "1,234" → "1234"
+    } else {
+      str = str.replace(',', '.');   // décimal  : "0,25"  → "0.25"
+    }
+  }
+  // Point seul → traitement standard (parseFloat natif gère "0.25", "1.234")
 
   const match = str.match(/^([\d.]+)/);
   return match ? parseFloat(match[1]) : 0;

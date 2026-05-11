@@ -208,6 +208,10 @@ async function importBinanceSpot(file) {
   }
   console.log('Headers bruts :', headers);
   console.log('Headers norm  :', headersNorm);
+  // Échantillon de 3 lignes brutes (clés + valeurs réelles)
+  console.group('Échantillon rows bruts (3 premières)');
+  rows.slice(0, 3).forEach((r, i) => console.log(`Row ${i}:`, r));
+  console.groupEnd();
   console.groupEnd();
 
   console.log('[bhv:import] colonnes trouvées (%d) : %s', headers.length, headers.join(' | '));
