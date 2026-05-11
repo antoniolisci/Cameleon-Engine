@@ -11,12 +11,14 @@
 // fillRate : fraction exécutée (0–1), utile pour l'analyse de fill rate.
 
 // ── Normalisation de clé ───────────────────────────────────────────────────────
+// L'apostrophe est ajoutée aux séparateurs pour gérer les colonnes FR comme
+// "Prix de l'ordre" → "prix de l ordre" (sans apostrophe littérale dans la clé).
 function normalizeKey(str) {
   return String(str)
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\s_./\\-]+/g, ' ')
+    .replace(/[\s_./'\\-]+/g, ' ')   // ' inclus : "l'ordre" → "l ordre"
     .trim();
 }
 
@@ -30,13 +32,22 @@ const ALIASES_SYMBOL   = ['pair', 'symbol', 'market', 'trading pair', 'ticker', 
 const ALIASES_SIDE     = ['side', 'order side', 'direction', 'cote', 'sens'];
 const ALIASES_PRICE    = ['price', 'avg price', 'avg. price', 'filled price', 'average price',
                           'execution price', 'deal price', 'order price', 'last price',
-                          'prix', 'prix moyen', 'prix d execution'];
+                          'prix', 'prix moyen', 'prix d execution',
+                          // Binance FR : "Prix moyen" ou "Prix de l'ordre" (apostrophe → espace via normalizeKey)
+                          'prix de l ordre', 'prix moyen rempli', 'prix d execution moyen'];
 const ALIASES_QTY      = ['executed qty', 'filled qty', 'executed', 'filled', 'qty', 'quantity',
-                          'base qty', 'base quantity', 'amount', 'execute', 'quantite'];
+                          'base qty', 'base quantity', 'execute', 'quantite',
+                          // Binance FR : "Exécuté", "Quantité exécutée"
+                          'quantite executee', 'volume execute', 'montant execute'];
 const ALIASES_ORDER_QTY = ['order quantity', 'original qty', 'orig qty', 'quantite ordre',
-                            'quantite initiale'];
+                            'quantite initiale',
+                            // Binance FR : "Montant de la commande"
+                            'montant de la commande', 'quantite de la commande',
+                            'volume de la commande', 'ordre quantite'];
 const ALIASES_QUOTE    = ['total', 'quote qty', 'quote quantity', 'value', 'deal value',
-                          'montant', 'valeur totale'];
+                          'montant', 'valeur totale',
+                          // Binance FR : "Trading Total"
+                          'trading total', 'total trade', 'montant total', 'valeur totale echangee'];
 const ALIASES_FEE      = ['fee', 'commission', 'fee amount', 'transaction fee', 'trading fee',
                           'frais', 'frais de transaction'];
 const ALIASES_STATUS   = ['status', 'statut', 'order status', 'statut ordre', 'etat'];
@@ -93,9 +104,18 @@ function normalizeOrderRow(row) {
   if (!rawStatus) return null;   // pas de statut → format inattendu
   if (!isFilledStatus(rawStatus)) return null;
 
+  // Ordre FILLED confirmé — log de la ligne brute pour diagnostic
+  console.log('[FILLED ROW]', row);
+  console.log('[FILLED ROW] clés normalisées :', Object.keys(norm));
+
   // ── Timestamp ─────────────────────────────────────────────────────────────
-  const timestamp = parseDate(get(ALIASES_DATE));
-  if (!timestamp) return null;
+  const rawDate   = get(ALIASES_DATE);
+  const timestamp = parseDate(rawDate);
+  if (!timestamp) {
+    console.warn('[ORDER VALIDATION REJECT] timestamp null — clés norm:', Object.keys(norm).join(', '));
+    console.warn('[ORDER VALIDATION REJECT] valeur date brute:', JSON.stringify(rawDate) || '(aucune)');
+    return null;
+  }
 
   // ── Symbole ───────────────────────────────────────────────────────────────
   const symbol = get(ALIASES_SYMBOL).trim().toUpperCase();
@@ -113,16 +133,18 @@ function normalizeOrderRow(row) {
              : rawSide;
 
   // ── Prix ──────────────────────────────────────────────────────────────────
+  // Priorité : "Prix moyen" (prix d'exécution réel) > "Prix de l'ordre" (prix limite posé)
   const price = parseNum(get(ALIASES_PRICE));
 
   // ── Quantité exécutée ─────────────────────────────────────────────────────
-  const qty = parseNum(get(ALIASES_QTY));
+  // Priorité : colonnes d'exécution (Exécuté, execute…) > colonnes de commande (Montant…)
+  let qty = parseNum(get(ALIASES_QTY));
 
   // ── Quantité initiale (pour fill rate) ────────────────────────────────────
   const orderQty = parseNum(get(ALIASES_ORDER_QTY)) || qty;
 
   // ── Quote value ───────────────────────────────────────────────────────────
-  const totalVal  = parseNum(get(ALIASES_QUOTE));
+  const totalVal    = parseNum(get(ALIASES_QUOTE));
   const quote_value = totalVal > 0 ? totalVal : price * qty;
 
   // ── Frais ─────────────────────────────────────────────────────────────────
@@ -131,11 +153,20 @@ function normalizeOrderRow(row) {
   // ── Order ID ──────────────────────────────────────────────────────────────
   const orderId = get(ALIASES_ORDER_ID) || null;
 
-  if (!symbol || !side || !price || !qty) return null;
+  // ── Validation finale ─────────────────────────────────────────────────────
+  if (!symbol || !side || !price || !qty) {
+    console.warn('[ORDER VALIDATION REJECT] champ manquant:',
+      { symbol: symbol || '(vide)', side: side || '(vide)', price, qty });
+    console.warn('[ORDER VALIDATION REJECT] bruts:',
+      { date: JSON.stringify(rawDate),
+        sym:   JSON.stringify(get(ALIASES_SYMBOL)),
+        side:  JSON.stringify(get(ALIASES_SIDE)),
+        price: JSON.stringify(get(ALIASES_PRICE)),
+        qty:   JSON.stringify(get(ALIASES_QTY)) });
+    return null;
+  }
 
-  const fillRate = orderQty > 0 ? Math.min(qty / orderQty, 1) : 1;
-
-  return {
+  const mapped = {
     timestamp,
     symbol,
     side,
@@ -146,8 +177,10 @@ function normalizeOrderRow(row) {
     fee,
     orderId,
     status:        rawStatus,
-    fillRate
+    fillRate:      orderQty > 0 ? Math.min(qty / orderQty, 1) : 1
   };
+  console.log('[ORDER MAPPED]', mapped);
+  return mapped;
 }
 
 // ── mapOrderRows ──────────────────────────────────────────────────────────────
