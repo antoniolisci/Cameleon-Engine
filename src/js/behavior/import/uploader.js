@@ -155,6 +155,8 @@ async function importBinanceSpot(file) {
   }
 
   const isXLSX = ext === 'xlsx' || ext === 'xls';
+  console.log('[bhv:import] fichier : "%s" · extension : %s · type lu : %s',
+    file.name, ext, isXLSX ? 'xlsx/xls (SheetJS)' : 'texte (CSV)');
 
   let rows;
   try {
@@ -173,9 +175,12 @@ async function importBinanceSpot(file) {
   }
 
   const headers        = Object.keys(rows[0]);
+  console.log('[bhv:import] colonnes trouvées (%d) : %s', headers.length, headers.join(' | '));
+
   const classification = classifyFile(headers);
   const { level, subtype } = classification;
   const fileFormat     = detectFormat(headers);
+  console.log('[bhv:import] classification → %s/%s · format → %s', level, subtype, fileFormat);
 
   // NON_TRADING / wallet → pipeline wallet dédié
   if (level === 'NON_TRADING' && subtype === 'wallet') {
@@ -203,11 +208,15 @@ async function importBinanceSpot(file) {
     };
   }
 
-  // NON_TRADING / unknown → message clair
+  // NON_TRADING / unknown → message avec colonnes pour faciliter le diagnostic
   if (level === 'NON_TRADING') {
+    const colPreview = headers.length > 0
+      ? headers.slice(0, 10).join(', ') + (headers.length > 10 ? ` … (${headers.length} colonnes au total)` : '')
+      : '(aucune colonne détectée)';
+    console.warn('[bhv:import] fichier refusé — colonnes non reconnues : %s', headers.join(' | '));
     return {
       ok:    false,
-      error: 'Format de fichier non reconnu. Vérifiez que l\'import provient d\'un historique de trades exécutés.',
+      error: `Colonnes non reconnues. Colonnes trouvées : ${colPreview}`,
       trades: []
     };
   }
