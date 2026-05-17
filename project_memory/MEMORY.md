@@ -24,6 +24,12 @@ Chaque entrée pointe vers la fiche détaillée correspondante.
 
 ---
 
+## localStorage / Persistance
+
+- [LOCALSTORAGE_AUDIT_001 — Audit surface localStorage](known_limitations/LOCALSTORAGE_AUDIT_001.md) — 15 clés actives, 3 namespaces (CE_*, cameleon.behavior.v1.*, standalone) ; 0 donnée sensible ; 4 NEED REVIEW (cameleon_behavior_memory_v1 hors storage.js, cap sessions absent, 3 lectures directes behavior dans render.js, catch runMigration trop large) ; 3 SAFE TO IMPROVE (clés legacy non supprimées, reset global manquant, CE_onboarding_v1 hors storage.js)
+
+---
+
 ## Imports CSV / Excel
 
 - [IMPORT_002 — SheetJS vendorisé](imports_excel_csv/IMPORT_002_sheetjs_vendorisation.md) — voir section Sécurité ci-dessus
