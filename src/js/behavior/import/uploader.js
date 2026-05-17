@@ -135,9 +135,6 @@ function classifyFile(headers) {
     (emptyCount >= 2 && emptyCount / headers.length >= 0.2                                           ? 1 : 0) +
     (h.some(c => ['interest', 'apy', 'apr', 'accrued interest', 'annual interest rate'].includes(c)) ? 1 : 0);
 
-  console.debug('[bhv:classify] signals → trading:%d wallet:%d earn:%d | colonnes: %s',
-    tradingSignals, walletSignals, earnSignals, headers.join(', '));
-
   if (earnSignals  >= 1 && tradingSignals < 3) return { level: 'NON_TRADING',     subtype: 'earn'    };
   if (walletSignals >= 2 && tradingSignals < 3) return { level: 'NON_TRADING',     subtype: 'wallet'  };
   if (tradingSignals >= 4)                      return { level: 'FULL_TRADING',    subtype: 'trade'   };
@@ -277,7 +274,6 @@ async function importBinanceSpot(file) {
 
   // NON_TRADING / wallet → pipeline wallet dédié
   if (level === 'NON_TRADING' && subtype === 'wallet') {
-    console.debug('[bhv:import] fichier wallet — branchement analyzeWallet()');
     let walletResult;
     try {
       walletResult = analyzeWallet(rows);
@@ -323,7 +319,6 @@ async function importBinanceSpot(file) {
 
   // FORMAT B — Order History → pipeline ordres dédié
   if (fileFormat === 'ORDER_HISTORY' && (level === 'FULL_TRADING' || level === 'PARTIAL_TRADING')) {
-    console.debug('[bhv:import] Order History détecté — branchement pipeline ordres');
     const sessionId = `session_${Date.now()}`;
     const { trades: orderTrades, skipped: orderSkipped, statusCounts } = mapOrderRows(rows, sessionId);
 
@@ -373,7 +368,6 @@ async function importBinanceSpot(file) {
     const hint = level === 'PARTIAL_TRADING'
       ? 'Certaines colonnes ont été détectées mais aucun trade valide n\'a pu être extrait. Les données sont peut-être dans un format non supporté.'
       : 'Aucun trade valide trouvé. Vérifiez que l\'export correspond à des ordres exécutés (pas annulés ou en attente).';
-    console.debug('[bhv:import] 0 trades extraits | level=%s | colonnes=%s', level, headers.join(', '));
     return { ok: false, error: hint, diagnostic: `Bloqué en : 0 trades extraits (mapping/validation)\nColonnes normalisées : ${headersNorm.join(' | ')}`, trades: [] };
   }
 

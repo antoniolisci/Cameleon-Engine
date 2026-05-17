@@ -241,10 +241,6 @@ export function renderConfidenceScore(inputs, volatilityConfig = DEFAULT_VOLATIL
 
   panel.dataset.tone = result.tone;
 
-  if (result.score < 50) {
-    console.warn("[ConfidenceScore] Contexte trop faible — setup ignoré.");
-  }
-
   return result;
 }
 
