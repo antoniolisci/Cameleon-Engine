@@ -3,6 +3,8 @@
 excel_tests/**
 !excel_tests/README.md
 !excel_tests/README_tests_excel.md
+!excel_tests/05_notes/
+!excel_tests/05_notes/*.md
 
 # Outils de développement local
 src/.claude/
