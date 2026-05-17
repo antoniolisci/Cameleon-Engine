@@ -4,6 +4,8 @@
 
 import { behaviorSessions } from '../../storage.js';
 
+const SESSION_LIMIT = 20; // conservation des 20 sessions les plus récentes
+
 function getAll() {
   return behaviorSessions.getAll().sort((a, b) => b.createdAt - a.createdAt);
 }
@@ -23,7 +25,7 @@ function save(trades, name) {
     trades,
   };
   sessions.unshift(session);
-  behaviorSessions.setAll(sessions);
+  behaviorSessions.setAll(sessions.slice(0, SESSION_LIMIT));
   return session;
 }
 
