@@ -158,14 +158,15 @@ function readFileAsText(file) {
   });
 }
 
-// Charge SheetJS depuis CDN si pas déjà disponible, retourne l'objet XLSX global.
+// Charge SheetJS depuis le vendor local (src/js/vendor/xlsx.full.min.js).
+// Pas de dépendance CDN — fonctionne hors-ligne, local-first.
 function loadXLSX() {
   if (window.XLSX) return Promise.resolve(window.XLSX);
   return new Promise((resolve, reject) => {
     const script  = document.createElement('script');
-    script.src    = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    script.src    = new URL('../../vendor/xlsx.full.min.js', import.meta.url).href;
     script.onload  = () => resolve(window.XLSX);
-    script.onerror = () => reject(new Error('Impossible de charger le module xlsx (réseau indisponible ?). Exportez votre historique en CSV depuis Binance et réessayez.'));
+    script.onerror = () => reject(new Error('Impossible de charger le module xlsx local. Vérifiez que src/js/vendor/xlsx.full.min.js est présent.'));
     document.head.appendChild(script);
   });
 }
