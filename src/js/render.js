@@ -415,11 +415,6 @@ function setTextTwoLines(id, value, riskClass = "") {
   element.appendChild(second);
 }
 
-function setHtml(id, value) {
-  const element = $(id);
-  if (element) element.innerHTML = repairMojibake(value ?? "");
-}
-
 function setQueryText(selector, value) {
   const element = document.querySelector(selector);
   if (element) element.textContent = repairMojibake(value ?? "");
