@@ -1,7 +1,7 @@
 # CASE_003 — Binance historique dépôts XLSX : "fichier vide ou illisible"
 
 ## Statut
-broken
+corrigé
 
 ## Fichier source local
 `Binance-Rapport-d'historique-des-dépôts-2026-05-16.xlsx`  
@@ -133,8 +133,42 @@ Message clair "hors périmètre" (comme CASE_002) ou, si le workbook a plusieurs
 ## Résultat obtenu
 "Le fichier est vide ou son format n'a pas pu être lu." — pipeline bloqué avant `classifyFile()`.
 
+## Résultat du diagnostic (logs [DIAG CASE_003])
+
+| Trace | Valeur observée |
+|-------|----------------|
+| `SheetNames` | OK (1 feuille) |
+| `headerIdx` | 0 (header trouvé à la ligne 0) |
+| `raw2d.length` | 1 (une seule ligne — l'en-tête) |
+| `rows.length final` | 0 (aucune ligne de données) |
+
+**Conclusion :** Le workbook est valide. Le fichier Binance dépôts ne contient que la ligne d'en-têtes — aucune transaction dans la période exportée, ou export vide par construction. Le message "vide ou illisible" était techniquement faux.
+
+## Correction appliquée
+
+**Fichier :** `src/js/behavior/import/uploader.js`
+
+Séparation du guard `!rows || rows.length === 0` en deux conditions distinctes :
+
+```javascript
+// Avant
+if (!rows || rows.length === 0) {
+  return { ok: false, error: 'Le fichier est vide ou son format n\'a pas pu être lu.', trades: [] };
+}
+
+// Après
+if (!rows) {
+  return { ok: false, error: 'Le fichier est vide ou son format n\'a pas pu être lu.', trades: [] };
+}
+if (rows.length === 0) {
+  return { ok: false, error: 'Le fichier ne contient aucune donnée exploitable (headers détectés mais aucune ligne présente).', trades: [] };
+}
+```
+
+Nouveau message affiché pour ce cas : **"Le fichier ne contient aucune donnée exploitable (headers détectés mais aucune ligne présente)."**
+
 ## Statut de correction
-**en cours de diagnostic** — traces ajoutées dans `uploader.js`, en attente de reproduction avec le fichier réel.
+**corrigé** — traces supprimées, message UX corrigé, commit `voir ci-dessous`.
 
 ## Notes
 - Différence clé avec CASE_002 (retraits) : ce fichier ne passe pas `classifyFile()` → le problème est en amont dans `readFileAsXLSX()`.

@@ -202,6 +202,7 @@ async function readFileAsXLSX(file) {
     });
     rows.push(row);
   }
+
   return rows;
 }
 
@@ -261,8 +262,11 @@ async function importBinanceSpot(file) {
     return { ok: false, error: msg, trades: [] };
   }
 
-  if (!rows || rows.length === 0) {
+  if (!rows) {
     return { ok: false, error: 'Le fichier est vide ou son format n\'a pas pu être lu.', trades: [] };
+  }
+  if (rows.length === 0) {
+    return { ok: false, error: 'Le fichier ne contient aucune donnée exploitable (headers détectés mais aucune ligne présente).', trades: [] };
   }
 
   const headers        = Object.keys(rows[0]);
