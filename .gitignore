@@ -1,5 +1,8 @@
 # Données utilisateur et fichiers de test réels
-excel_tests/
+# Ignore tout le contenu sauf les README de documentation
+excel_tests/**
+!excel_tests/README.md
+!excel_tests/README_tests_excel.md
 
 # Outils de développement local
 src/.claude/
