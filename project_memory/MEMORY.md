@@ -34,6 +34,7 @@ Chaque entrée pointe vers la fiche détaillée correspondante.
 ## Imports CSV / Excel
 
 - [IMPORT_002 — SheetJS vendorisé](imports_excel_csv/IMPORT_002_sheetjs_vendorisation.md) — voir section Sécurité ci-dessus
+- [IMPORT_AUDIT_003 — Audit pipeline CSV/Excel](imports_excel_csv/IMPORT_AUDIT_003_excel_csv_pipeline.md) — 12 fichiers audités ; pipeline sain ; 3 fonctions dupliquées (parseNum/parseDate/normalizeKey, intentionnel isolation) ; 1 code mort (FILLED_STATUSES Set) ; NR-012 console.debug format-detector conservé ; aucun correctif urgent ; Binance uniquement (no multi-exchange) ; commit `fd13243`
 
 ---
 
