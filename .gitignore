@@ -1,3 +1,11 @@
+# Données utilisateur et fichiers de test réels
+excel_tests/
+
+# Outils de développement local
+src/.claude/
+.claude/
+
+# Artefacts système
 .DS_Store
 Thumbs.db
 node_modules/
