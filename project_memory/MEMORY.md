@@ -12,6 +12,7 @@ Chaque entrée pointe vers la fiche détaillée correspondante.
 - [IMPORT_002 — Vendorisation SheetJS CDN → local](imports_excel_csv/IMPORT_002_sheetjs_vendorisation.md) — SheetJS 0.20.3 vendorisé dans src/js/vendor/ ; plus aucun appel CDN externe ; fonctionne hors-ligne ; lazy loading conservé
 - **setHtml() supprimé** — helper innerHTML mort (`render.js`) retiré (commit `chore(security): remove unused innerHTML helper`) ; utilisait `repairMojibake()` sans sanitisation ; 0 call site confirmé avant suppression
 - [SECURITY_ROADMAP — Pre-public release](known_limitations/SECURITY_ROADMAP_PRE_PUBLIC_RELEASE.md) — roadmap complète : CSP, validation imports, debug panel, localStorage, vendor policy, Git secrets, philosophie sécurité
+- [CSP_AUDIT_001 — Audit CSP pré-déploiement public](known_limitations/CSP_AUDIT_001_pre_public_release.md) — 4 blocants : inline script onboarding (hash/externaliser), onclick= inline (addEventListener), style inline constellium.html (externaliser CSS), 16 style="" attrs (classes CSS) ; 0 réseau (connect-src 'none') ; Phase 2 activable après BLOCKER-001+002 ; Phase 3 = CSP stricte sans unsafe-inline ; commit `cad778a`
 
 ---
 
