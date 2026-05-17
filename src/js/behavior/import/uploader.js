@@ -11,8 +11,6 @@ import { analyzeWallet } from '../wallet/wallet_analyzer.js';
 import { detectFormat } from './format-detector.js';
 import { analyzeOrders } from '../analytics/order-analyzer.js';
 
-console.info('[BEHAVIOR IMPORT VERSION] 52cab1a Binance FR fix loaded');
-
 // ── Normalisation des en-têtes ────────────────────────────────────────────────
 // Minuscules + suppression diacritiques + normalisation séparateurs.
 // "Côté" → "cote"  ·  "Avg. Price" → "avg price"  ·  "Date(UTC)" → "date(utc)"
@@ -189,15 +187,12 @@ async function readFileAsXLSX(file) {
   const raw2d = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
 
   const headerIdx = findHeaderRowIndex(raw2d);
-  console.log('[IMPORT DEBUG] XLSX headerRowIndex =', headerIdx,
-    headerIdx >= 0 ? `| ligne : ${JSON.stringify(raw2d[headerIdx])}` : '| introuvable');
 
   if (headerIdx === -1) {
     throw new Error('NO_HEADER_FOUND');
   }
 
   const headers = raw2d[headerIdx].map(h => String(h || '').trim());
-  console.log('[IMPORT DEBUG] XLSX detectedHeaderRow =', headers);
 
   const rows = [];
   for (let i = headerIdx + 1; i < raw2d.length; i++) {
@@ -230,8 +225,6 @@ async function importBinanceSpot(file) {
   }
 
   const isXLSX = ext === 'xlsx' || ext === 'xls';
-  console.log('[bhv:import] fichier : "%s" · extension : %s · type lu : %s',
-    file.name, ext, isXLSX ? 'xlsx/xls (SheetJS)' : 'texte (CSV)');
 
   // ── Collecte des données brutes pour le diagnostic ───────────────────────────
   let rawText    = null;
@@ -259,8 +252,6 @@ async function importBinanceSpot(file) {
       const lines2d    = rawLines.map(l => splitLine(l, rawSep).map(c => c.replace(/^"|"$/g, '').trim()));
       const csvHdrIdx  = findHeaderRowIndex(lines2d);
       const startLine  = csvHdrIdx >= 0 ? csvHdrIdx : 0;  // fallback 0 : comportement antérieur
-      console.log('[IMPORT DEBUG] CSV headerRowIndex =', startLine,
-        csvHdrIdx >= 0 ? `| ligne : ${JSON.stringify(rawLines[startLine])}` : '| non trouvé, ligne 0 utilisée');
 
       // Re-détecter le séparateur depuis la vraie ligne d'en-têtes (plus fiable)
       rawSep = detectSeparator(rawLines[startLine] || '');
@@ -280,49 +271,9 @@ async function importBinanceSpot(file) {
   const headers        = Object.keys(rows[0]);
   const headersNorm    = headers.map(normalizeHeader);
 
-  // ── Diagnostic console ────────────────────────────────────────────────────────
-  console.group('[IMPORT DEBUG]');
-  console.log('Fichier       :', file.name);
-  console.log('Extension     :', ext);
-  console.log('Taille        :', file.size, 'octets');
-  if (!isXLSX) {
-    console.log('BOM UTF-8     :', hasBOM ? 'OUI \\ufeff détecté et supprimé' : 'non');
-    console.log('Lignes brutes :', rawLines?.length ?? '?');
-    console.log('Séparateur    :', JSON.stringify(rawSep));
-    console.log('1ère ligne    :', rawLines?.[0] ?? '?');
-  }
-  console.log('Headers bruts :', headers);
-  console.log('Headers norm  :', headersNorm);
-  // Échantillon de 3 lignes brutes (clés + valeurs réelles)
-  console.group('Échantillon rows bruts (3 premières)');
-  rows.slice(0, 3).forEach((r, i) => console.log(`Row ${i}:`, r));
-  console.groupEnd();
-  console.groupEnd();
-
-  console.log('[bhv:import] colonnes trouvées (%d) : %s', headers.length, headers.join(' | '));
-
   const classification = classifyFile(headers);
   const { level, subtype } = classification;
   const fileFormat     = detectFormat(headers);
-
-  // ── Complément diagnostic : signaux de classification ────────────────────────
-  {
-    const h = headersNorm;
-    const signals = {
-      date:   h.some(c => matchesField(c, DETECT_DATE))   ? '✅' : '❌',
-      symbol: h.some(c => matchesField(c, DETECT_SYMBOL)) ? '✅' : '❌',
-      side:   h.some(c => matchesField(c, DETECT_SIDE))   ? '✅' : '❌',
-      price:  h.some(c => matchesField(c, DETECT_PRICE))  ? '✅' : '❌',
-      qty:    h.some(c => matchesField(c, DETECT_QTY))    ? '✅' : '❌',
-    };
-    console.group('[IMPORT DEBUG] Classification');
-    console.log('Signaux trading :', signals);
-    console.log('Level / Subtype :', level, '/', subtype);
-    console.log('Format détecté  :', fileFormat);
-    console.groupEnd();
-  }
-
-  console.log('[bhv:import] classification → %s/%s · format → %s', level, subtype, fileFormat);
 
   // NON_TRADING / wallet → pipeline wallet dédié
   if (level === 'NON_TRADING' && subtype === 'wallet') {

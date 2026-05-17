@@ -100,13 +100,8 @@ function normalizeOrderRow(row) {
 
   // ── Statut — filtre les ordres non exécutés ───────────────────────────────
   const rawStatus = String(get(ALIASES_STATUS)).trim();
-  console.log('[ORDER STATUS]', JSON.stringify(rawStatus));
   if (!rawStatus) return null;   // pas de statut → format inattendu
   if (!isFilledStatus(rawStatus)) return null;
-
-  // Ordre FILLED confirmé — log de la ligne brute pour diagnostic
-  console.log('[FILLED ROW]', row);
-  console.log('[FILLED ROW] clés normalisées :', Object.keys(norm));
 
   // ── Timestamp ─────────────────────────────────────────────────────────────
   const rawDate   = get(ALIASES_DATE);
@@ -179,7 +174,6 @@ function normalizeOrderRow(row) {
     status:        rawStatus,
     fillRate:      orderQty > 0 ? Math.min(qty / orderQty, 1) : 1
   };
-  console.log('[ORDER MAPPED]', mapped);
   return mapped;
 }
 
@@ -210,9 +204,6 @@ function mapOrderRows(rows, sessionId) {
       skipped++;
     }
   }
-
-  console.log('[ORDER_HISTORY] rows total =', rows.length,
-    '| filled =', trades.length, '| rejected =', skipped);
 
   if (trades.length === 0 && Object.keys(statusCounts).length > 0) {
     console.warn('[ORDER_HISTORY] Aucun ordre FILLED — statuts trouvés :', statusCounts);

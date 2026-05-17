@@ -1038,7 +1038,6 @@ function bindEvents(root, state) {
 
   if (fileInput) {
     fileInput.addEventListener('change', e => {
-      console.log('[bhv:ui] input change déclenché');  // [DEBUG TEMPORAIRE]
       const file = e.target.files[0];
       if (file) handleImport(file, root);
     });
@@ -1055,7 +1054,6 @@ function bindEvents(root, state) {
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('bhv-dragover');
-      console.log('[bhv:ui] drop déclenché');  // [DEBUG TEMPORAIRE]
       const file = e.dataTransfer?.files[0];
       if (file) handleImport(file, root);
     });

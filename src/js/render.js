@@ -2623,15 +2623,6 @@ function renderHero(payload) {
 
   const decisionState = payload.decisionState ?? computeDecisionState(payload);
 
-  console.log("[DecisionState]", {
-    marketState:     payload.market_state,
-    score:           payload.score,
-    posture:         payload.decision?.primary?.posture,
-    validationState: payload.validation?.state,
-    tradingStatus:   payload.trading_status,
-    result:          decisionState.state
-  });
-
   const heroStatusEl = $("hero-status");
   if (heroStatusEl) {
     heroStatusEl.className = `hero-status ${decisionState.cls}`;
@@ -2712,8 +2703,6 @@ function renderNavigation(payload) {
   const _posture = computePosture(_safeScore, _ctx.marketState);
   const _action  = computeAction(_safeScore, _ctx.marketState);
   const _agent   = computeAgent(_safeScore, _ctx.marketState);
-
-  console.log("[ConfidenceScore]", { score: _safeScore, posture: _posture, action: _action, agent: _agent, ..._ctx });
 
   // Mises à jour immédiates
   setWidth("scoreBar", `${_safeScore}%`);
@@ -5111,5 +5100,3 @@ if (document.readyState === "loading") {
   init();
 }
 
-const data = OVERTRADING_DICT[1];
-console.log("DATA UI :", data);

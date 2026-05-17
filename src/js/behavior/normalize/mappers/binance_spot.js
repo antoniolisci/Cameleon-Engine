@@ -156,7 +156,6 @@ function normalizeTrade(row) {
     return null;
   }
 
-  console.log('[MAPPED TRADE]', { timestamp, symbol, side, price, quantity: qty, quote_value, fee });
   return { timestamp, symbol, side, price, quantity: qty, quote_value, fee };
 }
 
