@@ -4912,6 +4912,10 @@ function bindControls() {
     button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
   });
 
+  $("constelliumNavBtn")?.addEventListener("click", () => {
+    window.location.href = "constellium.html";
+  });
+
   $("prefillBtn")?.addEventListener("click", () => {
     appState.form = prefillConstellium(collectForm());
     appState.activeTab = "pilotage";

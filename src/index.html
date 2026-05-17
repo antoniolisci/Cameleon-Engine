@@ -7,7 +7,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/behavior.css">
-  <script>try{if(localStorage.getItem("CE_onboarding_v1"))document.documentElement.classList.add("onboarding-seen");}catch(e){}</script>
+  <script src="./js/onboarding-init.js"></script>
 </head>
 <body data-shell-state="range">
   <div class="shell">
@@ -539,7 +539,7 @@
                           <div class="mode-btn-title">Tester une lecture Constellium</div>
                           <div class="mode-btn-desc">Simulation pédagogique — à vérifier avant usage.</div>
                         </button>
-                        <button class="mode-btn compact-btn" type="button" onclick="window.location.href='constellium.html'">
+                        <button id="constelliumNavBtn" class="mode-btn compact-btn" type="button">
                           <div class="mode-btn-title">Lire le Constellium</div>
                           <div class="mode-btn-desc">Comprendre avant d'agir.</div>
                         </button>
