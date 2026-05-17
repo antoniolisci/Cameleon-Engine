@@ -44,6 +44,7 @@ Chaque entrée pointe vers la fiche détaillée correspondante.
 ## Fichiers terrain — excel_tests/
 
 - **Structure cas terrain (commit `4d31b8e`)** — `excel_tests/` réorganisé : `01_working/` `02_broken/` `03_edge_cases/` `04_anonymized_samples/` `05_notes/` ; CSV/XLSX jamais commités ; `05_notes/*.md` trackés via `.gitignore` exception ; template de fiche : `excel_tests/05_notes/CASE_TEMPLATE.md` ; règle : tout bug terrain → fiche dans 05_notes/ avant correction
+- **CASE_001 — Order History FILLED détectés, 0 trades extraits** (`excel_tests/05_notes/CASE_001_order_history_filled_detected_zero_trades.md`) — symptôme : "Order History importé mais aucun ordre exécuté (FILLED) trouvé" malgré FILLED×30 / NEW×14 / CANCELED×17 ; statut : **non résolu** ; fichier source manquant ; hypothèses prioritaires : colonne Status non résolue, timestamp null, champ qty/prix null, casse/espaces dans valeur statut
 
 ---
 
