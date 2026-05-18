@@ -2,7 +2,7 @@
 
 **Date création :** 2026-05-18  
 **Type :** Synthétique — 100% généré, aucune donnée réelle  
-**Statut :** 🔲 À tester  
+**Statut :** ✅ Validé — 2026-05-18  
 **Fichier :** `excel_tests/04_anonymized_samples/SYN_003_long_spread_1000_trades.csv`  
 **Phase :** ANALYTIC_STRESS_TEST_PLAN_001 — Phase 2 (montée en charge 1000 trades)
 
@@ -101,11 +101,11 @@ Questions principales :
 
 Timers DevTools Console après import (instrumentation `bhv:grid / bhv:patterns / bhv:mount` active) :
 
-| Timer | SYN-001 (200t) | SYN-002 (500t) | SYN-003 attendu (1000t) | Seuil bloquant |
+| Timer | SYN-001 (200t) | SYN-002 (500t) | SYN-003 observé (1000t) | Seuil bloquant |
 |-------|----------------|----------------|------------------------|----------------|
-| `bhv:grid` | — | 0.2–0.4ms | < 2ms | > 1000ms |
-| `bhv:patterns` | — | 0.3–1.3ms | < 5ms | > 1000ms |
-| `bhv:mount` | — | 20–27ms | < 100ms | > 2000ms |
+| `bhv:grid` | — | 0.2–0.4ms | **0.635ms** ✅ | > 1000ms |
+| `bhv:patterns` | — | 0.3–1.3ms | **0.820ms** ✅ | > 1000ms |
+| `bhv:mount` | — | 20–27ms | **21.32ms** ✅ | > 2000ms |
 
 ### Protocole de mesure
 
@@ -140,23 +140,25 @@ Timers DevTools Console après import (instrumentation `bhv:grid / bhv:patterns 
 
 ---
 
-## Grille de validation (à remplir après test)
+## Grille de validation — Résultats terrain 2026-05-18
 
 | Checkpoint | Attendu | Observé | OK ? |
 |-----------|---------|---------|------|
-| Import sans erreur | `ok: true`, 1000 trades | — | — |
-| `dataQuality.level` | HIGH | — | — |
-| Score comportemental | 0–100, non-NaN | — | — |
-| `bhv:grid` | < 2ms | — | — |
-| `bhv:patterns` | < 5ms | — | — |
-| `bhv:mount` | < 100ms | — | — |
-| Heap delta | < 20 MB | — | — |
-| DOM complet | Aucun undefined | — | — |
-| Overtrading | Absent | — | — |
-| Revenge trading | Absent | — | — |
-| Rapid reentry | Absent | — | — |
-| Size inconsistency | Toléré si présent | — | — |
-| Grid trading | Toléré si présent | — | — |
+| Import sans erreur | `ok: true`, 1000 trades | 1000 trades, 0 ignorés | ✅ |
+| `dataQuality.level` | HIGH | HIGH | ✅ |
+| Score comportemental | 0–100, non-NaN | Cohérent, non-NaN | ✅ |
+| `bhv:grid` | < 2ms | 0.635ms | ✅ |
+| `bhv:patterns` | < 5ms | 0.820ms | ✅ |
+| `bhv:mount` | < 100ms | 21.32ms | ✅ |
+| Heap delta | < 20 MB | Non mesuré | — |
+| DOM complet | Aucun undefined | Aucun faux positif majeur | ✅ |
+| Overtrading | Absent | Absent | ✅ |
+| Revenge trading | Absent | Absent | ✅ |
+| Rapid reentry | Absent | Absent | ✅ |
+| Size inconsistency | Toléré si présent | Aucun faux positif majeur | ✅ |
+| Grid trading | Toléré si présent | Aucun faux positif majeur | ✅ |
+| Freeze UI | Absent | Absent | ✅ |
+| NaN / Infinity | Absent | Absent | ✅ |
 
 ---
 
@@ -185,6 +187,19 @@ Timers DevTools Console après import (instrumentation `bhv:grid / bhv:patterns 
 
 ---
 
-## Statut
+## Conclusion — 2026-05-18
 
-🔲 **Non testé** — dataset créé le 2026-05-18, en attente de run Phase 2 (1000 trades).
+**SYN-003 validé ✅**
+
+| Critère | Résultat |
+|---------|---------|
+| `bhv:grid` (seuil 200ms) | **0.635ms** — ×315 sous le seuil |
+| `bhv:patterns` (seuil 300ms) | **0.820ms** — ×366 sous le seuil |
+| `bhv:mount` (seuil 2000ms) | **21.32ms** — ×94 sous le seuil |
+| Stabilité analytique | Aucun NaN, aucun Infinity, aucun crash |
+| Cohérence UI | Aucun freeze, DOM complet |
+| Faux positifs | Aucun faux positif majeur observé |
+
+`groupGridTrades()` ne présente aucun comportement O(n²) détectable sur 1000 trades. La montée de SYN-001 (200t) → SYN-002 (500t) → SYN-003 (1000t) ne produit aucune dégradation mesurable sur `bhv:mount` (~20ms constant). Le pipeline analytique est stable sur l'ensemble de la plage Phase 2.
+
+**Statut final Phase 2 :** ✅ Validée — pipeline production-ready jusqu'à 1000 trades.
