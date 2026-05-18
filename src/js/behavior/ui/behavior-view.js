@@ -101,18 +101,14 @@ function mount(root) {
     // Les séquences grille (même symbole/côté, intervalle court) sont consolidées
     // en un trade synthétique pour éviter les faux positifs overtrading/size_inconsistency.
     // Limitation documentée : travaille sur timestamps d'exécution uniquement.
-    console.time('bhv:grid');
     const tradesForAnalysis = groupGridTrades(trades);
-    console.timeEnd('bhv:grid');
 
     // Contexte stratégique Order History — lu ici, passé à computeScore.
     // Présent uniquement si un profil GRID a été détecté dans les 7 derniers jours.
     gridContext = readGridContext();
 
     metrics     = computeMetrics(tradesForAnalysis);
-    console.time('bhv:patterns');
     patterns    = detectPatterns(tradesForAnalysis, metrics);
-    console.timeEnd('bhv:patterns');
     tradeTags   = tagTrades(tradesForAnalysis, metrics);
     score       = computeScore(patterns, metrics, gridContext);
     coaching    = computeCoaching(patterns, metrics, score);
@@ -146,9 +142,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  console.time('bhv:mount');
   render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
-  console.timeEnd('bhv:mount');
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
