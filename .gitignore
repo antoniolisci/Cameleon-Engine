@@ -5,6 +5,8 @@ excel_tests/**
 !excel_tests/README_tests_excel.md
 !excel_tests/05_notes/
 !excel_tests/05_notes/*.md
+!excel_tests/04_anonymized_samples/
+!excel_tests/04_anonymized_samples/SYN_*.csv
 
 # Outils de développement local
 src/.claude/
