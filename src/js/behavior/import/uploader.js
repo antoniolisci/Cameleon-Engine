@@ -211,6 +211,19 @@ async function readFileAsXLSX(file) {
 async function importBinanceSpot(file) {
   const ext    = file.name.split('.').pop().toLowerCase();
 
+  // ── Garde taille ─────────────────────────────────────────────────────────────
+  // Limite à 5 MB — au-delà, le chargement mémoire synchrone peut bloquer l'UI.
+  // Binance exporte rarement plus de 10 000 lignes par fichier ; 5 MB couvre
+  // plusieurs années de trading actif. Privilégier des exports par période courte.
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;   // 5 MB
+  if (file.size > MAX_FILE_SIZE) {
+    return {
+      ok:    false,
+      error: 'Fichier trop volumineux pour l\'import local-first. Exportez une période plus courte.',
+      trades: []
+    };
+  }
+
   // ── Garde ZIP ────────────────────────────────────────────────────────────────
   // Binance propose parfois des exports zippés. Sans décompression, le fichier
   // n'est pas lisible — on indique clairement quoi faire plutôt que de planter.
