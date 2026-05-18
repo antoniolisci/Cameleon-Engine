@@ -91,7 +91,9 @@ function computeMetrics(trades) {
     activeHours,
     // nouveaux (v3) — métriques par symbole
     avgTimeBetweenSameSymbol,
-    maxSizeCVBySymbol
+    maxSizeCVBySymbol,
+    // fiabilité dataset (v4)
+    dataQuality: computeDataQuality(total, buyCount, sellCount, spanDays)
   };
 }
 
@@ -179,6 +181,36 @@ function computeMaxSizeCVBySymbol(sorted, minTrades) {
     if (maxCV === null || cv > maxCV) maxCV = Math.round(cv * 100) / 100;
   }
   return maxCV;
+}
+
+// ── Fiabilité dataset ─────────────────────────────────────────────────────────
+// Évalue la qualité analytique du dataset indépendamment du score comportemental.
+// Ne modifie pas le score — produit uniquement une annotation de fiabilité.
+//
+// Niveaux :
+//   LOW     — dataset structurellement insuffisant (< 5 trades ou côté manquant)
+//   PARTIAL — dataset utilisable mais incomplet (< 20 trades ou < 72h de données)
+//   HIGH    — toutes les conditions de fiabilité minimales remplies
+function computeDataQuality(total, buyCount, sellCount, spanDays) {
+  const durationHours = Math.round(spanDays * 24 * 10) / 10;
+
+  if (total < 5 || buyCount === 0 || sellCount === 0) {
+    let reason;
+    if (total < 5)          reason = `${total} trade${total > 1 ? 's' : ''} — seuil minimum non atteint`;
+    else if (buyCount === 0) reason = `${total} trades SELL uniquement — 3 patterns sur 5 non évaluables`;
+    else                    reason = `${total} trades BUY uniquement — patterns de re-entrée non évaluables`;
+    return { level: 'LOW', reason, tradeCount: total, buyCount, sellCount, durationHours };
+  }
+
+  if (total < 20 || durationHours < 72) {
+    let reason;
+    if (total < 20 && durationHours < 72) reason = `${total} trades · fenêtre de ${durationHours}h`;
+    else if (total < 20)                  reason = `${total} trades`;
+    else                                  reason = `fenêtre de ${durationHours}h`;
+    return { level: 'PARTIAL', reason, tradeCount: total, buyCount, sellCount, durationHours };
+  }
+
+  return { level: 'HIGH', reason: null, tradeCount: total, buyCount, sellCount, durationHours };
 }
 
 export { computeMetrics, tradeSize };

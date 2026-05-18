@@ -239,7 +239,7 @@ function computeScore(patterns, metrics, gridContext = null) {
   // V4.4 : false si Order History GRID ne couvre pas les symboles de l'overtrading.
   const gridContextApplied = anyGridApplied;
 
-  return { score, profile, dominantRisk, interpretation, gridContextApplied };
+  return { score, profile, dominantRisk, interpretation, gridContextApplied, dataQuality: metrics.dataQuality ?? null };
 }
 
 // ── Risque dominant ────────────────────────────────────────────────────────────

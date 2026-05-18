@@ -296,6 +296,16 @@ function buildSessionsSynthesis(analysis) {
     </div>`;
 }
 
+// ── Reliability banner ────────────────────────────────────────────────────────
+
+function buildReliabilityBanner(dataQuality) {
+  if (!dataQuality || dataQuality.level === 'HIGH') return '';
+  if (dataQuality.level === 'LOW') {
+    return `<div class="bhv-msg bhv-msg--error">Données insuffisantes — lecture indicative uniquement.</div>`;
+  }
+  return `<div class="bhv-msg bhv-msg--grid-context">Analyse partielle — contexte limité.</div>`;
+}
+
 // ── Verdict block ─────────────────────────────────────────────────────────────
 
 function buildVerdictBlock(state) {
@@ -336,6 +346,8 @@ function buildAnalysis(state) {
   const { metrics, patterns, trades, tradeTags, score, coaching, style, transitions, gridContext } = state;
   if (!metrics) return '';
 
+  const reliabilityBanner = buildReliabilityBanner(score?.dataQuality);
+
   const warningBanner = state.validationWarning
     ? `<div class="bhv-msg bhv-msg--warn">⚠️ Analyse potentiellement non fiable — format non standard</div>`
     : '';
@@ -361,6 +373,7 @@ function buildAnalysis(state) {
         ${buildVerdictBlock(state)}
         ${warningBanner}
         ${gridContextBanner}
+        ${reliabilityBanner}
         ${warningsList}
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
