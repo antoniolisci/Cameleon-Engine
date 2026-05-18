@@ -1,109 +1,94 @@
 # CASE_001 — Order History : FILLED détectés, 0 trades extraits
 
 ## Statut
-broken
+**corrigé** — 2026-05-18
 
-## Fichier source local
-**INCONNU — fichier réel non retrouvé.**
-Le bug a été observé en session mais le fichier source n'a pas été conservé ou identifié.
-Reproduction non garantie tant que le fichier réel n'est pas retrouvé et placé dans `02_broken/`.
+## Fichier source
+`11_4au11_5.xlsx` — Order History Binance Spot (avril–mai, période non précisée)
+Placé dans `02_broken/` pendant le diagnostic, non commité.
 
-## Type supposé
+## Type
 Order History (Format B — colonnes Status/Order ID détectées)
 
 ## Symptôme observé
-Message UI exact :
+Message UI :
 
 > "Order History importé mais aucun ordre exécuté (FILLED) trouvé. Statuts détectés : FILLED, NEW, CANCELED."
 
-Bloc de diagnostic affiché :
+Bloc diagnostic :
 - FILLED × 30
 - NEW × 14
 - CANCELED × 17
 
-## Ce que le système détecte
-- format : ORDER_HISTORY (`detectFormat()` a reconnu les colonnes Status/Order ID)
-- statuts collectés par `mapOrderRows()` : FILLED, NEW, CANCELED (confirmés dans `statusCounts`)
-- headers : inconnus — fichier source manquant
-- nombre de lignes brutes : 61 (30 + 14 + 17)
-- nombre de trades extraits : **0**
+## Ce que le système détectait
+- format : ORDER_HISTORY
+- statuts dans `statusCounts` : FILLED, NEW, CANCELED
+- trades extraits : **0**
 
-## Contradiction centrale
-`mapOrderRows()` collecte les statuts bruts (preuve que les lignes sont lues), puis `normalizeOrderRow()` retourne `null` pour chaque ligne FILLED malgré un `isFilledStatus()` qui devrait les accepter.
+## Cause réelle — identifiée par traces DIAG
 
-Le statut "FILLED" est dans la liste blanche de `isFilledStatus()` :
-```javascript
-norm === 'filled'  // ← devrait matcher
+La colonne "Exécuté" du fichier XLSX Binance FR porte un **exposant typographique `²`** (U+00B2, SUPERSCRIPT TWO) dans son nom, produit par Binance pour dédoublonner deux colonnes homonymes lors de l'export.
+
+Chaîne de normalisation avant correction :
+
 ```
-→ La rupture se situe donc **après** la détection du statut, ou le champ Status n'est pas résolu correctement par `get(ALIASES_STATUS)`.
+"Exécuté²"
+  → toLowerCase()            → "exécuté²"
+  → normalize('NFD')         → "exe\u0301cute\u0301²"
+  → strip [\u0300-\u036f]    → "execute²"   ← U+00B2 passe, n'est pas un diacritique
+  → replace separators       → "execute²"   ← ² non dans le set de remplacement
+```
 
----
+Résultat : clé `norm["execute²"]` non couverte par `ALIASES_QTY` → `get(ALIASES_QTY)` retourne `''` → `parseNum('') = 0` → `!qty` vrai → ligne FILLED rejetée.
 
-## Hypothèses prioritaires
+Logs observés :
+```
+[ORDER VALIDATION REJECT] champ manquant: { symbol: "BTCUSDT", side: "BUY", price: 43210, qty: 0 }
+Toutes les clés normalisées disponibles: ... execute² ...
+```
 
-Classées par probabilité décroissante.
+## Correction appliquée
 
-### H1 — Casse ou espaces dans la valeur du statut
-La valeur brute n'est peut-être pas `"FILLED"` mais `" FILLED"`, `"Filled "`, `"filled\r"` ou une variante avec caractère invisible.
-`isFilledStatus()` applique `.trim()` + `.toLowerCase()` + NFD — mais un `\r` résiduel passerait le `.trim()` si ce n'est qu'un retour chariot sans espace.
+**Fichier :** `src/js/behavior/normalize/mappers/binance_order.js`
 
-### H2 — Colonne Status non résolue par ALIASES_STATUS
-La colonne pourrait avoir un nom non couvert : `"Etat"`, `"State"`, `"Statut de l'ordre"` (apostrophe), `"Order State"`, `"Fill Status"`.
-`normalizeKey()` dans `binance_order.js` inclut `'` dans les séparateurs → `"l'ordre"` → `"l ordre"`.
-Si le nom de colonne n'est pas dans `ALIASES_STATUS`, `get(ALIASES_STATUS)` retourne `''` → `rawStatus` vide → `return null` immédiat (avant même `isFilledStatus()`).
+### 1. `normalizeKey()` — normalisation de l'exposant U+00B2
 
-### H3 — Timestamp null sur les lignes FILLED
-`normalizeOrderRow()` retourne `null` si `parseDate()` échoue, **après** le filtre `isFilledStatus()`.
-Si la colonne date a un format non reconnu (ex : `"2024/01/15 10:30"` avec slash, ou timezone `UTC+8` non canonicalisée), toutes les lignes FILLED seraient rejetées avec un `console.warn` silencieux.
-Ce chemin est logué : `[ORDER VALIDATION REJECT] timestamp null`.
+```javascript
+.replace(/²/g, '2')   // exposant typographique U+00B2 → chiffre ASCII
+```
 
-### H4 — Champ qty ou prix null sur toutes les lignes FILLED
-`normalizeOrderRow()` retourne `null` si `!symbol || !side || !price || !qty`.
-Un format Binance atypique (colonnes `"Montant de la commande"` sans colonne qty explicite, ou `"Prix de l'ordre"` non couvert) produirait `price = 0` ou `qty = 0` → rejet.
-Ce chemin est logué : `[ORDER VALIDATION REJECT] champ manquant`.
+Ajouté après le strip diacritiques, avant le replace séparateurs.
+Résultat : `"Exécuté²"` → `normalizeKey` → `"execute2"`.
 
-### H5 — Export hybride Binance avec lignes FILLED partiellement exécutées
-Certains exports incluent des lignes FILLED avec `fillRate < 1` (partiellement exécutées).
-Si `qty_executed = 0` (pas de colonne "Exécuté" et `ALIASES_QTY` non résolu), `qty = 0` → rejet même pour statut FILLED.
+### 2. `ALIASES_QTY` — ajout de `'execute2'`
 
-### H6 — Colonne Status présente mais avec nom ambigu partagé
-Ex : une colonne nommée `"Type"` contenant à la fois `"BUY"/"SELL"` et `"FILLED"/"CANCELED"` selon les lignes.
-`ALIASES_STATUS` ne contient pas `"type"` → non résolu.
-Ou à l'inverse, `"type"` résout le side mais écrase la valeur statut.
+```javascript
+'execute', 'execute2',
+```
 
-### H7 — Format de date avec timezone non canonicalisée
-`binance_order.js` canonicalise `date(utc±N)` → `date(utc)` via regex `/^date\(utc[+-]\d+\)$/`.
-Un format `"Date (UTC+2)"` avec espace avant la parenthèse ne matcherait pas le regex → colonne date non résolue → timestamp null → rejet.
+Couvre la clé produite après normalisation de l'exposant.
+Résultat : `get(ALIASES_QTY)` résout correctement vers la valeur de la colonne.
 
----
+## Validation terrain
 
-## Prochaine action terrain
+- 30 ordres FILLED importés ✓
+- 31 lignes ignorées (NEW + CANCELED) ✓
+- Order History analysé, session sauvegardable ✓
+- Aucun scoring modifié ✓
+- Aucune UI modifiée ✓
 
-**Priorité : retrouver ou reproduire le fichier source.**
+## Hypothèses de la fiche initiale
 
-1. **Retrouver le fichier réel** — chercher dans les téléchargements ou exports Binance récents.
-2. **Le placer dans `excel_tests/02_broken/`.**
-3. **Relancer l'import** dans le navigateur (DevTools ouvert, niveau Verbose activé pour voir les `console.warn`).
-4. **Capturer dans la console :**
-   - `[ORDER VALIDATION REJECT] timestamp null` → H3 confirmée
-   - `[ORDER VALIDATION REJECT] champ manquant` → H4 confirmée
-   - `[ORDER_HISTORY] Aucun ordre FILLED` → `statusCounts` dump → vérifier valeur brute exacte du statut
-5. **Capturer les headers exacts** (copier la première ligne du fichier).
-6. **Comparer avec un fichier `01_working/`** — identifier la différence de colonne ou de valeur.
-7. **Mettre à jour cette fiche** avec les infos capturées.
+| Hypothèse | Verdict |
+|-----------|---------|
+| H1 — casse/espaces dans statut | ✗ — statut résolu correctement |
+| H2 — colonne Status non résolue | ✗ — ALIASES_STATUS OK |
+| H3 — timestamp null | ✗ — timestamp résolu correctement |
+| H4 — qty null (colonne non mappée) | ✓ — **cause confirmée**, variante `²` non couverte |
+| H5 — fillRate < 1 | ✗ — non pertinent |
+| H6 — colonne ambiguë | ✗ |
+| H7 — timezone non canonicalisée | ✗ |
 
----
+## Commit
 
-## Résultat attendu
-30 trades FILLED extraits, session comportementale créée, analyse disponible.
-
-## Résultat obtenu
-0 trades extraits. Message "aucun ordre exécuté (FILLED) trouvé" malgré 30 FILLED détectés dans `statusCounts`.
-
-## Statut de correction
-**non traité** — fichier source manquant, reproduction non garantie.
-
-## Notes
-- `IMPORT_001_FILLED_detecte_mais_non_reconnu.md` dans `project_memory/imports_excel_csv/` documente un bug similaire antérieur (résolu). Vérifier si régression ou nouveau cas.
-- Les `console.warn` de rejet dans `binance_order.js` (NR-001 à NR-006 conservés intentionnellement) sont les premiers logs à lire lors de la reproduction.
-- Ne pas modifier `isFilledStatus()` ni les ALIASES avant d'avoir les headers réels.
+`fix(import): handle Binance FR executed quantity superscript column`

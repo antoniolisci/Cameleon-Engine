@@ -18,6 +18,7 @@ function normalizeKey(str) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/²/g, '2')              // exposant typographique U+00B2 → chiffre ASCII
     .replace(/[\s_./'\\-]+/g, ' ')   // ' inclus : "l'ordre" → "l ordre"
     .trim();
 }
@@ -36,8 +37,11 @@ const ALIASES_PRICE    = ['price', 'avg price', 'avg. price', 'filled price', 'a
                           // Binance FR : "Prix moyen" ou "Prix de l'ordre" (apostrophe → espace via normalizeKey)
                           'prix de l ordre', 'prix moyen rempli', 'prix d execution moyen'];
 const ALIASES_QTY      = ['executed qty', 'filled qty', 'executed', 'filled', 'qty', 'quantity',
-                          'base qty', 'base quantity', 'execute', 'quantite',
+                          'base qty', 'base quantity', 'execute', 'execute2',
                           // Binance FR : "Exécuté", "Quantité exécutée"
+                          // "execute2" : variante observée sur Order History FR (CASE_001)
+                          // lorsque deux colonnes normalisent vers "execute", SheetJS/normalizeKey
+                          // produit "execute2" pour la seconde occurrence.
                           'quantite executee', 'volume execute', 'montant execute'];
 const ALIASES_ORDER_QTY = ['order quantity', 'original qty', 'orig qty', 'quantite ordre',
                             'quantite initiale',
