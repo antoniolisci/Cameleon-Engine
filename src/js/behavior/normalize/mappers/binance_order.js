@@ -76,8 +76,6 @@ function isFilledStatus(value) {
          norm.startsWith('filled');
 }
 
-const FILLED_STATUSES = new Set(['FILLED', 'REMPLI', 'COMPLETED', 'COMPLETE', 'DONE']);
-
 // ── normalizeOrderRow ─────────────────────────────────────────────────────────
 // row : objet brut (clés brutes du CSV/XLSX)
 // Retourne un objet canonique ou null si l'ordre n'est pas exécuté.

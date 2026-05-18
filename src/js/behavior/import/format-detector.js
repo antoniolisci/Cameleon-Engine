@@ -63,9 +63,6 @@ function detectFormat(headers) {
   const hasStatus   = h.some(c => matchSig(c, SIGNALS_STATUS));
   const hasOrderId  = h.some(c => matchSig(c, SIGNALS_ORDER_ID));
 
-  console.debug('[bhv:format] fee=%s status=%s orderId=%s | cols: %s',
-    hasFee, hasStatus, hasOrderId, h.join(', '));
-
   if (hasStatus || hasOrderId) return 'ORDER_HISTORY';
   if (hasFee)                  return 'TRADE_HISTORY';
   return 'UNKNOWN';
