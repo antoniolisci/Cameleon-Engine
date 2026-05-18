@@ -214,10 +214,16 @@ Points d'attention théoriques :
 3. ~~Aligner `normalizeKey()` de binance_spot.js sur binance_order.js (apostrophe + exposant ²)~~ — `ff56636`
 4. ~~Ajouter un guard de taille fichier dans `importBinanceSpot()` (~5MB max, message "Fichier trop volumineux")~~ — `ff56636`
 
-### P2 — Plus tard (3 items) — dette restante
-5. Mutualiser normalizeKey en module partagé (si refacto planifiée)
-6. Afficher les patterns non-évaluables dans l'UI Order History (prévu V2)
-7. Exposer `cancelProfile` de order-analyzer.js dans behavior-view.js `buildOrderAnalysis()`
+### P2 — Audit de faisabilité réalisé le 2026-05-18
+
+5. **Mutualiser normalizeKey en module partagé** — 🔲 **GARDER POUR PLUS TARD**  
+   Duplication intentionnelle pour isolation module (commentaire explicite dans les fichiers). Deux variantes distinctes (`normalizeKey` vs `normalizeHeader`) avec des sets de séparateurs volontairement différents. Zéro valeur produit immédiate, risque non nul sur les edge cases de normalisation.
+
+6. ~~Afficher les patterns non-évaluables dans l'UI Order History~~ — ✅ **NON PERTINENT — FERMÉ**  
+   Order History n'utilise pas le système de patterns comportementaux — périmètre incorrect. Pour Trade History, le cas est déjà couvert par le bandeau `dataQuality` (commit `634a683` : "SELL-only → 3 patterns sur 5 non évaluables").
+
+7. ~~Exposer `cancelProfile` de order-analyzer.js dans `buildOrderAnalysis()`~~ — ✅ **DÉJÀ IMPLÉMENTÉ — FERMÉ**  
+   `cancelProfile` est rendu dans `behavior-view.js` lignes 556–560 (bandeau conditionnel `bhv-reading-line` affiché si `cancelProfile !== 'none'`). Dette fictive — code présent et fonctionnel avant cet audit.
 
 ---
 
@@ -231,8 +237,8 @@ Points d'attention théoriques :
 | P0 | `FILLED_STATUSES` code mort | ✅ soldé | `9ad2974` |
 | P1 | `normalizeKey()` binance_spot.js aligné | ✅ soldé | `ff56636` |
 | P1 | Guard taille fichier 5 MB | ✅ soldé | `ff56636` |
-| P2 | normalizeKey mutualisé | 🔲 dette | — |
-| P2 | Patterns non-évaluables UI | 🔲 dette | — |
-| P2 | cancelProfile exposé | 🔲 dette | — |
+| P2 | normalizeKey mutualisé | 🔲 plus tard | — |
+| P2 | Patterns non-évaluables UI Order History | ✅ non pertinent — fermé | — |
+| P2 | cancelProfile exposé | ✅ déjà implémenté — fermé | — |
 
-Pipeline import considéré **production-ready** sur les cas terrain documentés. Dette P2 non bloquante.
+Pipeline import considéré **production-ready** sur les cas terrain documentés. Une seule dette restante (P2-1, non bloquante).
