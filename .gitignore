@@ -7,6 +7,10 @@ excel_tests/**
 !excel_tests/05_notes/*.md
 !excel_tests/04_anonymized_samples/
 !excel_tests/04_anonymized_samples/SYN_*.csv
+!excel_tests/06_real_anonymized/
+!excel_tests/06_real_anonymized/NOTES/
+!excel_tests/06_real_anonymized/NOTES/.gitkeep
+!excel_tests/06_real_anonymized/NOTES/*.md
 
 # Outils de développement local
 src/.claude/
