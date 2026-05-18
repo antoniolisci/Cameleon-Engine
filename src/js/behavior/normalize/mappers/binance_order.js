@@ -258,4 +258,4 @@ function parseDate(str) {
   return isNaN(d.getTime()) ? null : d.getTime();
 }
 
-export { normalizeOrderRow, mapOrderRows, FILLED_STATUSES };
+export { normalizeOrderRow, mapOrderRows };
