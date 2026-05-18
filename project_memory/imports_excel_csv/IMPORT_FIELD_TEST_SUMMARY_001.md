@@ -199,22 +199,40 @@ Points d'attention théoriques :
 - Bandeau fiabilité dataset opérationnel (LOW/PARTIAL/HIGH)
 
 **Points d'attention avant déploiement public :**
-- Surface debug `console.debug` dans format-detector.js
-- Code mort `FILLED_STATUSES`
+- ~~Surface debug `console.debug` dans format-detector.js~~ — soldé `9ad2974`
+- ~~Code mort `FILLED_STATUSES`~~ — soldé `9ad2974`
 
 ---
 
 ## 13. Priorités d'amélioration
 
-### P0 — Nécessaire avant public (2 items)
-1. Supprimer `console.debug` dans format-detector.js ligne 66
-2. Supprimer `FILLED_STATUSES` Set dead code dans binance_order.js ligne 79
+### P0 — Nécessaire avant public (2 items) ✅ soldés
+1. ~~Supprimer `console.debug` dans format-detector.js ligne 66~~ — `9ad2974`
+2. ~~Supprimer `FILLED_STATUSES` Set dead code dans binance_order.js ligne 79~~ — `9ad2974`
 
-### P1 — Utile, non bloquant (2 items)
-3. Aligner `normalizeKey()` de binance_spot.js sur binance_order.js (apostrophe + exposant ²)
-4. Ajouter un guard de taille fichier dans `importBinanceSpot()` (~5MB max, message "Fichier trop volumineux")
+### P1 — Utile, non bloquant (2 items) ✅ soldés
+3. ~~Aligner `normalizeKey()` de binance_spot.js sur binance_order.js (apostrophe + exposant ²)~~ — `ff56636`
+4. ~~Ajouter un guard de taille fichier dans `importBinanceSpot()` (~5MB max, message "Fichier trop volumineux")~~ — `ff56636`
 
-### P2 — Plus tard (3 items)
+### P2 — Plus tard (3 items) — dette restante
 5. Mutualiser normalizeKey en module partagé (si refacto planifiée)
 6. Afficher les patterns non-évaluables dans l'UI Order History (prévu V2)
 7. Exposer `cancelProfile` de order-analyzer.js dans behavior-view.js `buildOrderAnalysis()`
+
+---
+
+## 14. État après corrections
+
+**Date :** 2026-05-18
+
+| Priorité | Items | Statut | Commit |
+|---------|-------|--------|--------|
+| P0 | `console.debug` format-detector.js | ✅ soldé | `9ad2974` |
+| P0 | `FILLED_STATUSES` code mort | ✅ soldé | `9ad2974` |
+| P1 | `normalizeKey()` binance_spot.js aligné | ✅ soldé | `ff56636` |
+| P1 | Guard taille fichier 5 MB | ✅ soldé | `ff56636` |
+| P2 | normalizeKey mutualisé | 🔲 dette | — |
+| P2 | Patterns non-évaluables UI | 🔲 dette | — |
+| P2 | cancelProfile exposé | 🔲 dette | — |
+
+Pipeline import considéré **production-ready** sur les cas terrain documentés. Dette P2 non bloquante.
