@@ -150,5 +150,4 @@ Préférer : "la lecture dominante", "le champ ambiant", "la lisibilité apparen
 
 ## Phrase Caméléon
 
-"Le consensus apparent ne change pas les signaux — il change le nombre de fois qu'on croit
-les avoir vus."
+"Les signaux n'ont pas changé. Leur écho a grossi."
