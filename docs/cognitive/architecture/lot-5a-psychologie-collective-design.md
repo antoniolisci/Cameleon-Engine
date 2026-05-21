@@ -1,9 +1,35 @@
 # Lot 5A — Psychologie collective du marché
 ## Document d'architecture — avant construction
 
-**Statut :** design validé — aucun concept rédigé, aucune fiche produite.
-**Date :** 2026-05-19
+**Statut :** en construction — première fiche de référence produite.
+**Date :** 2026-05-19 — mis à jour 2026-05-21
 **Contexte :** produit après audit taxonomique des 40 concepts (lots 1–4).
+Relu et complété après stabilisation du cadrage produit deux-couches.
+
+**Fiche de référence :** `docs/cognitive/concepts/consensus-apparent.md`
+Valide le ton, la structure, le niveau de profondeur et la logique de modulation atmosphérique
+pour toutes les fiches suivantes. Relire avant toute nouvelle construction.
+
+---
+
+## Position dans le modèle deux-couches
+
+Cette famille ne décrit ni la Couche 1 (marché) ni la Couche 2 (opérateur) exclusivement.
+Elle décrit le **champ ambiant qui connecte les deux** : des états collectifs qui modifient
+la lisibilité du marché (Couche 1) et pénètrent la cognition individuelle (Couche 2) sans
+que l'opérateur l'ait décidé.
+
+Ce n'est pas une troisième couche. C'est l'environnement dans lequel les deux couches
+interagissent.
+
+**Principe d'intégration cockpit :**
+Cette famille produit des **modulations atmosphériques** sur les éléments existants du
+cockpit — texture de lecture, densité de friction, registre de coaching.
+Elle n'ajoute pas de surface UI nouvelle. Elle ne produit pas de warnings, de badges,
+ni de signaux explicites.
+
+> Un état collectif ne se lit pas dans le cockpit. Il se ressent dans la façon dont
+> le cockpit respire.
 
 ---
 
@@ -108,31 +134,64 @@ Signal d'alerte : "quand X état collectif est présent, le retournement est pro
 ## Axes structurels identifiés
 
 Cinq axes solides. Ce ne sont pas des fiches — ce sont des directions de construction.
+Chaque axe est accompagné de sa **modulation cockpit** : comment cet état collectif
+se ressent dans les éléments existants, sans rien ajouter à la surface.
 
 **A — Narratif dominant**
 Un récit de marché qui s'est répandu au point de fonctionner comme contexte présupposé —
 ce que "tout le monde sait" et traite comme arrière-plan de sa lecture. Il n'est pas adopté
 consciemment. Il s'installe par exposition répétée.
 
+*Modulation cockpit :* Le cockpit devient trop lisse. Les signaux s'alignent trop facilement.
+L'absence de friction devient perceptible — non par un warning, mais parce que la fluidité
+elle-même est suspecte. Le registre du coaching se fait légèrement plus interrogatif,
+moins affirmatif, légèrement conditionnel.
+
 **B — Consensus apparent**
 La convergence visible de l'opinion de marché autour d'une thèse unique, qui crée l'illusion
 que cette thèse est plus robuste qu'elle ne l'est — souvent parce qu'elle est construite
 depuis les mêmes quelques sources ou signaux répétés sous plusieurs formes.
+
+*Modulation cockpit :* La respiration du cockpit ralentit. Une légère densité s'installe
+là où d'habitude tout glisse. La friction avant validation devient légèrement plus lente —
+non par une règle ajoutée, mais par un ajustement de la lecture contextuelle qui accompagne
+l'output. La lisibilité apparente du contexte se présente avec une nuance de réserve.
 
 **C — Contamination narrative**
 Le processus par lequel un état collectif dominant pénètre la lecture individuelle sans que
 le trader l'ait délibérément adopté. Distinct du biais de confirmation : le trader n'a pas
 cherché à confirmer une thèse — il a absorbé un cadre de lecture par exposition.
 
+*Modulation cockpit :* C'est l'axe le plus silencieux. La modulation ne porte pas sur la
+texture visuelle mais sur le coaching uniquement. Une question émerge naturellement dans
+le flux de lecture — pas une accusation, une respiration : "cette lecture est-elle construite
+depuis des signaux, ou depuis un contexte absorbé ?" L'opérateur n'est jamais nommé coupable.
+Il est renvoyé à ses propres signaux.
+
 **D — États collectifs stables (euphorie / fatigue)**
 Les états émotionnels agrégés qui modifient ce qui semble évident à lire. En phase d'euphorie
 collective, les contextes dégradés semblent lisibles. En phase de fatigue collective, même
 les contextes clairs semblent ambigus. L'état individuel s'y ancre sans que le trader le réalise.
 
+*Modulation cockpit :* C'est la température ambiante. Elle ne change pas la valeur du score
+de confiance — elle change la nuance contextuelle qui l'entoure. Un score de 72 en euphorie
+collective n'est pas le même que 72 en contexte neutre. Le chiffre est identique ; ce qui
+l'habille porte une légère réserve ou une légère densité selon l'état collectif détecté.
+
 **E — Validation sociale**
 Le besoin de trouver confirmation de sa lecture dans le comportement observable d'autres
 participants — pas dans l'information (biais de confirmation) mais dans l'action d'autrui
 comme proxy de légitimité. "Si tout le monde entre, c'est que c'est lisible."
+
+*Modulation cockpit :* C'est l'axe le plus individuel des cinq — à rédiger avec discipline
+(cf. note ci-dessous). Quand l'historique révèle un clustering comportemental — analyses
+similaires répétées, décisions groupées dans des fenêtres identiques — une légère résistance
+discrète apparaît sur la confirmation. Pas une alerte. Le cockpit pose silencieusement :
+"est-ce que c'est votre lecture ?"
+
+*Note :* Cet axe est borderline dans le test d'appartenance. Le mécanisme reste intérieur
+à l'opérateur même si son déclencheur est collectif. La fiche devra passer le test
+rigoureusement avant d'être validée.
 
 ---
 
@@ -146,6 +205,19 @@ comme proxy de légitimité. "Si tout le monde entre, c'est que c'est lisible."
 | Effet de halo collectif | L'halo peut venir du collectif, mais le mécanisme reste individuel |
 | Surconfiance de marché | Version agrégée de surconfiance — pas de gain taxonomique |
 | Sentiment de marché | Trop proche des outils techniques — pas un concept comportemental |
+
+---
+
+## Structure d'une fiche — trois questions obligatoires
+
+Chaque concept de ce lot doit répondre à trois questions, dans cet ordre :
+
+1. **Définition** — qu'est-ce que cet état collectif ? (test d'appartenance inclus)
+2. **Test d'appartenance** — ce phénomène disparaît-il si l'on retire tous les autres participants ?
+3. **Modulation cockpit** — quelle texture, quelle densité, quel rythme, quelle nuance
+   cet état produit-il dans les éléments existants du cockpit ?
+
+La troisième question est le point d'ancrage produit. Sans elle, le concept reste orphelin.
 
 ---
 
@@ -180,8 +252,11 @@ elle est incorrecte.
 | Concepts à éviter | 6 — tous des décalques collectifs de concepts individuels existants |
 | Risque principal | Jugement ("la foule a tort") ou dérive outillage ("analyse sentiment") |
 | Ancrage de ton | Le lecteur se reconnaît — il ne regarde pas les autres |
-| Nombre de concepts cibles | À définir en construction — probablement 8–10 pour un lot complet |
+| Nombre de concepts cibles | 5 — un par axe ; la modulation cockpit de chacun prime sur le volume |
+| Intégration cockpit | Modulation atmosphérique des éléments existants — aucune surface UI nouvelle |
+| Axe à surveiller | E (validation sociale) — borderline test d'appartenance, à valider à la rédaction |
 
 ---
 
-*Document d'architecture uniquement. Aucun concept rédigé. Construction à initier en session suivante.*
+*Mis à jour le 2026-05-21 : ajout position deux-couches, principe de modulation atmosphérique, modulations cockpit par axe, structure de fiche en trois questions, révision cible concepts.*
+*2026-05-21 : première fiche produite — `consensus-apparent.md` établie comme fiche de référence. Construction des fiches suivantes à calibrer sur ce niveau.*
