@@ -5,7 +5,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(wc -l src/js/*.js src/js/behavior/**/*.js)",
-      "Bash(node --input-type=module)"
+      "Bash(node --input-type=module)",
+      "Bash(python *)",
+      "mcp__claude_ai_Notion__notion-create-pages",
+      "mcp__claude_ai_Notion__notion-fetch",
+      "mcp__claude_ai_Notion__notion-update-page"
     ]
   }
 }
