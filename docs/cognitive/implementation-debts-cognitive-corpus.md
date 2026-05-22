@@ -429,7 +429,7 @@ coaching sur la profondeur de lecture par position.
 | D1 | inertie-lecture / rigidite-these | Distinction non détectable | MODÉRÉE |
 | D2 | calme-trompeur cross-référence dans desordre-structurel | Inconsistance corpus | ✅ SOLDÉE — 2026-05-22 |
 | D3 | cluster entrée précipitée (4 concepts) | Distinction non détectable | MODÉRÉE |
-| D4 | paires cause-effet : séquence d'activation | Dépendance causale | HAUTE |
+| D4 | paires cause-effet : séquence d'activation | Dépendance causale | ✅ SOLDÉE — 2026-05-22 |
 | D5 | illusion-controle / transfert-confiance | Distinction non détectable | FAIBLE |
 | D6 | cluster confiance déformée (5 concepts) | Marqueurs à différencier | FAIBLE |
 | D7 | calme-trompeur dans cluster marché | Ambiguïté de branchement | SIGNALER |
