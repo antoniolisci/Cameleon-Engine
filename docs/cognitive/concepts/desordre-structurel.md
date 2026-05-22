@@ -143,7 +143,7 @@ créant un espace où la question du référentiel peut être posée.
 - [Dominance macro sur le local](./dominance-macro-local.md) — les deux appartiennent
   au Lot 5B. La dominance macro : terrain gouverné par une force extérieure,
   structure lisible. Le désordre structurel : référentiel lui-même absent ou en conflit.
-  Ils peuvent coënter mais sont indépendants.
+  Ils peuvent coexister mais sont indépendants.
 - [Calme trompeur](./calme-trompeur.md) — le calme trompeur décrit une lisibilité
   apparente liée à une faible volatilité. Le désordre structurel peut coexister avec
   n’importe quel niveau de volatilité.

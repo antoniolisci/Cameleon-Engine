@@ -50,7 +50,7 @@ Ce phénomène est structurel, pas participatif. Il appartient au Lot 5B.
   les événements majeurs.
 - Ce n’est pas un événement ponctuel — le FOMC du jeudi à 14h30 est un catalyseur.
   La dominance macro est l’état du terrain dans les heures ou jours qui précèdent,
-  quand les structures locales sont encore lisibles mais opérationnellement suspendues.
+  quand les structures locales sont encore lisibles mais opérationnellement moins fiables.
 
 ---
 
@@ -61,9 +61,8 @@ Tout ce que le trader sait lire, il le lit correctement.
 
 Ce qui a changé, c’est ce que vaut la traduction de cette lecture en décision.
 Le marché peut exécuter la configuration — ou ne pas le faire, pour des raisons
-qui n’ont rien à voir avec la structure locale. Les participants institutionnels
-réduisent leur exposition avant un événement majeur. La liquidité se contracte.
-Les mouvements s’amortissent ou s’amplifient de façon non prédictible.
+qui n’ont rien à voir avec la structure locale. Ce décalage ne vient pas d’une
+erreur de lecture. Il vient du terrain.
 
 Le trader peut avoir raison sur la lecture et tort sur l’engagement —
 non pas par erreur d’analyse, mais parce que le terrain sous la structure a
