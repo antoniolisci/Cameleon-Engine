@@ -144,9 +144,9 @@ créant un espace où la question du référentiel peut être posée.
   au Lot 5B. La dominance macro : terrain gouverné par une force extérieure,
   structure lisible. Le désordre structurel : référentiel lui-même absent ou en conflit.
   Ils peuvent coexister mais sont indépendants.
-- [Calme trompeur](./calme-trompeur.md) — le calme trompeur décrit une lisibilité
-  apparente liée à une faible volatilité. Le désordre structurel peut coexister avec
-  n’importe quel niveau de volatilité.
+- [Calme trompeur](./calme-trompeur.md) — le calme trompeur décrit un état comportemental
+  de l’opérateur — calme apparent masquant un état interne dégradé — sans lien avec
+  la volatilité. Le désordre structurel peut coexister avec n’importe quel niveau de volatilité.
 - [Fatigue décisionnelle](./fatigue-decisionnelle.md) — mécanisme individuel.
   Le désordre structurel peut induire une fatigue décisionnelle, mais en est distinct.
 
