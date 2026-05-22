@@ -427,7 +427,7 @@ coaching sur la profondeur de lecture par position.
 | # | Dette | Type | Priorité |
 |---|---|---|---|
 | D1 | inertie-lecture / rigidite-these | Distinction non détectable | MODÉRÉE |
-| D2 | calme-trompeur cross-référence dans desordre-structurel | Inconsistance corpus | CORRIGER |
+| D2 | calme-trompeur cross-référence dans desordre-structurel | Inconsistance corpus | ✅ SOLDÉE — 2026-05-22 |
 | D3 | cluster entrée précipitée (4 concepts) | Distinction non détectable | MODÉRÉE |
 | D4 | paires cause-effet : séquence d'activation | Dépendance causale | HAUTE |
 | D5 | illusion-controle / transfert-confiance | Distinction non détectable | FAIBLE |
