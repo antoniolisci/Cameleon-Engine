@@ -1,6 +1,6 @@
 # Behavioral Lifecycle V1 — Séquences cause-effet du moteur comportemental
 
-**Statut :** document d'architecture — référence pour l'implémentation des séquences D4.
+**Statut :** document d'architecture — dette D4 ✅ SOLDÉE 2026-05-22.
 **Date :** 2026-05-22
 **Dépend de :** implementation-debts-cognitive-corpus.md · behavior-engine-mapping-v1.md
 **Usage :** formaliser comment le moteur gère les relations temporelles entre causes,
