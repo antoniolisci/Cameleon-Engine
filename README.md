@@ -210,3 +210,11 @@ Règle de déduplication : si `revenge_trading` et `rapid_reentry` sont tous deu
 - **Zéro P&L** — aucune mention de gain ou de perte
 - **Isolation stricte** — le module comportemental ne modifie rien dans le moteur principal
 - **Pas de localStorage** — les données importées sont en mémoire uniquement, effacées à chaque rechargement
+
+---
+
+## Licence
+
+© 2026 Antonio Lisci — Caméléon Engine. Tous droits réservés.
+
+Usage, copie, modification, redistribution et exploitation commerciale interdits sans autorisation écrite. Voir [LICENSE.md](LICENSE.md).
