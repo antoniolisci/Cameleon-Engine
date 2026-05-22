@@ -19,7 +19,7 @@ C'est une lecture de l'engagement des participants, pas de leur nombre.
 
 La plupart des erreurs de lecture de marché se produisent sur des marchés apparemment calmes. L'activité de flux permet de distinguer un calme de consolidation — où les participants attendent — d'un calme d'indifférence — où personne n'est positionné.
 
-Cette distinction conditionne la fiabilité de presque tous les autres signaux. Un niveau de support tenu dans un marché à flux élevé n'a pas la même valeur qu'un niveau tenu dans un marché à flux nul.
+Cette distinction conditionne la fiabilité de presque tous les autres signaux. Un niveau de prix tenu dans un marché à flux élevé n'a pas la même valeur qu'un niveau tenu dans un marché à flux nul.
 
 Caméléon ne peut pas produire une lecture cohérente de l'état de marché sans savoir si le marché est habité ou vide.
 
