@@ -5,10 +5,10 @@
 
 export const V2_FLAGS = {
   // Activation globale — si false, runV2() est un no-op strict
-  V2_ENABLED: false,
+  V2_ENABLED: true,
 
   // Composants individuels (activation dans l'ordre documenté)
-  V2_COHERENCE: false,       // Phase 1 — couche cohérence inter-modules
+  V2_COHERENCE: true,        // Phase 1 — couche cohérence inter-modules (shadow mode)
   V2_HIERARCHY: false,       // Phase 2 — hiérarchie des tensions
   V2_ATTENTION: false,       // Phase 3 — gestion de l'attention
   V2_EXPOSITION: false,      // Phase 4 — explicabilité sobre
