@@ -9,7 +9,7 @@ export const V2_FLAGS = {
 
   // Composants individuels (activation dans l'ordre documenté)
   V2_COHERENCE: true,        // Phase 1 — couche cohérence inter-modules (shadow mode)
-  V2_HIERARCHY: false,       // Phase 2 — hiérarchie des tensions
+  V2_HIERARCHY: true,        // Phase 2 — hiérarchie des tensions (T2-01 shadow mode)
   V2_ATTENTION: false,       // Phase 3 — gestion de l'attention
   V2_EXPOSITION: false,      // Phase 4 — explicabilité sobre
 
