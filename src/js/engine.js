@@ -1,6 +1,8 @@
 import { ENGINE_MODE_LABELS, STATE_LABELS, STATUS_LABELS, TOKEN_LABELS, VALIDATION_TEXT } from "./data.js";
 import { assessMarket } from "./market-state.js";
 import { getDecision } from "./decision.js";
+// --- Branchement V2 (Phase 1 — coherence + Phase 2 T2-01 — hierarchy) ---
+import { runV2 } from './v2/pipeline-v2.js';
 
 // ─── Mapping ancien état formulaire → state/modifier ──────────
 // Séparé de assessMarket() — logique de traduction, pas logique métier.
@@ -322,7 +324,7 @@ export function buildPayload(v, previousPayload = null) {
     filtered.validationSummary
   ];
 
-  return {
+  const payload = {
     version: "7.3.2e-shell + 4.5-engine",
     market_state: v.market,
     market_label: STATE_LABELS[v.market] || v.market,
@@ -380,6 +382,13 @@ export function buildPayload(v, previousPayload = null) {
       overtradingLevel
     }
   };
+
+  // --- Branchement V2 — Phase 1 (coherence) + Phase 2 T2-01 (hierarchy) ---
+  // runV2() retourne null si V2_ENABLED:false — payload V1 inchangé dans ce cas
+  const _v2 = runV2(payload);
+  if (_v2 !== null) payload.v2 = _v2;
+
+  return payload;
 }
 
 export function deriveUiModel(payload) {
