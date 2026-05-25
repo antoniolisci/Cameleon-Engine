@@ -28,6 +28,7 @@ import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
 import { applyFriction } from "./friction.js";
 import { computeUXState } from "./ux-state.js";
+import { V2_FLAGS } from "./v2/flags.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -344,6 +345,47 @@ function renderDecision(payload, behaviorState) {
   document.body.dataset.behaviorState = bhvState.toLowerCase();
   const _heroSplit = $('hero-split');
   if (_heroSplit) _heroSplit.dataset.bhvState = bhvState.toLowerCase();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── renderV2Message ──────────────────────────────────────────────────────────
+// Affiche payload.v2.expositionResult.message dans le cockpit.
+// Conditions d'affichage :
+//   1. V2_FLAGS.V2_COCKPIT_MESSAGE === true
+//   2. expositionResult !== null
+//   3. expositionResult.tension_id === 'T3'   (T1/T2/T4 non exposés)
+//   4. expositionResult.message est une chaîne non vide
+//
+// Injection : bloc unique #v2MessageBlock créé une seule fois après #noTradeBlock.
+// Texte injecté via textContent. Pas d'accès aux données Debug.
+function renderV2Message(payload) {
+  // ── Trouver ou créer le bloc (idempotent — jamais dupliqué) ──────────────
+  let block = $('v2MessageBlock');
+  if (!block) {
+    const anchor = $('noTradeBlock');
+    if (!anchor) return;
+    block = document.createElement('div');
+    block.id = 'v2MessageBlock';
+    block.className = 'v2-message v2-message--t3 v2-message--hidden';
+    anchor.insertAdjacentElement('afterend', block);
+  }
+
+  // ── Conditions d'affichage ───────────────────────────────────────────────
+  const expResult = payload.v2?.expositionResult;
+  const shouldShow = V2_FLAGS.V2_COCKPIT_MESSAGE === true
+    && expResult != null
+    && expResult.tension_id === 'T3'
+    && typeof expResult.message === 'string'
+    && expResult.message.length > 0;
+
+  // ── Injection ou masquage ────────────────────────────────────────────────
+  if (shouldShow) {
+    block.textContent = expResult.message;
+    block.classList.remove('v2-message--hidden');
+  } else {
+    block.textContent = '';
+    block.classList.add('v2-message--hidden');
+  }
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -4629,6 +4671,7 @@ function render() {
   renderPsychProfile();
   renderBehaviorRepetition();
   renderDecision(currentPayload, currentPayload.finalDecision?.behaviorState ?? getBehaviorState(currentPayload));
+  renderV2Message(currentPayload);
 
   sanitizeVisibleText();
 
