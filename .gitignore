@@ -17,16 +17,12 @@ src/.claude/
 .claude/
 
 # Exports Binance bruts — jamais commités
-# Dossiers de travail contenant des données réelles non anonymisées
-exports/
-downloads/
-raw/
-private/
-binance/
-binance-exports/
-excel_tests/01_raw_files/
-excel_tests/02_processed/
-excel_tests/03_edge_cases/
+# Dossiers dédiés aux imports réels non anonymisés
+/imports/raw/
+/imports/private/
+/imports/binance-exports/
+/imports/original/
+/imports/downloads/
 
 # Fichiers Binance bruts individuels (par extension + préfixe typique)
 Binance_*.csv
@@ -34,7 +30,9 @@ Binance_*.xlsx
 spot_*.csv
 spot_*.xlsx
 order_history_*.csv
+order_history_*.xlsx
 trade_history_*.csv
+trade_history_*.xlsx
 *_binance.csv
 *_binance.xlsx
 
