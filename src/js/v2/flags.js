@@ -14,7 +14,7 @@ export const V2_FLAGS = {
   V2_EXPOSITION: true,       // Phase 4 — explicabilité sobre (T2-03 shadow mode)
 
   // Exposition cockpit (activer uniquement après shadow mode validé)
-  V2_COCKPIT_MESSAGE: false, // Phase 5 — affichage ExpositionResult.message
+  V2_COCKPIT_MESSAGE: true,  // Phase 5 — affichage ExpositionResult.message (T2-04)
 
   // Instrumentation calibration
   V2_CALIBRATION: false,     // Phase 6 — CalibrationSnapshot + buffer
