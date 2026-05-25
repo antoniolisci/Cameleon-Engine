@@ -51,11 +51,11 @@
 
 /**
  * @typedef {object} ExpositionResult
- * @property {string} message - message final destiné au cockpit
- * @property {string} intention - intention du message (T1–T4)
+ * @property {string} message - message final destiné au cockpit (≤ 20 mots, spec R3)
+ * @property {'expliquer'|'ralentir'|'contextualiser'|'bloquer'} intention - signal sémantique
  * @property {TensionId} tension_id
  * @property {'low'|'medium'|'high'} severity
- * @property {boolean} is_blocking - la tension bloque-t-elle une action ?
+ * @property {boolean} is_blocking - true uniquement si type = "blocking"
  */
 
 /**

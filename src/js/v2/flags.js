@@ -11,7 +11,7 @@ export const V2_FLAGS = {
   V2_COHERENCE: true,        // Phase 1 — couche cohérence inter-modules (shadow mode)
   V2_HIERARCHY: true,        // Phase 2 — hiérarchie des tensions (T2-01 shadow mode)
   V2_ATTENTION: true,        // Phase 3 — gestion de l'attention (T2-02 shadow mode)
-  V2_EXPOSITION: false,      // Phase 4 — explicabilité sobre
+  V2_EXPOSITION: true,       // Phase 4 — explicabilité sobre (T2-03 shadow mode)
 
   // Exposition cockpit (activer uniquement après shadow mode validé)
   V2_COCKPIT_MESSAGE: false, // Phase 5 — affichage ExpositionResult.message

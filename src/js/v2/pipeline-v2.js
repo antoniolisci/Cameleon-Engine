@@ -1,12 +1,12 @@
 // src/js/v2/pipeline-v2.js
-// Orchestrateur V2 — Phase 1 + Phase 2 + Phase 3 actifs
+// Orchestrateur V2 — Phase 1 + Phase 2 + Phase 3 + Phase 4 actifs
 // Chaîne les composants V2 au fur et à mesure de leur activation
 
 import { V2_FLAGS } from './flags.js';
 import { computeTensionMap } from './coherence.js';                              // Phase 1 — actif
 import { computeHierarchy } from './hierarchy.js';                               // Phase 2 (T2-01) — actif
 import { createInitialAttentionState, applyAttentionGate } from './attention.js'; // Phase 3 (T2-02) — actif
-// import { buildExpositionResult } from './exposition.js';                       // Phase 4
+import { buildExpositionResult } from './exposition.js';                          // Phase 4 (T2-03) — actif
 // import { captureSnapshot } from './calibration.js';                            // Phase 6
 
 /** @type {import('./types.js').AttentionState|null} */
@@ -19,7 +19,7 @@ let _attentionState = null;
  * Phase 1 : tensionMap calculé, visible Debug uniquement
  * Phase 2 (T2-01) : hierarchyResult calculé, visible Debug uniquement
  * Phase 3 (T2-02) : attentionResult calculé, visible Debug uniquement (shadow mode)
- * Phase 4 : inerte (null)
+ * Phase 4 (T2-03) : expositionResult calculé, visible Debug uniquement (shadow mode)
  *
  * @param {object} payloadV1 - Payload produit par buildPayload()
  * @param {Function|null} [behaviorGetter=null] - Getter profil comportemental
@@ -48,21 +48,18 @@ export function runV2(payloadV1, behaviorGetter = null) {
   );
   _attentionState = nextState;
 
-  // ── Phase 4 — Explicabilité (inerte) ─────────────────────────────────────
-  // if (!V2_FLAGS.V2_EXPOSITION) {
-  //   return { tensionMap, hierarchyResult, attentionResult, expositionResult: null };
-  // }
-  // const expositionResult = buildExpositionResult(
-  //   hierarchyResult?.winner ?? null, attentionResult?.should_expose ?? false
-  // );
-  // return { tensionMap, hierarchyResult, attentionResult, expositionResult };
+  // ── Phase 4 — Explicabilité (T2-03, shadow mode) ─────────────────────────
+  if (!V2_FLAGS.V2_EXPOSITION) {
+    return { tensionMap, hierarchyResult, attentionResult, expositionResult: null };
+  }
+  const expositionResult = buildExpositionResult(
+    hierarchyResult?.winner ?? null, attentionResult?.should_expose ?? false
+  );
 
-  return {
-    tensionMap,
-    hierarchyResult,
-    attentionResult,
-    expositionResult: null,
-  };
+  // ── Phase 6 — Calibration (inerte) ───────────────────────────────────────
+  // if (V2_FLAGS.V2_CALIBRATION) { captureSnapshot(...); }
+
+  return { tensionMap, hierarchyResult, attentionResult, expositionResult };
 }
 
 /**
