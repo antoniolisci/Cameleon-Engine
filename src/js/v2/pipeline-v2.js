@@ -1,13 +1,13 @@
 // src/js/v2/pipeline-v2.js
-// Orchestrateur V2 — Phase 1 + Phase 2 actifs
+// Orchestrateur V2 — Phase 1 + Phase 2 + Phase 3 actifs
 // Chaîne les composants V2 au fur et à mesure de leur activation
 
 import { V2_FLAGS } from './flags.js';
-import { computeTensionMap } from './coherence.js';     // Phase 1 — actif
-import { computeHierarchy } from './hierarchy.js';      // Phase 2 (T2-01) — actif
-// import { createInitialAttentionState, applyAttentionGate } from './attention.js'; // Phase 3
-// import { buildExpositionResult } from './exposition.js';                           // Phase 4
-// import { captureSnapshot } from './calibration.js';                                // Phase 6
+import { computeTensionMap } from './coherence.js';                              // Phase 1 — actif
+import { computeHierarchy } from './hierarchy.js';                               // Phase 2 (T2-01) — actif
+import { createInitialAttentionState, applyAttentionGate } from './attention.js'; // Phase 3 (T2-02) — actif
+// import { buildExpositionResult } from './exposition.js';                       // Phase 4
+// import { captureSnapshot } from './calibration.js';                            // Phase 6
 
 /** @type {import('./types.js').AttentionState|null} */
 let _attentionState = null;
@@ -18,7 +18,8 @@ let _attentionState = null;
  *
  * Phase 1 : tensionMap calculé, visible Debug uniquement
  * Phase 2 (T2-01) : hierarchyResult calculé, visible Debug uniquement
- * Phase 3–4 : inertes (null)
+ * Phase 3 (T2-02) : attentionResult calculé, visible Debug uniquement (shadow mode)
+ * Phase 4 : inerte (null)
  *
  * @param {object} payloadV1 - Payload produit par buildPayload()
  * @param {Function|null} [behaviorGetter=null] - Getter profil comportemental
@@ -37,15 +38,15 @@ export function runV2(payloadV1, behaviorGetter = null) {
   }
   const hierarchyResult = computeHierarchy(tensionMap);
 
-  // ── Phase 3 — Attention (inerte) ─────────────────────────────────────────
-  // if (!_attentionState) _attentionState = createInitialAttentionState();
-  // if (!V2_FLAGS.V2_ATTENTION) {
-  //   return { tensionMap, hierarchyResult, attentionResult: null, expositionResult: null };
-  // }
-  // const { result: attentionResult, nextState } = applyAttentionGate(
-  //   hierarchyResult?.winner ?? null, _attentionState
-  // );
-  // _attentionState = nextState;
+  // ── Phase 3 — Attention (T2-02, shadow mode) ─────────────────────────────
+  if (!_attentionState) _attentionState = createInitialAttentionState();
+  if (!V2_FLAGS.V2_ATTENTION) {
+    return { tensionMap, hierarchyResult, attentionResult: null, expositionResult: null };
+  }
+  const { result: attentionResult, nextState } = applyAttentionGate(
+    hierarchyResult?.winner ?? null, _attentionState
+  );
+  _attentionState = nextState;
 
   // ── Phase 4 — Explicabilité (inerte) ─────────────────────────────────────
   // if (!V2_FLAGS.V2_EXPOSITION) {
@@ -59,7 +60,7 @@ export function runV2(payloadV1, behaviorGetter = null) {
   return {
     tensionMap,
     hierarchyResult,
-    attentionResult: null,
+    attentionResult,
     expositionResult: null,
   };
 }

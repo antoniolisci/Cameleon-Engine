@@ -15,6 +15,7 @@
  * @property {string} type
  * @property {'low'|'medium'|'high'} severity
  * @property {object} payload - données contextuelles de la tension
+ * @property {boolean} [is_blocking] - si true, exception absolue : passe le gate attention
  */
 
 /**
@@ -35,9 +36,10 @@
 
 /**
  * @typedef {object} AttentionState
- * @property {number[]} expositions_window - fenêtre glissante des dernières expositions
- * @property {string|null} last_exposed_id - id de la dernière tension exposée
- * @property {number} consecutive_silent - nombre de cycles silencieux consécutifs
+ * @property {number} expositions_session - total expositions depuis début de session
+ * @property {number} expositions_window - expositions dans les N dernières soumissions
+ * @property {'normal'|'high'|'elevated'} attention_level - niveau courant
+ * @property {number} cycles_since_last_exposition - soumissions sans exposition (mécanisme de déclin)
  */
 
 /**
