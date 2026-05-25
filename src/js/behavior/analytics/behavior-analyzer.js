@@ -6,9 +6,10 @@
 // Entrée  : sessions[] (issues de session-repo.getAll)
 // Sortie  : { bestSession, worstSession, evolution, globalStats }
 
-import { computeMetrics } from './metrics.js';
-import { detectPatterns } from './patterns.js';
-import { computeScore   } from './scoring.js';
+import { computeMetrics  } from './metrics.js';
+import { detectPatterns  } from './patterns.js';
+import { computeScore    } from './scoring.js';
+import { groupGridTrades } from './grid-grouper.js';
 
 function analyzeSessions(sessions) {
   if (!sessions || sessions.length === 0) return null;
@@ -17,8 +18,9 @@ function analyzeSessions(sessions) {
   const scored = sessions
     .filter(s => Array.isArray(s.trades) && s.trades.length > 0)
     .map(s => {
-      const metrics  = computeMetrics(s.trades);
-      const patterns = detectPatterns(s.trades, metrics);
+      const grouped  = groupGridTrades(s.trades);
+      const metrics  = computeMetrics(grouped);
+      const patterns = detectPatterns(grouped, metrics);
       const result   = computeScore(patterns, metrics);
       if (!result) return null;
       return {
