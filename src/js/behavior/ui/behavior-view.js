@@ -12,6 +12,7 @@ import { computeScore          } from '../analytics/scoring.js';
 import { computeCoaching       } from '../analytics/coaching.js';
 import { buildBehaviorBridgeOutput } from '../behavior-bridge.js';
 import { groupGridTrades } from '../analytics/grid-grouper.js';
+import { anonymizeTrades } from '../anonymize/anonymizer.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -1175,7 +1176,7 @@ async function handleImport(file, root) {
     const info  = `${count} ordre${pl(count) ? 's' : ''} FILLED importé${pl(count) ? 's' : ''} · ${skip} ignoré${pl(skip) ? 's' : ''} · Order History`;
     behaviorRepo.set('importError',        null);
     behaviorRepo.set('importDiagnostic',   null);
-    behaviorRepo.set('trades',             result.trades);
+    behaviorRepo.set('trades',             anonymizeTrades(result.trades));
     behaviorRepo.set('walletResult',       null);
     behaviorRepo.set('orderResult',        result.orderAnalysis);
     behaviorRepo.set('importInfo',         info);
@@ -1217,7 +1218,7 @@ async function handleImport(file, root) {
     // Un profil GRID d'un Order History récent doit pouvoir contextualiser
     // plusieurs imports Trade History successifs pendant 7 jours.
     behaviorRepo.set('importInfo',        info);
-    behaviorRepo.set('trades',            result.trades);
+    behaviorRepo.set('trades',            anonymizeTrades(result.trades));
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
     behaviorRepo.set('validationWarning',  result.validationWarning || false);
     behaviorRepo.set('validationWarnings', result.validationWarnings || []);
