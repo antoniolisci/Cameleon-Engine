@@ -16,25 +16,66 @@ excel_tests/**
 src/.claude/
 .claude/
 
-# Exports Binance bruts — jamais commités
-# Dossiers dédiés aux imports réels non anonymisés
+# Exports de plateformes bruts — jamais commités
+# Dossiers dédiés aux imports réels non anonymisés (préfixés /imports/ uniquement)
 /imports/raw/
 /imports/private/
-/imports/binance-exports/
 /imports/original/
 /imports/downloads/
+/imports/exports/
+/imports/anonymized/
+/imports/platform-exports/
+/imports/binance-exports/
+/imports/coinbase-exports/
+/imports/kraken-exports/
+/imports/bybit-exports/
+/imports/okx-exports/
+/imports/kucoin-exports/
+/imports/bitget-exports/
+/imports/mexc-exports/
+/imports/gateio-exports/
 
-# Fichiers Binance bruts individuels (par extension + préfixe typique)
+# Fichiers d'export par plateforme (préfixes connus)
 Binance_*.csv
 Binance_*.xlsx
+Coinbase_*.csv
+Coinbase_*.xlsx
+Kraken_*.csv
+Kraken_*.xlsx
+Bybit_*.csv
+Bybit_*.xlsx
+OKX_*.csv
+OKX_*.xlsx
+KuCoin_*.csv
+KuCoin_*.xlsx
+Bitget_*.csv
+Bitget_*.xlsx
+MEXC_*.csv
+MEXC_*.xlsx
+GateIO_*.csv
+GateIO_*.xlsx
+
+# Fichiers d'export par suffixe générique (plateforme-agnostique)
 spot_*.csv
 spot_*.xlsx
-order_history_*.csv
-order_history_*.xlsx
-trade_history_*.csv
-trade_history_*.xlsx
 *_binance.csv
 *_binance.xlsx
+trade_history_*.csv
+trade_history_*.xlsx
+order_history_*.csv
+order_history_*.xlsx
+transaction_history_*.csv
+transaction_history_*.xlsx
+*_export.csv
+*_export.xlsx
+*_exports.csv
+*_exports.xlsx
+*_trades.csv
+*_trades.xlsx
+*_orders.csv
+*_orders.xlsx
+*_transactions.csv
+*_transactions.xlsx
 
 # Artefacts système
 .DS_Store
