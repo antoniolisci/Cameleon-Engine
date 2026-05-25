@@ -273,17 +273,24 @@ function findRapidReentryInstances(sorted) {
 function detectSizeInconsistency(sorted, metrics) {
   if (sorted.length < SIZE_MIN_TRADES) return null;
 
-  // tradeSize(t) = price × quantity — cohérent avec metrics.js.
-  // quote_quantity écarté : sur certains exports il contient la qty base (pas la valeur USDT),
-  // ce qui rendrait le CV faussement élevé ou le pattern silencieusement inactif.
-  const sizes = sorted.map(t => tradeSize(t)).filter(q => q > 0);
-  if (sizes.length < SIZE_MIN_TRADES) return null;
-
-  const mean = metrics.avgSize;
-  if (mean === 0) return null;
-
-  const variance = sizes.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / sizes.length;
-  const cv = Math.sqrt(variance) / mean;
+  // PS-01 : utilise le CV par symbole si disponible (calculé dans metrics.js v3).
+  // Évite l'inflation inter-symboles : un trader qui met 200$ sur BTC et 50$ sur un altcoin
+  // a un CV global élevé par design, pas par dérive comportementale. La mesure par symbole
+  // isole la variabilité réelle de sizing au sein d'un même actif.
+  // Repli sur le CV global uniquement si aucun symbole n'atteint le seuil minimum
+  // de trades (SIZE_MIN_TRADES_PER_SYMBOL = 3 dans metrics.js) — cas dataset très dispersé.
+  let cv;
+  if (metrics.maxSizeCVBySymbol != null) {
+    cv = metrics.maxSizeCVBySymbol;
+  } else {
+    // Fallback CV global (datasets mono-actif à faible volume ou très dispersés)
+    const sizes = sorted.map(t => tradeSize(t)).filter(q => q > 0);
+    if (sizes.length < SIZE_MIN_TRADES) return null;
+    const mean = metrics.avgSize;
+    if (mean === 0) return null;
+    const variance = sizes.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / sizes.length;
+    cv = Math.sqrt(variance) / mean;
+  }
 
   dbg('size_inconsistency — CV :', Math.round(cv * 100) + '% (seuil : ' + Math.round(SIZE_CV_THRESHOLD * 100) + '%)');
 
