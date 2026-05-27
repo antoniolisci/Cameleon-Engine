@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How Caméléon Reads — V4</title>
+  <style>
+
+    /* ═══════════════════════════════════════
+       DESIGN SYSTEM — V4
+    ═══════════════════════════════════════ */
+
+    :root {
+      /* Backgrounds */
+      --bg:           #0d0e13;
+      --bg-surface:   #141520;
+      --bg-layer1:    #191b2a;
+      --bg-layer2:    #141520;
+      --bg-layer3:    #111219;
+
+      /* Bordures */
+      --border-strong: #2c2e48;
+      --border-mid:    #1e2034;
+      --border-soft:   #181928;
+      --border-ghost:  #141622;
+
+      /* Texte */
+      --text-primary:   #dde0ee;
+      --text-secondary: #9498b0;
+      --text-muted:     #5c6078;
+      --text-label:     #6a6e84;
+      --text-dim:       #404258;
+
+      /* Accent */
+      --accent:       #4a5898;
+      --accent-light: #6070b8;
+      --accent-data:  #7880a4;
+
+      --font:      'Inter', 'SF Pro Text', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+      --radius:    2px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font);
+      line-height: 1.7;
+    }
+
+    /* ═══════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════ */
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+    }
+
+    /* ═══════════════════════════════════════
+       OPENING — point d'entrée système
+    ═══════════════════════════════════════ */
+
+    .opening {
+      padding-top: 3.5rem;
+      padding-bottom: 2rem;
+      position: relative;
+      background-image:
+        linear-gradient(rgba(74, 88, 152, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74, 88, 152, 0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      background-position: -1px -1px;
+    }
+
+    .opening-eyebrow {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+    }
+
+    .opening-title {
+      font-size: clamp(1.35rem, 2.8vw, 1.8rem);
+      font-weight: 300;
+      line-height: 1.55;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      max-width: 600px;
+    }
+
+    .opening-title em {
+      font-style: normal;
+      color: var(--text-secondary);
+    }
+
+    /* ═══════════════════════════════════════
+       SECTION — rythme continu
+    ═══════════════════════════════════════ */
+
+    .section {
+      padding-top: 3rem;
+      padding-bottom: 2rem;
+    }
+
+    /* Variations de rythme — densité différenciée */
+    .section--compressed {
+      padding-top: 2.25rem;
+      padding-bottom: 1.75rem;
+    }
+
+    .section--open {
+      padding-top: 4rem;
+      padding-bottom: 2.5rem;
+    }
+
+    /* ═══════════════════════════════════════
+       SECTION LABEL — indicateur système
+    ═══════════════════════════════════════ */
+
+    .section-label {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-label__num {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+
+    .section-label__text {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-label);
+    }
+
+    /* ═══════════════════════════════════════
+       LAYER STACK
+    ═══════════════════════════════════════ */
+
+    .layer-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .layer {
+      border-radius: var(--radius);
+      padding: 1.5rem 1.75rem;
+    }
+
+    .layer-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.85rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .layer-num {
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.1em;
+      flex-shrink: 0;
+    }
+
+    .layer-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .layer-desc {
+      font-size: 0.88rem;
+      line-height: 1.65;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.8rem;
+    }
+
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.03em;
+      padding: 0.22rem 0.55rem;
+      border-radius: 1px;
+      white-space: nowrap;
+    }
+
+    /* ── Layer 1 — souveraine ── */
+    .layer--1 {
+      background: var(--bg-layer1);
+      border: 1px solid var(--border-strong);
+      border-left: 4px solid var(--accent);
+      padding: 1.35rem 1.75rem;
+    }
+
+    .layer--1 .layer-num   { color: var(--accent-light); }
+    .layer--1 .layer-title { color: var(--text-primary); }
+    .layer--1 .layer-desc  { color: var(--text-secondary); line-height: 1.6; }
+
+    .layer--1 .tag {
+      background: #1e2038;
+      border: 1px solid var(--border-strong);
+      color: var(--accent-data);
+    }
+
+    .data-strip {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 26px;
+      margin-top: 1.25rem;
+      opacity: 0.62;
+    }
+
+    .data-strip span {
+      display: block;
+      width: 4px;
+      background: var(--accent-data);
+      border-radius: 1px;
+    }
+
+    /* ── Layer 2 — analytique, respirante ── */
+    .layer--2 {
+      background: var(--bg-layer2);
+      border: 1px solid var(--border-mid);
+      padding: 1.75rem;
+    }
+
+    .layer--2 .layer-num   { color: #50546c; }
+    .layer--2 .layer-title { color: var(--text-secondary); }
+    .layer--2 .layer-desc  { color: var(--text-secondary); line-height: 1.78; }
+
+    .layer--2 .tag {
+      background: #111220;
+      border: 1px solid var(--border-mid);
+      color: var(--text-muted);
+    }
+
+    .layer--2 .tags { gap: 0.5rem; }
+
+    .pattern-strip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 1.25rem;
+      opacity: 0.3;
+    }
+
+    .pattern-strip span {
+      display: block;
+      height: 1px;
+      background: var(--accent-data);
+    }
+
+    /* ── Layer 3 — Constellium, représentation respirante ── */
+    .layer--3 {
+      background: var(--bg-layer3);
+      border: 1px solid var(--border-soft);
+      padding: 1.75rem;
+    }
+
+    .layer--3 .layer-num   { color: #3c4058; }
+    .layer--3 .layer-title { color: var(--text-muted); }
+    .layer--3 .layer-desc  { color: var(--text-muted); }
+
+    .constellium-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem 2.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .c-name {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .c-words {
+      font-size: 0.77rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+
+    /* ── Layer 4 — auto-limitation : légère mais lisible ── */
+    .layer--4 {
+      background: var(--bg-layer3);
+      border: 1px solid var(--border-ghost);
+      padding: 1rem 1.75rem;
+    }
+
+    .layer--4 .layer-num   { color: #363a52; }
+    .layer--4 .layer-title { color: var(--text-muted); }
+    .layer--4 .layer-desc  { color: var(--text-muted); }
+
+    .layer--4 .tag {
+      background: transparent;
+      border: 1px solid #1a1c2e;
+      color: var(--text-muted);
+    }
+
+    /* ═══════════════════════════════════════
+       DATA ALWAYS WINS — règle système
+       Intégrée dans le flux, pas isolée
+    ═══════════════════════════════════════ */
+
+    .data-wins-block {
+      margin-top: 1.75rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-mid);
+      border-left: 3px solid var(--accent);
+      padding: 1.5rem 2rem;
+    }
+
+    .data-wins-label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.85rem;
+    }
+
+    .data-wins-text {
+      font-size: clamp(0.9rem, 1.8vw, 1.05rem);
+      font-weight: 300;
+      color: var(--text-secondary);
+      line-height: 1.75;
+      max-width: 540px;
+    }
+
+    .data-wins-text strong {
+      color: var(--text-primary);
+      font-weight: 400;
+    }
+
+    /* ═══════════════════════════════════════
+       SOURCE COMPARISON — comparaison ouverte
+       Deux colonnes structurelles, pas des cards
+    ═══════════════════════════════════════ */
+
+    .source-compare {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 0 2.5rem;
+    }
+
+    .source-sep {
+      background: var(--border-mid);
+    }
+
+    .source-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .source-type {
+      font-family: var(--font-mono);
+      font-size: 0.67rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .source-title {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    /* Visualisations — barres et grille */
+    .source-visual {
+      height: 34px;
+      opacity: 0.45;
+    }
+
+    .source-visual--csv {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+    }
+
+    .source-visual--csv span {
+      display: block;
+      width: 5px;
+      background: var(--accent-data);
+      border-radius: 1px;
+    }
+
+    .source-visual--pdf {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 3px;
+      height: 34px;
+    }
+
+    .source-visual--pdf span {
+      display: block;
+      background: var(--accent-data);
+      border-radius: 1px;
+    }
+
+    .source-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.38rem;
+    }
+
+    .source-items li {
+      font-family: var(--font-mono);
+      font-size: 0.71rem;
+      color: var(--text-muted);
+      padding-left: 1rem;
+      position: relative;
+      letter-spacing: 0.02em;
+    }
+
+    .source-items li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text-dim);
+    }
+
+    .source-note {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-ghost);
+    }
+
+    /* ═══════════════════════════════════════
+       CE QUE LE MOTEUR REFUSE
+    ═══════════════════════════════════════ */
+
+    .refuses-grid {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr;
+      gap: 0 3.5rem;
+    }
+
+    .refuses-sep {
+      background: var(--border-mid);
+    }
+
+    .refuses-col-label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .refuses-col--no  .refuses-col-label { color: #7a4848; }
+    .refuses-col--yes .refuses-col-label { color: #487848; }
+
+    .refuses-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .refuses-list li {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+
+    .refuses-col--no  .refuses-list li { color: #8a6060; }
+    .refuses-col--yes .refuses-list li { color: #608a60; }
+
+    .refuses-col--no  .refuses-list li::before {
+      content: '×';
+      position: absolute;
+      left: 0;
+      color: #6a3838;
+    }
+
+    .refuses-col--yes .refuses-list li::before {
+      content: '·';
+      position: absolute;
+      left: 0;
+      color: #387838;
+    }
+
+    .refuses-note {
+      margin-top: 2.25rem;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-ghost);
+      max-width: 520px;
+    }
+
+    /* ═══════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════ */
+
+    .footer {
+      padding: 2.5rem 0 3rem;
+    }
+
+    .footer-text {
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    /* ═══════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════ */
+
+    @media (max-width: 680px) {
+      .container { padding: 0 1.5rem; }
+
+      .source-compare {
+        grid-template-columns: 1fr;
+        gap: 2rem 0;
+      }
+      .source-sep { display: none; }
+
+      .refuses-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      .refuses-sep { display: none; }
+
+      .opening {
+        padding-top: 2.5rem;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- ══════════════════════════════════════
+         OPENING — entrée système directe
+    ══════════════════════════════════════ -->
+
+    <header class="opening">
+      <span class="opening-eyebrow">Caméléon Engine</span>
+      <h1 class="opening-title">
+        Le moteur lit des structures observables.<br>
+        <em>Il ne lit ni l'identité, ni les émotions, ni la personnalité.</em>
+      </h1>
+    </header>
+
+
+    <!-- ══════════════════════════════════════
+         01 — STRUCTURE DE LECTURE
+    ══════════════════════════════════════ -->
+
+    <section class="section section--compressed">
+
+      <div class="section-label">
+        <span class="section-label__num">01</span>
+        <span class="section-label__text">Structure de lecture</span>
+      </div>
+
+      <div class="layer-stack">
+
+        <!-- Layer 1 — Souveraine -->
+        <div class="layer layer--1">
+          <div class="layer-head">
+            <span class="layer-num">Couche 01</span>
+            <span class="layer-title">Données observables</span>
+          </div>
+          <p class="layer-desc">
+            Déterministe. Traçable. Mathématique.<br>
+            Cette couche peut exister seule. Aucune couche supérieure ne la remplace.
+          </p>
+          <div class="tags">
+            <span class="tag">Fréquence</span>
+            <span class="tag">Sizing</span>
+            <span class="tag">Délais</span>
+            <span class="tag">Modifications</span>
+            <span class="tag">Annulations</span>
+            <span class="tag">Temps en position</span>
+            <span class="tag">Concentration</span>
+            <span class="tag">Dispersion</span>
+            <span class="tag">Structure carnet</span>
+            <span class="tag">Régimes</span>
+          </div>
+          <div class="data-strip" aria-hidden="true">
+            <span style="height:18px"></span><span style="height:10px"></span>
+            <span style="height:22px"></span><span style="height:14px"></span>
+            <span style="height:8px"></span> <span style="height:20px"></span>
+            <span style="height:24px"></span><span style="height:12px"></span>
+            <span style="height:16px"></span><span style="height:22px"></span>
+            <span style="height:10px"></span><span style="height:18px"></span>
+            <span style="height:26px"></span><span style="height:14px"></span>
+            <span style="height:20px"></span><span style="height:8px"></span>
+            <span style="height:16px"></span><span style="height:24px"></span>
+            <span style="height:12px"></span><span style="height:18px"></span>
+            <span style="height:22px"></span><span style="height:10px"></span>
+            <span style="height:16px"></span><span style="height:20px"></span>
+            <span style="height:28px"></span><span style="height:14px"></span>
+            <span style="height:10px"></span><span style="height:18px"></span>
+            <span style="height:22px"></span><span style="height:16px"></span>
+          </div>
+        </div>
+
+        <!-- Layer 2 -->
+        <div class="layer layer--2">
+          <div class="layer-head">
+            <span class="layer-num">Couche 02</span>
+            <span class="layer-title">Structures comportementales</span>
+          </div>
+          <p class="layer-desc">
+            Patterns dérivés des données. Structures observables — pas d'états psychologiques.
+          </p>
+          <div class="tags">
+            <span class="tag">Accélération</span>
+            <span class="tag">Compression</span>
+            <span class="tag">Oscillation</span>
+            <span class="tag">Dispersion</span>
+            <span class="tag">Stabilisation</span>
+            <span class="tag">Respiration</span>
+            <span class="tag">Escalade</span>
+            <span class="tag">Rigidité</span>
+          </div>
+          <div class="pattern-strip" aria-hidden="true">
+            <span style="width:40px"></span>
+            <span style="width:12px"></span>
+            <span style="width:60px"></span>
+            <span style="width:8px"></span>
+            <span style="width:30px"></span>
+            <span style="width:20px"></span>
+            <span style="width:50px"></span>
+            <span style="width:10px"></span>
+            <span style="width:35px"></span>
+            <span style="width:16px"></span>
+          </div>
+        </div>
+
+        <!-- Layer 3 — Constellium -->
+        <div class="layer layer--3">
+          <div class="layer-head">
+            <span class="layer-num">Couche 03</span>
+            <span class="layer-title">Représentation secondaire</span>
+          </div>
+          <p class="layer-desc">
+            Météo comportementale. Synthèse visuelle temporaire. Ne remplace pas les données.
+          </p>
+          <div class="constellium-row">
+            <div>
+              <span class="c-name">FEU</span>
+              <span class="c-words">Accélération<br>Pression<br>Convergence</span>
+            </div>
+            <div>
+              <span class="c-name">TERRE</span>
+              <span class="c-words">Structure<br>Inertie<br>Équilibre</span>
+            </div>
+            <div>
+              <span class="c-name">EAU</span>
+              <span class="c-words">Flux<br>Transition<br>Adaptation</span>
+            </div>
+            <div>
+              <span class="c-name">AIR</span>
+              <span class="c-words">Espace<br>Distance<br>Suspension</span>
+            </div>
+            <div>
+              <span class="c-name">ÉTHER</span>
+              <span class="c-words">Équilibre<br>Légèreté<br>Cohérence</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 4 — Auto-limitation : légère mais lisible -->
+        <div class="layer layer--4">
+          <div class="layer-head">
+            <span class="layer-num">Couche 04</span>
+            <span class="layer-title">Auto-limitation</span>
+          </div>
+          <p class="layer-desc">
+            Le moteur contient des mécanismes de limitation volontaire de sa propre influence.
+          </p>
+          <div class="tags">
+            <span class="tag">Refus de certaines lectures</span>
+            <span class="tag">Expiration des états</span>
+            <span class="tag">Absence de mémoire relationnelle</span>
+            <span class="tag">Absence de compagnon IA</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Règle système — intégrée dans le flux de section 01 -->
+      <div class="data-wins-block">
+        <span class="data-wins-label">Règle système</span>
+        <p class="data-wins-text">
+          Si une représentation contredit les données observables,<br>
+          <strong>les données observables ont toujours priorité.</strong>
+        </p>
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         02 — SOURCES DE DONNÉES
+    ══════════════════════════════════════ -->
+
+    <section class="section section--open">
+
+      <div class="section-label">
+        <span class="section-label__num">02</span>
+        <span class="section-label__text">Sources de données</span>
+      </div>
+
+      <div class="source-compare">
+
+        <!-- CSV / Excel -->
+        <div class="source-col">
+          <div>
+            <div class="source-type">CSV / Excel</div>
+            <div class="source-title">Mémoire du comportement exécuté</div>
+          </div>
+
+          <div class="source-visual source-visual--csv" aria-hidden="true">
+            <span style="height:8px"></span>
+            <span style="height:18px"></span>
+            <span style="height:12px"></span>
+            <span style="height:28px"></span>
+            <span style="height:10px"></span>
+            <span style="height:22px"></span>
+            <span style="height:34px"></span>
+            <span style="height:14px"></span>
+            <span style="height:20px"></span>
+            <span style="height:8px"></span>
+            <span style="height:26px"></span>
+            <span style="height:16px"></span>
+            <span style="height:10px"></span>
+            <span style="height:30px"></span>
+            <span style="height:18px"></span>
+            <span style="height:12px"></span>
+          </div>
+
+          <ul class="source-items">
+            <li>Actions réalisées</li>
+            <li>Historiques d'exécution</li>
+            <li>Séquences réelles</li>
+            <li>Résultats observables</li>
+            <li>Régimes et transitions</li>
+          </ul>
+
+          <p class="source-note">
+            Ce qui s'est passé.<br>
+            Le moteur y lit des séquences réelles, des régimes, des transitions.
+          </p>
+        </div>
+
+        <!-- Séparateur structurel -->
+        <div class="source-sep" aria-hidden="true"></div>
+
+        <!-- PDF -->
+        <div class="source-col">
+          <div>
+            <div class="source-type">PDF</div>
+            <div class="source-title">Architecture opératoire avant exécution</div>
+          </div>
+
+          <div class="source-visual source-visual--pdf" aria-hidden="true">
+            <span style="opacity:.9"></span><span style="opacity:.3"></span>
+            <span style="opacity:.0"></span><span style="opacity:.7"></span>
+            <span style="opacity:.5"></span><span style="opacity:.0"></span>
+            <span style="opacity:.0"></span><span style="opacity:.8"></span>
+            <span style="opacity:.4"></span><span style="opacity:.0"></span>
+            <span style="opacity:.9"></span><span style="opacity:.6"></span>
+            <span style="opacity:.0"></span><span style="opacity:.7"></span>
+            <span style="opacity:.3"></span><span style="opacity:.0"></span>
+            <span style="opacity:.0"></span><span style="opacity:.5"></span>
+            <span style="opacity:.9"></span><span style="opacity:.4"></span>
+            <span style="opacity:.0"></span><span style="opacity:.6"></span>
+            <span style="opacity:.8"></span><span style="opacity:.2"></span>
+          </div>
+
+          <ul class="source-items">
+            <li>Structure du carnet</li>
+            <li>Ordres en attente</li>
+            <li>Annulations et repositionnements</li>
+            <li>Respiration opératoire</li>
+            <li>Stabilité de positionnement</li>
+          </ul>
+
+          <p class="source-note">
+            Ce qui était préparé.<br>
+            Le moteur y lit la structure visible des décisions — pas l'intention psychologique.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         03 — CE QUE LE MOTEUR NE DÉDUIT PAS
+    ══════════════════════════════════════ -->
+
+    <section class="section">
+
+      <div class="section-label">
+        <span class="section-label__num">03</span>
+        <span class="section-label__text">Ce que le moteur ne déduit pas</span>
+      </div>
+
+      <div class="refuses-grid">
+
+        <div class="refuses-col refuses-col--no">
+          <span class="refuses-col-label">Refusé</span>
+          <ul class="refuses-list">
+            <li>Émotions</li>
+            <li>Identité</li>
+            <li>Intentions profondes</li>
+            <li>Personnalité</li>
+            <li>Profil psychologique</li>
+          </ul>
+        </div>
+
+        <div class="refuses-sep" aria-hidden="true"></div>
+
+        <div class="refuses-col refuses-col--yes">
+          <span class="refuses-col-label">Produit</span>
+          <ul class="refuses-list">
+            <li>Dynamiques</li>
+            <li>Structures</li>
+            <li>Séquences</li>
+            <li>Écarts</li>
+            <li>Régimes</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <p class="refuses-note">
+        Ces refus ne sont pas des manques.<br>
+        Ce sont des choix architecturaux qui protègent la fiabilité du système
+        et l'autonomie de l'utilisateur.
+      </p>
+
+    </section>
+
+
+    <!-- ══════════════════════════════════════
+         FOOTER
+    ══════════════════════════════════════ -->
+
+    <footer class="footer">
+      <p class="footer-text">
+        Caméléon Engine — prototype/how-cameleon-reads-v1.html — V4 — 2026-05-27
+      </p>
+    </footer>
+
+  </div>
+
+</body>
+</html>
