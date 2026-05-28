@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratoire du Silence — V2-E1 — Rupture silencieuse</title>
+<style>
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:      #1e2022;
+  --text:    #d8d6d0;
+  --text-2:  #8c8a85;
+  --text-3:  #555350;
+  --border:  #252729;
+  --signal:  #7d9fb5;
+  --font:    -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono:    'Courier New', Courier, monospace;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* BANDE SYSTÈME */
+
+.bande {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 40px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bande-id {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.bande-session {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+
+/* CONTENU PRINCIPAL */
+
+.contenu {
+  padding: 52px 40px 100px;
+  max-width: 800px;
+}
+
+/* ÉTAT PRINCIPAL */
+
+.etat-bloc {
+  margin-bottom: 72px;
+}
+
+.etat-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+.etat-mot {
+  font-size: 38px;
+  font-weight: 200;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 18px;
+}
+
+.etat-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  max-width: 520px;
+  line-height: 1.75;
+}
+
+/* SECTIONS ANALYTIQUES — flux séquentiel */
+
+.section-bloc {
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+  margin-bottom: 48px;
+}
+
+.section-bloc:last-child {
+  margin-bottom: 0;
+}
+
+.section-titre {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 18px;
+}
+
+/* LIGNES CLÉ-VALEUR */
+
+.ligne-lecture {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ligne-lecture:last-child {
+  border-bottom: none;
+}
+
+.ligne-cle {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.ligne-val {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+/* SOUS-NIVEAUX */
+
+.sous-bloc {
+  margin-top: 24px;
+}
+
+.sous-bloc:first-child {
+  margin-top: 0;
+}
+
+.sous-titre {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* SIGNAUX ACTIFS */
+
+.signal-item {
+  font-size: 12.5px;
+  color: var(--signal);
+  font-family: var(--mono);
+  padding: 5px 0;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid var(--border);
+}
+
+.signal-item:last-child {
+  border-bottom: none;
+}
+
+.signal-item::before {
+  content: '·  ';
+  color: var(--text-3);
+}
+
+/* SYSTÈME */
+
+.systeme-lignes {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.systeme-ligne {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-2);
+}
+
+.systeme-ligne span {
+  display: inline-block;
+  width: 160px;
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* BANDE BAS */
+
+.bande-bas {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+
+/* V2-E1 — rupture silencieuse */
+
+.rupture-silencieuse {
+  height: 144px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- V2-E1 : rupture silencieuse — test de continuité cognitive -->
+
+<div class="bande">
+  <span class="bande-id">Caméléon Engine</span>
+  <span class="bande-session">SESSION · 28.05.26 · 11:42</span>
+</div>
+
+<div class="contenu">
+
+  <div class="etat-bloc">
+    <div class="etat-label">État en cours</div>
+    <div class="etat-mot">Analyse</div>
+    <div class="etat-desc">
+      Structure primaire en cours d'évaluation. Lecture multi-niveaux active.<br>
+      Aucune décision requise à ce stade du cycle.
+    </div>
+  </div>
+
+  <div class="section-bloc">
+    <div class="section-titre">Structure primaire</div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Formation</span>
+      <span class="ligne-val">Compression asymétrique</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Phase</span>
+      <span class="ligne-val">Contraction — H4 → H1</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Durée estimée</span>
+      <span class="ligne-val">3 à 5 sessions</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Résolution probable</span>
+      <span class="ligne-val">Non définie</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Symétrie interne</span>
+      <span class="ligne-val">Absente</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Charge directionnelle</span>
+      <span class="ligne-val">Neutre</span>
+    </div>
+  </div>
+
+  <div class="section-bloc">
+    <div class="section-titre">Lectures par niveau</div>
+    <div class="sous-bloc">
+      <div class="sous-titre">H4</div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Tendance</span>
+        <span class="ligne-val">Latérale</span>
+      </div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Structure</span>
+        <span class="ligne-val">Définie</span>
+      </div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Pression</span>
+        <span class="ligne-val">Absente</span>
+      </div>
+    </div>
+    <div class="sous-bloc">
+      <div class="sous-titre">H1</div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Tendance</span>
+        <span class="ligne-val">Compressive</span>
+      </div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Structure</span>
+        <span class="ligne-val">En formation</span>
+      </div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Pression</span>
+        <span class="ligne-val">Faible</span>
+      </div>
+    </div>
+    <div class="sous-bloc">
+      <div class="sous-titre">M15</div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Tendance</span>
+        <span class="ligne-val">Indéfinie</span>
+      </div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Structure</span>
+        <span class="ligne-val">Fragmentée</span>
+      </div>
+      <div class="ligne-lecture">
+        <span class="ligne-cle">Pression</span>
+        <span class="ligne-val">Variable</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rupture-silencieuse" aria-hidden="true"></div>
+
+  <div class="section-bloc">
+    <div class="section-titre">Cohérence inter-niveaux</div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">H4 → H1</span>
+      <span class="ligne-val">Compressive cohérente</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">H1 → M15</span>
+      <span class="ligne-val">Divergence légère</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Volume → Structure</span>
+      <span class="ligne-val">Confirmé</span>
+    </div>
+    <div class="ligne-lecture">
+      <span class="ligne-cle">Momentum → Direction</span>
+      <span class="ligne-val">Non confirmé</span>
+    </div>
+  </div>
+
+  <div class="section-bloc">
+    <div class="section-titre">Signaux actifs</div>
+    <div class="signal-item">Consolidation active depuis 3 sessions sur H4</div>
+    <div class="signal-item">Volume décroissant sur compression — pattern cohérent</div>
+    <div class="signal-item">Momentum H1 en neutralisation progressive</div>
+    <div class="signal-item">Aucune cassure de structure identifiée</div>
+    <div class="signal-item">Divergence M15 non confirmée — observation en cours</div>
+  </div>
+
+  <div class="section-bloc">
+    <div class="section-titre">Système</div>
+    <div class="systeme-lignes">
+      <div class="systeme-ligne"><span>Moteur</span>Actif — lecture multi-niveaux</div>
+      <div class="systeme-ligne"><span>Mode</span>Analytique</div>
+      <div class="systeme-ligne"><span>Prochain cycle</span>Non défini — analyse en cours</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bande-bas">
+  <span>Laboratoire du Silence · V2-E1</span>
+  <span>État : Analyse · Rupture silencieuse</span>
+</div>
+
+</body>
+</html>
