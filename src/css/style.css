@@ -1194,7 +1194,7 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(340px, 0.78fr);
   gap: 24px;
-  margin-top: 24px;
+  margin-top: 36px;
   align-items: start;
   position: relative;
   transition: opacity 0.25s ease;
@@ -3759,6 +3759,14 @@ pre {
   background:
     radial-gradient(circle at top left, rgba(var(--state-rgb), 0.1), transparent 30%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
+}
+
+/* M2 — Renforcement centre de gravité : verdict-shell > ses voisins */
+.moteur-flow > .verdict-shell {
+  border-color: rgba(var(--state-rgb), 0.28);
+  background:
+    radial-gradient(circle at top left, rgba(var(--state-rgb), 0.15), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.034), rgba(255, 255, 255, 0.014));
 }
 
 .verdict-shell .action-directive {
