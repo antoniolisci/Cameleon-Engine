@@ -1,7 +1,7 @@
 # Point d'arrêt — 2026-05-29
 
 **Type :** Snapshot d'état projet · Non prescriptif
-**Branche :** main · Commit de référence : `1493617`
+**Branche :** main · Commit de référence : `5b9f306`
 
 ---
 
@@ -20,7 +20,8 @@
 | MD-01 — Liens brisés HTML corrigés | ✅ Résolu | `bc84bfb` |
 | PDF Intelligence System V1 — Doctrine | ✅ Terminé | `1493617` · docs/architecture/pdf-intelligence-system-v1.md |
 | CLAUDE.md — Persistance comportementale | ✅ Corrigé | `1493617` · DOC-CM / AUD-C1 soldés |
-| Inventaire global des dettes | ✅ Produit | 44 dettes · 8 familles · mémoire projet |
+| Inventaire global des dettes | ✅ Produit | 45 dettes · 8 familles · mémoire projet |
+| Doctrine — La confiance précède l'importation | ✅ Terminé | `5b9f306` · docs/product/doctrine-confiance-importation-v1.md |
 
 ---
 
@@ -30,7 +31,7 @@
 
 Le projet n'est pas en phase de construction active.
 
-Le corpus doctrinal est posé. L'architecture V2 est implémentée jusqu'à la Phase 2 (T3 cockpit actif). Les systèmes narratif, motion et PDF sont documentés. Les dettes sont recensées et priorisées.
+Le corpus doctrinal est posé. L'architecture V2 est implémentée jusqu'à la Phase 2 (T3 cockpit actif). Les systèmes narratif, motion et PDF sont documentés. Les dettes sont recensées et priorisées. La relation utilisateur/données est maintenant formalisée : la confiance précède l'importation.
 
 Ce qui manque ne peut pas être produit par du code ou de la doctrine supplémentaire. Ce qui manque, c'est l'usage réel.
 
@@ -60,7 +61,7 @@ Un seul signal compte maintenant : **l'utilisation réelle du cockpit**.
 - Le cockpit est prêt. V2 T3 est actif. Le moteur narratif est branché. Le pipeline comportemental est stable.
 - Les collisions du dictionnaire narratif n'empêchent pas l'usage — elles le dégradent légèrement sur 4 états.
 - Les 18 vidéos en réserve n'empêchent pas l'usage — elles attendent leur mapping.
-- Les 44 dettes recensées ne bloquent rien dans l'état actuel.
+- Les 45 dettes recensées ne bloquent rien dans l'état actuel.
 
 Ce que le terrain produira :
 - Confirmation ou nuance des collisions narratives observées en audit visuel
