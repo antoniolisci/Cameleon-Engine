@@ -61,7 +61,7 @@ Un seul signal compte maintenant : **l'utilisation réelle du cockpit**.
 - Le cockpit est prêt. V2 T3 est actif. Le moteur narratif est branché. Le pipeline comportemental est stable.
 - Les collisions du dictionnaire narratif n'empêchent pas l'usage — elles le dégradent légèrement sur 4 états.
 - Les 18 vidéos en réserve n'empêchent pas l'usage — elles attendent leur mapping.
-- Les 45 dettes recensées ne bloquent rien dans l'état actuel.
+- Les 48 dettes recensées ne bloquent rien dans l'état actuel.
 
 Ce que le terrain produira :
 - Confirmation ou nuance des collisions narratives observées en audit visuel
