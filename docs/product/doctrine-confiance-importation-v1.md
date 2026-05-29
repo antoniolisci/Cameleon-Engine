@@ -91,6 +91,39 @@ Elle est donc **optionnelle**.
 
 ---
 
+## Formulation officielle
+
+> **Le marché attire. La confiance retient. Le Behavior révèle. Le PDF approfondit.**
+
+---
+
+## Modèle en deux étages
+
+### Étage 1 — La présence Caméléon
+
+Accessible sans aucune donnée personnelle :
+
+- Market State · lecture des régimes de marché
+- Narrative Engine · narration adaptative
+- Motion System · signaux visuels d'état
+- friction cognitive · posture décisionnelle
+- aide à la lecture du contexte
+
+**Objectif :** créer de la valeur immédiatement. L'utilisateur peut utiliser Caméléon Engine sans importer un seul fichier.
+
+### Étage 2 — Le miroir Caméléon
+
+Accessible uniquement si l'utilisateur choisit d'aller plus loin :
+
+- Behavior · imports CSV / XLSX
+- PDF Intelligence · journaux personnels
+- historique comportemental · calibration avancée
+- écart déclaré / observé
+
+**Objectif :** rendre l'opérateur plus lisible à lui-même.
+
+---
+
 ## Application aux modules existants
 
 ### Behavior
@@ -102,6 +135,23 @@ Il ne constitue pas le point d'entrée principal du produit.
 
 Même logique. Les PDF ne sont pas une condition d'utilisation.  
 Ils sont une extension volontaire de la compréhension de soi.
+
+---
+
+## Guide de langage
+
+### À éviter
+
+- "Commencez par importer vos données"
+- "Connectez votre exchange"
+- "Analysez immédiatement votre historique"
+
+### À privilégier
+
+- "Lisez le marché"
+- "Comprenez le contexte"
+- "Gardez la main"
+- "Allez plus profond uniquement si vous le souhaitez"
 
 ---
 
