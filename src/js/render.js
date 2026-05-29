@@ -2705,6 +2705,15 @@ function renderHero(payload) {
     _dictSignal.main || "Lecture active"
   );
 
+  // Journal du moteur — contextuel selon état marché
+  const _dictJournal = (MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {}).journal || {};
+  setQueryText(".engine-journal-main",
+    _dictJournal.main || "Moteur actif. En attente de lecture."
+  );
+  setQueryText(".engine-journal-sub",
+    _dictJournal.sub || "Structure · profil · émotion · validation — réévaluation à chaque cycle."
+  );
+
   // micro-interaction : hero-warning sur états risqués
   const heroSection = $("hero-section");
   if (heroSection) {
