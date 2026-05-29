@@ -2693,6 +2693,18 @@ function renderHero(payload) {
     (MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {}).mantra || "Lire. Filtrer. Agir."
   );
 
+  // Signal narratif — contextuel selon état marché
+  const _dictSignal = (MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {}).signal || {};
+  setQueryText(".signal-narratif-main",
+    _dictSignal.main || "Même setup, lecture différente selon le profil."
+  );
+  setQueryText(".signal-narratif-sub",
+    _dictSignal.sub || "Filtre émotionnel et validation humaine gardent la main sur l'exécution."
+  );
+  setText("signalNarratifPill",
+    _dictSignal.main || "Lecture active"
+  );
+
   // micro-interaction : hero-warning sur états risqués
   const heroSection = $("hero-section");
   if (heroSection) {
