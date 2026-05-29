@@ -2688,6 +2688,11 @@ function renderHero(payload) {
   const heroH1Text = heroH1Titles[decisionState.state] || "Lecture en cours.";
   setText("hero-h1", heroH1Text);
 
+  // Mantra opérationnel — contextuel selon état marché
+  setQueryText(".mantra-operationnel-main",
+    (MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {}).mantra || "Lire. Filtrer. Agir."
+  );
+
   // micro-interaction : hero-warning sur états risqués
   const heroSection = $("hero-section");
   if (heroSection) {
