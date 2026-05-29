@@ -82,6 +82,37 @@ Ce que le terrain produira :
 
 ---
 
+## Carte de maturité — audit 2026-05-29
+
+Échelle : 0 = idée · 1 = doctrine · 2 = architecture · 3 = implémentation · 4 = validation terrain · 5 = stable
+
+| Domaine | Maturité | Dette principale | Prochain signal |
+|---|---|---|---|
+| Architecture générale | 4 | AUD-A1 — "profondeur" opérationnellement indéfinie | Surveillance dérive feature uniquement |
+| Behavior | 4 | AUD-T3 — plancher ~15 déterministe bloque V2 segmentation | ≥20 opérateurs terrain (protocole V0) |
+| V2 | 3 | V2-T1T4 — MdS/QdR/DMU absents payload V1 (prérequis Phase 3) | ≥50 sessions, ≥10 opérateurs |
+| Narrative | 3 | NAR-C1 — Mantra absolu vs modulable non tranché | Retour terrain cockpit réel |
+| Documentation | 3 | DOC-BHV-01 — behavior/README.md persistance incorrecte | Prochain chantier documentation behavior |
+| Motion | 2 | MD-05 — 18 vidéos réserve non connectées | Stabilisation V2 + décision mapping état→vidéo |
+| PDF | 2 | PDF-06 — Confidentialité et stockage localStorage | Première demande terrain réelle import PDF |
+
+### Incohérences identifiées à surveiller
+
+| ID | Nature | Impact |
+|---|---|---|
+| C4 | Cap FIFO 50 sessions vs mémoire comportementale V2 | Collision structurelle — insoluble sans backend |
+| T1 | KPI rétention 12 mois immesurable sans backend | Doctrine s'engage sur ce qu'elle ne peut pas lire |
+| AUD-A1 | "Profondeur" (Loi 3) jamais définie opérationnellement | Exploitable pour justifier n'importe quelle feature |
+| A3 | Hiérarchie manifeste vs doctrine non établie | Aucun mécanisme de résolution en cas de conflit |
+
+### Documents partiellement obsolètes (non bloquants)
+
+- `docs/plan-v2.md` — supplanté par les checklists Phase 0→4, non archivé
+- `docs/validation-terrain-v1-v2-v3.md` — supplanté par docs/validation/, non archivé
+- `docs/architecture-technique-cameleon-engine.md` §10 — "in-memory only" faux depuis V4.2
+
+---
+
 ## Règle de garde
 
 > **"Ne pas ouvrir un chantier parce qu'il existe. L'ouvrir uniquement lorsqu'un signal réel justifie son existence."**
