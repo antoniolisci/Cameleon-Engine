@@ -20,7 +20,7 @@ Cameleon Engine is a **client-side-only decision-support tool for spot trading**
 
 All code is in French (UI labels, variable names, comments). No localization layer — French is the native language.
 
-State is persisted via `localStorage` (form state + history, capped at 50 snapshots). The behavioral analysis module is explicitly **ephemeral** — no persistence by design.
+State is persisted via `localStorage` (form state + history, capped at 50 snapshots). The behavioral analysis module **also persists in localStorage**: up to 20 sessions FIFO in `CE_behavior_sessions_v1` (via `session-repo.js`) and behavioral memory in `cameleon_behavior_memory_v1` (written by `render.js`). Session results survive page reload. Analysis state is not shared with the main engine.
 
 ## Main Engine Pipeline
 
@@ -59,8 +59,8 @@ Located in `src/js/behavior/`. The isolation contract is strict and intentional:
 
 - Reads **no** data from the main engine
 - Emits **no** global events, sets **no** `window.*` properties
-- Persists **nothing** (in-memory only)
-- Self-clears when any main engine tab is clicked
+- Persists **session results** in localStorage — up to 20 sessions FIFO (`CE_behavior_sessions_v1` via `session-repo.js`); behavioral memory written externally by `render.js` (`cameleon_behavior_memory_v1`)
+- **UI panel clears** when any main engine tab is clicked — localStorage data is not affected
 
 Pipeline: `CSV file → parser.js → canonical.js → metrics.js → patterns.js → scoring.js → coaching.js → behavior-view.js`
 
