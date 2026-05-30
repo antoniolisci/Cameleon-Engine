@@ -87,6 +87,32 @@ function _isValidatedSetup(payload) {
   return validState === 'accepted' && !!structure && structure !== 'none';
 }
 
+// Détecte une cassure explicitement déclarée dans un marché en compression.
+// Utilisé uniquement pour la couche de présentation — ne modifie pas la logique moteur.
+function _isDeclaredBreakout(payload) {
+  const sig = String(payload?.setup_inputs?.structure_signal || "");
+  return payload?.market_state === "compression" &&
+    (sig === "real_breakout" || sig === "compression_breakout");
+}
+
+// Remplace les textes du dictionnaire quand une cassure est déclarée en compression.
+// Correction narrative uniquement — moteur, profil et validation restent inchangés.
+function _getPresentationDict(payload, dictEntry) {
+  if (!_isDeclaredBreakout(payload)) return dictEntry;
+  return {
+    ...dictEntry,
+    mantra: "La cassure est déclarée. Le moteur attend confirmation.",
+    signal: {
+      main: "Cassure déclarée",
+      sub:  "Attendre confirmation de structure."
+    },
+    decision: {
+      ...(dictEntry?.decision || {}),
+      centrale: "Cassure déclarée — confirmation moteur en attente"
+    }
+  };
+}
+
 // Returns true when a BLOCKED state should be treated as CAUTION in the UI.
 // decisionState is BLOCKED (from FOMO emotion) but setup is fully validated.
 function _isCautionOverride(payload) {
@@ -183,7 +209,7 @@ function renderDecision(payload, behaviorState) {
   const _allowedList  = [cockpit.market.action, payload.action_recommended];
 
   // Decision headlines — formerly renderRightRail
-  const _dict       = MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {};
+  const _dict       = _getPresentationDict(payload, MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {});
   const _decCopy    = getDecisionCopy(payload);
   const _baseTitle  = _dict.decision?.centrale || _decCopy.title;
   const _INTENT_MAP = {
@@ -1270,6 +1296,9 @@ function getHeroCopy(payload) {
     case "PROTECT":
       return { title: "Mode défensif",           subtitle: "Priorité au capital." };
     case "WAIT":
+      if (_isDeclaredBreakout(payload)) {
+        return { title: "Observation active", subtitle: "Cassure déclarée — entrée non confirmée, surveiller." };
+      }
       return { title: "En attente",              subtitle: "Aucun setup exploitable pour l'instant." };
     case "ALIGNED":
       return { title: "Exécution",               subtitle: "Conditions réunies." };
@@ -1478,11 +1507,13 @@ function computeDecisionState(payload) {
     posture === "PRUDENCE";
 
   if (isWait) {
-    const msg = isCompressionContext(state)
-      ? "👀 Compression — attendre la cassure"
-      : score < 35
-        ? "Score insuffisant — observation uniquement"
-        : "Setup non confirmé";
+    const msg = isCompressionContext(state) && _isDeclaredBreakout(payload)
+      ? "👀 Cassure déclarée — confirmation moteur en attente"
+      : isCompressionContext(state)
+        ? "👀 Compression — attendre la cassure"
+        : score < 35
+          ? "Score insuffisant — observation uniquement"
+          : "Setup non confirmé";
     return {
       state:   "WAIT",
       label:   "ATTENTE",
@@ -2685,16 +2716,19 @@ function renderHero(payload) {
     READY:    "Setup détecté. Confirmation attendue.",
     TENSION:  "Contexte fragile. Exposition réduite."
   };
-  const heroH1Text = heroH1Titles[decisionState.state] || "Lecture en cours.";
+  const heroH1Text = (_isDeclaredBreakout(payload) && decisionState.state === "WAIT")
+    ? "Cassure déclarée. Confirmation attendue."
+    : (heroH1Titles[decisionState.state] || "Lecture en cours.");
   setText("hero-h1", heroH1Text);
 
   // Mantra opérationnel — contextuel selon état marché
+  const _presDict = _getPresentationDict(payload, MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {});
   setQueryText(".mantra-operationnel-main",
-    (MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {}).mantra || "Lire. Filtrer. Agir."
+    _presDict.mantra || "Lire. Filtrer. Agir."
   );
 
   // Signal narratif — contextuel selon état marché
-  const _dictSignal = (MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {}).signal || {};
+  const _dictSignal = _presDict.signal || {};
   setQueryText(".signal-narratif-main",
     _dictSignal.main || "Même setup, lecture différente selon le profil."
   );
@@ -2809,7 +2843,7 @@ function renderNavigation(payload) {
     ? "Aucune entrée précise validée."
     : simplifyText(payload.validation?.summary));
   setText("tradingStatus", formatStatus(payload.trading_status));
-  const navDict = MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {};
+  const navDict = _getPresentationDict(payload, MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {});
   setText("validationBadge", navDict.posture || cockpit.market.posture);
   setText("validationSummary", simplifyText(payload.validation?.summary));
   setText("alignmentScore", navDict.decision?.centrale || cockpit.market.decision);
@@ -2871,7 +2905,7 @@ function renderPilotage(payload) {
 function renderRightRail(payload) {
   const cockpit = getCockpitModel(payload);
   const decisionCopy = getDecisionCopy(payload);
-  const dict = MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {};
+  const dict = _getPresentationDict(payload, MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {});
   const dictDecision = dict.decision?.centrale || decisionCopy.title;
   const toneMsg = getAdaptiveMessage(payload.market_state, payload.emotion_state);
   const dictRaison = toneMsg || dict.decision?.raison || decisionCopy.subtitle;
