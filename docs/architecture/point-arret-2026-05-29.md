@@ -1,7 +1,7 @@
-# Point d'arrêt — 2026-05-29
+# Point d'arrêt — 2026-05-31
 
 **Type :** Snapshot d'état projet · Non prescriptif
-**Branche :** main · Commit de référence : `5b9f306`
+**Branche :** main · Commit de référence : `5130332`
 
 ---
 
@@ -22,6 +22,7 @@
 | CLAUDE.md — Persistance comportementale | ✅ Corrigé | `1493617` · DOC-CM / AUD-C1 soldés |
 | Inventaire global des dettes | ✅ Produit | 45 dettes · 8 familles · mémoire projet |
 | Doctrine — La confiance précède l'importation | ✅ Terminé | `5b9f306` · docs/product/doctrine-confiance-importation-v1.md |
+| BMSM — Binance Multi-Source Memory (architecture + privacy) | ✅ Documenté — Priorité B | `5130332` · docs/architecture/binance-multi-source-memory.md · docs/architecture/privacy-local-first-imports.md |
 
 ---
 
