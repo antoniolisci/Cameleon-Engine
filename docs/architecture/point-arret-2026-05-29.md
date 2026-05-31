@@ -1,7 +1,7 @@
 # Point d'arrêt — 2026-05-31
 
 **Type :** Snapshot d'état projet · Non prescriptif
-**Branche :** main · Commit de référence : `5a3c764`
+**Branche :** main · Commit de référence : `b70f98e`
 
 ---
 
@@ -28,6 +28,7 @@
 | Calibration Personnelle Binance V1 — Audit de faisabilité | ✅ Documenté — Priorité B | `5a8b38f` · docs/architecture/calibration-personnelle-binance-v1.md · valeur interprétative · aucun impact code · attend signal terrain |
 | Wallet History — Audit comportemental V1 | ✅ Documenté — renforce BMSM P1/P2 | `645d5b7` · docs/architecture/wallet-history-behavioral-audit-v1.md · pas de chantier autonome |
 | Order History — Audit comportemental V1 | ✅ Documenté — renforce Calibration V1 + BMSM P1 | `5a3c764` · docs/architecture/order-history-behavioral-audit-v1.md · pas de chantier autonome |
+| Binance Audits — Synthèse architecturale V1 | ✅ Documenté — lecture transversale 4 dimensions | `b70f98e` · docs/architecture/binance-audits-synthesis-v1.md · architecture complète Trade+Order+Wallet+Calibration |
 
 ---
 
