@@ -1,7 +1,7 @@
 # Point d'arrêt — 2026-05-31
 
 **Type :** Snapshot d'état projet · Non prescriptif
-**Branche :** main · Commit de référence : `22f2ddc`
+**Branche :** main · Commit de référence : `9c5140d`
 
 ---
 
@@ -24,6 +24,7 @@
 | Doctrine — La confiance précède l'importation | ✅ Terminé | `5b9f306` · docs/product/doctrine-confiance-importation-v1.md |
 | BMSM — Binance Multi-Source Memory (architecture + privacy) | ✅ Documenté — Priorité B | `5130332` · docs/architecture/binance-multi-source-memory.md · docs/architecture/privacy-local-first-imports.md |
 | BMSM-DOC-01 — Statut stale §9 dépendances corrigé | ✅ Soldé | `22f2ddc` · Audit final : Cohérent |
+| Audit Sécurité V1 + CSP | ✅ Terminé | `9c5140d` · docs/security/security-audit-v1.md · CSP appliquée et validée terrain |
 
 ---
 
