@@ -212,7 +212,8 @@ Antonio peut trader 15 fois par jour tout en soumettant le formulaire moteur 3 f
 |---|---|---|---|
 | Trade History (Spot) | `binance_spot.js` | Timestamp · Symbol · Side · Price · Qty · Total · Fee | Timing précis, détention, re-entry |
 | Order History | `binance_order.js` | Idem + Order ID · Status · Fill Rate | Ordres annulés exclus, grilles |
-| Transaction History (Earn) | Non supporté | Revenus passifs, staking | Hors périmètre |
+| Transaction History | Non supporté — chantier BMSM P1 | Dépôts, retraits, flux capital | En conception — voir `binance-multi-source-memory.md` |
+| Earn History | Non supporté — chantier BMSM P2 | Revenus passifs, staking | En conception — voir `binance-multi-source-memory.md` |
 | Wallet Snapshot | `wallet_analyzer.js` | Soldes par date | Valeur portefeuille (pas les trades) |
 
 **Ne pas mélanger Trade History et Order History dans le même import.** Les deux formats

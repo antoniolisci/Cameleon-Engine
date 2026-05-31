@@ -134,6 +134,8 @@ Le contrat d'isolation du module `src/js/behavior/` est strict et permanent. Auc
 **Parsing et import CSV/Excel**
 Production-ready. Les cas CASE_001/002/003 sont documentés et soldés. Le dataQuality layer est implémenté. Ne pas rouvrir sans cas terrain nouveau non couvert.
 
+*Extension multi-source (Transaction History + Earn History) :* chantier BMSM enregistré en Priorité B — non démarré. Référence : `docs/architecture/binance-multi-source-memory.md`.
+
 **Corpus cognitif (52 concepts)**
 Clos. Aucun nouveau lot cognitif sans nouveau territoire conceptuel clairement distinct.
 
@@ -218,6 +220,7 @@ Ces chantiers affinent ce qui existe sans l'étendre.
 | Scoring multi-actifs | Correction PS-01 + validation sur REAL_001 corrigé | Correction architecturale |
 | Observation patterns réels | Mesurer taux de faux positifs par pattern sur données terrain | Mesure |
 | Activation Phase 3 V2 | T3-01→T3-09 — activation progressive T1/T2/T4 cockpit | Implémentation contrôlée |
+| Binance Multi-Source Memory | Transaction History + Earn History + croisement Order×Trade | Extension pipeline comportemental — Non démarré |
 
 ### Priorité C — UX et lisibilité cognitive
 

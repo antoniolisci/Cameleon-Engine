@@ -788,7 +788,7 @@ Aucun de ces scores n'est unifié. Ils sont calculés indépendamment à chaque 
 
 ## 15. Zones expérimentales
 
-**wallet_analyzer.js** — `src/js/behavior/wallet/wallet_analyzer.js`. Présent dans le codebase, non intégré dans le pipeline comportemental actuel.
+**wallet_analyzer.js** — `src/js/behavior/wallet/wallet_analyzer.js`. Présent dans le codebase, non intégré dans le pipeline comportemental actuel. Chantier d'extension multi-source documenté : `docs/architecture/binance-multi-source-memory.md` (BMSM P1).
 
 **behavior-bridge.js** — pont optionnel entre module comportemental et moteur principal. Non activé dans la version actuelle.
 
@@ -846,7 +846,7 @@ Ce document ne propose rien. Il liste ce qui ressort comme incomplet ou fragile 
 - Découpage render.js en sous-modules par domaine fonctionnel
 - Unification ou clarification des trois scores (brut / exécution / lisibilité)
 - Export de getBehaviorState() pour permettre les tests unitaires de computeExecutionConfidence()
-- Intégration formelle de wallet_analyzer.js ou suppression
+- Intégration formelle de wallet_analyzer.js dans le pipeline BMSM ou suppression — voir `docs/architecture/binance-multi-source-memory.md`
 - Clarification du rôle de moteur.js V4.5 vs engine.js V7 (hiérarchie d'autorité)
 - Nettoyage des IDs orphelins dans render.js (IDs encore ciblés par setText mais absents du DOM)
 
