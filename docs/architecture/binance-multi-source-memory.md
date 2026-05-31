@@ -243,7 +243,7 @@ Le chantier BMSM est enregistré comme chantier futur. Il n'est pas actif. Aucun
 | `docs/architecture/pdf-intelligence-system-v1.md` | Architecture PDF — référence pour P3 |
 | `docs/product/doctrine-confiance-importation-v1.md` | Cadre doctrinal — imports = portes de profondeur |
 | `docs/roadmap/roadmap-realignment-post-constellium.md` | Enregistrement roadmap du chantier |
-| `docs/architecture/v0-personal-calibration-binance.md` | Table des sources supportées — mise à jour requise |
+| `docs/architecture/v0-personal-calibration-binance.md` | Table des sources supportées — ✅ mise à jour (commit 5130332) |
 
 ### Règle de garde
 
