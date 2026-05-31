@@ -1,7 +1,7 @@
 # Point d'arrêt — 2026-05-31
 
 **Type :** Snapshot d'état projet · Non prescriptif
-**Branche :** main · Commit de référence : `5a8b38f`
+**Branche :** main · Commit de référence : `645d5b7`
 
 ---
 
@@ -26,6 +26,7 @@
 | BMSM-DOC-01 — Statut stale §9 dépendances corrigé | ✅ Soldé | `22f2ddc` · Audit final : Cohérent |
 | Audit Sécurité V1 + CSP | ✅ Terminé | `9c5140d` · docs/security/security-audit-v1.md · CSP appliquée et validée terrain |
 | Calibration Personnelle Binance V1 — Audit de faisabilité | ✅ Documenté — Priorité B | `5a8b38f` · docs/architecture/calibration-personnelle-binance-v1.md · valeur interprétative · aucun impact code · attend signal terrain |
+| Wallet History — Audit comportemental V1 | ✅ Documenté — renforce BMSM P1/P2 | `645d5b7` · docs/architecture/wallet-history-behavioral-audit-v1.md · pas de chantier autonome |
 
 ---
 
