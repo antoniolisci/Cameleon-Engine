@@ -183,11 +183,11 @@ Les fichiers CSV sont lus en UTF-8. En cas d'échec d'encodage : tentative en UT
 **Champs obligatoires :** `createdAt` · `orderId` · `pair` · `side` · `status`
 
 **Règles spécifiques :**
-- `status` valeurs observées : `Filled` · `Cancelled` · `Partially Filled`. La normalisation sémantique est laissée aux couches aval.
-- Un ordre `Cancelled` peut avoir `executed === 0` et `total === 0` — ligne valide, conservée.
+- `status` valeurs observées : `FILLED` · `CANCELED` · `PARTIALLY_FILLED` · `NEW` — en majuscules. La normalisation sémantique est laissée aux couches aval.
+- Un ordre `CANCELED` peut avoir `executed === 0` et `total === 0` — ligne valide, conservée.
 - `orderPrice` est `null` pour les ordres Market (prix non fixé à la création).
 - Le champ `Exécuté` (position 9) peut présenter le superscript U+00B2 — même normalisation que §6.
-- `Trading total` peut contenir `¹` en exposant dans certains exports — normaliser avant extraction numérique.
+- `Trading total` peut contenir `³` (U+00B3) en exposant dans certains exports — normaliser `³` → `3` avant extraction numérique.
 
 ---
 
