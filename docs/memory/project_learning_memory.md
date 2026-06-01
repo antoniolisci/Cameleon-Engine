@@ -345,51 +345,43 @@ Ce problème est distinct de BHV-002 (PS-01) : BHV-002 concerne la mesure elle-m
 
 **Symptôme observé :** Session 1_semaine affichée à 90 pendant l'import → rescorée à ~31 dans la synthèse sessions. Label affiché : "Instable" alors que la dernière session importée était "Discipliné".
 
-**Compréhension :** Deux pipelines distincts coexistent sans le signaler :
+**Compréhension :** Au moment de la découverte (2026-05-25), deux pipelines distincts coexistaient sans le signaler :
 
-- **Pipeline live** (`behavior-view.js`, lignes 105–114) :
+- **Pipeline live** (`behavior-view.js`) :
   `groupGridTrades(trades)` → `computeMetrics()` → `detectPatterns()` → `computeScore(patterns, metrics, gridContext)`
 
-- **Pipeline sessions** (`behavior-analyzer.js`, lignes 20–22) :
+- **Pipeline sessions** (`behavior-analyzer.js` — état au moment du bug) :
   `computeMetrics(s.trades)` → `detectPatterns()` → `computeScore(patterns, metrics)`
   — sans grid-grouper, sans gridContext
 
-Les trades **bruts** sont sauvegardés à la fermeture d'une session. Le grid-grouper tourne uniquement côté view et son résultat n'est pas persisté. `analyzeSessions` rescale donc chaque session sur les trades bruts.
+Le grid-grouper tournait uniquement côté view et son résultat n'était pas persisté. `analyzeSessions` rescalait chaque session sur les trades bruts.
 
-Impact par cas sur V0-A :
+Impact mesuré sur V0-A au moment du bug :
 
 | Session | Absorption grouper | Score live | Score session |
 |---|---|---|---|
 | 1_an | 38 % | 25 | ~25 (peu d'écart) |
 | 1_semaine | 96 % | 90 | ~31 (écart majeur) |
 
-La session 1_semaine est la plus impactée : 25 des 26 trades bruts auraient été groupés. Sans grouper, le pipeline nu voit de l'overtrading apparent sur 26 trades concentrés en 3 jours.
+La session 1_semaine était la plus impactée : 25 des 26 trades bruts auraient été groupés. Sans grouper, le pipeline voyait de l'overtrading apparent sur 26 trades concentrés en 3 jours.
 
-**Trois problèmes distincts :**
-1. Grid-grouper absent dans `analyzeSessions` — principal, priorité haute
-2. `gridContext` absent dans `analyzeSessions` — secondaire (voir DGN-002)
+**Problèmes identifiés au moment du bug :**
+1. Grid-grouper absent dans `analyzeSessions` — principal ✅ résolu
+2. `gridContext` absent dans `analyzeSessions` — secondaire (voir DGN-002, toujours actif)
 3. Moyenne des scores non pondérée par nombre de trades — décision produit à trancher séparément
 
-**Correction minimale identifiée :**
-```javascript
-// behavior-analyzer.js — ajouter avant computeMetrics
-const grouped  = groupGridTrades(s.trades);
-const metrics  = computeMetrics(grouped);
-const patterns = detectPatterns(grouped, metrics);
-const result   = computeScore(patterns, metrics);
-```
-Une ligne ajoutée + un remplacement. Requiert l'import de `groupGridTrades` dans `behavior-analyzer.js`.
+**Correction appliquée (commit exact non tracé) :**
+`groupGridTrades` importé et appliqué avant `computeMetrics()` dans `behavior-analyzer.js`. Revérification 2026-06-01 confirme que le code actuel utilise bien les trades groupés dans le pipeline sessions.
 
-**Résultat obtenu :** Correction identifiée, non encore appliquée. Différée après observation complète V0-A.
+**Résultat obtenu :** Pipeline sessions aligné sur le pipeline live pour le grid-grouper. Les scores de la synthèse sessions reflètent désormais les mêmes trades groupés que ceux affichés pendant l'import.
 
-**Statut :** ⚠️ Partiellement résolu — correction à appliquer avant B1-B19
-**Risque produit :** Un opérateur en progrès reste affiché comme "Instable" dans la synthèse. Source de désinformation involontaire.
+**Statut :** ✅ Résolu — correction présente dans le code actuel
 **Réutilisation future :** Toute future extension de pipeline (Order History, multi-sources) doit s'assurer que le pipeline de rescoring des sessions utilise exactement les mêmes transformations que le pipeline live.
 
 **Fichiers concernés :**
-`src/js/behavior/analytics/behavior-analyzer.js` (lignes 20–22) · `src/js/behavior/ui/behavior-view.js` (lignes 105–114)
+`src/js/behavior/analytics/behavior-analyzer.js` · `src/js/behavior/ui/behavior-view.js`
 
-**Commit associé :** `615c810` (bug documenté) — correction à venir
+**Commit associé :** `615c810` (bug documenté) — correction présente dans le code (commit exact non tracé)
 
 ---
 
@@ -402,10 +394,10 @@ Une ligne ajoutée + un remplacement. Requiert l'import de `groupGridTrades` dan
 
 **Compréhension :** `gridContext` est lu depuis localStorage via `readGridContext()` dans `behavior-view.js` mais pas dans `behavior-analyzer.js`. Impact mineur comparé à DGN-001 (grid-grouper absent) mais réel pour les opérateurs avec profil grid actif.
 
-**Adaptation appliquée :** Non encore appliquée — à corriger simultanément avec DGN-001.
+**Adaptation appliquée :** Non encore appliquée. DGN-001 (grid-grouper) a été résolu indépendamment — DGN-002 reste ouvert séparément.
 
-**Statut :** ⚠️ À corriger avec DGN-001
-**Réutilisation future :** Lors de la correction DGN-001, passer `readGridContext()` à `analyzeSessions` en même temps. Les deux corrections forment une unité cohérente.
+**Statut :** ⚠️ Actif — à traiter séparément (DGN-001 résolu)
+**Réutilisation future :** `readGridContext()` n'est pas exportée de `behavior-view.js` — la correction requiert soit une export, soit une reproduction directe de la logique dans `behavior-analyzer.js` via `behaviorRepo.get('orderStrategyProfile')`.
 
 **Fichiers concernés :** `src/js/behavior/analytics/behavior-analyzer.js`
 
@@ -649,12 +641,12 @@ Consolidation des points ⚠️ identifiés dans les sections précédentes. Auc
 
 | ID | Zone | Manifestation | Impact | Priorité | Cas source |
 |---|---|---|---|---|---|
-| Z-01 | Bug session-score (grid-grouper absent) | Score synthèse sessions faux — opérateur affiché "Instable" alors qu'il progresse | Élevé | **A — avant B1-B19** | DGN-001 |
+| Z-01 | ~~Bug session-score (grid-grouper absent)~~ | Résolu — `groupGridTrades` présent dans `behavior-analyzer.js` | — | ✅ Résolu | DGN-001 |
 | Z-02 | PS-01 confirmation terrain | Correction appliquée (ff93e2a) mais scores post-PS-01 non mesurés | Élevé | **A — mesurer sur B1-B19** | BHV-002 |
 | Z-03 | Score sur < 20 trades post-grouper | Valeur calculée sans signification statistique suffisante | Moyen | B | BHV-001 · BHV-007 |
 | Z-04 | Score non-monotone sur fichiers cumulatifs | Contre-intuitif — peut créer de la défiance utilisateur | Moyen | B | BHV-003 |
 | Z-05 | Pondération overtrading absolue vs relative | 6 fenêtres sur 212 trades pèse autant que 46 sur 1 000 | Moyen | B | BHV-004 |
-| Z-06 | gridContext absent dans analyzeSessions | Modulation grid non appliquée dans la synthèse sessions | Faible | C — corriger avec Z-01 | DGN-002 |
+| Z-06 | gridContext absent dans analyzeSessions | Modulation grid non appliquée dans la synthèse sessions | Faible | C — traiter séparément (Z-01 résolu) | DGN-002 |
 | Z-07 | Hétérogénéité devise intra-fichier (BTCEUR) | Métriques comparant EUR et USDC sans distinction | Faible | C — surveiller B1-B19 | IMP-004 |
 | Z-08 | Cause dominante ≠ risque dominant | Deux métriques présentées sans expliquer leur différence | Moyen | B | DGN-004 |
 
@@ -667,17 +659,11 @@ Consolidation des points ⚠️ identifiés dans les sections précédentes. Auc
 
 ## Recommandations avant B1-B19
 
-Dérivées directement des zones Z-01 et Z-02. Aucune recommandation nouvelle.
+Dérivées des zones actives. Z-01 résolue (DGN-001). Aucune recommandation nouvelle.
 
 ### Priorité A — Avant de lancer B1-B19
 
-**A1 — Appliquer la correction DGN-001 (Z-01)**
-Ajouter `groupGridTrades()` dans `behavior-analyzer.js` avant `computeMetrics`.
-Sans cette correction, la synthèse sessions affiche des scores structurellement faux pour tout opérateur en style carnet/DCA. B1-B19 produira des lectures multi-sessions — le bug rendra la mémoire sessions inutilisable.
-→ Correction : `src/js/behavior/analytics/behavior-analyzer.js` lignes 20–22 (voir DGN-001)
-→ Corriger DGN-002 simultanément (une seule intervention)
-
-**A2 — Mesurer les scores post-PS-01 sur V0-A (Z-02)**
+**A1 — Mesurer les scores post-PS-01 sur V0-A (Z-02)**
 Les tableaux avant/après de `docs/validation/ps-01-size-inconsistency-by-symbol.md` sont vides.
 Importer les 5 fichiers V0-A avec la correction `ff93e2a` active et renseigner les valeurs réelles.
 Sans cette mesure, il est impossible de savoir si PS-01 règle vraiment le plancher ~15 ou si d'autres patterns maintiennent le score bas.
@@ -750,8 +736,8 @@ Tableau de maturité par famille de connaissances au 2026-06-01. Statuts tirés 
 
 | Connaissance | Statut | Cas |
 |---|---|---|
-| Bug session-score — pipeline live ≠ sessions | ⚠️ Diagnostiqué — correction à appliquer | DGN-001 |
-| gridContext absent dans analyzeSessions | ⚠️ À corriger avec DGN-001 | DGN-002 |
+| Bug session-score — pipeline live ≠ sessions | ✅ Résolu — correction présente dans le code actuel | DGN-001 |
+| gridContext absent dans analyzeSessions | ⚠️ Actif — à traiter séparément (DGN-001 résolu) | DGN-002 |
 | Taux d'absorption incohérent sur cumulatifs | ✅ Résolu par compréhension | DGN-003 |
 | Cause dominante ≠ risque dominant | ⚠️ Ambiguïté UX documentée | DGN-004 |
 
