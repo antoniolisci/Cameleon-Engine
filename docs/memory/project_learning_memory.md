@@ -215,11 +215,11 @@ Le taux de 17 % sur 3_mois/6_mois semble être le plancher naturel de ce style d
 - `metrics.js` calculait déjà `maxSizeCVBySymbol` — CV maximum parmi les symboles ayant ≥ 3 trades
 - `patterns.js` `detectSizeInconsistency()` modifié : utilise `maxSizeCVBySymbol` en priorité, fallback CV global si aucun symbole n'atteint le seuil minimum
 
-**Résultat obtenu :** Sur mono-actif : aucun changement. Sur multi-actifs : réduction ou suppression du faux positif. Scores post-correction à mesurer sur B1-B19 (tableaux V0-A non remplis à date).
+**Résultat obtenu :** Sur mono-actif : aucun changement. Sur multi-actifs : scores identiques avant/après sur les 5 datasets V0-A — deux causes : CV intra-symbole authentiquement élevé pour cet opérateur, et plafond de pénalités à 65 pts absorbant les réductions. La correction est architecturalement juste même si l'impact est invisible sur ce dataset (cohérence metrics.js / patterns.js rétablie). Tables terrain renseignées dans `docs/validation/ps-01-size-inconsistency-by-symbol.md` — commit `7b91341`.
 
 **Limite résiduelle :** `SIZE_MIN_TRADES_PER_SYMBOL = 3` — un CV calculé sur 3 trades reste fragile. Le descriptif UI réfère toujours à la moyenne globale, pas par symbole (acceptable V1).
 
-**Statut :** ✅ Correction appliquée — confirmation terrain B1-B19 requise
+**Statut :** ✅ CLÔTURÉ — correction appliquée et validée terrain V0-A (commit `7b91341`)
 **Réutilisation future :** Le CV par symbole est le standard pour tout futur développement de métriques de taille. Ne jamais calculer de CV global sur un dataset multi-actifs sans segmentation préalable.
 
 **Fichiers concernés :** `src/js/behavior/analytics/patterns.js` (`detectSizeInconsistency()`) · `src/js/behavior/analytics/metrics.js` (`computeMaxSizeCVBySymbol()`)
@@ -642,7 +642,7 @@ Consolidation des points ⚠️ identifiés dans les sections précédentes. Auc
 | ID | Zone | Manifestation | Impact | Priorité | Cas source |
 |---|---|---|---|---|---|
 | Z-01 | ~~Bug session-score (grid-grouper absent)~~ | Résolu — `groupGridTrades` présent dans `behavior-analyzer.js` | — | ✅ Résolu | DGN-001 |
-| Z-02 | PS-01 confirmation terrain | Correction appliquée (ff93e2a) mais scores post-PS-01 non mesurés | Élevé | **A — mesurer sur B1-B19** | BHV-002 |
+| Z-02 | ~~PS-01 confirmation terrain~~ | ✅ Tables renseignées — scores V0-A identiques avant/après (CV intra-symbole réel + plafond 65 pts) | — | ✅ Clôturé — commit `7b91341` | BHV-002 |
 | Z-03 | Score sur < 20 trades post-grouper | Valeur calculée sans signification statistique suffisante | Moyen | B | BHV-001 · BHV-007 |
 | Z-04 | Score non-monotone sur fichiers cumulatifs | Contre-intuitif — peut créer de la défiance utilisateur | Moyen | B | BHV-003 |
 | Z-05 | Pondération overtrading absolue vs relative | 6 fenêtres sur 212 trades pèse autant que 46 sur 1 000 | Moyen | B | BHV-004 |
@@ -663,10 +663,8 @@ Dérivées des zones actives. Z-01 résolue (DGN-001). Aucune recommandation nou
 
 ### Priorité A — Avant de lancer B1-B19
 
-**A1 — Mesurer les scores post-PS-01 sur V0-A (Z-02)**
-Les tableaux avant/après de `docs/validation/ps-01-size-inconsistency-by-symbol.md` sont vides.
-Importer les 5 fichiers V0-A avec la correction `ff93e2a` active et renseigner les valeurs réelles.
-Sans cette mesure, il est impossible de savoir si PS-01 règle vraiment le plancher ~15 ou si d'autres patterns maintiennent le score bas.
+~~**A1 — Mesurer les scores post-PS-01 sur V0-A (Z-02)**~~
+✅ Clôturé 2026-06-01 — tables renseignées dans `docs/validation/ps-01-size-inconsistency-by-symbol.md` (commit `7b91341`). Scores V0-A identiques avant/après PS-01 : CV intra-symbole authentiquement élevé pour cet opérateur + plafond de pénalités 65 pts.
 
 ### Priorité B — Protocole d'observation B1-B19
 
@@ -724,7 +722,7 @@ Tableau de maturité par famille de connaissances au 2026-06-01. Statuts tirés 
 | Connaissance | Statut | Cas |
 |---|---|---|
 | Grid-grouper — comportement et taux d'absorption | ✅ Validé terrain | BHV-001 |
-| PS-01 — CV par symbole | ✅ Correction appliquée — confirmation B1-B19 | BHV-002 |
+| PS-01 — CV par symbole | ✅ CLÔTURÉ — correction validée terrain V0-A | BHV-002 |
 | Score non-monotone sur fichiers cumulatifs | ⚠️ Limitation documentée | BHV-003 |
 | Overtrading — signal proportionnel | ✅ Validé terrain | BHV-004 |
 | Escalade de position — signal le plus fiable | ✅ Validé terrain | BHV-005 |
