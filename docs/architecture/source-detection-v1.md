@@ -185,6 +185,8 @@ Pour les fichiers PDF, la détection repose sur le texte de l'en-tête de docume
 | `Historique d'ordre Spot` | `ORDER_HISTORY_SPOT` |
 | Aucun des deux | `UNKNOWN` |
 
+**Note apostrophe — corpus B1-B19 :** la chaîne `Historique d'ordre Spot` est extraite des PDF avec une apostrophe typographique U+2019 (`'`) et non une apostrophe droite U+0027 (`'`). La détection doit être insensible au type d'apostrophe : les deux variantes sont équivalentes et doivent produire le même résultat.
+
 **Éléments complémentaires de confirmation :**
 - Présence de `www.binance.com` en haut de page
 - Présence d'un champ `Période(UTC` indiquant une plage de dates
