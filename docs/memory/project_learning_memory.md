@@ -635,6 +635,35 @@ Deux rôles potentiels distincts :
 
 ---
 
+## Synthèse terrain B1-B19
+
+Table de synthèse — une ligne par fichier. Remplie au fil de la campagne.  
+Nouveaux cas numérotés (IMP-007+, BHV-008+, etc.) uniquement si comportement non documenté avant.
+
+| Fichier | Symboles | Trades bruts | Post-grouper | Absorption | Score | État | Style | PS-01 CV | Anomalie |
+|---------|----------|-------------|-------------|-----------|-------|------|-------|----------|----------|
+| B01 | | | | | | | | | |
+| B02 | | | | | | | | | |
+| B03 | | | | | | | | | |
+| B04 | | | | | | | | | |
+| B05 | | | | | | | | | |
+| B06 | | | | | | | | | |
+| B07 | | | | | | | | | |
+| B08 | | | | | | | | | |
+| B09 | | | | | | | | | |
+| B10 | | | | | | | | | |
+| B11 | | | | | | | | | |
+| B12 | | | | | | | | | |
+| B13 | | | | | | | | | |
+| B14 | | | | | | | | | |
+| B15 | | | | | | | | | |
+| B16 | | | | | | | | | |
+| B17 | | | | | | | | | |
+| B18 | | | | | | | | | |
+| B19 | | | | | | | | | |
+
+---
+
 ## Zones Fragiles
 
 Consolidation des points ⚠️ identifiés dans les sections précédentes. Aucune nouvelle information — chaque zone pointe vers son cas source.
