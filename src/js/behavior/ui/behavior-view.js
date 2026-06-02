@@ -188,7 +188,7 @@ function buildImportCard(state) {
             <div class="bhv-drop-type"><span class="bhv-drop-type-icon">🎯</span><span class="bhv-drop-type-name">Ordres de marché</span><span class="bhv-drop-type-desc">Ordres placés, annulés ou exécutés</span></div>
             <div class="bhv-drop-type"><span class="bhv-drop-type-icon">💰</span><span class="bhv-drop-type-name">Mouvements de capital</span><span class="bhv-drop-type-desc">Dépôts, retraits, transferts et revenus</span></div>
           </div>
-          <div class="bhv-drop-formats">Formats acceptés : CSV • XLSX</div>
+          <div class="bhv-drop-formats">Formats acceptés : CSV • XLSX<br><span class="bhv-drop-formats-hint">Export standard depuis votre plateforme de trading</span></div>
           <span class="bhv-drop-icon">↑</span>
           <span class="bhv-drop-text">Glisser-déposer votre fichier ici</span>
           <span class="bhv-drop-hint">ou sélectionner un export</span>

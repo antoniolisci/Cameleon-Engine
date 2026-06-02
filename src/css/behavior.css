@@ -208,6 +208,7 @@ body.bhv-panel-open .main-shell {
   color: var(--muted, #bba76b);
   line-height: 1.2;
 }
+.bhv-drop-formats-hint { opacity: 0.45; font-style: italic; }
 .bhv-drop-formats {
   font-size: 0.7rem;
   color: var(--muted, #bba76b);
