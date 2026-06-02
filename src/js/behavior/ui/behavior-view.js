@@ -1170,8 +1170,6 @@ function bindEvents(root, state) {
 }
 
 async function handleImport(file, root) {
-  console.log('[bhv:ui] handleImport appelé', file?.name);  // [DEBUG TEMPORAIRE]
-
   const ext = file.name.split('.').pop().toLowerCase();
   if (ext === 'pdf') {
     behaviorRepo.set('importNotice',     { format: 'PDF' });

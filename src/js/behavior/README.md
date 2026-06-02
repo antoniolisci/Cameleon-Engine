@@ -42,7 +42,7 @@ This module is **separate** from the instant Behavior Guard computed in `engine.
 | **Input** | Current form state + engine score | Imported CSV/XLS trade history |
 | **Output** | `overtradingLevel` (1–5) in `payload.behavior` | Behavioral label + coaching |
 | **Timing** | Recomputed on every engine run | Only when a file is imported |
-| **Persistence** | None — ephemeral per run | None — in-memory only |
+| **Persistence** | None — ephemeral per run | `localStorage` via storage bridge (V3) |
 | **UI block** | `#overtrading-block` in `index.html` | Behavior tab |
 
 The instant guard also has **side effects on the engine itself**: at level ≥ 4 it
@@ -57,7 +57,7 @@ This module:
 - Reads **no** data from the main engine
 - Emits **no** global events
 - Sets **no** `window.*` properties
-- Persists **nothing** (in-memory only)
+- Writes session results to `localStorage` via `behaviorRepo` (`cameleon.behavior.v1.*` namespace)
 - Self-clears when any main engine tab is clicked
 
 ---
