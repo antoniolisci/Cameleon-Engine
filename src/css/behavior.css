@@ -216,6 +216,18 @@ body.bhv-panel-open .main-shell {
   padding-top: 8px;
 }
 
+/* ── Import notice (format non supporté) ────────────────────────────────────── */
+
+.bhv-msg--notice {
+  background: rgba(180, 200, 255, 0.06);
+  border: 1px solid rgba(180, 200, 255, 0.15);
+  color: var(--text-soft, #e9ddb7);
+}
+.bhv-notice-title   { font-weight: 600; margin-bottom: 6px; }
+.bhv-notice-body    { margin-bottom: 8px; }
+.bhv-notice-formats { opacity: 0.7; margin-bottom: 8px; line-height: 1.8; }
+.bhv-notice-cta     { opacity: 0.5; font-size: 0.8rem; }
+
 /* ── Import summary ─────────────────────────────────────────────────────────── */
 
 .bhv-import-summary {

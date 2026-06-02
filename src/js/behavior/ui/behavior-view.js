@@ -84,6 +84,7 @@ function mount(root) {
   const importDiagnostic  = behaviorRepo.get('importDiagnostic');
   const importInfo        = behaviorRepo.get('importInfo');
   const importSummary     = behaviorRepo.get('importSummary');
+  const importNotice      = behaviorRepo.get('importNotice');
   const walletResult      = behaviorRepo.get('walletResult');
   const orderResult       = behaviorRepo.get('orderResult');
   const validationWarning  = behaviorRepo.get('validationWarning');
@@ -144,7 +145,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -194,6 +195,7 @@ function buildImportCard(state) {
         </label>
       </div>
 
+      ${state.importNotice ? buildImportNotice(state.importNotice) : ''}
       ${state.importError ? `<div class="bhv-msg bhv-msg--error">${escHtml(state.importError)}</div>` : ''}
       ${state.importDiagnostic ? `<pre class="bhv-msg bhv-msg--diagnostic">${escHtml(state.importDiagnostic)}</pre>` : ''}
       ${state.importSummary ? buildImportSummary(state.importSummary)
@@ -214,6 +216,16 @@ function buildImportSummary(s) {
       <div class="bhv-summary-row"><span class="bhv-summary-label">Lignes lues</span><span class="bhv-summary-val">${s.lus}</span></div>
       <div class="bhv-summary-row"><span class="bhv-summary-label">Lignes retenues</span><span class="bhv-summary-val">${s.retenus}</span></div>
       <div class="bhv-summary-row"><span class="bhv-summary-label">Lignes ignorées</span><span class="bhv-summary-val">${s.ignores}</span></div>
+    </div>`;
+}
+
+function buildImportNotice(n) {
+  return `
+    <div class="bhv-msg bhv-msg--notice">
+      <div class="bhv-notice-title">Format détecté : ${escHtml(n.format)}</div>
+      <div class="bhv-notice-body">L'import ${escHtml(n.format)} n'est pas encore disponible.</div>
+      <div class="bhv-notice-formats">Formats actuellement acceptés :<br>• CSV<br>• XLSX</div>
+      <div class="bhv-notice-cta">Utilisez un export CSV ou Excel.</div>
     </div>`;
 }
 
@@ -1160,6 +1172,21 @@ function bindEvents(root, state) {
 
 async function handleImport(file, root) {
   console.log('[bhv:ui] handleImport appelé', file?.name);  // [DEBUG TEMPORAIRE]
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'pdf') {
+    behaviorRepo.set('importNotice',     { format: 'PDF' });
+    behaviorRepo.set('importError',      null);
+    behaviorRepo.set('importDiagnostic', null);
+    behaviorRepo.set('importInfo',       null);
+    behaviorRepo.set('importSummary',    null);
+    behaviorRepo.set('trades',           null);
+    behaviorRepo.set('walletResult',     null);
+    behaviorRepo.set('orderResult',      null);
+    mount(root);
+    return;
+  }
+
   let result;
   try {
     result = await importBinanceSpot(file);
@@ -1173,6 +1200,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('importDiagnostic',  result.diagnostic ?? null);
     behaviorRepo.set('importInfo',        null);
     behaviorRepo.set('importSummary',     null);
+    behaviorRepo.set('importNotice',      null);
     behaviorRepo.set('trades',            null);
     behaviorRepo.set('walletResult',      null);
     behaviorRepo.set('orderResult',       null);
@@ -1187,6 +1215,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('orderResult',        null);
     behaviorRepo.set('importInfo',         result.message);
     behaviorRepo.set('importSummary',      null);
+    behaviorRepo.set('importNotice',       null);
     behaviorRepo.set('analysisQuality',    null);
     behaviorRepo.set('validationWarning',  false);
     behaviorRepo.set('validationWarnings', []);
@@ -1202,6 +1231,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('orderResult',        result.orderAnalysis);
     behaviorRepo.set('importInfo',         info);
     behaviorRepo.set('importSummary',      { source: 'Ordres de marché', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0 });
+    behaviorRepo.set('importNotice',       null);
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
     behaviorRepo.set('validationWarning',  false);
     behaviorRepo.set('validationWarnings', []);
@@ -1241,6 +1271,7 @@ async function handleImport(file, root) {
     // plusieurs imports Trade History successifs pendant 7 jours.
     behaviorRepo.set('importInfo',        info);
     behaviorRepo.set('importSummary',     { source: 'Transactions exécutées', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0 });
+    behaviorRepo.set('importNotice',      null);
     behaviorRepo.set('trades',            anonymizeTrades(result.trades));
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
     behaviorRepo.set('validationWarning',  result.validationWarning || false);
