@@ -1,6 +1,6 @@
 # Audit des dettes — Caméléon Engine
 
-Dernière mise à jour : 2026-06-02
+Dernière mise à jour : 2026-06-02 (session 2)
 
 ---
 
@@ -51,21 +51,33 @@ Inversion CSS-01 corrigée dans `style.css` :
 
 Hiérarchie rétablie : Journal (24) > Signal (22) > Mantra (20).
 
+### UX-04 — NAR-C1 · Décision doctrinale Mantra · FERMÉ
+
+**Décision :** Mantra absolu par état de marché (Option A).
+
+- Le Mantra opérationnel est une **loi d'état**, pas une instruction de profil.
+- Il reste piloté exclusivement par `MARKET_DICTIONARY` (7 phrases, une par état).
+- Aucun branchement profil / mode opérateur n'est autorisé dans `.mantra-operationnel-main`.
+- `engine.js:408` `mantraMain` n'est pas un Mantra opérationnel — c'est un rappel tactique
+  distinct, non branché, à traiter séparément si pertinent.
+
+**NAR-C1 n'est plus un prérequis bloquant pour les chantiers NAR-BK, NAR-RO, NAR-IN et NAR-CO.**
+
 ---
 
 ## État global post-session
 
-| | Avant | Après |
-|---|---|---|
-| Total dettes | 21 | 17 |
-| Haute priorité | 8 | 6 |
-| Moyenne priorité | 5 | 3 |
-| Faible priorité | 8 | 8 |
+| | Avant session 1 | Après session 1 | Après session 2 |
+|---|---|---|---|
+| Total dettes | 21 | 17 | 16 |
+| Haute priorité | 8 | 6 | 5 |
+| Moyenne priorité | 5 | 3 | 3 |
+| Faible priorité | 8 | 8 | 8 |
 
 ---
 
 ## Prochaine dette débloquante non conditionnée
 
-**UX-04 — NAR-C1** : décision doctrinale Mantra absolu vs contextuel.
-Prérequis de toute ouverture du chantier dictionnaire V1.2 (NAR-BK, NAR-RO, NAR-IN, NAR-CO).
-Effort : décision doctrinale uniquement — aucun code.
+**NAR-BK / NAR-RO / NAR-IN / NAR-CO** : collisions narratives breakout / riskoff / instable.
+Condition maintenant satisfaite : NAR-C1 fermé.
+Effort : chantier dictionnaire V1.2 — condition de déclenchement : retour terrain cockpit.
