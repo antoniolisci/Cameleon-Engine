@@ -19,6 +19,7 @@ function normalizeKey(str) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/²/g, '2')              // exposant typographique U+00B2 → chiffre ASCII
+    .replace(/³/g, '3')              // exposant typographique U+00B3 → chiffre ASCII
     .replace(/[\s_./'\\-]+/g, ' ')   // ' inclus : "l'ordre" → "l ordre"
     .trim();
 }
