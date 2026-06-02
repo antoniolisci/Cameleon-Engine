@@ -17,7 +17,7 @@ function normalizeH(str) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\s_./\\()+\-]+/g, ' ')   // aligné sur normalizeHeader — "Fee(USDT)" → "fee usdt"
+    .replace(/[\u2019\s_./\\()+\-]+/g, ' ')  // \u2019 apostrophe typographique Binance FR ; "Fee(USDT)" → "fee usdt"
     .trim();
 }
 
