@@ -1,6 +1,6 @@
 # Audit des dettes — Caméléon Engine
 
-Dernière mise à jour : 2026-06-02 (session 3)
+Dernière mise à jour : 2026-06-02 (session 4)
 
 ---
 
@@ -84,6 +84,32 @@ non comptabilisée dans le stock des 16 dettes restantes.
 
 ---
 
+## Dettes à statut conditionnel
+
+### NAR-IN — Collision narrative cluster Range / Instable · CONDITIONNEL
+
+**Audit :** session 2026-06-02
+
+**Anomalie constatée :**
+- `range.signal.main` = `"Aucun signal"` — identique à `instable.signal.main`
+- `range.mantra` = `"Pas de signal. Pas de trade."` — même patron syntaxique
+  que `instable.mantra` = `"Pas de structure. Pas de trade."`
+
+| Catégorie | Verdict |
+|---|---|
+| Anomalie constatée | OUI — répétition textuelle confirmée |
+| Risque théorique | OUI — confusion Range ↔ Instable par habituation possible |
+| Problème utilisateur démontré | NON — aucun retour terrain, aucun opérateur externe |
+
+La dette n'est ni fermée (l'anomalie existe dans le corpus),
+ni ouverte (aucun impact démontré), ni reportée (une condition précise la déclenche).
+
+**Condition de déclenchement — bascule automatique vers OUVERT si :**
+- V0 Transmission activée (≥ 10 opérateurs réels) ; ou
+- Premier retour terrain documentant une confusion Range ↔ Instable.
+
+---
+
 ## État global post-session
 
 | | Avant session 1 | Après session 1 | Après session 2 |
@@ -95,8 +121,14 @@ non comptabilisée dans le stock des 16 dettes restantes.
 
 ---
 
-## Prochaine dette débloquante non conditionnée
+## État du cluster NAR post-audit
 
-**NAR-BK / NAR-RO / NAR-IN / NAR-CO** : collisions narratives breakout / riskoff / instable.
-Condition maintenant satisfaite : NAR-C1 fermé.
-Effort : chantier dictionnaire V1.2 — condition de déclenchement : retour terrain cockpit.
+| Dette | Périmètre | Résultat audit | Statut |
+|---|---|---|---|
+| NAR-BK | breakout | Aucune collision détectée | Pas de dette |
+| NAR-RO | riskoff | Aucune collision détectée | Pas de dette |
+| NAR-IN | instable / range | Collision textuelle confirmée, impact non démontré | CONDITIONNEL |
+| NAR-CO | compression / range | Redondances M1/M3 identifiées | Non audité formellement |
+
+NAR-CO reste la prochaine dette narrative active non conditionnée.
+Condition de traitement : retour terrain cockpit.
