@@ -524,19 +524,13 @@ function animateScore(el, to, duration = 600) {
 
 // ─── Confidence Score — moteur de calcul ─────────────────────
 //
-// ⚠️ DEUX SYSTÈMES DE CONFIDENCE COEXISTENT ACTUELLEMENT :
+// Le score de confidence UI est unifié via :
+//   buildMarketContext(buildConfidenceInputs(payload), payload.market_state)
 //
-//   1. confidence-score.js → computeConfidenceScore()
-//      Formule : trend(30%) + structure(30%) + volatility(25%) + volume(15%)
-//      Utilisé par : buildMarketContext(), renderConfidencePanel(), debug brain.
-//
-//   2. computeConfidence() ci-dessous (local render.js)
-//      Formule : structure(35%) + alignment(30%) + volatility(var) - risk(40%) + bonus marché
-//      Utilisé par : Premium Verdict Block (premiumInfoLine).
-//
-//   Ces deux formules produisent des scores différents pour le même contexte.
-//   TODO (Phase 2) : unifier sur confidence-score.js et supprimer computeConfidence().
-//
+// computeConfidence() ci-dessous est conservée en legacy non appelée.
+// extractConfidenceCtx() reste utilisé uniquement pour fournir marketState
+//   aux fonctions de vocabulaire (posture / action / agent).
+
 /**
  * Calcule le Confidence Score à partir du contexte moteur.
  * Formule : structure(35%) + alignment(30%) + volatility(variable) - risk(40%)
