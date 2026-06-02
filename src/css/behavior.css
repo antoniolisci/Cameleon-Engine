@@ -872,7 +872,7 @@ body.bhv-panel-open .main-shell {
   font-size: 0.68rem;
   color: var(--muted, #bba76b);
   margin-top: 4px;
-  margin-bottom: 2px;
+  margin-bottom: 10px;
   opacity: 0.75;
 }
 
