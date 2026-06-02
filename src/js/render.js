@@ -340,7 +340,8 @@ function renderDecision(payload, behaviorState) {
             : _S2V[payload.decisionState?.state] || 'ATTENTE';
         })();
     const _pc  = _V2C[_pv] || 'pdv-wait';
-    const _pct = computeConfidence(extractConfidenceCtx(payload));
+    const _pct = Math.max(0, Math.min(100,
+      buildMarketContext(buildConfidenceInputs(payload), payload.market_state)?.score ?? 0));
     const _pvEl = $('premiumVerdictLabel');
     if (_pvEl) { _pvEl.textContent = _pv; _pvEl.className = `pdv-label ${_pc}`; }
     // _infoLine : "Mode prudent" piloté par fd.isSilenced (cohérent avec voix dominante)
@@ -2798,7 +2799,8 @@ function renderNavigation(payload) {
   setText("agentDesc", simplifyText(payload.profile_reaction));
   setText("agentModeBadge", `Mode : ${cockpit.actionMode.label.toLowerCase()}`);
   const _ctx      = extractConfidenceCtx(payload);
-  const _safeScore = computeConfidence(_ctx);
+  const _safeScore = Math.max(0, Math.min(100,
+    buildMarketContext(buildConfidenceInputs(payload), payload.market_state)?.score ?? 0));
   const _strength  = mapStrength(_safeScore);
   const _flag      = mapFlag(_safeScore);
 
@@ -4608,22 +4610,24 @@ function renderJournalDecision(payload) {
   setText("jdMoteurSummary", `${status} · engagement ${el} · sizing ${sf}`);
 }
 
-function renderConfidenceContext(payload) {
-  const panel = document.querySelector(".confidence-panel");
-  if (!panel) return;
-
-  const qual = (v) => v === "strong" ? 80 : v === "medium" ? 50 : v === "weak" ? 20 : 50;
-
-  const inputs = {
+/**
+ * Construit les inputs normalisés pour buildMarketContext().
+ * Source unique des pondérations confidence — partagée par renderConfidenceContext,
+ * renderNavigation et renderDecision.
+ * @param {object} payload
+ * @returns {{ trend: number, structure: number, volatility: number, volume: number }}
+ */
+function buildConfidenceInputs(payload) {
+  const _q = (v) => v === "strong" ? 80 : v === "medium" ? 50 : v === "weak" ? 20 : 50;
+  return {
     trend: Math.min(100, Math.max(0,
       (payload.market_state === "expansion"   ? 75 :
        payload.market_state === "compression" ? 50 :
        payload.market_state === "defense"     ? 15 :
        payload.market_state === "riskoff"     ? 5  : 40)
       + (payload.btc_state === "strong" ? 10 : payload.btc_state === "weak" ? -10 : 0)
-      + (qual(payload.constellium?.fire) - 50) * 0.3
+      + (_q(payload.constellium?.fire) - 50) * 0.3
     )),
-
     structure: (() => {
       const _base = payload.setup_inputs?.structure_signal === "compression_breakout" ? 90 :
                     payload.setup_inputs?.structure_signal === "real_breakout"         ? 90 :
@@ -4632,18 +4636,21 @@ function renderConfidenceContext(payload) {
       const _zoneBonus = { middle: -10, low_range: 10, high_range: 10, breakout_level: 15 };
       return Math.min(100, Math.max(0, _base + (_zoneBonus[payload.setup_inputs?.zone_signal] ?? 0)));
     })(),
-
     volatility: payload.market_state === "riskoff"     ? 90 :
                 payload.market_state === "defense"     ? 80 :
                 payload.market_state === "expansion"   ? 65 :
                 payload.market_state === "compression" ? 45 : 40,
-
     volume: payload.setup_inputs?.momentum_signal === "none" ? 20 :
             payload.btc_state === "strong"                   ? 75 :
             payload.btc_state === "weak"                     ? 30 : 50,
   };
+}
 
-  const ctx = buildMarketContext(inputs, payload.market_state);
+function renderConfidenceContext(payload) {
+  const panel = document.querySelector(".confidence-panel");
+  if (!panel) return;
+
+  const ctx = buildMarketContext(buildConfidenceInputs(payload), payload.market_state);
   if (!ctx || typeof ctx.score !== "number") return;
 
   const safeScore = Math.max(0, Math.min(100, ctx.score));
