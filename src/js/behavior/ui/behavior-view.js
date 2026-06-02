@@ -176,16 +176,21 @@ function buildImportCard(state) {
   return `
     <div class="bhv-card bhv-import-card${state.importInfo ? ' bhv-pulse-ok' : ''}">
       <div class="bhv-card-head">
-        <span class="bhv-card-title">Import CSV</span>
-        <span class="bhv-card-desc">Trade History ou Order History Binance · CSV ou Excel</span>
+        <span class="bhv-card-title">Que contient votre fichier ?</span>
       </div>
 
       <div class="bhv-drop-zone" id="bhvDropZone">
         <input type="file" id="bhvFileInput" accept=".csv,.xlsx,.xls" class="bhv-file-input">
         <label for="bhvFileInput" class="bhv-drop-label">
+          <div class="bhv-drop-types">
+            <div class="bhv-drop-type"><span class="bhv-drop-type-icon">📈</span><span class="bhv-drop-type-name">Transactions exécutées</span><span class="bhv-drop-type-desc">Achats et ventes réellement réalisés</span></div>
+            <div class="bhv-drop-type"><span class="bhv-drop-type-icon">🎯</span><span class="bhv-drop-type-name">Ordres de marché</span><span class="bhv-drop-type-desc">Ordres placés, annulés ou exécutés</span></div>
+            <div class="bhv-drop-type"><span class="bhv-drop-type-icon">💰</span><span class="bhv-drop-type-name">Mouvements de capital</span><span class="bhv-drop-type-desc">Dépôts, retraits, transferts et revenus</span></div>
+          </div>
+          <div class="bhv-drop-formats">Formats acceptés : CSV • XLSX</div>
           <span class="bhv-drop-icon">↑</span>
-          <span class="bhv-drop-text">Sélectionner un fichier CSV</span>
-          <span class="bhv-drop-hint">ou glisser-déposer ici</span>
+          <span class="bhv-drop-text">Glisser-déposer votre fichier ici</span>
+          <span class="bhv-drop-hint">ou sélectionner un export</span>
         </label>
       </div>
 
