@@ -177,6 +177,22 @@ body.bhv-panel-open .main-shell {
   margin: 0;
 }
 
+/* ── Import summary ─────────────────────────────────────────────────────────── */
+
+.bhv-import-summary {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.82rem;
+}
+.bhv-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+.bhv-summary-label { opacity: 0.6; }
+.bhv-summary-val   { font-weight: 600; }
+
 /* ── Buttons ─────────────────────────────────────────────────────────────────── */
 
 .bhv-import-actions {
