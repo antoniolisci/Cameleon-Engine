@@ -1,6 +1,6 @@
 # Audit des dettes — Caméléon Engine
 
-Dernière mise à jour : 2026-06-02 (session 2)
+Dernière mise à jour : 2026-06-02 (session 3)
 
 ---
 
@@ -25,7 +25,7 @@ les pondérations. Les cinq zones UI utilisent désormais
 - `extractConfidenceCtx()` — toujours nécessaire pour `_ctx.marketState` (posture / action / agent)
 
 **Dette documentaire résiduelle :** commentaire bloc `render.js:526–538`
-("DEUX SYSTÈMES COEXISTENT") désormais obsolète — hors périmètre TEC-01.
+("DEUX SYSTÈMES COEXISTENT") désormais obsolète — soldée en R-02 (`d78c3d1`).
 
 ### TEC-02 — console.log temporaire · FERMÉ
 
@@ -62,6 +62,25 @@ Hiérarchie rétablie : Journal (24) > Signal (22) > Mantra (20).
   distinct, non branché, à traiter séparément si pertinent.
 
 **NAR-C1 n'est plus un prérequis bloquant pour les chantiers NAR-BK, NAR-RO, NAR-IN et NAR-CO.**
+
+### R-02 — Commentaire confidence obsolète · FERMÉ
+
+**Commit :** `d78c3d1`
+
+Commentaire `render.js:525–538` rendu obsolète par TEC-01. Dette créée par TEC-01,
+non comptabilisée dans le stock des 16 dettes restantes.
+
+**Ancien contenu :**
+- affirmait que deux systèmes de confidence coexistaient ;
+- présentait `computeConfidence()` comme encore utilisé ;
+- mentionnait un TODO (Phase 2) déjà réalisé.
+
+**Correction :**
+- score UI unifié via `buildMarketContext(buildConfidenceInputs(payload), payload.market_state)` ;
+- `computeConfidence()` conservée en legacy non appelée ;
+- `extractConfidenceCtx()` conservée uniquement pour fournir `marketState` aux fonctions de vocabulaire.
+
+**Nature :** dette documentaire — aucun changement de logique.
 
 ---
 
