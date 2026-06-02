@@ -1140,7 +1140,7 @@ function bindEvents(root, state) {
       behaviorRepo.set('importError',  null);
       behaviorRepo.set('walletResult', null);
       behaviorRepo.set('orderResult',  null);
-      behaviorRepo.set('importInfo',   `Session "${session.name}" chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''}`);
+      behaviorRepo.set('importInfo',   `Session chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''} analysé${session.trades.length !== 1 ? 's' : ''}`);
       behaviorRepo.set('importSummary', null);
       mount(root);
     });
