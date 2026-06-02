@@ -160,7 +160,6 @@ function buildShell(state) {
     <div class="bhv-shell">
       <div class="bhv-header">
         <h2 class="bhv-title">Analyse comportementale</h2>
-        <p class="bhv-subtitle">Import CSV / Excel · V4</p>
       </div>
       ${buildImportCard(state)}
       ${buildSessionsCard(state)}
