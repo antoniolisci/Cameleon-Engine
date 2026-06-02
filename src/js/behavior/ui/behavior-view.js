@@ -264,7 +264,7 @@ function buildSessionsCard(state) {
       <div class="bhv-session">
         <div class="bhv-session-info">
           <span class="bhv-session-name">${escHtml(s.name)}</span>
-          <span class="bhv-session-meta">${date} · ${s.trades.length} trade${s.trades.length !== 1 ? 's' : ''}</span>
+          <span class="bhv-session-meta">${s.trades.length} trade${s.trades.length !== 1 ? 's' : ''} analysé${s.trades.length !== 1 ? 's' : ''}</span>
         </div>
         ${scoreBadge}
         <div class="bhv-session-actions">
