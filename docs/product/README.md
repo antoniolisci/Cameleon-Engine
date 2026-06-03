@@ -11,6 +11,7 @@ Contraignent les décisions futures. Prévalent sur les opportunités, demandes 
 
 | Document | Rôle |
 |----------|------|
+| [constellium-product-architecture.md](constellium-product-architecture.md) | Architecture produit — Le Constellium application principale, Caméléon Engine moteur cognitif interne, 8 couches, chaîne logique, principes de garde |
 | [doctrine-cameleon-profondeur-viabilite.md](doctrine-cameleon-profondeur-viabilite.md) | Comment construire — interdits permanents, lois de construction |
 | [cadrage-produit-deux-couches.md](cadrage-produit-deux-couches.md) | Modèle opérateur/marché — UX principles, séparation des langages, checklist feature |
 | [doctrine-confiance-importation-v1.md](doctrine-confiance-importation-v1.md) | Relation utilisateur/données — confiance précède importation, portes d'entrée vs profondeur |
