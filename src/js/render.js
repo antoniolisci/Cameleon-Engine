@@ -3413,7 +3413,7 @@ function renderPrudenceBlock(payload) {
   const active = _isCautionOverride(payload);
 
   // Toggle visibility + dominant class
-  el.style.display = active ? '' : 'none';
+  el.style.display = active ? 'block' : 'none';
   el.classList.toggle('prudence-expert-shell--active', active);
 
   // Suppress competing behavioral blocks when PRUDENCE is central
@@ -4534,7 +4534,7 @@ function renderBehaviorInfluence() {
   const panel = $('bhvInfluencePanel');
   if (!panel) return;
   if (!level || !TEXT[level]) { panel.style.display = 'none'; return; }
-  panel.style.display = '';
+  panel.style.display = 'block';
   setText('bhvInfluenceLevel', level);
   setText('bhvInfluenceText',  TEXT[level]);
 }
