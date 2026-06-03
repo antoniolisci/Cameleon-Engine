@@ -7875,6 +7875,7 @@ body[data-behavior-pattern="discipline"]::before {
 
 .exec-confidence-fill {
   height: 100%;
+  width: 0;
   border-radius: 999px;
   transition: width 0.35s ease, background-color 0.35s ease;
 }
@@ -8059,3 +8060,23 @@ body[data-behavior-pattern="discipline"]::before {
 .manifeste-ext-link:hover {
   opacity: 0.85;
 }
+
+/* ── SEC-B4 — états initiaux extraits des attributs style="" HTML ──────────── */
+
+/* Groupe A — masquage initial (display géré par render.js via .style.display="block"|"none") */
+#guidanceCard,
+#behaviorRepetitionCard,
+#traderSignatureCard,
+#behaviorProfileCard,
+#traderMemoryCard,
+#psychProfileCard,
+#behaviorCoachCard,
+#mentalResetCard { display: none; }
+
+/* Groupe D — styles propres composés (behaviorAlertCard / preBehaviorAlertCard) */
+#behaviorAlertCard    { display: none; font-size: 13px; opacity: 0.88; }
+#preBehaviorAlertCard { display: none; font-size: 13px; opacity: 0.72; }
+
+/* Groupe C — espacements spécifiques au panneau confidence */
+.confidence-panel .mode-panel          { margin-top: 0.5rem; }
+.confidence-panel > p.text-soft        { margin-top: 0.5rem; }
