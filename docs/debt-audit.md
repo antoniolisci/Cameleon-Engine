@@ -1,6 +1,6 @@
 # Audit des dettes — Caméléon Engine
 
-Dernière mise à jour : 2026-06-03 (session 5)
+Dernière mise à jour : 2026-06-03 (session 6)
 
 ---
 
@@ -21,13 +21,13 @@ dans un bloc `<style>` inline dans le `<head>`. Blocant pour la CSP Phase 3
 
 ---
 
-### SEC-B4 — Attributs `style=""` inline dans `index.html` · PARTIELLEMENT FERMÉ
+### SEC-B4 — Attributs `style=""` inline dans `index.html` · FERMÉ
 
-**Commit :** `b5aabbe`
+**Commits :** `b5aabbe` (14/16) · `bce0e74` (16/16)
 
 16 attributs `style=""` statiques dans `index.html` bloquaient la CSP Phase 3.
 
-**Résolution : 14/16 migrés vers `src/css/style.css`.**
+**Résolution : 16/16 migrés.**
 
 | Groupe | Éléments | Migration |
 |---|---|---|
@@ -35,19 +35,17 @@ dans un bloc `<style>` inline dans le `<head>`. Blocant pour la CSP Phase 3
 | B — `width:0%` | execConfidenceFill · cs-bar (2 éléments) | `width:0` ajouté à règle existante / déjà présent |
 | C — `margin-top:0.5rem` | `.confidence-panel .mode-panel` · `.confidence-panel > p.text-soft` (2 éléments) | Sélecteurs contextuels |
 | D — styles composés | behaviorAlertCard · preBehaviorAlertCard (2 éléments) | `display:none` + `font-size:13px` + `opacity` par ID |
+| E — exceptions render.js | bhvInfluencePanel · prudenceExpertBlock (2 éléments) | `style=""` supprimé · `style.display = ''` → `'block'` dans render.js |
 
-**Exceptions conservées volontairement (2/16) :**
+**Technique pour le Groupe E :** `render.js` utilisait `style.display = ''` (vide) pour
+afficher ces éléments — ce qui dépend de l'absence de règle CSS `display:none`. Corrigé
+en remplaçant par `style.display = 'block'` explicite, ce qui rend la migration
+indépendante de la cascade CSS. Aucun risque de FOUC : `init()` masque ces éléments
+synchroniquement avant le premier paint navigateur.
 
-- `bhvInfluencePanel` — `render.js:4537` utilise `panel.style.display = ''` pour afficher.
-  Ajouter `display:none` en CSS exposerait la règle lors du clear de l'inline →
-  élément resterait caché. Migration requiert une modification de `render.js`.
-- `prudenceExpertBlock` — `render.js:3416` utilise `el.style.display = active ? '' : 'none'`.
-  Même mécanique. Migration requiert une modification de `render.js`.
+**Zéro attribut `style=""` restant dans `index.html`.**
 
-**Statut :** dette fortement réduite (14/16). Les 2 exceptions sont documentées,
-non urgentes, et clôturables lors d'un refactoring ciblé de `render.js`.
-
-**Aucune modification de logique JS. Aucune régression observée.**
+**Aucune régression observée.**
 
 ---
 
