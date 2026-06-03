@@ -1,7 +1,7 @@
 export const OVERTRADING_DICT = {
   1: {
     niveau: 1,
-    etat: "Calme",
+    etat: "Ancré",
     lecture: "Le marché est neutre, aucune pression",
     comportement: "Tu observes sans chercher à agir",
     risque: "Aucun",
@@ -22,7 +22,7 @@ export const OVERTRADING_DICT = {
 
   2: {
     niveau: 2,
-    etat: "Veille active",
+    etat: "Veille Active",
     lecture: "Le marché attire ton attention",
     comportement: "Tu scans le marché avec une légère tension",
     risque: "FOMO latent",
@@ -48,7 +48,9 @@ export const OVERTRADING_DICT = {
 
   3: {
     niveau: 3,
-    etat: "Fixation",
+    // "Friction" = état comportemental doctrinal niveau 3 (résistance cognitive naissante).
+    // À ne pas confondre avec friction.js = mécanisme UX de délai cognitif (ralentisseur boutons).
+    etat: "Friction",
     lecture: "Tu interprètes le marché de manière biaisée",
     comportement: "Tu te focalises sur un seul scénario",
     risque: "Perte d’objectivité",
@@ -75,7 +77,7 @@ export const OVERTRADING_DICT = {
 
   4: {
     niveau: 4,
-    etat: "Sur-engagement",
+    etat: "Dérive",
     lecture: "Le marché devient un terrain de forçage",
     comportement: "Tu veux absolument trader",
     risque: "Overtrading",

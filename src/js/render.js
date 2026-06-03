@@ -166,11 +166,11 @@ function renderBehaviorCard(payload, behaviorState, mode = 'block') {
     },
     OVERTRADING: {
       badge:    'SURTRADING',
-      state:    'Sur-engagement',
+      state:    'Dérive',
       message:  'Suractivité détectée sur la période récente.',
       risk:     'Capital exposé de manière excessive',
       action:   'Pause. Aucune nouvelle entrée pour l\'instant.',
-      whyState: 'Sur-engagement',
+      whyState: 'Dérive',
       whyRisk:  'Capital exposé de manière excessive'
     }
   };
@@ -3377,7 +3377,7 @@ function renderWhyDecision(payload) {
 
   // ── 4-line premium breakdown ──────────────────────────────────────────
   const _bhvState = getBehaviorState(payload);
-  const _BHV_FR   = { CALME: 'Calme', NEUTRE: 'Neutre', STRESS: 'Stress', FOMO: 'FOMO', OVERTRADING: 'Sur-engagement' };
+  const _BHV_FR   = { CALME: 'Calme', NEUTRE: 'Neutre', STRESS: 'Stress', FOMO: 'FOMO', OVERTRADING: 'Dérive' };
   const _ds = payload.decisionState?.state ?? payload.finalDecision?.verdict;
   const _bhvLabel = (() => {
     const base = _BHV_FR[_bhvState] || _bhvState;
@@ -4760,7 +4760,7 @@ function render() {
   const level = Math.max(instantLevel, historicalLevel);
 
   // Protective UX — émotion calme plafonne le niveau visuel à 2.
-  // L'opérateur calme ne doit pas voir "Sur-engagement" ou "Saturation".
+  // L'opérateur calme ne doit pas voir "Dérive" ou "Rupture".
   // Les effets moteur (engagement REDUCED, etc.) restent basés sur le level réel.
   const _emotion = appState?.form?.emotion || '';
   const effectiveLevel = (_emotion === 'calm') ? Math.min(level, 2) : level;

@@ -22,10 +22,10 @@
 //
 //  Historical module output  │  Guard level  │  Instant Guard label
 //  ─────────────────────────┼───────────────┼──────────────────────
-//  score >= 85              │       1       │  Calme
-//  score >= 70              │       2       │  Veille active
-//  score >= 55              │       3       │  Fixation
-//  score >= 40              │       4       │  Sur-engagement
+//  score >= 85              │       1       │  Ancré
+//  score >= 70              │       2       │  Veille Active
+//  score >= 55              │       3       │  Friction
+//  score >= 40              │       4       │  Dérive
 //  score <  40              │       5       │  Rupture
 //
 // ──────────────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@
  * @returns {number}      — Integer in [1, 5].
  */
 export function mapBehaviorScoreToGuardLevel(score) {
-  // Guard invalid inputs — default to level 1 (Calme / no signal)
+  // Guard invalid inputs — default to level 1 (Ancré / no signal)
   if (typeof score !== 'number' || isNaN(score)) return 1;
 
   // Clamp out-of-range values before mapping
