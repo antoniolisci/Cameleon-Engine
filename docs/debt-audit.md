@@ -1,6 +1,53 @@
 # Audit des dettes — Caméléon Engine
 
-Dernière mise à jour : 2026-06-02 (session 4)
+Dernière mise à jour : 2026-06-03 (session 5)
+
+---
+
+## Dettes soldées — session 2026-06-03
+
+### SEC-B3 — Bloc `<style>` inline dans `constellium.html` · FERMÉ
+
+**Commit :** `c5856ec`
+
+La totalité de la feuille de style de `constellium.html` (361 lignes) était embarquée
+dans un bloc `<style>` inline dans le `<head>`. Blocant pour la CSP Phase 3
+(`style-src 'self'` sans `'unsafe-inline'`).
+
+**Résolution :** extraction vers `src/css/constellium.css` + remplacement du bloc
+`<style>` par `<link rel="stylesheet" href="./css/constellium.css">`.
+
+**Impact :** `constellium.html` réduit de 563 à 202 lignes. Aucun changement de rendu.
+
+---
+
+### SEC-B4 — Attributs `style=""` inline dans `index.html` · PARTIELLEMENT FERMÉ
+
+**Commit :** `b5aabbe`
+
+16 attributs `style=""` statiques dans `index.html` bloquaient la CSP Phase 3.
+
+**Résolution : 14/16 migrés vers `src/css/style.css`.**
+
+| Groupe | Éléments | Migration |
+|---|---|---|
+| A — `display:none` simple | guidanceCard · behaviorRepetitionCard · traderSignatureCard · behaviorProfileCard · traderMemoryCard · psychProfileCard · behaviorCoachCard · mentalResetCard (8 éléments) | Règles CSS par ID dans style.css |
+| B — `width:0%` | execConfidenceFill · cs-bar (2 éléments) | `width:0` ajouté à règle existante / déjà présent |
+| C — `margin-top:0.5rem` | `.confidence-panel .mode-panel` · `.confidence-panel > p.text-soft` (2 éléments) | Sélecteurs contextuels |
+| D — styles composés | behaviorAlertCard · preBehaviorAlertCard (2 éléments) | `display:none` + `font-size:13px` + `opacity` par ID |
+
+**Exceptions conservées volontairement (2/16) :**
+
+- `bhvInfluencePanel` — `render.js:4537` utilise `panel.style.display = ''` pour afficher.
+  Ajouter `display:none` en CSS exposerait la règle lors du clear de l'inline →
+  élément resterait caché. Migration requiert une modification de `render.js`.
+- `prudenceExpertBlock` — `render.js:3416` utilise `el.style.display = active ? '' : 'none'`.
+  Même mécanique. Migration requiert une modification de `render.js`.
+
+**Statut :** dette fortement réduite (14/16). Les 2 exceptions sont documentées,
+non urgentes, et clôturables lors d'un refactoring ciblé de `render.js`.
+
+**Aucune modification de logique JS. Aucune régression observée.**
 
 ---
 
