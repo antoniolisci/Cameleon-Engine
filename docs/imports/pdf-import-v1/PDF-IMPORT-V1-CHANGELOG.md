@@ -135,6 +135,57 @@ Chaque session est atomique : aucun code de la session N+1 n'est introduit dans 
 
 ---
 
+## Session 7 — D-PDF-02 Pipeline comportemental · commit `073e868`
+
+**Date :** 2026-06-04  
+**Périmètre :** Connexion du pipeline PDF au moteur comportemental — D-PDF-02 soldée.
+
+**Fichier modifié :** `src/js/behavior/ui/behavior-view.js` uniquement · +2 lignes / -15 lignes.
+
+**Livraisons :**
+- Suppression du bloc `if (ext === 'pdf') { ... return; }` dans `handleImport()` — early-return qui bloquait tout import PDF
+- `accept=".csv,.xlsx,.xls,.pdf"` — input file accepte désormais les PDFs
+- Texte UI : "Formats acceptés : CSV • XLSX • PDF"
+
+**Validation terrain :**
+- `b8.pdf` → score 65/100 · 32/32 trades · analyse complète ✅
+- `b3.pdf` → score 25/100 · 935/2476 FILLED · analyse complète ✅
+- 22/22 tests pdf-import-v1.test.html PASS
+
+**Dettes soldées :** D-PDF-02  
+**Dettes restantes :** D-PDF-03 · D-PDF-04
+
+---
+
+## Session 8 — D-PDF-03 UX import PDF · commit `6a166c6`
+
+**Date :** 2026-06-04  
+**Périmètre :** Feedback visuel import PDF, nettoyage dead code, labels source — D-PDF-03 soldée.
+
+**Fichiers modifiés :** `src/js/behavior/ui/behavior-view.js` · `src/css/behavior.css` · 2 fichiers.
+
+**Livraisons :**
+
+*P0 — Loading indicator*
+- Classe `.bhv-loading` ajoutée sur la drop zone avant l'`await importBinanceSpot()` — PDF.js peut prendre plusieurs secondes
+- CSS : opacité 60% · `pointer-events: none` · animation de pulsation dorée (`bhv-border-pulse`)
+- L'état est effacé automatiquement par le `mount(root)` final — pas de gestion manuelle d'état
+
+*P1 — Dead code supprimé*
+- `const ext` : déclaré dans `handleImport()` mais jamais utilisé depuis D-PDF-02 → retiré
+- `buildImportNotice()` : fonction devenue inatteignable depuis D-PDF-02, texte stale "CSV • XLSX" → supprimée
+- `importNotice` : retiré de `behaviorRepo.get()`, du call `render()` et du template HTML
+
+*P1 — Labels source PDF*
+- `importSummary.source` : `'Trade History PDF'` au lieu de `'Transactions exécutées'` pour un PDF Trade History
+- `importSummary.source` : `'Order History PDF'` au lieu de `'Ordres de marché'` pour un PDF Order History
+- CSV et XLSX conservent leurs labels actuels via ternaire `isPdf ? ... : ...`
+
+**Dettes soldées :** D-PDF-03  
+**Dettes restantes :** D-PDF-04
+
+---
+
 ## Documentation stratégique post-V1 · 2026-06-04
 
 **Objectif :** Figer la doctrine PDF long terme. Aucun code modifié.
