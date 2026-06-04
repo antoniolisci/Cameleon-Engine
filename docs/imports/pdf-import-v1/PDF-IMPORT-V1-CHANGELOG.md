@@ -133,3 +133,19 @@ Chaque session est atomique : aucun code de la session N+1 n'est introduit dans 
 **Dettes soldées :** D-PDF-01  
 **Dettes restantes :** D-PDF-02 · D-PDF-03 · D-PDF-04
 
+---
+
+## Documentation stratégique post-V1 · 2026-06-04
+
+**Objectif :** Figer la doctrine PDF long terme. Aucun code modifié.
+
+**Documents créés :**
+
+| Réflexion | Fichier | Contenu |
+|---|---|---|
+| D-PDF-04 | `D-PDF-04-role-architectural-pdf.md` | Rôle architectural du PDF · nature décodeur vs consommateur · comparaison CSV/XLSX/PDF · impact philosophie produit · 5 risques · 3 options stratégiques · recommandation Option C |
+| D-PDF-05 | `D-PDF-05-positionnement-strategique-pdf.md` | PDF comme porte d'entrée · valeur utilisateur réelle · 4 cas d'usage futurs · 4 risques stratégiques · 4 opportunités long terme · hiérarchie des sources · règle de garde permanente |
+| D-PDF-06 | `D-PDF-06-maintenance-long-terme-pdf.md` | Vieillissement spécifique parser PDF · 5 types de rupture (décalage → cataclysmique → sémantique) · 4 stratégies comparées · rôle du corpus (D1→D4) · doctrine d'expansion · gouvernance 5 critères · 5 règles permanentes |
+
+**Décision figée :** Trade History + Order History = seules familles V1 légitimes. Toute extension requiert les 5 critères de gouvernance.
+

@@ -130,6 +130,18 @@ Responsabilité unique : adapter les objets domaine vers le format canonique int
 
 ---
 
+## Réflexions stratégiques PDF
+
+Documents de doctrine produit et architecture long terme — aucun code.
+
+| Document | Sujet |
+|---|---|
+| [D-PDF-04](D-PDF-04-role-architectural-pdf.md) | Rôle architectural du PDF — nature, comparaison CSV/XLSX/PDF, options stratégiques, recommandation Option C |
+| [D-PDF-05](D-PDF-05-positionnement-strategique-pdf.md) | Positionnement stratégique — porte d'entrée, calibration, hiérarchie des sources, "invitation pas destination" |
+| [D-PDF-06](D-PDF-06-maintenance-long-terme-pdf.md) | Maintenance long terme — vieillissement, 5 types de rupture, doctrine d'expansion, gouvernance en 5 critères |
+
+---
+
 ## Dettes restantes
 
 | Dette | Sujet | Statut |
