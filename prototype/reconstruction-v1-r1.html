@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Caméléon Engine — Reconstruction V1-R1</title>
+<title>Laboratoire du Silence — V1-R1 — Analytique</title>
 <style>
 
 *, *::before, *::after {
@@ -171,7 +171,7 @@ html, body {
   font-size: 12.5px;
   color: var(--signal);
   font-family: var(--mono);
-  padding: 9px 0;
+  padding: 5px 0;
   letter-spacing: 0.01em;
   border-bottom: 1px solid var(--border);
 }
@@ -233,24 +233,27 @@ html, body {
    Aucune couleur nouvelle. Aucun contenu modifié. Aucune animation.
    ────────────────────────────────────────────────────────────── */
 
-/* A — Cohérence inter-niveaux : pause avant moment pivot */
+/* A — Espacement différentiel : Cohérence inter-niveaux — pause avant moment pivot */
 .section-coherence { padding-top: 64px; }
 
-/* A — Signaux actifs : entrée zone vivante */
+/* A — Espacement différentiel : Signaux actifs — entrée zone vivante */
 .section-signaux   { padding-top: 56px; }
 
-/* A — Système : récession intentionnelle */
+/* A — Espacement différentiel : Système — récession intentionnelle */
 .section-systeme   { padding-top: 72px; }
 
-/* C — Titre Système : recul de présence */
+/* B — Respiration zone vivante : signal-items */
+.section-signaux .signal-item { padding: 9px 0; }
+
+/* C — Récession intentionnelle : titre Système */
 .section-systeme .section-titre {
   font-weight: 400;
   letter-spacing: 0.16em;
 }
 
-/* D — Titre Cohérence : signal pivot (option B — letter-spacing) */
+/* D — Pivot Cohérence : option A — couleur */
 .section-coherence .section-titre {
-  letter-spacing: 0.24em;
+  color: var(--text-2);
 }
 
 </style>
@@ -391,7 +394,7 @@ html, body {
 </div>
 
 <div class="bande-bas">
-  <span>Caméléon Engine · Reconstruction V1-R1</span>
+  <span>Laboratoire du Silence · V1-R1</span>
   <span>État : Analyse · Lecture active</span>
 </div>
 
