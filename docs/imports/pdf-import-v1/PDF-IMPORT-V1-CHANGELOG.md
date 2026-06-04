@@ -1,6 +1,6 @@
 # PDF Import V1 — Changelog des sessions
 
-Historique complet des 6 sessions d'implémentation (2026-06-04).  
+Historique complet des 8 sessions d'implémentation (2026-06-04).  
 Chaque session est atomique : aucun code de la session N+1 n'est introduit dans la session N.
 
 ---
