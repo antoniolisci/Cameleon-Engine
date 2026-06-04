@@ -65,7 +65,7 @@ Haussier / Baissier / Neutre. La direction du flux n'est pas équivalente à l'�
 Le rapport entre déplacement net et amplitude totale sur la période. Un flux intense produit un déplacement important relativement aux oscillations. Un flux faible produit un déplacement marginal malgré une activité de marché visible. L'intensité qualifie la résistance rencontrée — un marché qui avance contre des ventes massives produit un flux intense, pas seulement rapide.
 
 **Durée**  
-Ce qui distingue le flux de l'impulsion. Une durée courte (quelques heures) = impulsion. Une durée moyenne (quelques jours) = flux en formation. Une durée longue (semaines) = flux établi. La durée conditionne le poids qu'on peut lui accorder — un flux de 2 jours est différent d'un flux de 3 semaines, même d'intensité comparable.
+Une durée courte (quelques heures) = impulsion. Une durée moyenne (quelques jours) = flux en formation. Une durée longue (semaines) = flux établi. La durée conditionne le poids qu'on peut lui accorder — un flux de 2 jours est différent d'un flux de 3 semaines, même d'intensité comparable.
 
 **Accélération**  
 Le flux se renforce — chaque unité de temps produit plus de déplacement que la précédente. Signal d'un flux qui mûrit ou qui entre en phase terminale de puissance.
@@ -129,7 +129,7 @@ Le flux modulerait la lecture du risque sans la remplacer — il ajouterait un q
 C'est le risque dominant. "Flux directionnel" peut être entendu comme "tendance" — terme saturé, surinterprété, omniprésent dans l'analyse technique. Si FDM-01 se résume à "le marché est haussier ou baissier sur plusieurs jours", il ne produit rien de nouveau et risque de contaminer le vocabulaire de Caméléon Engine avec des catégories déjà freeware. La protection passe par une définition centrée sur la dimension énergétique — intensité, durée, essoufflement — et la relation comportementale, pas la structure de prix brute.
 
 **Redondance avec l'état expansion**  
-L'état `expansion` décrit déjà un marché en mouvement directionnel. La question légitime : le flux n'est-il pas simplement un `expansion` mesuré sur une durée plus longue ? La réponse est non, à condition que le flux puisse coexister avec n'importe quel état instantané — y compris `range` et `compression`. Un flux baissier de 15 jours contient des sessions `expansion:stable` (accélération), `range:stable` (consolidation), `compression:stable` (pause avant continuation). L'état varie ; le flux est stable. Si le FDM-01 ne peut exister que dans des sessions `expansion`, il est redondant.
+L'état `expansion` décrit déjà un marché en mouvement directionnel. La question légitime : le flux n'est-il pas simplement un `expansion` mesuré sur une durée plus longue ? La réponse est non. Un flux baissier de 15 jours contient des sessions `expansion:stable` (accélération), `range:stable` (consolidation), `compression:stable` (pause avant continuation). L'état varie ; le flux est stable. Si le FDM-01 ne peut exister que dans des sessions `expansion`, il est redondant.
 
 **Complexité inutile**  
 Si le FDM-01 exige que l'opérateur évalue lui-même la direction, l'intensité et la durée du flux avant chaque session, il ajoute un formulaire à un moteur qui travaille à réduire la charge cognitive. C'est une contradiction doctrinale directe. Ce risque est insoluble tant que le FDM-01 n'a pas de source de données identifiable.
@@ -145,16 +145,10 @@ Un cockpit qui formule "le flux est baissier et intense" oriente la lecture du t
 
 Ce n'est pas une reformulation. Les concepts existants ne couvrent pas la temporalité soutenue du flux, ni sa relation avec le comportement de l'opérateur dans un contexte de marché orienté. La distinction tendance / état / flux est réelle et opérationnellement pertinente.
 
-Ce n'est pas encore un pilier structurel. Deux conditions manquent.
-
-**Condition 1 — Source de données.** Le FDM-01 est un concept temporel. Il ne peut pas être calculé à partir d'une session unique. Il requiert des données importées — historique de trades, historique de prix — permettant de reconstituer une trajectoire, ou une saisie manuelle, ce qui l'exclut doctrinalement. Sans source définie, le concept reste théorique et n'a aucun chemin d'implémentation cohérent.
-
-**Condition 2 — Effet cockpit irréductible.** Pour mériter son statut de pilier, FDM-01 doit démontrer un effet cockpit que rien d'autre ne produit. La piste la plus prometteuse est la qualification comportementale : contextualiser les patterns d'exécution par rapport au flux actif au moment où ils se sont produits. C'est un effet que ni les Market States, ni le score moteur, ni le module comportemental ne produisent aujourd'hui. Mais il reste à valider que cet effet change réellement la lecture de l'opérateur — pas seulement qu'il ajoute une information supplémentaire.
+Ce n'est pas encore un pilier structurel. Les deux conditions de réouverture documentées en tête de ce fichier restent à satisfaire.
 
 ### Verdict
 
 FDM-01 est un concept légitime et non redondant dans la mesure où il est défini comme une couche temporelle contextualisant les sessions — pas comme un indicateur directionnel. Il mérite d'être conservé comme actif conceptuel.
 
 La question ouverte qui conditionne tout : d'où vient le flux ? Répondre à cette question transformera FDM-01 d'une hypothèse conceptuelle en un chantier réel.
-
-**Aucune implémentation ne peut être ouverte avant que les deux conditions de réouverture soient satisfaites.**
