@@ -2,7 +2,7 @@
 
 Caméléon Engine · Laboratoires Cognitifs UX  
 Date : 2026-05-28  
-Statut : réflexion ouverte — avant implémentation
+Statut : réflexion clôturée — prototype suspendu par décision
 
 ---
 
@@ -153,3 +153,15 @@ Cela transformerait profondément la logique de design : le rôle du moteur UX n
 
 La pression de pattern augmente-t-elle indéfiniment avec la répétition —  
 ou existe-t-il un seuil où le cerveau cesse simplement de regarder ?
+
+---
+
+## Décision de clôture — 2026-06-04
+
+**Prototype V2-E7 : suspendu par décision. Réflexion close.**
+
+La réflexion T-8 a été menée à son terme conceptuel. Le prototype n'a pas été créé parce que le laboratoire avait atteint sa frontière critique avant l'implémentation : la série V2-E1→E6 avait déjà révélé la loi fondamentale du laboratoire ("le silence améliore la lecture jusqu'au point où il supprime les conditions de la lecture"), rendant V2-E7 non nécessaire à la progression doctrinale.
+
+La question centrale de V2-E7 reste ouverte comme hypothèse non testée. Elle pourrait être revisitée si un signal terrain réel justifiait de mesurer la saturation de pattern sur une interface réelle. Mais elle ne constitue pas un manque dans la doctrine produit actuelle.
+
+**Phase active suivante :** V1-R1 — Reconstruction cognitive du cockpit (`prototype/reconstruction-v1-r1.html`).
