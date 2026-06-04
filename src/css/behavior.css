@@ -105,6 +105,17 @@ body.bhv-panel-open .main-shell {
   background: rgba(212, 175, 55, 0.04);
 }
 
+@keyframes bhv-border-pulse {
+  0%, 100% { border-color: rgba(212, 175, 55, 0.26); }
+  50%       { border-color: rgba(212, 175, 55, 0.65); }
+}
+
+.bhv-drop-zone.bhv-loading {
+  pointer-events: none;
+  opacity: 0.6;
+  animation: bhv-border-pulse 1.1s ease-in-out infinite;
+}
+
 .bhv-file-input {
   position: absolute;
   inset: 0;
