@@ -33,3 +33,11 @@ Lectures d'état à une date donnée. Non prescriptives.
 |----------|------|
 | [audit-coherence-doctrinale-2026-05-19.md](audit-coherence-doctrinale-2026-05-19.md) | Contradictions et tensions doctrinales identifiées mai 2026 |
 | [audit-dette-travail-phase0-phase1.md](audit-dette-travail-phase0-phase1.md) | Dette de travail avant passage Phase 1 |
+
+## Réflexions figées
+
+Explorations conceptuelles terminées. Aucune implémentation autorisée sans satisfaire les conditions de réouverture documentées dans chaque fichier.
+
+| Document | Concept | Conditions de réouverture |
+|----------|---------|---------------------------|
+| [fdm-01-flux-directionnel-marche.md](fdm-01-flux-directionnel-marche.md) | Flux Directionnel du Marché — couche temporelle contextualisant les Market States | Source de données identifiable + effet cockpit irréductible démontré |
