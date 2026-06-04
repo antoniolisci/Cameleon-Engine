@@ -10,6 +10,10 @@ import { validateTrades } from '../normalize/trade-validator.js';
 import { analyzeWallet } from '../wallet/wallet_analyzer.js';
 import { detectFormat } from './format-detector.js';
 import { analyzeOrders } from '../analytics/order-analyzer.js';
+import { loadPdfTextItems }    from './pdf-loader.js';
+import { detectPdfFamily }     from './pdf-family-detector.js';
+import { extractPdfTableRows } from './pdf-table-extractor.js';
+import { normalizePdfRows }    from './pdf-normalizer.js';
 
 // ── Normalisation des en-têtes ────────────────────────────────────────────────
 // Minuscules + suppression diacritiques + normalisation séparateurs.
@@ -211,6 +215,10 @@ async function readFileAsXLSX(file) {
 async function importBinanceSpot(file) {
   const ext    = file.name.split('.').pop().toLowerCase();
 
+  // ── Branche PDF ──────────────────────────────────────────────────────────────
+  // PDF.js lit un ArrayBuffer asynchrone — contournement du garde taille synchrone.
+  if (ext === 'pdf') return importBinancePDF(file);
+
   // ── Garde taille ─────────────────────────────────────────────────────────────
   // Limite à 5 MB — au-delà, le chargement mémoire synchrone peut bloquer l'UI.
   // Binance exporte rarement plus de 10 000 lignes par fichier ; 5 MB couvre
@@ -394,6 +402,106 @@ async function importBinanceSpot(file) {
 
   return { ok: true, type: 'trades', trades, skipped, sessionId, analysisQuality,
            validationWarning: !validation.isValid, validationWarnings: validation.warnings };
+}
+
+// ── PDF Import ────────────────────────────────────────────────────────────────
+// Adaptateur Trade History PDF → format canonique interne.
+// quote_value est un alias de quote_quantity (même valeur, deux noms pour compatibilité downstream).
+function _adaptTradeHistoryPdf(normalized, sessionId) {
+  return normalized.map(row => ({
+    ...row,
+    quote_value: row.quote_quantity,
+    session_id:  sessionId,
+    tags:        [],
+  }));
+}
+
+// Adaptateur Order History PDF → format canonique interne (une row FILLED).
+// fee = 0 : absent du PDF Order History Binance.
+// fillRate = executed_qty / order_amount, plafonné à 1.
+function _adaptFilledOrderPdf(row, sessionId) {
+  const qty      = row.executed_qty;
+  const orderQty = row.order_amount || qty;
+  return {
+    timestamp:      row.created_at,
+    symbol:         row.symbol,
+    side:           row.side,
+    price:          row.average_price,
+    quantity:       qty,
+    quote_value:    row.trading_total,
+    quote_quantity: row.trading_total,
+    fee:            0,
+    orderId:        row.order_id,
+    status:         row.status,
+    fillRate:       orderQty > 0 ? Math.min(qty / orderQty, 1) : 1,
+    session_id:     sessionId,
+    tags:           [],
+  };
+}
+
+async function importBinancePDF(file) {
+  let pdfResult;
+  try {
+    pdfResult = await loadPdfTextItems(file);
+  } catch (err) {
+    return { ok: false, error: 'Impossible de lire le fichier PDF. Vérifiez qu\'il n\'est pas corrompu.', trades: [] };
+  }
+
+  if (pdfResult.quality === 'UNREADABLE' || pdfResult.quality === 'SCANNED') {
+    return {
+      ok: false,
+      error: `PDF non lisible (qualité : ${pdfResult.quality}). Seuls les PDFs Binance natifs (texte encodé) sont supportés.`,
+      trades: []
+    };
+  }
+
+  const family = detectPdfFamily(pdfResult.rawText, pdfResult.items);
+  if (family === 'UNKNOWN') {
+    return {
+      ok: false,
+      error: 'Format PDF non reconnu. Seuls les exports Binance Trade History et Order History Spot sont supportés.',
+      trades: []
+    };
+  }
+
+  const extracted  = extractPdfTableRows(pdfResult, family);
+  const normalized = normalizePdfRows(extracted.rows, family);
+  const sessionId  = `session_${Date.now()}`;
+
+  if (family === 'TRADE_HISTORY') {
+    const adapted = _adaptTradeHistoryPdf(normalized, sessionId);
+    const trades  = [];
+    let skipped   = 0;
+    for (const t of adapted) {
+      if (isValidTrade(t)) trades.push(t);
+      else skipped++;
+    }
+    if (trades.length === 0) {
+      return { ok: false, error: 'PDF Trade History importé mais aucun trade valide trouvé.', trades: [] };
+    }
+    const validation = validateTrades(trades);
+    return {
+      ok: true, type: 'trades', trades, skipped, sessionId, analysisQuality: 'full',
+      validationWarning: !validation.isValid, validationWarnings: validation.warnings
+    };
+  }
+
+  // ORDER_HISTORY — filtre FILLED uniquement (même comportement que binance_order.js CSV/XLSX)
+  const trades = [];
+  let skipped  = 0;
+  for (const row of normalized) {
+    if (row.status !== 'FILLED') { skipped++; continue; }
+    const t = _adaptFilledOrderPdf(row, sessionId);
+    if (isValidTrade(t)) trades.push(t);
+    else skipped++;
+  }
+  if (trades.length === 0) {
+    return { ok: false, error: 'Order History PDF importé mais aucun ordre FILLED trouvé.', trades: [] };
+  }
+  return {
+    ok: true, type: 'order_history', trades, skipped, sessionId, analysisQuality: 'full',
+    orderAnalysis: null
+  };
 }
 
 export { importBinanceSpot };
