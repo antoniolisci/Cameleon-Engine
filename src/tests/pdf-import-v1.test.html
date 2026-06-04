@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Import V1 — Tests automatisés</title>
+  <style>
+    * { box-sizing: border-box; }
+    body  { font-family: monospace; padding: 24px; background: #0e0e0e; color: #ccc; font-size: 13px; margin: 0; }
+    h1    { color: #fff; font-size: 16px; margin-bottom: 4px; }
+    .meta { color: #666; margin-bottom: 24px; font-size: 12px; }
+    h2    { color: #7cf; font-size: 14px; margin: 28px 0 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+
+    .summary { display: flex; gap: 24px; margin: 16px 0 28px; font-size: 14px; }
+    .s-pass   { color: #4f4; }
+    .s-fail   { color: #f44; }
+    .s-total  { color: #aaa; }
+
+    table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+    td, th { border: 1px solid #222; padding: 4px 10px; text-align: left; }
+    th     { background: #161616; color: #adf; font-weight: normal; }
+    .pass  { color: #4f4; }
+    .fail  { color: #f44; background: #1a0000; }
+    .skip  { color: #888; }
+
+    .suite-block { margin-bottom: 32px; }
+
+    #loading { color: #fa4; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<h1>PDF Import V1 — Suite de tests automatisés</h1>
+<div class="meta">Corpus : b8.pdf (Trade History) · b3.pdf (Order History) · Commit de référence : 789b7ac</div>
+
+<div id="loading">Chargement des PDFs en cours…</div>
+<div id="root"></div>
+
+<script type="module">
+import { loadPdfTextItems }    from '../js/behavior/import/pdf-loader.js';
+import { detectPdfFamily }     from '../js/behavior/import/pdf-family-detector.js';
+import { extractPdfTableRows } from '../js/behavior/import/pdf-table-extractor.js';
+import { normalizePdfRows }    from '../js/behavior/import/pdf-normalizer.js';
+
+// ── Framework d'assertion minimal ─────────────────────────────────────────
+
+const results = [];
+
+function assert(id, description, condition, detail = '') {
+  results.push({ id, description, pass: !!condition, detail });
+}
+
+function assertEq(id, description, actual, expected) {
+  const pass = actual === expected;
+  results.push({ id, description, pass, detail: pass ? `= ${actual}` : `obtenu ${actual}, attendu ${expected}` });
+}
+
+function renderSuite(title, ids) {
+  const suite = results.filter(r => ids.includes(r.id));
+  const pass  = suite.filter(r => r.pass).length;
+  const fail  = suite.filter(r => !r.pass).length;
+
+  const rows = suite.map(r => {
+    const cls = r.pass ? 'pass' : 'fail';
+    const icon = r.pass ? '✓' : '✗';
+    return `<tr class="${cls}">
+      <td>${icon}</td>
+      <td>${r.id}</td>
+      <td>${r.description}</td>
+      <td>${r.detail}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+<div class="suite-block">
+  <h2>${title} — ${pass}/${suite.length} ${fail > 0 ? '<span style="color:#f44">FAIL</span>' : '<span style="color:#4f4">PASS</span>'}</h2>
+  <table>
+    <thead><tr><th></th><th>ID</th><th>Test</th><th>Détail</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+function isValidTs(v) {
+  return typeof v === 'number' && Number.isFinite(v) && v > 0;
+}
+
+function hasNaN(obj) {
+  return Object.values(obj).some(v => typeof v === 'number' && isNaN(v));
+}
+
+function hasInvalidTs(obj, fields) {
+  return fields.some(f => {
+    const v = obj[f];
+    return v !== null && v !== undefined && !isValidTs(v);
+  });
+}
+
+function majorityCount(rows) {
+  const freq = {};
+  for (const r of rows) freq[r.length] = (freq[r.length] || 0) + 1;
+  return Number(Object.entries(freq).sort(([,a],[,b]) => b - a)[0]?.[0] ?? 0);
+}
+
+// ── Pipeline ───────────────────────────────────────────────────────────────
+
+async function load(url) {
+  const pdf       = await loadPdfTextItems(url);
+  const family    = detectPdfFamily(pdf.rawText, pdf.items);
+  const extracted = extractPdfTableRows(pdf, family);
+  const normalized = normalizePdfRows(extracted.rows, family);
+  return { pdf, family, extracted, normalized };
+}
+
+// ── Exécution ─────────────────────────────────────────────────────────────
+
+const [b8, b3] = await Promise.all([
+  load('/assets/excel_tests/b1-b19/b8.pdf'),
+  load('/assets/excel_tests/b1-b19/b3.pdf'),
+]);
+
+// ══ SUITE A — Détection famille & qualité ═════════════════════════════════
+
+assertEq('A01', 'b8.pdf — family = TRADE_HISTORY',  b8.family,    'TRADE_HISTORY');
+assertEq('A02', 'b3.pdf — family = ORDER_HISTORY',  b3.family,    'ORDER_HISTORY');
+assertEq('A03', 'b8.pdf — quality = NATIVE',        b8.pdf.quality, 'NATIVE');
+assertEq('A04', 'b3.pdf — quality = NATIVE',        b3.pdf.quality, 'NATIVE');
+
+// ══ SUITE B — Nombre de rows extraites ════════════════════════════════════
+
+assertEq('B01', 'b8.pdf — 32 rows normalisées',   b8.normalized.length, 32);
+assertEq('B02', 'b3.pdf — 2476 rows normalisées', b3.normalized.length, 2476);
+
+// ══ SUITE C — Intégrité des valeurs numériques ════════════════════════════
+
+const b8NaN  = b8.normalized.filter(hasNaN).length;
+const b3NaN  = b3.normalized.filter(hasNaN).length;
+assertEq('C01', 'b8.pdf — 0 NaN dans les rows normalisées', b8NaN, 0);
+assertEq('C02', 'b3.pdf — 0 NaN dans les rows normalisées', b3NaN, 0);
+
+// ══ SUITE D — Intégrité des timestamps (PDF-ARCH-04) ═════════════════════
+
+const b8BadTs = b8.normalized.filter(r => !isValidTs(r.timestamp)).length;
+assertEq('D01', 'b8.pdf — 0 timestamp invalide',  b8BadTs, 0);
+
+const b3BadCreatedAt = b3.normalized.filter(r => !isValidTs(r.created_at)).length;
+assertEq('D02', 'b3.pdf — 0 created_at invalide', b3BadCreatedAt, 0);
+
+// execution_time : nullable → seuls les non-null doivent être valides
+const b3BadExecTime = b3.normalized.filter(r =>
+  r.execution_time !== null && !isValidTs(r.execution_time)
+).length;
+assertEq('D03', 'b3.pdf — 0 execution_time invalide (nullable accepté)', b3BadExecTime, 0);
+
+// ══ SUITE E — PDF-ARCH-05 : status nullable ═══════════════════════════════
+
+const nullStatusRows = b3.normalized.filter(r => r.status === null).length;
+assert('E01', 'b3.pdf — PDF-ARCH-05 : au moins 1 row status null', nullStatusRows >= 1,
+  `${nullStatusRows} row(s) status null`);
+
+// Aucune rejection due à la structure 11/12 col
+assertEq('E02', 'b3.pdf — toutes les rows extraites normalisées (11 ou 12 col acceptées)',
+  b3.normalized.length, b3.extracted.rows.length);
+
+// ══ SUITE F — Clustering Y — stabilité cellules ═══════════════════════════
+
+// b8 : majorité à 7 cellules (Trade History)
+const b8Maj = majorityCount(b8.extracted.rows);
+assertEq('F01', 'b8.pdf — cellules majoritaires = 7 (clustering Y Trade)',  b8Maj, 7);
+
+// b3 : majorité à 12 cellules (Order History)
+const b3Maj = majorityCount(b3.extracted.rows);
+assertEq('F02', 'b3.pdf — cellules majoritaires = 12 (clustering Y Order)', b3Maj, 12);
+
+// Aucune row Trade History avec < 7 ou > 7 cellules autre que bruit
+const b8Exact7 = b8.extracted.rows.filter(r => r.length === 7).length;
+assert('F03', 'b8.pdf — ≥ 95% des rows à exactement 7 cellules',
+  b8Exact7 / b8.extracted.rows.length >= 0.95,
+  `${b8Exact7}/${b8.extracted.rows.length} rows à 7 col`);
+
+// ══ SUITE G — Mapping X — stabilité Order History (PDF-ARCH-02) ══════════
+
+// Toutes les rows Order History ont 11 ou 12 cellules (jamais moins, jamais plus)
+const b3OutOfBounds = b3.extracted.rows.filter(r => r.length < 11 || r.length > 12).length;
+assertEq('G01', 'b3.pdf — toutes rows entre 11 et 12 cellules (mapping X stable)', b3OutOfBounds, 0);
+
+// Répartition 11/12
+const b3Rows11 = b3.extracted.rows.filter(r => r.length === 11).length;
+const b3Rows12 = b3.extracted.rows.filter(r => r.length === 12).length;
+assert('G02', 'b3.pdf — distribution 11/12 cellules cohérente avec corpus',
+  b3Rows11 + b3Rows12 === b3.extracted.rows.length,
+  `11 col: ${b3Rows11} · 12 col: ${b3Rows12}`);
+
+// ══ SUITE H — PDF-ARCH-03 : page 1 Order History ignorée ═════════════════
+
+const b3FirstPage = b3.extracted.pagesProcessed[0];
+assertEq('H01', 'b3.pdf — première page traitée = 2 (PDF-ARCH-03)', b3FirstPage, 2);
+
+const b3LastPage = b3.extracted.pagesProcessed[b3.extracted.pagesProcessed.length - 1];
+assertEq('H02', 'b3.pdf — dernière page traitée = 192', b3LastPage, 192);
+
+assertEq('H03', 'b3.pdf — pages traitées = 191 (192 - page 1)',
+  b3.extracted.pagesProcessed.length, 191);
+
+// b8 : page 1 traitée normalement (Trade History)
+const b8FirstPage = b8.extracted.pagesProcessed[0];
+assertEq('H04', 'b8.pdf — première page traitée = 1 (Trade History traite page 1)', b8FirstPage, 1);
+
+// ══ Résumé global ════════════════════════════════════════════════════════
+
+const totalPass = results.filter(r => r.pass).length;
+const totalFail = results.filter(r => !r.pass).length;
+const verdict   = totalFail === 0 ? '✓ ALL PASS' : `✗ ${totalFail} FAIL`;
+const vcolor    = totalFail === 0 ? '#4f4' : '#f44';
+
+// ── Rendu ─────────────────────────────────────────────────────────────────
+
+document.getElementById('loading').remove();
+
+const root = document.getElementById('root');
+root.innerHTML = `
+<div class="summary">
+  <span class="s-pass">✓ ${totalPass} passed</span>
+  <span class="s-fail">${totalFail > 0 ? '✗ ' + totalFail + ' failed' : ''}</span>
+  <span class="s-total">${results.length} tests · b8.pdf ${b8.normalized.length} rows · b3.pdf ${b3.normalized.length} rows</span>
+  <span style="color:${vcolor};font-weight:bold">${verdict}</span>
+</div>
+${renderSuite('A — Famille & Qualité',         ['A01','A02','A03','A04'])}
+${renderSuite('B — Nombre de rows',            ['B01','B02'])}
+${renderSuite('C — Intégrité numérique (NaN)', ['C01','C02'])}
+${renderSuite('D — Timestamps (PDF-ARCH-04)',  ['D01','D02','D03'])}
+${renderSuite('E — PDF-ARCH-05 status null',   ['E01','E02'])}
+${renderSuite('F — Clustering Y',              ['F01','F02','F03'])}
+${renderSuite('G — Mapping X (PDF-ARCH-02)',   ['G01','G02'])}
+${renderSuite('H — PDF-ARCH-03 page 1',        ['H01','H02','H03','H04'])}
+`;
+</script>
+</body>
+</html>
