@@ -5008,7 +5008,7 @@ function bindFieldEvents() {
     });
   }
 
-  [...FIELD_GROUPS.marketFields, ...FIELD_GROUPS.adaptiveFields].forEach((field) => {
+  [...FIELD_GROUPS.marketFields, ...FIELD_GROUPS.adaptiveFields, ...FIELD_GROUPS.contextualFields].forEach((field) => {
     const element = $(field.id);
     if (!element) return;
     element.addEventListener(field.type === "textarea" ? "input" : "change", refresh);
