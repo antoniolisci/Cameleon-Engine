@@ -27,6 +27,7 @@ import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
 import { applyFriction } from "./friction.js";
+import { applyMacroOverlay } from "./macro-context.js";
 import { computeUXState } from "./ux-state.js";
 import { V2_FLAGS } from "./v2/flags.js";
 
@@ -1143,7 +1144,7 @@ function fillForm(form) {
 
 function collectForm() {
   const next = {};
-  [...FIELD_GROUPS.marketFields, ...FIELD_GROUPS.adaptiveFields].forEach((field) => {
+  [...FIELD_GROUPS.marketFields, ...FIELD_GROUPS.adaptiveFields, ...FIELD_GROUPS.contextualFields].forEach((field) => {
     const element = $(field.id);
     next[field.id] = element ? element.value : "";
   });
@@ -4664,7 +4665,14 @@ function renderConfidenceContext(payload) {
   if (elBar)     elBar.style.width     = `${safeScore}%`;
   if (elMode)    elMode.textContent    = translateMode(ctx.mode);
   if (elAction)  elAction.textContent  = translateAction(ctx.action);
-  if (elMessage) elMessage.textContent = ctx.message;
+  if (elMessage) {
+    const macroState = {
+      dominanceMacro:     appState.form?.dominanceMacro     || "none",
+      desordreStructurel: appState.form?.desordreStructurel || "none"
+    };
+    const finalMessage = applyMacroOverlay(ctx.message, macroState);
+    elMessage.textContent = finalMessage;
+  }
 
   panel.dataset.tone     = ctx.tone  || "neutral";
   panel.dataset.mode     = (ctx.mode || "unknown").toLowerCase();

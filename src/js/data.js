@@ -23,6 +23,10 @@ export const FIELD_GROUPS = {
     { id: "validationState", label: "Validation humaine", type: "select", options: [["pending", "En attente"], ["accepted", "Validée"], ["adjusted", "Validée sous contrainte"], ["rejected", "Refusée"]] },
     { id: "validationNote", label: "Note de validation", type: "textarea", placeholder: "Ex. Cassure propre, mais taille réduite tant que le reclaim n'est pas confirmé." },
     { id: "journalNote", label: "Note de session", type: "textarea", placeholder: "Ex. Je protège le socle et je n'ouvre rien tant que la zone n'est pas parfaitement reprise." }
+  ],
+  contextualFields: [
+    { id: "dominanceMacro",     label: "Dominance macro",     type: "select", options: [["none", "Absente"], ["active", "Active"]] },
+    { id: "desordreStructurel", label: "Désordre structurel", type: "select", options: [["none", "Absent"],  ["active", "Actif"]]  }
   ]
 };
 
@@ -129,7 +133,9 @@ export const DEFAULT_FORM = {
   zoneSignal: "middle",
   validationState: "pending",
   validationNote: "",
-  journalNote: ""
+  journalNote: "",
+  dominanceMacro:     "none",
+  desordreStructurel: "none"
 };
 
 export const STATE_LABELS = {
