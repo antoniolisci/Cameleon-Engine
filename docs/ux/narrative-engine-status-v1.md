@@ -1,6 +1,6 @@
 # Moteur Narratif Adaptatif — État officiel V1
 
-**Dernière mise à jour :** 2026-05-29
+**Dernière mise à jour :** 2026-06-05 (correction documentaire NAR-C1 — voir `docs/debt-audit.md` UX-04)
 **Documents sources :** Moteur Narratif Adaptatif V1 (doctrine) · V1.1 (audit critique)
 **Maturité estimée :** Doctrine
 
@@ -13,9 +13,9 @@
 Les principes sont vrais. Les règles sont correctes. La direction est juste.
 L'exécution a des lacunes identifiées et adressables sans remettre en cause le cadre.
 
-Le système n'atteint pas encore le stade d'architecture stable pour deux raisons précises :
+Le système n'atteint pas encore le stade d'architecture stable pour une raison précise :
 
-- Contradiction C1 non tranchée : Mantra absolu vs Mantra modulable par profil
+- ~~Contradiction C1 non tranchée : Mantra absolu vs Mantra modulable par profil~~ **· SOLDÉ 2026-06-02 — Mantra absolu par état de marché (Option A) · voir `docs/debt-audit.md` UX-04**
 - Trois états sur sept produisent des collisions structurelles dans le dictionnaire actuel
 
 ---
@@ -53,11 +53,11 @@ Chaque voix répond à une question distincte. Les quatre ne se croisent pas.
 
 ## 3. Ce qui reste ouvert
 
-### C1 — Mantra : absolu ou modulable par profil ?
+### ~~C1 — Mantra : absolu ou modulable par profil ?~~ · SOLDÉ 2026-06-02
 
-**Tension :** Le document V1 affirme simultanément que le Mantra est absolu par nature *et* qu'il peut être "plus restrictif" selon le profil opérateur en V2. Ces deux affirmations sont incompatibles.
+**Décision :** Mantra absolu par état de marché (Option A). Le Mantra opérationnel est une loi d'état, pilotée exclusivement par `MARKET_DICTIONARY`. Aucun branchement profil / mode opérateur n'est autorisé dans `.mantra-operationnel-main`.
 
-**Décision requise avant V2 :** soit le Mantra est la voix de la discipline invariante (pas de modulation), soit il est la voix de la contrainte comportementale (spécialisable par profil). Les deux ne peuvent pas coexister.
+**Source canonique :** `docs/debt-audit.md` § UX-04 · commit `5d9203a`
 
 ### Rôle exact des sub
 

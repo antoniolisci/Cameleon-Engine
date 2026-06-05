@@ -82,7 +82,7 @@ Ce que le terrain produira :
 
 | ID | Dette | Priorité | Condition d'ouverture |
 |---|---|---|---|
-| NAR-C1 | Trancher Mantra absolu vs modulable | Haute | Avant V1.2, pas pendant |
+| ~~NAR-C1~~ | ~~Trancher Mantra absolu vs modulable~~ | ~~Haute~~ | ✅ SOLDÉ 2026-06-02 — Mantra absolu (Option A) · `docs/debt-audit.md` UX-04 |
 | V2-T1T4 | MdS/QdR/DMU absents payload V1 | Haute | Prérequis Phase 3 |
 | AUD-T3 | Plancher ~15 sur V2 segmentation | Haute | Avant toute V2 segmentation |
 | DOC-BHV-01 | behavior/README.md formulations obsolètes | Basse | Prochain chantier documentation behavior |
@@ -98,7 +98,7 @@ Ce que le terrain produira :
 | Architecture générale | 4 | AUD-A1 — "profondeur" opérationnellement indéfinie | Surveillance dérive feature uniquement |
 | Behavior | 4 | AUD-T3 — plancher ~15 déterministe bloque V2 segmentation | ≥20 opérateurs terrain (protocole V0) |
 | V2 | 3 | V2-T1T4 — MdS/QdR/DMU absents payload V1 (prérequis Phase 3) | ≥50 sessions, ≥10 opérateurs |
-| Narrative | 3 | NAR-C1 — Mantra absolu vs modulable non tranché | Retour terrain cockpit réel |
+| Narrative | 4 | ~~NAR-C1 — Mantra absolu vs modulable non tranché~~ · **SOLDÉ 2026-06-02** · NAR-CO prochaine dette active | Retour terrain cockpit réel |
 | Documentation | 3 | DOC-BHV-01 — behavior/README.md persistance incorrecte | Prochain chantier documentation behavior |
 | Motion | 2 | MD-05 — 18 vidéos réserve non connectées | Stabilisation V2 + décision mapping état→vidéo |
 | PDF | 2 | PDF-06 — Confidentialité et stockage localStorage | Première demande terrain réelle import PDF |
