@@ -200,3 +200,26 @@ Chaque session est atomique : aucun code de la session N+1 n'est introduit dans 
 
 **Décision figée :** Trade History + Order History = seules familles V1 légitimes. Toute extension requiert les 5 critères de gouvernance.
 
+---
+
+## Session 9 — D-PDF-04 Corpus étendu · 2026-06-05
+
+**Objectif :** Valider le pipeline sur b5, b10, b12, b19 — 4 fichiers non couverts par les sessions précédentes.
+
+**Résultats terrain :**
+
+| Fichier | Family | Quality | Pages | Rows | Parsed | Rejet | NaN |
+|---|---|---|---|---|---|---|---|
+| b5.pdf | ORDER_HISTORY | NATIVE | 37 | 466 | 466 | 0 | 0 |
+| b10.pdf | ORDER_HISTORY | NATIVE | 88 | 1130 | 1130 | 0 | 0 |
+| b12.pdf | ORDER_HISTORY | NATIVE | 37 | 466 | 466 | 0 | 0 |
+| b19.pdf | ORDER_HISTORY | NATIVE | 192 | 2476 | 2476 | 0 | 0 |
+
+**Observations :**
+- b5 et b12 identiques (466 rows, même export, deux noms)
+- b19 corpus le plus large : 2476 rows, TAOUSDC + LINKUSDC
+- 4538 rows au total, 0 rejet, 0 NaN
+
+**Dettes soldées :** D-PDF-04  
+**Dettes restantes :** Aucune — PDF Import V1 clôturé
+

@@ -149,5 +149,5 @@ Documents de doctrine produit et architecture long terme — aucun code.
 | D-PDF-01 | Intégration uploader | ✅ Soldée — Session 6 · commit `3d4e923` |
 | D-PDF-02 | Pipeline comportemental (connexion behavior engine) | ✅ Soldée — Session 7 · commit `073e868` |
 | D-PDF-03 | UI import PDF (loading indicator, dead code, labels PDF) | ✅ Soldée — commit `6a166c6` |
-| D-PDF-04 | Corpus étendu (b5, b10, b12, b19) | Ouverte |
+| D-PDF-04 | Corpus étendu (b5, b10, b12, b19) | ✅ Soldée — Session 9 · 4/4 PASS · b5(466) b10(1130) b12(466) b19(2476) · 0 rejet · 0 NaN |
 
