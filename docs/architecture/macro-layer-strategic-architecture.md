@@ -267,7 +267,64 @@ La fonctionnalité macro finale. Elle ne doit pas être présentée comme telle 
 
 ---
 
-## 10. Conditions d'ouverture d'un vrai chantier macro
+## 10. Décision doctrinale — Pas de proxy Constellium
+
+**Décision figée. Non négociable.**
+
+### Ce qui a été rejeté
+
+Une direction a été explorée puis abandonnée : calculer `dominanceMacro` et `desordreStructurel` automatiquement à partir des champs existants du formulaire, en particulier les champs Constellium — `water`, `ether`, `fire`, `air`, `earth`.
+
+Cette direction a été rejetée formellement. Elle ne doit pas être rouverte.
+
+### Pourquoi les champs Constellium ne sont pas des capteurs macro
+
+Les champs `ether`, `fire`, `air`, `earth`, `water` sont des **identifiants de la Couche 5 Expression — Constellium**. Ils décrivent l'état de lecture de l'opérateur selon un référentiel symbolique interne au produit. Ils ne mesurent pas de données de marché objectivement calculables.
+
+| Champ Constellium | Ce qu'il représente réellement | Ce qu'il ne mesure pas |
+|---|---|---|
+| `water` | Liquidité perçue du carnet local | OI agrégé / Liquidité M2 / ETF flows |
+| `ether` | Contexte de momentum / émotion marché | BTC Dominance / Stablecoin Dominance |
+| `fire` | Intensité directionnelle locale | Funding Rates systémiques |
+| `air` | Légèreté structurelle / compression | Volatilité réalisée multi-actifs |
+| `earth` | Ancrage structurel / support | Cycle TOTAL / TOTAL2 |
+
+Utiliser ces champs comme proxy macro produirait une **fausse précision** : l'apparence d'un calcul objectif sur des données qui sont des jugements subjectifs d'opérateur, non des mesures instrumentales.
+
+### La doctrine fondatrice : pas d'approximation
+
+Caméléon Engine ne mesure pas approximativement. Il mesure précisément ce qu'il mesure, ou il ne mesure pas. Un proxy construit sur des données inadéquates n'est pas une fonctionnalité macro — c'est un artefact analytique qui fausse la lecture sans que l'opérateur en soit conscient.
+
+**La règle :**
+
+> **Pas de macro calculée depuis le Constellium.**
+> **Pas de proxy.**
+> **Pas de fausse précision.**
+
+### Ce que cela implique pour la Phase 1
+
+La Couche Macro Phase 1 reste dans son périmètre actuel — déclaration manuelle par l'opérateur, modulation narrative de `#cs-message` uniquement. Elle ne doit pas être étendue par un mécanisme de calcul automatique fondé sur les champs Constellium.
+
+La Phase 1 restera infrastructure préparatoire jusqu'à ce qu'une **source de données macro objective** existe dans le système.
+
+### Sources macro objectives requises pour ouvrir la vraie Couche Macro
+
+La vraie Couche Macro ne s'ouvre que lorsqu'au moins une de ces sources est disponible de manière fiable et objective :
+
+- BTC Dominance (%)
+- Stablecoin Dominance (%)
+- TOTAL / TOTAL2 (capitalisations calculées)
+- Open Interest agrégé (données exchanges)
+- Funding Rates (données exchanges)
+- DXY réel (cours de marché)
+- Volatilité réalisée (calcul sur séries temporelles)
+- Flux ETF (données institutionnelles)
+
+Ces données sont **instrumentales** — elles se calculent indépendamment de la lecture de l'opérateur. C'est la différence fondamentale avec les champs Constellium, qui sont des jugements contextuels.
+
+---
+
+## 11. Conditions d'ouverture d'un vrai chantier macro
 
 **Ne pas ouvrir maintenant.** Ce document est une réflexion stratégique figée, pas une feuille de route d'implémentation.
 
@@ -289,7 +346,7 @@ Conditions futures à réunir avant d'ouvrir ce chantier :
 
 ---
 
-## 11. Conclusion
+## 12. Conclusion
 
 La macro n'est pas un chantier secondaire.
 La macro n'est pas simplement un chantier important.
