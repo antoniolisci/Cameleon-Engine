@@ -468,3 +468,30 @@ Abandonner la vision long terme. Le chantier Constellium reste un pilier de la t
 *Document de réalignement stratégique — post-Constellium — 2026-05-25*
 *Référence : docs/roadmap/roadmap-realignment-post-constellium.md*
 *Ne déclenche aucune implémentation. Aucun code. Aucun refactor.*
+
+---
+
+## MàJ 2026-06-05 — Doctrine Macro V1 figée
+
+**Chantier de réflexion terminé.** La doctrine complète de la future couche Macro est figée. Aucun code produit.
+
+**Document officiel commité :** `docs/architecture/macro-doctrine-v1.md` — commit `74611b4`
+
+**Décisions figées :**
+- Positionnement : "l'opérateur dans le marché" — pas le marché lui-même
+- Architecture UX : Vision C enrichie (pattern Debug Brain) — 3 niveaux
+- Noyau V1 : BTC Dominance + Funding Rate — confirmation multiple obligatoire
+- États : Expansif / Neutre / Contracté — aucun autre — Expansif ≠ Acheter
+- MACRO-RULE-01 : descriptif uniquement, jamais directif
+- Proxy Constellium rejeté définitivement (`2ccb73f`)
+- Corrélations personnelles : module comportemental, pas module Macro
+- Maturité progressive : 6 niveaux, rejet gamification absolu
+- Logging session × état macro : obligatoire dès J1 d'ouverture
+
+**Conditions d'ouverture du chantier (non résolues) :**
+- Modèle d'acquisition des données (conflit fraîcheur/local-first Funding Rate)
+- Pont Session × Macro × Comportement (chantier distinct)
+- Seuils numériques BTC.D et Funding Rate (calibration terrain)
+- N sessions par niveau de maturité
+
+**Statut chantier Macro V1 (implémentation) : DIFFÉRÉ** — après mise en ligne + mémoire opérateur + premiers utilisateurs réels.
