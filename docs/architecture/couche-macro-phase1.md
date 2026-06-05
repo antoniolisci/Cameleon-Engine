@@ -2,7 +2,7 @@
 
 Caméléon Engine · Direction Architecture
 Date : 2026-06-05
-Statut : **Phase 1 implémentée — en attente de validation visuelle finale**
+Statut : **Phase 1 clôturée — validation terrain PASS · commits `877d678` + `78d2455` · 2026-06-05**
 
 ---
 
@@ -144,7 +144,23 @@ Méthode : analyse statique exhaustive du pipeline. Grep confirmé — 0 occurre
 Score / Posture / Actions identiques sur A/B/C/D.
 `#cs-message` modifié uniquement quand au moins un champ macro est `"active"`.
 
-**T6 — PASS**
+**T6 statique — PASS**
+
+---
+
+## Validation terrain — 2026-06-05
+
+**T6 terrain — PASS**
+
+Cas validé en cockpit réel :
+
+- `dominanceMacro = active` · `desordreStructurel = none`
+- `#cs-message` affiché : `"Range + contexte faible — pas d'avantage clair. — contexte macro dominant — lecture locale à confirmer"`
+- Score, posture, verdict, actions, policy : inchangés
+
+Correctif `78d2455` confirmé terrain : `bindFieldEvents()` déclenche bien `refresh()` sur changement des champs macro. Le suffixe est appliqué en temps réel.
+
+MACRO-RULE-01 respectée : zéro contamination du moteur décisionnel.
 
 ---
 
@@ -168,18 +184,20 @@ Phase 1 se limite strictement à la modulation de `#cs-message`. Les éléments 
 
 Phase 2 ne pourra être ouverte que si les 4 conditions suivantes sont réunies :
 
-1. La modulation `#cs-message` est validée visuellement sur le cockpit réel (rendu correct, texte lisible, positionnement cohérent avec le reste du panel).
-2. Aucun effet de bord n'est observé sur le score, la posture, les actions ou les autres éléments du Confidence Panel.
-3. Le besoin de modulation du coaching (au-delà de `#cs-message`) est démontré par un signal terrain réel — confusion observée ou retour opérateur documenté.
-4. Aucune confusion utilisateur n'apparaît sur la fonction ou l'interprétation des champs macro.
+1. ✅ La modulation `#cs-message` est validée visuellement sur le cockpit réel — **PASS 2026-06-05**
+2. ✅ Aucun effet de bord observé sur le score, la posture, les actions ou les autres éléments du Confidence Panel — **PASS 2026-06-05**
+3. ○ Le besoin de modulation du coaching (au-delà de `#cs-message`) est démontré par un signal terrain réel — confusion observée ou retour opérateur documenté.
+4. ○ Aucune confusion utilisateur n'apparaît sur la fonction ou l'interprétation des champs macro.
+
+Conditions 1 et 2 remplies. Conditions 3 et 4 : terrain requis.
 
 ---
 
 ## Conclusion
 
-**Couche Macro Phase 1 — techniquement intégrée, non contaminante, en attente de validation visuelle finale avant commit.**
+**Couche Macro Phase 1 — clôturée. Validation terrain PASS. MACRO-RULE-01 intacte.**
 
 - 4 fichiers modifiés · 6 fichiers moteur inchangés
-- MACRO-RULE-01 respectée intégralement
+- Commits : `877d678` (Phase 1) + `78d2455` (correctif `bindFieldEvents`)
 - Plancher de dégradation = cockpit actuel (champs non remplis = zéro effet)
-- Prochaine action : validation visuelle dans le navigateur → T6 terrain → commit atomique Phase 1
+- Phase 2 conditionnelle : attend signal terrain sur conditions 3 et 4
