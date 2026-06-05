@@ -7666,7 +7666,7 @@ body[data-behavior-pattern="discipline"]::before {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 10px 0;
+  padding: 14px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -8080,3 +8080,15 @@ body[data-behavior-pattern="discipline"]::before {
 /* Groupe C — espacements spécifiques au panneau confidence */
 .confidence-panel .mode-panel          { margin-top: 0.5rem; }
 .confidence-panel > p.text-soft        { margin-top: 0.5rem; }
+
+/* ── PERC-01 — Calibration perceptive cockpit production (première passe) ──── */
+/* Principes V1-R1A adaptés à l'architecture de cartes production.              */
+/* Scope : moteur-flow uniquement. CSS-only. Aucune modification HTML/JS.       */
+
+/* A1 — Pause cognitive avant la synthèse décisionnelle                         */
+/* Effet : gap visuel 24px → 40px entre verdict-shell et pourquoi-shell         */
+.moteur-flow > .pourquoi-shell { margin-top: 16px; }
+
+/* A2 — Récession spatiale de la zone système (KPI / Mode / CORE / SNIPER)      */
+/* Effet : gap visuel 24px → 44px avant navigation-shell                        */
+.moteur-flow > .navigation-shell { margin-top: 20px; }
