@@ -564,3 +564,33 @@ Roadmap officielle en vigueur :
 5. Paiement
 6. Mise en ligne
 7. Validation terrain
+
+---
+
+## MàJ 2026-06-06 — Plan 10 premiers utilisateurs archivé
+
+**Document de validation terrain** — commit `98c1068`
+Fichier : `docs/product/plan-10-premiers-utilisateurs.md`
+
+Stratégie d'apprentissage produit documentée. Hypothèse terrain, pas un plan
+marketing. Aucun chantier ouvert.
+
+Principe central : la vraie contrainte n'est pas l'acquisition — c'est la sélection.
+Profil cible : trader actif 12+ mois, frustré par lui-même plus que par le marché.
+Signal d'incompatibilité : toute personne qui cherche des signaux dans les 5
+premières minutes.
+
+Métriques hiérarchisées en 3 niveaux :
+- Niveau 1 : preuves de base (import réalisé, retour J+7)
+- Niveau 2 : preuves d'engagement (2e import, 3 semaines consécutives)
+- Niveau 3 : preuves de valeur + preuve de transformation comportementale
+
+La preuve de valeur supérieure : un changement durable de comportement
+(réduction des entrées impulsives, du revenge trading, utilisation volontaire
+de la friction). Un gain ponctuel peut être dû au hasard. Un changement durable
+ne l'est pas.
+
+Plan J0→J90 : préparation → réseau personnel (3–5 users) → communautés (5 users)
+→ bilan. Peu d'utilisateurs, beaucoup d'observation.
+
+**Ce document ne modifie pas la roadmap officielle en vigueur.**
