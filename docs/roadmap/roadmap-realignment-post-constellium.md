@@ -495,3 +495,72 @@ Abandonner la vision long terme. Le chantier Constellium reste un pilier de la t
 - N sessions par niveau de maturité
 
 **Statut chantier Macro V1 (implémentation) : DIFFÉRÉ** — après mise en ligne + mémoire opérateur + premiers utilisateurs réels.
+
+---
+
+## MàJ 2026-06-06 — Vision long terme et doctrine écosystème
+
+### Deux documents de vision archivés. Aucun chantier ouvert.
+
+---
+
+**Doctrine écosystème figée** — commit `45ee3c2`
+Fichier : `docs/architecture/doctrine-ecosysteme-source-lecteurs.md`
+
+Loi fondatrice : il n'y a pas quatre applications. Il y a une source de vérité
+et des lecteurs. Caméléon Engine observe. Mémoire du Caméléon, Scribe du Caméléon
+et Constellium sont des lecteurs/projections futures possibles — pas des projets
+à construire maintenant.
+
+Règle permanente : nommer un module n'est pas l'autoriser. Tout lecteur futur
+doit démontrer un besoin utilisateur réel avant d'exister.
+
+---
+
+**Vision stratégique archivée** — commit `4f33ddf`
+Fichier : `docs/vision/vision-systeme-immunitaire-cognitif.md`
+
+Cinq pistes de projets futurs ont été analysées et classées :
+
+- **Moteur de Friction** — piste la plus originale et défendable. Inverse le
+  paradigme dominant du logiciel (accélération → friction intelligente).
+  Cross-domain. Extension naturelle de ce que Caméléon construit dans le trading.
+  À ouvrir uniquement après validation terrain de Caméléon Engine.
+
+- **Cartographe des Décisions** — concept valide (ferme la boucle temporelle
+  décision → conséquence). Différé — obstacle structurel de discipline utilisateur
+  non résolu.
+
+- **Scribe Automatique** — utile en outil interne. Fragile comme produit
+  commercial (commoditisation par les grandes plateformes).
+
+- **Mémoire Vivante** — module futur interne (= Mémoire du Caméléon déjà
+  planifiée). Pas un projet autonome.
+
+- **Conservatoire du Réel** — philosophie de travail, pas un produit. Abandonné.
+
+**Fil rouge découvert :** souveraineté cognitive sous pression.
+Toutes les pistes répondent au même problème fondamental : comment un humain
+conserve-t-il sa lucidité lorsqu'il doit décider dans des conditions difficiles ?
+
+**Hypothèse stratégique :** Caméléon Engine est la première incarnation d'une
+réflexion plus large sur la décision humaine. Le trading est le laboratoire le
+plus exigeant et le plus mesurable pour ce problème — pas une limite de périmètre.
+
+**Phrase fondatrice :**
+> *Les meilleurs outils de décision ne donnent pas de réponses.
+> Ils rendent les mauvaises questions visibles.*
+
+---
+
+**Ces réflexions ne modifient pas la roadmap officielle.**
+
+Roadmap officielle en vigueur :
+
+1. Portefeuille utilisateur interne
+2. Mémoire opérateur
+3. PDF Import V1
+4. Compte utilisateur
+5. Paiement
+6. Mise en ligne
+7. Validation terrain
