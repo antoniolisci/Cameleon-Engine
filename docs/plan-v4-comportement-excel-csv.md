@@ -1,3 +1,16 @@
+> **ARCHIVÉ**
+>
+> Ce document décrit un plan désormais implémenté.
+>
+> Il est conservé comme trace historique du développement de Caméléon Engine.
+>
+> Pour l'état actuel du système, consulter :
+> `docs/architecture/canonical_motor_state_2026.md`
+>
+> Statut : Implémenté et clôturé.
+>
+> Ne plus utiliser ce document comme référence d'architecture active.
+
 # Plan V4 — Module comportemental : fiabilisation Excel/CSV
 
 **Date :** 10 mai 2026  

@@ -1,3 +1,16 @@
+> **ARCHIVÉ**
+>
+> Ce document décrit un plan désormais implémenté.
+>
+> Il est conservé comme trace historique du développement de Caméléon Engine.
+>
+> Pour l'état actuel du système, consulter :
+> `docs/architecture/canonical_motor_state_2026.md`
+>
+> Statut : Implémenté et clôturé.
+>
+> Ne plus utiliser ce document comme référence d'architecture active.
+
 # Plan de réduction structurelle V1 — Caméléon Engine
 ## Document opérationnel. Autorité : manifeste produit.
 
