@@ -43,6 +43,15 @@ function _read(key) {
   }
 }
 
+function _readRawJSON(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw !== null ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function _write(key, payload) {
   try {
     localStorage.setItem(key, JSON.stringify(payload));
@@ -283,6 +292,43 @@ export function estimateTotalSize() {
 export function estimateKeySize(key) {
   const raw = localStorage.getItem(key);
   return `${(raw ? new Blob([raw]).size / 1024 : 0).toFixed(1)} KB`;
+}
+
+// ── Portabilité — export données opérateur ───────────────────
+// Retourne un objet JSON structuré contenant toutes les données opérateur.
+// Ne crée jamais d'identité — retourne null si identity absente.
+// Lecture uniquement — aucun effet de bord.
+
+export function exportOperatorData() {
+  const id = identity.get();
+  if (!id) return null;
+
+  try {
+    return {
+      version:      1,
+      exportedAt:   new Date().toISOString(),
+      engine:       'cameleon-engine',
+      identityType: 'local',
+      operator: {
+        uuid:      id.uuid,
+        createdAt: id.createdAt,
+      },
+      data: {
+        journalEntries:       journalEntries.getAll(),
+        behaviorSessions:     behaviorSessions.getAll(),
+        backups:              backups.getAll(),
+        settings:             settings.get(),
+        behaviorMemory:       behaviorMemory.getAll(),
+        guardLevel:           _readRawJSON(withUserKey(_BHV_NS + 'guardLevel')),
+        guardLevelUpdatedAt:  _readRawJSON(withUserKey(_BHV_NS + 'guardLevelUpdatedAt')),
+        orderStrategyProfile: _readRawJSON(withUserKey(_BHV_NS + 'orderStrategyProfile')),
+        importRegistry:       importRegistry.getAll(),
+        uiState:              uiState.get(),
+      },
+    };
+  } catch {
+    return null;
+  }
 }
 
 // ── Migration ─────────────────────────────────────────────────
