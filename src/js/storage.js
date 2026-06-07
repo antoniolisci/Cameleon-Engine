@@ -2,6 +2,7 @@
 // All persistence goes through this module. No raw localStorage calls elsewhere.
 
 export const KEYS = {
+  identity: 'CE_identity_v1',
   settings: 'CE_settings_v1',
   payloadCurrent: 'CE_payload_current_v1',
   journalEntries: 'CE_journal_entries_v1',
@@ -17,6 +18,17 @@ const JOURNAL_LIMIT = 50;
 const BACKUPS_LIMIT = 50;
 
 // ── Core I/O ──────────────────────────────────────────────────
+
+function _generateUUID() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback RFC 4122 v4 pour navigateurs anciens.
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
 
 function _now() {
   return new Date().toISOString();
@@ -186,6 +198,36 @@ export const behaviorMemory = {
     return _remove(KEYS.behaviorMemory);
   },
 };
+
+// ── Identité locale ───────────────────────────────────────────
+// Clé globale (pas de namespacing). Contient le UUID — ne le porte pas dans son nom.
+// Format : { uuid: string (RFC 4122), createdAt: number (ms) }
+
+export const identity = {
+  get() {
+    return _read(KEYS.identity)?.data ?? null;
+  },
+  ensure() {
+    const existing = this.get();
+    if (existing) return existing;
+    const data = { uuid: _generateUUID(), createdAt: Date.now() };
+    _write(KEYS.identity, _wrap({ data }));
+    return data;
+  },
+  clear() {
+    return _remove(KEYS.identity);
+  },
+};
+
+// ── Helper namespacing — clé suffixée par UUID ────────────────
+// Usage interne uniquement — non exporté.
+// Retourne baseKey + '__' + uuid si identité présente, sinon baseKey (session de grâce).
+// Non activé dans ADU-04A — préparation pour ADU-04B/C.
+
+function withUserKey(baseKey) { // eslint-disable-line no-unused-vars
+  const id = identity.get();
+  return id ? `${baseKey}__${id.uuid}` : baseKey;
+}
 
 // ── Behavior guard — helpers lecture cross-module ─────────────
 // Ces clés sont écrites par behavior-repo.js (namespace cameleon.behavior.v1.*).
