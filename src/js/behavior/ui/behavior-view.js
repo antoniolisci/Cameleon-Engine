@@ -1116,7 +1116,8 @@ function bindEvents(root, state) {
     saveSessionBtn.addEventListener('click', () => {
       const trades = behaviorRepo.get('trades');
       if (trades && trades.length) {
-        saveSession(trades);
+        const snapshot = buildSessionSnapshot(state);
+        saveSession(trades, { snapshot });
         mount(root);
       }
     });
@@ -1257,6 +1258,34 @@ async function handleImport(file, root) {
   }
 
   mount(root);
+}
+
+// ── Session snapshot ──────────────────────────────────────────────────────────
+
+function buildSessionSnapshot(state) {
+  const { score, patterns, coaching, importSummary, orderResult, trades } = state;
+  const importType = orderResult ? 'order_history' : 'trades';
+  return {
+    schemaVersion:    1,
+    computedAt:       new Date().toISOString(),
+    importType,
+    tradeCount:       Array.isArray(trades) ? trades.length : 0,
+    analysisQuality:  behaviorRepo.get('analysisQuality') ?? null,
+    score:            score?.score          ?? null,
+    profile:          score?.profile?.key   ?? null,
+    dominantRisk:     score?.dominantRisk   ?? null,
+    patternsSummary:  (patterns || []).map(p => ({
+      type:  p.type,
+      label: p.label  ?? null,
+      count: p.count  ?? null,
+      cv:    p.cv     ?? null,
+    })),
+    coachingPriority: coaching?.priority    ?? null,
+    pdfQuality:       importSummary?.pdfQuality ?? null,
+    importSummary:    importSummary          ?? null,
+    macroContext:     null,
+    engineContext:    null,
+  };
 }
 
 // ── Utility ───────────────────────────────────────────────────────────────────

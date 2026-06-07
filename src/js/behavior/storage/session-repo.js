@@ -10,7 +10,7 @@ function getAll() {
   return behaviorSessions.getAll().sort((a, b) => b.createdAt - a.createdAt);
 }
 
-function save(trades, name) {
+function save(trades, { snapshot = null, name = null } = {}) {
   const sessions  = getAll();
   const createdAt = Date.now();
   const d  = new Date(createdAt);
@@ -23,6 +23,7 @@ function save(trades, name) {
     name:      name || `Session ${dd}/${mm} ${hh}:${mi}`,
     createdAt,
     trades,
+    snapshot:  snapshot ?? null,
   };
   sessions.unshift(session);
   behaviorSessions.setAll(sessions.slice(0, SESSION_LIMIT));
