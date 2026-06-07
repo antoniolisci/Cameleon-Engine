@@ -1727,15 +1727,20 @@ function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusForm
     score:         payload.score ?? null
   });
   const saved = saveSnapshot({
-    timestamp:     new Date().toISOString(),
-    regime:        cockpit.market.label,
-    verdict:       cockpit.market.verdict,
-    decision:      tradingStatusFormatted,
-    state:         decisionState.state,
-    market_state:  payload.market_state  || "unknown",
-    emotion_state: payload.emotion_state || "unknown",
-    score:         payload.score ?? null,
-    quality:       quality
+    schemaVersion:  1,
+    timestamp:      new Date().toISOString(),
+    regime:         cockpit.market.label,
+    verdict:        cockpit.market.verdict,
+    decision:       tradingStatusFormatted,
+    state:          decisionState.state,
+    market_state:   payload.market_state  || "unknown",
+    emotion_state:  payload.emotion_state || "unknown",
+    score:          payload.score ?? null,
+    quality:        quality,
+    profile:        payload.user_profile  || null,
+    confidenceScore: buildMarketContext(buildConfidenceInputs(payload), payload.market_state)?.score ?? null,
+    macroContext:   null,
+    v2State:        null
   });
   if (!saved) return false; // doublon — ne pas re-rendre
 
