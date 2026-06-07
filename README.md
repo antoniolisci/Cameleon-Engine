@@ -9,6 +9,14 @@ Pas de framework. Pas de dépendance externe. HTML + JS modules + CSS natifs.
 
 ---
 
+## Pour les testeurs bêta
+
+Avant de lancer l'application, lire le guide opérateur :
+
+**[Guide Opérateur V1](docs/operator-guide/guide-operateur-v1.md)** — mode d'emploi complet, non technique. Couvre ce que le moteur fait, comment saisir les informations, comment lire les résultats, et les erreurs d'interprétation fréquentes. Aucun prérequis technique.
+
+---
+
 ## Lancer en local (Windows)
 
 Ne pas ouvrir `src/index.html` directement via `file:///` — les modules ES sont bloqués par CORS sur ce protocole.

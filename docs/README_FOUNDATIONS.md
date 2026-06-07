@@ -106,3 +106,16 @@ Un chantier qui contredit un principe listé dans ces documents nécessite une d
 Ces documents ne définissent pas seulement ce que Caméléon Engine construit.
 
 Ils définissent aussi ce que Caméléon Engine refuse de devenir.
+
+---
+
+## 7. Document d'accueil opérateur
+
+Ce document n'est pas un document fondateur. Il n'est pas doctrinal. Il est le point d'entrée pour tout testeur bêta ou opérateur qui découvre Caméléon Engine.
+
+| | |
+|---|---|
+| **Chemin** | `docs/operator-guide/guide-operateur-v1.md` |
+| **Rôle** | Mode d'emploi complet — non technique. Ce que le moteur fait, où saisir les informations, où lire les résultats, comment interpréter la décision, les erreurs fréquentes. |
+| **Statut** | Actif · Version bêta fermée · commit `2061162` |
+| **Audience** | Opérateurs, testeurs bêta, tout intervenant non technique |
