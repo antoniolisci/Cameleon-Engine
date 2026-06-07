@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard, behaviorMemory } from "./storage.js";
+import { backups, behaviorGuard, behaviorMemory, downloadOperatorData } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -5082,6 +5082,7 @@ function bindControls() {
   $("saveBtn")?.addEventListener("click", saveDay);
   $("clearBtn")?.addEventListener("click", clearHistory);
   $("clearSnapshotBtn")?.addEventListener("click", clearSnapshotHistory);
+  $("exportDataBtn")?.addEventListener("click", () => { downloadOperatorData(); });
   $("saveSnapshotBtn")?.addEventListener("click", () => {
     if (!latestSnapshotContext) return;
     const btn = $("saveSnapshotBtn");
