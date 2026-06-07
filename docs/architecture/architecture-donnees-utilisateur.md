@@ -1,6 +1,6 @@
 # Architecture données utilisateur — Caméléon Engine
 
-> Document d'architecture · En cours · 2026-06-07 · ADU-01 ✅ `c69b15a` · DO-03 figée
+> Document d'architecture · En cours · 2026-06-07 · ADU-01 ✅ `c69b15a` · ADU-02 ✅ `2ac2835` · ADU-03 ✅ ARCH-N1 figée
 
 ---
 
@@ -403,7 +403,53 @@ Une clé doit être rattachée au UUID si et seulement si sa perte constitue une
 
 ### Ce qui reste ouvert (ADU-03)
 
-Le format exact des clés namespacées n'est pas défini ici — c'est le verrou restant d'ARCH-N1, à décider en ADU-03 avant tout code.
+~~Le format exact des clés namespacées n'est pas défini ici.~~ ✅ Décidé — voir §6.6.
+
+---
+
+## 6.6 Décision ARCH-N1 — Format exact des clés namespacées
+
+**Décision figée — 2026-06-07**
+
+### Convention officielle
+
+```
+{nom_clé_logique_existant}__{uuid_rfc4122}
+```
+
+Le double underscore `__` est le séparateur entre le nom logique de la clé et le discriminant opérateur.
+
+### Règles de nommage
+
+1. `__` est réservé comme séparateur UUID — jamais utilisé dans les noms logiques de clés.
+2. Les clés globales n'ont jamais de `__` dans leur nom.
+3. Le UUID est le format complet RFC 4122 avec tirets — 36 caractères. Ex. : `550e8400-e29b-41d4-a716-446655440000`.
+4. `CE_identity_v1` est globale — elle contient le UUID, elle ne le porte pas dans son nom.
+5. Filtre canonique export/suppression : `Object.keys(localStorage).filter(k => k.endsWith('__' + uuid))`
+
+### Liste complète des clés cibles après migration
+
+| Clé actuelle | Clé cible |
+|---|---|
+| `CE_journal_entries_v1` | `CE_journal_entries_v1__{uuid}` |
+| `CE_behavior_sessions_v1` | `CE_behavior_sessions_v1__{uuid}` |
+| `CE_import_registry_v1` | `CE_import_registry_v1__{uuid}` |
+| `CE_backups_v1` | `CE_backups_v1__{uuid}` |
+| `CE_settings_v1` | `CE_settings_v1__{uuid}` |
+| `cameleon_behavior_memory_v1` | `cameleon_behavior_memory_v1__{uuid}` |
+| `cameleon.behavior.v1.guardLevel` | `cameleon.behavior.v1.guardLevel__{uuid}` |
+| `cameleon.behavior.v1.guardLevelUpdatedAt` | `cameleon.behavior.v1.guardLevelUpdatedAt__{uuid}` |
+| `cameleon.behavior.v1.orderStrategyProfile` | `cameleon.behavior.v1.orderStrategyProfile__{uuid}` |
+
+### Clés globales — inchangées
+
+| Clé | Rôle |
+|---|---|
+| `CE_ui_state_v1` | État UI navigateur — pas de propriétaire opérateur |
+| `CE_payload_current_v1` | Dernier payload moteur — éphémère, recalculable |
+| `CE_identity_v1` | Identité locale — contient le UUID, est la source du UUID |
+| `CE_migration_v1_done` | Flag migration legacy → `CE_*` (existant) |
+| `CE_migration_uuid_v1_done` | Flag migration `CE_*` → namespacé (à créer en ADU-04) |
 
 ---
 
@@ -415,7 +461,7 @@ Le format exact des clés namespacées n'est pas défini ici — c'est le verrou
 |---|---|---|
 | PRIV-01 — `cameleon_behavior_memory_v1` hors `storage.js` | ✅ RÉSOLU | `c69b15a` |
 | DO-03 — Stratégie de migration | ✅ FIGÉE | Migration propre avec session de grâce (§6.5) |
-| ARCH-N1 — Format exact des clés namespacées | 🔴 RESTANT | À décider en ADU-03 avant tout code |
+| ARCH-N1 — Format exact des clés namespacées | ✅ FIGÉE | Suffix `__{uuid}` · 5 règles · liste clés cibles (§6.6) |
 
 ---
 
@@ -428,10 +474,10 @@ Le format exact des clés namespacées n'est pas défini ici — c'est le verrou
 2. ✅ Décider stratégie de migration (DO-03)
    → Migration propre avec session de grâce (§6.5)
 
-3. → Décider format exact des clés namespacées (ARCH-N1 / ADU-03)
-      → CE_identity_v1 · UUID · profil · nom optionnel
+3. ✅ Décider format exact des clés namespacées (ARCH-N1)
+   → Suffix `__{uuid}` · filtre `endsWith('__' + uuid)` (§6.6)
 
-4. Namer toutes les clés sous user_id
+4. → ADU-04 : Créer `CE_identity_v1` + `runUUIDMigration()` + namer toutes les clés
 
 5. Décider nouveau cap FIFO (DO-01)
 
@@ -442,9 +488,9 @@ Le format exact des clés namespacées n'est pas défini ici — c'est le verrou
 
 ---
 
-### Prochain chantier : ADU-03
+### Prochain chantier : ADU-04
 
-ADU-03 peut être préparé. Il ne peut pas être codé avant que le format exact des clés namespacées soit décidé. Cette décision est le seul verrou restant avant `CE_identity_v1`.
+PRIV-01 ✅ · DO-03 ✅ · ARCH-N1 ✅ — tous les verrous conceptuels sont levés. ADU-04 est le premier chantier d'implémentation réelle : `CE_identity_v1`, `runUUIDMigration()`, namespacing complet de toutes les clés opérateur.
 
 ---
 
