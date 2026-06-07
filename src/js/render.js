@@ -4521,9 +4521,7 @@ function renderBehaviorAlert() {
 }
 
 function renderBehaviorInfluence() {
-  const BHV_KEY = 'cameleon.behavior.v1.coherenceLevel';
-  let level = null;
-  try { level = JSON.parse(localStorage.getItem(BHV_KEY)); } catch {}
+  const level = behaviorGuard.readCoherenceLevel();
   const TEXT = {
     'Élevée':  'Cadre respecté. Rien à signaler.',
     'Bonne':   'Discipline correcte. Maintenir le rythme.',
@@ -4785,8 +4783,7 @@ function render() {
   const _SEVEN_DAYS_MS  = 7 * 24 * 60 * 60 * 1000;
   let _pattern = 'OVERTRADING';
   try {
-    const _rawPattern = JSON.parse(localStorage.getItem('cameleon.behavior.v1.dominantRisk'));
-    const _rawPatTs   = JSON.parse(localStorage.getItem('cameleon.behavior.v1.dominantRiskUpdatedAt'));
+    const { pattern: _rawPattern, updatedAt: _rawPatTs } = behaviorGuard.readDominantRisk() ?? {};
     const _patValid   = typeof _rawPattern === 'string' && _VALID_PATTERNS.includes(_rawPattern);
     const _patFresh   = typeof _rawPatTs === 'number' && (Date.now() - _rawPatTs) < _SEVEN_DAYS_MS;
     if (_patValid && _patFresh) _pattern = _rawPattern;
