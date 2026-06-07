@@ -1,6 +1,6 @@
 # Architecture données utilisateur — Caméléon Engine
 
-> Document d'architecture · Pré-implémentation · 2026-06-07
+> Document d'architecture · En cours · 2026-06-07 · ADU-01 ✅ `c69b15a` · DO-03 figée
 
 ---
 
@@ -105,7 +105,7 @@ L'Historique est un log passif. Il répond à "qu'ai-je décidé ?". La Mémoire
 | **Responsabilité** | Informer le moteur du niveau d'overtrading récent, indépendamment de la session en cours. |
 | **Propriétaire** | Identité locale. |
 | **Durée de vie** | 7 jours TTL — disparaît au-delà. |
-| **Source de vérité** | `cameleon_behavior_memory_v1` — **dette PRIV-01 : écrit hors `storage.js`**. |
+| **Source de vérité** | `cameleon_behavior_memory_v1` — ✅ PRIV-01 résolu (`c69b15a`) · centralisé dans `storage.js` · `behaviorMemory.getAll/setAll/clear` |
 
 Ce n'est pas une mémoire au sens fort — c'est un état courant avec expiration. Le nom "Mémoire comportementale" est trompeur car il suggère une persistance longue. Cf. dette ARCH-M1.
 
@@ -245,7 +245,7 @@ Identité locale
 |---|---|---|---|
 | Sessions moteur / Historique | `CE_journal_entries_v1` | 50 FIFO | Deux concepts, un seul stockage |
 | Sessions comportementales | `CE_behavior_sessions_v1` | 20 FIFO · 7j decay | Cap trop bas pour Mémoire opérateur |
-| Signal comportemental courant | `cameleon_behavior_memory_v1` | — | Écrit hors `storage.js` (PRIV-01) |
+| Signal comportemental courant | `cameleon_behavior_memory_v1` | — | ✅ PRIV-01 résolu — centralisé dans `storage.js` (`c69b15a`) |
 | Import Registry | `CE_import_registry_v1` | — | Pas de `user_id` par entrée |
 | Paramètres | `CE_settings_v1` | — | Non namespacé par opérateur |
 | Backups moteur | `CE_backups_v1` | 50 FIFO | Non namespacé par opérateur |
@@ -291,11 +291,11 @@ Identité locale
 
 ### PRIV-01 — Signal comportemental courant hors storage.js
 
-`cameleon_behavior_memory_v1` est écrite directement par `render.js` via `localStorage.setItem()` brut, hors de `storage.js`.
+**✅ RÉSOLUE — commit `c69b15a` — 2026-06-07**
 
-**Impact :** Bloquant. Si le namespacing par `user_id` est introduit sur toutes les clés gérées par `storage.js`, cette clé sera oubliée dans la migration. Elle deviendra une donnée orpheline appartenant à "personne" dans un système qui a désormais des propriétaires.
+`cameleon_behavior_memory_v1` est désormais centralisée dans `storage.js` via l'export `behaviorMemory` (`getAll / setAll / clear`). Les appels `localStorage.setItem/getItem` bruts ont été supprimés de `render.js`. Format tableau brut préservé — aucune migration de données nécessaire.
 
-**Statut : BLOQUANTE** — doit être résolue avant ou pendant l'écriture du schéma de données.
+**Statut : RÉSOLUE**
 
 ---
 
@@ -317,11 +317,11 @@ Toutes les clés actuelles (`CE_*`) sont globales. Aucune ne contient de `user_i
 
 **Impact :** Bloquant. L'introduction de l'Identité locale exige une stratégie de migration explicite. Sans elle, les données historiques d'un opérateur existent mais n'appartiennent à personne.
 
-Deux options à trancher :
-- Migration propre : toutes les données existantes rattachées au premier UUID créé
-- Coexistence legacy : anciennes clés conservées, nouvelles clés namespacées — dette technique permanente
+**Stratégie décidée (DO-03 figée) :** migration propre avec session de grâce. Règles détaillées en §6.5.
 
-**Statut : BLOQUANTE** — stratégie de migration à décider avant tout code.
+**Prochain verrou :** le format exact des clés namespacées doit être décidé avant tout code (ex. `CE_{key}_v1_{uuid}` ou autre convention). Cette décision appartient à ADU-03.
+
+**Statut : BLOQUANTE** — le format des clés reste à décider, mais la stratégie de migration est figée.
 
 ---
 
@@ -371,40 +371,65 @@ Ces décisions doivent être tranchées dans le chantier d'implémentation, pas 
 |---|---|---|---|
 | DO-01 | Nouveau cap FIFO sessions comportementales | 50 ? 100 ? quota dynamique ? | Bloque Mémoire opérateur |
 | DO-02 | Renommage officiel "Mémoire comportementale" → "Signal comportemental courant" | Clarté documentaire + code | Confusion persistante avec Mémoire opérateur |
-| DO-03 | Stratégie de migration des clés existantes | Migration propre vs coexistence legacy | Données orphelines en production |
+| ~~DO-03~~ | ~~Stratégie de migration des clés existantes~~ | **FIGÉE** — Migration propre avec session de grâce (§6.5) | ✅ Décidée |
 | DO-04 | Multi-opérateur sur même navigateur — use case V1 ? | Complexité interface identité | Choix de l'UUID implicite vs sélection explicite |
 | DO-05 | Périmètre exact de l'export JSON V1 | Tout le profil ? Sessions comportementales ? Import Registry ? | Portabilité incomplète ou scope trop large |
 
-## 7. Verdict
+## 6.5 Décision DO-03 — Migration propre avec session de grâce
 
-### Le chantier Architecture données utilisateur est-il prêt ?
+**Décision figée — 2026-06-07**
 
-**Oui — avec deux verrous initiaux à lever avant tout code.**
+### Règles validées
+
+1. La migration est déclenchée au premier lancement où `CE_identity_v1` est créé.
+2. Toutes les clés opérateur sont copiées vers leurs équivalentes namespacées sous le UUID généré.
+3. Les clés UI/éphémères (`CE_ui_state_v1`, `CE_payload_current_v1`) restent globales — pas de namespacing.
+4. Le flag de migration est posé **après** que toutes les nouvelles clés sont écrites.
+5. Session de grâce : si une clé namespacée est vide au lancement suivant la migration, le système lit la clé legacy correspondante en fallback silencieux.
+6. Les clés legacy opérateur sont supprimées au deuxième lancement post-migration (flag présent + nouvelles clés non vides).
+7. La migration est idempotente : si le flag est absent, elle se relance sans erreur.
+
+### Classification des clés
+
+**Migrer vers UUID (données opérateur) :**
+`CE_journal_entries_v1` · `CE_behavior_sessions_v1` · `CE_import_registry_v1` · `CE_backups_v1` · `CE_settings_v1` · `cameleon_behavior_memory_v1` · `cameleon.behavior.v1.guardLevel` · `cameleon.behavior.v1.guardLevelUpdatedAt` · `cameleon.behavior.v1.orderStrategyProfile`
+
+**Laisser globales (état navigateur / éphémère) :**
+`CE_ui_state_v1` · `CE_payload_current_v1`
+
+### Règle de distinction
+
+Une clé doit être rattachée au UUID si et seulement si sa perte constitue une perte de connaissance sur l'opérateur. Les clés UI/éphémères peuvent disparaître sans affecter le miroir comportemental.
+
+### Ce qui reste ouvert (ADU-03)
+
+Le format exact des clés namespacées n'est pas défini ici — c'est le verrou restant d'ARCH-N1, à décider en ADU-03 avant tout code.
 
 ---
 
-### Deux verrous initiaux
+## 7. Verdict
 
-**Verrou 1 — PRIV-01**
-`cameleon_behavior_memory_v1` doit être intégrée dans `storage.js` avant l'introduction du namespacing. Sans cette résolution, la migration des clés sera incomplète et produira une donnée orpheline en production.
+### État d'avancement
 
-**Verrou 2 — ARCH-N1**
-La stratégie de migration des clés existantes doit être décidée avant d'écrire la moindre nouvelle clé. Une migration non planifiée oblige à un rattrapage sous contrainte lors du déploiement.
+| Verrou | Statut | Commit |
+|---|---|---|
+| PRIV-01 — `cameleon_behavior_memory_v1` hors `storage.js` | ✅ RÉSOLU | `c69b15a` |
+| DO-03 — Stratégie de migration | ✅ FIGÉE | Migration propre avec session de grâce (§6.5) |
+| ARCH-N1 — Format exact des clés namespacées | 🔴 RESTANT | À décider en ADU-03 avant tout code |
 
 ---
 
 ### Séquence juste
 
 ```
-1. Résoudre PRIV-01
-   → cameleon_behavior_memory_v1 intégrée dans storage.js
+1. ✅ Résoudre PRIV-01
+   → cameleon_behavior_memory_v1 intégrée dans storage.js (c69b15a)
 
-2. Décider stratégie de migration (DO-03)
-   → Migration propre : données existantes rattachées au premier UUID
-   → OU coexistence legacy documentée
+2. ✅ Décider stratégie de migration (DO-03)
+   → Migration propre avec session de grâce (§6.5)
 
-3. Créer l'Identité locale
-   → CE_identity_v1 · UUID · profil · nom optionnel
+3. → Décider format exact des clés namespacées (ARCH-N1 / ADU-03)
+      → CE_identity_v1 · UUID · profil · nom optionnel
 
 4. Namer toutes les clés sous user_id
 
@@ -414,6 +439,12 @@ La stratégie de migration des clés existantes doit être décidée avant d'éc
 
 7. Définir périmètre export JSON V1 (DO-04 + DO-05)
 ```
+
+---
+
+### Prochain chantier : ADU-03
+
+ADU-03 peut être préparé. Il ne peut pas être codé avant que le format exact des clés namespacées soit décidé. Cette décision est le seul verrou restant avant `CE_identity_v1`.
 
 ---
 
