@@ -1,3 +1,14 @@
+> **ARCHIVÉ — DOCUMENT OBSOLÈTE**
+>
+> Ce document est conservé uniquement comme trace historique.
+>
+> Il ne doit plus être utilisé comme référence de pilotage du projet.
+>
+> La roadmap active et canonique est :
+> `docs/roadmap/roadmap-realignment-post-constellium.md`
+>
+> Statut : obsolète. Conserver pour historique uniquement.
+
 # 🧭 ROADMAP CAMÉLÉON ENGINE
 
 ---
