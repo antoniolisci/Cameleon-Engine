@@ -331,6 +331,35 @@ export function exportOperatorData() {
   }
 }
 
+// Déclenche le téléchargement des données opérateur au format JSON.
+// Retourne true si le téléchargement a été initié, false si identity absente ou erreur.
+export function downloadOperatorData() {
+  try {
+    const data = exportOperatorData();
+    if (data === null) return false;
+
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+
+    const d        = new Date();
+    const yyyy     = d.getFullYear();
+    const mm       = String(d.getMonth() + 1).padStart(2, '0');
+    const dd       = String(d.getDate()).padStart(2, '0');
+    const filename = `cameleon-data-${yyyy}-${mm}-${dd}.json`;
+
+    const a      = document.createElement('a');
+    a.href       = url;
+    a.download   = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ── Migration ─────────────────────────────────────────────────
 
 const _LEGACY = {
