@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard } from "./storage.js";
+import { backups, behaviorGuard, behaviorMemory } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -3722,8 +3722,6 @@ function renderBehaviorFeedback() {
 }
 
 
-const BEHAVIOR_MEMORY_KEY = "cameleon_behavior_memory_v1";
-
 function getBehaviorPattern(memory = []) {
   const recent = memory.slice(-10);
   let switches = 0, negatives = 0, positives = 0;
@@ -3761,13 +3759,13 @@ function renderBehaviorState(payload) {
 
   let memory = [];
   try {
-    memory = JSON.parse(localStorage.getItem(BEHAVIOR_MEMORY_KEY) || "[]");
+    memory = behaviorMemory.getAll();
     const last = memory[memory.length - 1];
     if (!last || last.behaviorState !== state || last.actionLevel !== level) {
       memory.push({ timestamp: Date.now(), actionLevel: level, behaviorState: state });
     }
     if (memory.length > 20) memory = memory.slice(-20);
-    localStorage.setItem(BEHAVIOR_MEMORY_KEY, JSON.stringify(memory));
+    behaviorMemory.setAll(memory);
   } catch {}
 
   const tone = getBehaviorMemoryTone(memory);

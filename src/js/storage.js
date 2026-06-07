@@ -9,6 +9,7 @@ export const KEYS = {
   importRegistry: 'CE_import_registry_v1',
   uiState: 'CE_ui_state_v1',
   backups: 'CE_backups_v1',
+  behaviorMemory: 'cameleon_behavior_memory_v1',
 };
 
 const SCHEMA_VERSION = 1;
@@ -156,6 +157,33 @@ export const backups = {
   },
   clear() {
     return _remove(KEYS.backups);
+  },
+};
+
+// ── Behavior memory — signal comportemental courant ──────────
+// Format : tableau brut JSON (pas de _wrap) — compatibilité données existantes.
+// Écriture centralisée ici ; render.js ne doit plus appeler localStorage directement.
+
+export const behaviorMemory = {
+  getAll() {
+    try {
+      const raw = localStorage.getItem(KEYS.behaviorMemory);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  },
+  setAll(entries) {
+    try {
+      localStorage.setItem(KEYS.behaviorMemory, JSON.stringify(entries));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  clear() {
+    return _remove(KEYS.behaviorMemory);
   },
 };
 
