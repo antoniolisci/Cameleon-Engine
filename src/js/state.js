@@ -1,5 +1,5 @@
 import { DEFAULT_FORM, DEFAULT_TAB, HISTORY_LIMIT } from "./data.js";
-import { uiState, journalEntries, payloadCurrent, canUseStorage, estimateTotalSize, runMigration } from "./storage.js";
+import { uiState, journalEntries, payloadCurrent, canUseStorage, estimateTotalSize, runMigration, runUUIDMigration, runUUIDCleanup } from "./storage.js";
 
 export { canUseStorage };
 
@@ -17,7 +17,9 @@ export function createInitialState() {
 
 export function loadState() {
   try {
-    runMigration();
+    runMigration();                                    // migration legacy v1 (format ancien)
+    const justMigrated = runUUIDMigration();           // copie des 9 clés vers __{uuid}
+    if (!justMigrated) runUUIDCleanup();               // suppression legacy au lancement suivant
     const ui      = uiState.get();
     const entries = journalEntries.getAll();
     const payload = payloadCurrent.get();

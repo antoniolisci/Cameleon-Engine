@@ -74,10 +74,10 @@ function _wrap(data, extra = {}) {
 
 export const settings = {
   get() {
-    return _read(KEYS.settings)?.data ?? {};
+    return _read(withUserKey(KEYS.settings))?.data ?? {};
   },
   set(data) {
-    return _write(KEYS.settings, _wrap({ data }));
+    return _write(withUserKey(KEYS.settings), _wrap({ data }));
   },
 };
 
@@ -99,16 +99,16 @@ export const payloadCurrent = {
 
 export const journalEntries = {
   getAll() {
-    return _read(KEYS.journalEntries)?.entries ?? [];
+    return _read(withUserKey(KEYS.journalEntries))?.entries ?? [];
   },
   setAll(arr) {
     return _write(
-      KEYS.journalEntries,
+      withUserKey(KEYS.journalEntries),
       _wrap({ entries: arr.slice(-JOURNAL_LIMIT) })
     );
   },
   clear() {
-    return _write(KEYS.journalEntries, _wrap({ entries: [] }));
+    return _write(withUserKey(KEYS.journalEntries), _wrap({ entries: [] }));
   },
 };
 
@@ -116,13 +116,13 @@ export const journalEntries = {
 
 export const behaviorSessions = {
   getAll() {
-    return _read(KEYS.behaviorSessions)?.sessions ?? [];
+    return _read(withUserKey(KEYS.behaviorSessions))?.sessions ?? [];
   },
   setAll(sessions) {
-    return _write(KEYS.behaviorSessions, _wrap({ sessions }));
+    return _write(withUserKey(KEYS.behaviorSessions), _wrap({ sessions }));
   },
   clear() {
-    return _write(KEYS.behaviorSessions, _wrap({ sessions: [] }));
+    return _write(withUserKey(KEYS.behaviorSessions), _wrap({ sessions: [] }));
   },
 };
 
@@ -130,15 +130,15 @@ export const behaviorSessions = {
 
 export const importRegistry = {
   getAll() {
-    return _read(KEYS.importRegistry)?.imports ?? [];
+    return _read(withUserKey(KEYS.importRegistry))?.imports ?? [];
   },
   append(entry) {
     const imports = this.getAll();
     imports.unshift(entry);
-    return _write(KEYS.importRegistry, _wrap({ imports }));
+    return _write(withUserKey(KEYS.importRegistry), _wrap({ imports }));
   },
   clear() {
-    return _write(KEYS.importRegistry, _wrap({ imports: [] }));
+    return _write(withUserKey(KEYS.importRegistry), _wrap({ imports: [] }));
   },
 };
 
@@ -157,18 +157,18 @@ export const uiState = {
 
 export const backups = {
   getAll() {
-    return _read(KEYS.backups)?.snapshots ?? [];
+    return _read(withUserKey(KEYS.backups))?.snapshots ?? [];
   },
   prepend(snap) {
     const snapshots = this.getAll();
     snapshots.unshift(snap);
     return _write(
-      KEYS.backups,
+      withUserKey(KEYS.backups),
       _wrap({ snapshots: snapshots.slice(0, BACKUPS_LIMIT) })
     );
   },
   clear() {
-    return _remove(KEYS.backups);
+    return _remove(withUserKey(KEYS.backups));
   },
 };
 
@@ -179,7 +179,7 @@ export const backups = {
 export const behaviorMemory = {
   getAll() {
     try {
-      const raw = localStorage.getItem(KEYS.behaviorMemory);
+      const raw = localStorage.getItem(withUserKey(KEYS.behaviorMemory));
       const parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch {
@@ -188,14 +188,14 @@ export const behaviorMemory = {
   },
   setAll(entries) {
     try {
-      localStorage.setItem(KEYS.behaviorMemory, JSON.stringify(entries));
+      localStorage.setItem(withUserKey(KEYS.behaviorMemory), JSON.stringify(entries));
       return true;
     } catch {
       return false;
     }
   },
   clear() {
-    return _remove(KEYS.behaviorMemory);
+    return _remove(withUserKey(KEYS.behaviorMemory));
   },
 };
 
@@ -221,12 +221,15 @@ export const identity = {
 
 // ── Helper namespacing — clé suffixée par UUID ────────────────
 // Usage interne uniquement — non exporté.
-// Retourne baseKey + '__' + uuid si identité présente, sinon baseKey (session de grâce).
+// Gate : CE_migration_uuid_v1_done doit être posé (toutes les copies confirmées).
+// Si flag absent → retourne baseKey (session de grâce).
+// Si flag présent → retourne baseKey__{uuid} (UUID nécessairement présent si flag posé).
 // Activé dans ADU-04C — les exports basculent vers withUserKey().
 
 function withUserKey(baseKey) { // eslint-disable-line no-unused-vars
+  if (localStorage.getItem(_UUID_MIGRATION_FLAG) !== '1') return baseKey;
   const id = identity.get();
-  return id ? `${baseKey}__${id.uuid}` : baseKey;
+  return id ? `${baseKey}__${id.uuid}` : baseKey; // défensif : uuid absent = grâce
 }
 
 // ── Behavior guard — helpers lecture cross-module ─────────────
@@ -244,8 +247,8 @@ export const behaviorGuard = {
    */
   readHistoricalLevel() {
     try {
-      const rawLevel = localStorage.getItem(_BHV_NS + 'guardLevel');
-      const rawTs    = localStorage.getItem(_BHV_NS + 'guardLevelUpdatedAt');
+      const rawLevel = localStorage.getItem(withUserKey(_BHV_NS + 'guardLevel'));
+      const rawTs    = localStorage.getItem(withUserKey(_BHV_NS + 'guardLevelUpdatedAt'));
       const level    = rawLevel !== null ? JSON.parse(rawLevel) : null;
       const ts       = rawTs    !== null ? JSON.parse(rawTs)    : null;
       if (typeof level !== 'number' || level < 1 || level > 5)          return null;
@@ -406,7 +409,11 @@ export function runUUIDMigration() {
     if (!ok) return false; // copie échouée — flag non posé, relançable
   }
 
-  localStorage.setItem(_UUID_MIGRATION_FLAG, '1');
+  try {
+    localStorage.setItem(_UUID_MIGRATION_FLAG, '1');
+  } catch {
+    return false; // copies effectuées mais flag non posé — relançable
+  }
   return true;
 }
 
