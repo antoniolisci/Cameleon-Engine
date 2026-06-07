@@ -1,6 +1,8 @@
 // storage.js — Centralized localStorage API for Caméléon Engine.
 // All persistence goes through this module. No raw localStorage calls elsewhere.
 
+import { HISTORY_LIMIT } from './data.js';
+
 export const KEYS = {
   identity: 'CE_identity_v1',
   settings: 'CE_settings_v1',
@@ -14,7 +16,6 @@ export const KEYS = {
 };
 
 const SCHEMA_VERSION = 1;
-const JOURNAL_LIMIT = 50;
 const BACKUPS_LIMIT = 50;
 
 // ── Core I/O ──────────────────────────────────────────────────
@@ -113,7 +114,7 @@ export const journalEntries = {
   setAll(arr) {
     return _write(
       withUserKey(KEYS.journalEntries),
-      _wrap({ entries: arr.slice(-JOURNAL_LIMIT) })
+      _wrap({ entries: arr.slice(-HISTORY_LIMIT) })
     );
   },
   clear() {

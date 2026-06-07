@@ -1,4 +1,4 @@
-export const HISTORY_LIMIT = 50;
+export const HISTORY_LIMIT = 200;
 export const DEFAULT_TAB = "moteur";
 
 export const FIELD_GROUPS = {
