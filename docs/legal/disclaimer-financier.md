@@ -68,7 +68,7 @@ Une analyse produite à partir de données incomplètes ou dégradées peut cond
 
 Caméléon Engine est conçu selon une approche local-first.
 
-Les données analysées demeurent sur l'appareil de l'utilisateur et ne sont pas transmises à un serveur de traitement appartenant à Caméléon Engine.
+Les données analysées demeurent sur l'appareil de l'utilisateur et ne sont pas transmises à un serveur de traitement.
 
 L'utilisateur reste responsable de la sécurité de son appareil, de ses sauvegardes et de ses exports.
 
