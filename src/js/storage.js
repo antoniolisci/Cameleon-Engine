@@ -222,7 +222,7 @@ export const identity = {
 // ── Helper namespacing — clé suffixée par UUID ────────────────
 // Usage interne uniquement — non exporté.
 // Retourne baseKey + '__' + uuid si identité présente, sinon baseKey (session de grâce).
-// Non activé dans ADU-04A — préparation pour ADU-04B/C.
+// Activé dans ADU-04C — les exports basculent vers withUserKey().
 
 function withUserKey(baseKey) { // eslint-disable-line no-unused-vars
   const id = identity.get();
@@ -338,5 +338,100 @@ export function runMigration() {
   } catch {}
 
   localStorage.setItem(_MIGRATION_FLAG, '1');
+  return true;
+}
+
+// ── Migration UUID ────────────────────────────────────────────
+// Copie les 9 clés opérateur vers leurs équivalents namespacés baseKey__{uuid}.
+// Prévue pour être appelée ultérieurement par state.js en ADU-04C — non appelée dans ADU-04B.
+// runUUIDMigration() : copie + flag.
+// runUUIDCleanup()   : suppression legacy au 2e lancement si clés namespacées sûres.
+
+const _UUID_MIGRATION_FLAG = 'CE_migration_uuid_v1_done';
+const _UUID_CLEANUP_FLAG   = 'CE_migration_uuid_cleanup_done';
+
+// Liste canonique des 9 clés opérateur à migrer (ARCH-N1).
+// Clés globales exclues : CE_ui_state_v1, CE_payload_current_v1, CE_identity_v1, flags.
+const _OPERATOR_KEYS = [
+  'CE_journal_entries_v1',
+  'CE_behavior_sessions_v1',
+  'CE_import_registry_v1',
+  'CE_backups_v1',
+  'CE_settings_v1',
+  'cameleon_behavior_memory_v1',
+  'cameleon.behavior.v1.guardLevel',
+  'cameleon.behavior.v1.guardLevelUpdatedAt',
+  'cameleon.behavior.v1.orderStrategyProfile',
+];
+
+// Copie la valeur brute de baseKey vers baseKey__{uuid}.
+// Préserve le format exact (pas de parse/re-sérialisation).
+// Si baseKey absent → retourne true (rien à copier, opération triviale).
+function _copyLegacyKeyToUserKey(baseKey, uuid) {
+  try {
+    const raw = localStorage.getItem(baseKey);
+    if (raw === null) return true;
+    localStorage.setItem(`${baseKey}__${uuid}`, raw);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Retourne true si la clé namespacée baseKey__{uuid} existe en localStorage.
+function _hasNamespacedValue(baseKey, uuid) {
+  return localStorage.getItem(`${baseKey}__${uuid}`) !== null;
+}
+
+// Supprime les 9 clés opérateur legacy sans vérification.
+// Appelé uniquement depuis runUUIDCleanup() après validation complète.
+function _removeLegacyOperatorKeys() {
+  for (const key of _OPERATOR_KEYS) {
+    try { localStorage.removeItem(key); } catch {}
+  }
+}
+
+// Copie les données opérateur vers les clés namespacées.
+// Idempotente : relançable si flag absent.
+// Appelle identity.ensure() — crée l'identité si absente.
+// Ne pose le flag que si toutes les copies ont réussi.
+// Retourne true si la migration s'est exécutée, false si déjà faite ou erreur.
+export function runUUIDMigration() {
+  if (localStorage.getItem(_UUID_MIGRATION_FLAG) === '1') return false;
+
+  const { uuid } = identity.ensure();
+
+  for (const key of _OPERATOR_KEYS) {
+    const ok = _copyLegacyKeyToUserKey(key, uuid);
+    if (!ok) return false; // copie échouée — flag non posé, relançable
+  }
+
+  localStorage.setItem(_UUID_MIGRATION_FLAG, '1');
+  return true;
+}
+
+// Supprime les clés legacy au 2e lancement post-migration.
+// Conditions (toutes requises) :
+//   1. runUUIDMigration() exécuté (flag présent)
+//   2. runUUIDCleanup() pas encore exécuté
+//   3. Pour chaque clé opérateur : namespacée présente OU legacy absente
+// Retourne true si les clés ont été supprimées, false sinon.
+export function runUUIDCleanup() {
+  if (localStorage.getItem(_UUID_MIGRATION_FLAG) !== '1') return false;
+  if (localStorage.getItem(_UUID_CLEANUP_FLAG)   === '1') return false;
+
+  const id = identity.get();
+  if (!id) return false; // identité absente — cas théoriquement impossible post-migration
+
+  const { uuid } = id;
+
+  for (const key of _OPERATOR_KEYS) {
+    const legacyExists     = localStorage.getItem(key) !== null;
+    const namespacedExists = _hasNamespacedValue(key, uuid);
+    if (legacyExists && !namespacedExists) return false; // données sans couverture — abort
+  }
+
+  _removeLegacyOperatorKeys();
+  localStorage.setItem(_UUID_CLEANUP_FLAG, '1');
   return true;
 }
