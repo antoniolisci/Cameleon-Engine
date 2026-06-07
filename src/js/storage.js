@@ -266,7 +266,24 @@ export const behaviorGuard = {
     } catch {
       return null;
     }
-  }
+  },
+
+  // Retourne le niveau de cohérence comportemental brut écrit par behavior-view.js.
+  // Clé éphémère globale — pas de withUserKey, pas de TTL.
+  // Validation métier (liste des valeurs acceptées) à la charge de l'appelant.
+  readCoherenceLevel() {
+    return _readRawJSON(_BHV_NS + 'coherenceLevel', null);
+  },
+
+  // Retourne le risque dominant brut et son timestamp écrits par behavior-view.js.
+  // Clés éphémères globales — pas de withUserKey, pas de TTL.
+  // Validation métier (liste patterns, expiry 7 jours) à la charge de l'appelant.
+  readDominantRisk() {
+    return {
+      pattern:   _readRawJSON(_BHV_NS + 'dominantRisk',          null),
+      updatedAt: _readRawJSON(_BHV_NS + 'dominantRiskUpdatedAt', null),
+    };
+  },
 };
 
 // ── Storage health ────────────────────────────────────────────
