@@ -2,7 +2,7 @@
 ## Document de transmission · Agent IA · Lecture codebase réelle
 
 > Ce document décrit uniquement ce qui existe dans le codebase au moment de sa rédaction.
-> Branche de référence : `feature/allowed-engine` — post V1/V2/V3.
+> Branche de référence : `main`.
 > Aucune spécification future. Aucune prose. Faits techniques uniquement.
 
 ---
@@ -371,7 +371,7 @@ API wrapper V4.5 — **pas le pipeline principal**.
 ```javascript
 {
   form: { ...DEFAULT_FORM },  // 16 champs
-  history: [],                // snapshots (max HISTORY_LIMIT = 50)
+  history: [],                // snapshots (max HISTORY_LIMIT = 200)
   lastPayload: null,          // dernier buildPayload() complet
   activeTab: "moteur",
   lastSaved: null
@@ -388,7 +388,7 @@ Contient tous les constants :
 - `STATE_LABELS`, `STATUS_LABELS`, `TOKEN_LABELS`, `ENGINE_MODE_LABELS`
 - `PROFILE_LABELS`, `VALIDATION_TEXT`
 - `AUTO_FILL_PRESETS`, `PUBLICATIONS_SECTION`, `PUBLICATION_CATEGORY_SUMMARIES`
-- `HISTORY_LIMIT = 50`, `DEFAULT_TAB = "moteur"`
+- `HISTORY_LIMIT = 200`, `DEFAULT_TAB = "moteur"`
 - `getActionModeConfig()`, `getMarketStateConfig()`, `getArticlesForMarketState()`
 
 ---
@@ -749,9 +749,9 @@ Pas de cookies
 
 ### Limite et guard
 
-Limite journal : `JOURNAL_LIMIT = 50` dans storage.js.
+Limite journal : `HISTORY_LIMIT` importé de `data.js` — constante privée `JOURNAL_LIMIT` supprimée (MEM-01B Bloc A · `abed3b4`).
 Limite backups : `BACKUPS_LIMIT = 50` dans storage.js.
-Limite history dans state.js : `HISTORY_LIMIT = 50` dans data.js.
+Limite history dans state.js : `HISTORY_LIMIT = 200` dans data.js.
 
 `canUseStorage()` — probe write/remove avant tout accès réel.
 
@@ -910,5 +910,5 @@ Ce document ne propose rien. Il liste ce qui ressort comme incomplet ou fragile 
 
 ---
 
-*Document généré depuis lecture directe du codebase — branche `feature/allowed-engine`.*
+*Document généré depuis lecture directe du codebase — branche `main`.*
 *Référence de commit : `acafce7` (dernier commit au moment de la rédaction).*

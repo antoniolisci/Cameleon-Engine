@@ -118,7 +118,7 @@ Seules les données structurées normalisées peuvent persister.
 | Timestamp de la session | Montants exacts, soldes absolus |
 | — | User_ID, adresses, email, identifiants |
 
-Cap FIFO 20 sessions via `session-repo.js`.
+Cap FIFO 50 sessions via `session-repo.js` (MEM-01B Bloc A · `abed3b4`).
 
 ### Règle 5 — Compatibilité RGPD by design
 

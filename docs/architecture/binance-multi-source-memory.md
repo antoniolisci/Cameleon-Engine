@@ -117,7 +117,7 @@ Le `multi-source-merger.js` est le composant central du chantier BMSM. Il reçoi
 
 - Aucun accès au payload du moteur principal
 - Aucun événement global, aucune propriété `window.*`
-- Persistance uniquement via `session-repo.js` — cap FIFO 20 sessions
+- Persistance uniquement via `session-repo.js` — cap FIFO 50 sessions (MEM-01B Bloc A · `abed3b4`)
 - Réseau silencieux pendant et après l'analyse
 
 ### Règles de suppression PII (par source)
