@@ -1,6 +1,6 @@
 # Architecture données utilisateur — Caméléon Engine
 
-> Document d'architecture · En cours · 2026-06-07 · ADU-01 ✅ `c69b15a` · ADU-02 ✅ `2ac2835` · ADU-03 ✅ ARCH-N1 figée
+> Document d'architecture · **Clôturé** · 2026-06-07 · ADU-01 ✅ `c69b15a` · ADU-02 ✅ `2ac2835` · ADU-03 ✅ ARCH-N1 figée · ADU-04 ✅ `7118244` · ADU-05 ✅ `1b0f51b` · ADU-06 ✅ `7468940`
 
 ---
 
@@ -45,7 +45,7 @@ L'Opérateur n'est pas une table. C'est le sujet autour duquel toutes les autres
 | **Responsabilité** | Nommer, distinguer et regrouper les données d'un opérateur sur un appareil donné. |
 | **Propriétaire** | L'Opérateur. |
 | **Durée de vie** | Tant que le localStorage n'est pas effacé — ou que l'opérateur a exporté et réimporté son profil. |
-| **Source de vérité** | Clé localStorage dédiée — **inexistante aujourd'hui, à créer**. |
+| **Source de vérité** | `CE_identity_v1` — ✅ créée ADU-04A · `358d9b2`. |
 
 Contenu minimal : identifiant unique · nom optionnel · profil de trading · date de création.
 
@@ -60,8 +60,8 @@ C'est la seule entité nouvelle à créer en V1. Toutes les autres entités exis
 | **Rôle** | Un instant de décision. La capture de "j'ai analysé ça, à ce moment, dans ces conditions". |
 | **Responsabilité** | Enregistrer l'état marché + état opérateur + décision produite. |
 | **Propriétaire** | Identité locale. |
-| **Durée de vie** | FIFO 50 — les plus anciennes sont écrasées, sans TTL explicite. |
-| **Source de vérité** | `CE_journal_entries_v1` |
+| **Durée de vie** | FIFO 200 — les plus anciennes sont écrasées, sans TTL explicite. (HISTORY_LIMIT · MEM-01B Bloc A · `abed3b4`) |
+| **Source de vérité** | `CE_journal_entries_v1__{uuid}` |
 
 Dans le code actuel, Session moteur et Historique partagent le même stockage. Ce sont deux concepts distincts qui coexistent dans le même objet — dette ARCH-S1, résolue conceptuellement.
 
@@ -74,10 +74,10 @@ Dans le code actuel, Session moteur et Historique partagent le même stockage. C
 | **Rôle** | Une fenêtre d'observation sur le comportement passé de l'opérateur. |
 | **Responsabilité** | Contenir les trades normalisés d'une période + les patterns qui en découlent. |
 | **Propriétaire** | Identité locale. |
-| **Durée de vie** | FIFO 20 · decay 7 jours — goulot d'étranglement documenté. |
-| **Source de vérité** | `CE_behavior_sessions_v1` |
+| **Durée de vie** | FIFO 50 — cap relevé MEM-01B Bloc A · `abed3b4`. |
+| **Source de vérité** | `CE_behavior_sessions_v1__{uuid}` |
 
-Le cap FIFO 20 est une contrainte arbitraire héritée. Sa valeur de remplacement est une décision ouverte (§6).
+Le cap FIFO 50 a été décidé et implémenté (MEM-01B Bloc A · `abed3b4`). La contrainte résiduelle ARCH-N3 (QuotaExceededError silencieux) est différée — attendre données terrain.
 
 ---
 
@@ -88,8 +88,8 @@ Le cap FIFO 20 est une contrainte arbitraire héritée. Sa valeur de remplacemen
 | **Rôle** | Log chronologique passif des sessions moteur. |
 | **Responsabilité** | Traçabilité — l'opérateur peut consulter ses décisions passées. |
 | **Propriétaire** | Identité locale. |
-| **Durée de vie** | FIFO 50 (même stockage que Sessions moteur). |
-| **Source de vérité** | `CE_journal_entries_v1` (partagé avec Sessions moteur) |
+| **Durée de vie** | FIFO 200 (même stockage que Sessions moteur · HISTORY_LIMIT · MEM-01B Bloc A · `abed3b4`). |
+| **Source de vérité** | `CE_journal_entries_v1__{uuid}` (partagé avec Sessions moteur) |
 
 L'Historique est un log passif. Il répond à "qu'ai-je décidé ?". La Mémoire répond à "qu'est-ce que ça révèle sur moi ?". Ces deux questions ne doivent pas partager le même objet technique à terme.
 
@@ -132,10 +132,10 @@ Prérequis bloquants : cap FIFO relevé · sessions suffisantes (indicatif : 50�
 | **Rôle** | Registre des fichiers importés — trace des sources de données. |
 | **Responsabilité** | Savoir quoi a été importé, quand, en quel format, combien de trades. |
 | **Propriétaire** | Identité locale — mais aujourd'hui : **personne** (anonyme). |
-| **Durée de vie** | Indéfini, pas de cap. |
-| **Source de vérité** | `CE_import_registry_v1` |
+| **Durée de vie** | FIFO 100 — IMPORT_REGISTRY_LIMIT · MEM-01B Bloc D · `1b0f51b`. |
+| **Source de vérité** | `CE_import_registry_v1__{uuid}` |
 
-Chaque entrée ne connaît pas son propriétaire (`user_id` absent). Inutilisable comme fondation de Mémoire opérateur sans ajout du lien identité — dette ARCH-N2.
+Chaque entrée est namespacée sous UUID opérateur via `withUserKey()`. **ARCH-N2 ✅ SOLDÉE** (`1b0f51b`) — registre activé et capé, 13 champs V1 par entrée (`schemaVersion`, `importedAt`, `source`, `format`, `importType`, `fileName`, `rowsRead`, `rowsKept`, `rowsIgnored`, `analysisQuality`, `pdfQuality`, `sessionId`).
 
 ---
 
@@ -147,7 +147,7 @@ Chaque entrée ne connaît pas son propriétaire (`user_id` absent). Inutilisabl
 | **Responsabilité** | Révéler l'écart entre ce que l'opérateur croit faire et ce qu'il fait vraiment financièrement. |
 | **Propriétaire** | Identité locale. |
 | **Durée de vie** | Long terme. |
-| **Source de vérité** | **N'existe pas encore.** `wallet_analyzer.js` présent mais orphelin — dette ARCH-N5. |
+| **Source de vérité** | **N'existe pas encore.** `wallet_analyzer.js` présent et connecté (importé `uploader.js`, branché pipeline NON_TRADING/wallet, rendu `behavior-view.js`) — **ARCH-N5 ✅ CADUQUE** : module non orphelin, données éphémères non persistées. Périmètre Portefeuille différé après signal terrain. |
 
 Prérequis : Architecture données + Identité locale (pour rattacher l'exposition à un opérateur).
 
@@ -244,25 +244,27 @@ Identité locale
 | Entité | Clé localStorage | Cap | Problème identifié |
 |---|---|---|---|
 | Sessions moteur / Historique | `CE_journal_entries_v1` | 50 FIFO | Deux concepts, un seul stockage |
-| Sessions comportementales | `CE_behavior_sessions_v1` | 20 FIFO · 7j decay | Cap trop bas pour Mémoire opérateur |
-| Signal comportemental courant | `cameleon_behavior_memory_v1` | — | ✅ PRIV-01 résolu — centralisé dans `storage.js` (`c69b15a`) |
-| Import Registry | `CE_import_registry_v1` | — | Pas de `user_id` par entrée |
-| Paramètres | `CE_settings_v1` | — | Non namespacé par opérateur |
-| Backups moteur | `CE_backups_v1` | 50 FIFO | Non namespacé par opérateur |
-| Guard level overtrading | `cameleon.behavior.v1.guardLevel` | 1 valeur · 7j TTL | Non namespacé |
-| **Identité locale** | *inexistante* | — | **À créer** |
+| Sessions comportementales | `CE_behavior_sessions_v1__{uuid}` | **50 FIFO** | Namespacé · cap relevé MEM-01B Bloc A · `abed3b4` |
+| Signal comportemental courant | `cameleon_behavior_memory_v1__{uuid}` | — | ✅ PRIV-01 résolu (`c69b15a`) · namespacé ADU-04 |
+| Import Registry | `CE_import_registry_v1__{uuid}` | **100 FIFO** | Namespacé · activé MEM-01B Bloc D · `1b0f51b` |
+| Paramètres | `CE_settings_v1__{uuid}` | — | ✅ Namespacé ADU-04 |
+| Backups moteur | `CE_backups_v1__{uuid}` | 50 FIFO | ✅ Namespacé ADU-04 · schema enrichi MEM-01B Bloc B |
+| Guard level overtrading | `cameleon.behavior.v1.guardLevel__{uuid}` | 1 valeur · 7j TTL | ✅ Namespacé ADU-04 |
+| **Identité locale** | `CE_identity_v1` | — | ✅ **Créée ADU-04A** · `358d9b2` |
 
-### État cible post-Architecture données
+### État atteint — post-ADU-04/05/06 (2026-06-07)
 
-| Entité | Clé cible | Nature du changement |
+Toutes les cibles ci-dessous sont opérationnelles. La migration est automatique au premier lancement.
+
+| Entité | Clé opérationnelle | Statut |
 |---|---|---|
-| **Identité locale** | `CE_identity_v1` | Nouvelle — fondation de tout le système |
-| Sessions moteur | Namespacée sous `user_id` | Migration |
-| Sessions comportementales | Namespacée + cap redéfini | Migration + décision cap (§6) |
-| Signal comportemental courant | Intégrée dans `storage.js` | Résolution PRIV-01 |
-| Import Registry | `user_id` ajouté à chaque entrée | Migration |
-| Paramètres | Namespacés sous `user_id` | Migration |
-| Backups | Namespacés sous `user_id` | Migration |
+| **Identité locale** | `CE_identity_v1` | ✅ ADU-04A · `358d9b2` |
+| Sessions moteur / Historique | `CE_journal_entries_v1__{uuid}` | ✅ ADU-04A/B · migration active |
+| Sessions comportementales | `CE_behavior_sessions_v1__{uuid}` | ✅ ADU-04A/B · cap 50 |
+| Signal comportemental courant | `cameleon_behavior_memory_v1__{uuid}` | ✅ ADU-04C · PRIV-01 résolu |
+| Import Registry | `CE_import_registry_v1__{uuid}` | ✅ ADU-05 / MEM-01B Bloc D · `1b0f51b` |
+| Paramètres | `CE_settings_v1__{uuid}` | ✅ ADU-04A/B |
+| Backups | `CE_backups_v1__{uuid}` | ✅ ADU-04A/B · schema enrichi MEM-01B Bloc B |
 
 ### Ce qui est stocké vs calculé vs jamais stocké
 
@@ -319,9 +321,9 @@ Toutes les clés actuelles (`CE_*`) sont globales. Aucune ne contient de `user_i
 
 **Stratégie décidée (DO-03 figée) :** migration propre avec session de grâce. Règles détaillées en §6.5.
 
-**Prochain verrou :** le format exact des clés namespacées doit être décidé avant tout code (ex. `CE_{key}_v1_{uuid}` ou autre convention). Cette décision appartient à ADU-03.
+Le format exact a été décidé en ADU-03 (§6.6) et implémenté en ADU-04A/B/C.
 
-**Statut : BLOQUANTE** — le format des clés reste à décider, mais la stratégie de migration est figée.
+**Statut : ✅ RÉSOLUE** — Implémentée ADU-04A/B/C · commits `358d9b2` / `b4eb8d2` / `7118244`. Suffix `__` opérationnel, 9 clés namespacées, migration automatique active (`runUUIDMigration()` → `runUUIDCleanup()`).
 
 ---
 
@@ -331,7 +333,7 @@ Chaque entrée du registre trace un import mais ne connaît pas son propriétair
 
 **Impact :** Le registre ne peut pas servir de fondation à la Mémoire opérateur sans `user_id`. On construirait une mémoire sans sujet.
 
-**Statut : OUVERTE** — `user_id` à ajouter à la structure lors de la migration.
+**Statut : ✅ SOLDÉE** — MEM-01B Bloc D · `1b0f51b`. `importRegistry.append()` actif, cap 100, namespacing UUID via `withUserKey()`, 13 champs V1 par entrée.
 
 ---
 
@@ -341,7 +343,7 @@ Le cap FIFO 20 est documenté comme goulot d'étranglement (faisabilité miroir 
 
 **Impact :** Si non redéfini ici, le chantier Mémoire opérateur héritera d'une contrainte arbitraire. Le changer plus tard rouvre une décision d'architecture.
 
-**Statut : OUVERTE** — nouveau cap à décider dans ce chantier (§6).
+**Statut : CAP DÉCIDÉ (50) · ARCH-N3 DIFFÉRÉE** — SESSION_LIMIT = 50 implémenté (MEM-01B Bloc A · `abed3b4`). Risque résiduel : QuotaExceededError silencieux — attendre données terrain avant décision complémentaire.
 
 ---
 
@@ -351,7 +353,7 @@ En local-first, l'export est le seul mécanisme de backup. Sans export : perte l
 
 **Impact :** Risque UX majeur + risque RGPD (droit à la portabilité des données). Si non prévu en V1, le chantier Compte utilisateur devra le construire sous contrainte.
 
-**Statut : OUVERTE** — périmètre exact de l'export à décider (§6).
+**Statut : ✅ CLÔTURÉE** — ADU-06 · `exportOperatorData()` + `downloadOperatorData()` + bouton UI · commits `4741612` / `c98953a` / `7468940`. Périmètre : toutes les entités opérateur namespacées.
 
 ---
 
@@ -361,7 +363,7 @@ En local-first, l'export est le seul mécanisme de backup. Sans export : perte l
 
 **Impact :** Non bloquant pour ce chantier. Risque de redécouverte et re-implémentation lors du chantier Portefeuille.
 
-**Statut : NON BLOQUANTE** — à documenter comme "présent, non actif, périmètre Portefeuille".
+**Statut : ✅ CADUQUE** — `wallet_analyzer.js` n'est pas orphelin : importé par `uploader.js`, branché pipeline NON_TRADING/wallet, rendu `behavior-view.js`. Module connecté, données éphémères non persistées. Chantier Portefeuille différé après signal terrain.
 
 ## 6. Décisions ouvertes
 
@@ -369,11 +371,11 @@ Ces décisions doivent être tranchées dans le chantier d'implémentation, pas 
 
 | # | Décision | Enjeu | Impact si non tranchée |
 |---|---|---|---|
-| DO-01 | Nouveau cap FIFO sessions comportementales | 50 ? 100 ? quota dynamique ? | Bloque Mémoire opérateur |
+| ~~DO-01~~ | ~~Nouveau cap FIFO sessions comportementales~~ | **DÉCIDÉ : 50** (SESSION_LIMIT · MEM-01B Bloc A · `abed3b4`) | ✅ Résolu |
 | DO-02 | Renommage officiel "Mémoire comportementale" → "Signal comportemental courant" | Clarté documentaire + code | Confusion persistante avec Mémoire opérateur |
 | ~~DO-03~~ | ~~Stratégie de migration des clés existantes~~ | **FIGÉE** — Migration propre avec session de grâce (§6.5) | ✅ Décidée |
-| DO-04 | Multi-opérateur sur même navigateur — use case V1 ? | Complexité interface identité | Choix de l'UUID implicite vs sélection explicite |
-| DO-05 | Périmètre exact de l'export JSON V1 | Tout le profil ? Sessions comportementales ? Import Registry ? | Portabilité incomplète ou scope trop large |
+| DO-04 | Multi-opérateur sur même navigateur — use case V1 ? | Complexité interface identité | Différé V2+ — contournement : profils navigateur |
+| ~~DO-05~~ | ~~Périmètre exact de l'export JSON V1~~ | **RÉSOLU** — `exportOperatorData()` inclut toutes les entités opérateur (ADU-06 · `7468940`) | ✅ Résolu |
 
 ## 6.5 Décision DO-03 — Migration propre avec session de grâce
 
@@ -449,7 +451,7 @@ Le double underscore `__` est le séparateur entre le nom logique de la clé et 
 | `CE_payload_current_v1` | Dernier payload moteur — éphémère, recalculable |
 | `CE_identity_v1` | Identité locale — contient le UUID, est la source du UUID |
 | `CE_migration_v1_done` | Flag migration legacy → `CE_*` (existant) |
-| `CE_migration_uuid_v1_done` | Flag migration `CE_*` → namespacé (à créer en ADU-04) |
+| `CE_migration_uuid_v1_done` | Flag migration `CE_*` → namespacé ✅ opérationnel (ADU-04A · `358d9b2`) |
 
 ---
 
@@ -477,20 +479,20 @@ Le double underscore `__` est le séparateur entre le nom logique de la clé et 
 3. ✅ Décider format exact des clés namespacées (ARCH-N1)
    → Suffix `__{uuid}` · filtre `endsWith('__' + uuid)` (§6.6)
 
-4. → ADU-04 : Créer `CE_identity_v1` + `runUUIDMigration()` + namer toutes les clés
+4. ✅ ADU-04 : `CE_identity_v1` + `runUUIDMigration()` + `runUUIDCleanup()` · commits `358d9b2` / `b4eb8d2` / `7118244`
 
-5. Décider nouveau cap FIFO (DO-01)
+5. ✅ DO-01 résolu : SESSION_LIMIT = 50 (MEM-01B Bloc A · `abed3b4`)
 
-6. Ajouter user_id à Import Registry (ARCH-N2)
+6. ✅ ARCH-N2 soldée : Import Registry namespacé + activé (MEM-01B Bloc D · `1b0f51b`)
 
-7. Définir périmètre export JSON V1 (DO-04 + DO-05)
+7. ✅ ARCH-N4 clôturée : Export JSON V1 (`exportOperatorData()` · ADU-06 · `7468940`)
 ```
 
 ---
 
-### Prochain chantier : ADU-04
+### ADU-04, ADU-05, ADU-06 — tous clôturés (2026-06-07)
 
-PRIV-01 ✅ · DO-03 ✅ · ARCH-N1 ✅ — tous les verrous conceptuels sont levés. ADU-04 est le premier chantier d'implémentation réelle : `CE_identity_v1`, `runUUIDMigration()`, namespacing complet de toutes les clés opérateur.
+Architecture données utilisateur entièrement implémentée. Prochain chantier dans cette chaîne : **Mémoire opérateur** (roadmap position #2), sur signal terrain après validation bêta.
 
 ---
 
@@ -509,6 +511,88 @@ Ce document définit *quoi* construire et *dans quel ordre décider*. Le *commen
 
 ---
 
-*Ce document est une référence d'architecture pré-implémentation.*
+*Ce document est une référence d'architecture — décisions initiales et état post-clôture.*
 *Il doit être relu avant toute ouverture de chantier dans la chaîne :*
 *Identité locale → Compte → Mémoire opérateur → Portefeuille → Corrélations.*
+
+---
+
+## 8. État actuel canonique — 2026-06-07
+
+Cette section décrit l'état réel du système après clôture complète de la chaîne ADU-04/05/06 et MEM-01B. Elle est la référence pour tout nouvel intervenant.
+
+### Caps mémoire opérationnels
+
+| Constante | Valeur | Fichier source | Commit |
+|---|---|---|---|
+| `SESSION_LIMIT` | **50** | `session-repo.js` | `abed3b4` (MEM-01B Bloc A) |
+| `HISTORY_LIMIT` | **200** | `data.js` (source unique) | `abed3b4` (MEM-01B Bloc A) |
+| `BACKUPS_LIMIT` | **50** | `storage.js` | inchangé |
+| `IMPORT_REGISTRY_LIMIT` | **100** | `storage.js` | `1b0f51b` (MEM-01B Bloc D) |
+
+### Clés localStorage opérationnelles
+
+**9 clés opérateur — namespacées `__{uuid}` :**
+
+| Clé | Cap | Notes |
+|---|---|---|
+| `CE_journal_entries_v1__{uuid}` | 200 FIFO | Sessions moteur + historique |
+| `CE_behavior_sessions_v1__{uuid}` | 50 FIFO | Sessions comportementales avec snapshot analytique |
+| `CE_import_registry_v1__{uuid}` | 100 FIFO | Registre imports — 13 champs V1 |
+| `CE_backups_v1__{uuid}` | 50 FIFO | Snapshots moteur — schema enrichi (MEM-01B Bloc B) |
+| `CE_settings_v1__{uuid}` | — | Paramètres opérateur |
+| `cameleon_behavior_memory_v1__{uuid}` | — | Signal comportemental courant (7j TTL) |
+| `cameleon.behavior.v1.guardLevel__{uuid}` | 1 valeur | Guard level overtrading |
+| `cameleon.behavior.v1.guardLevelUpdatedAt__{uuid}` | 1 valeur | Timestamp guard level |
+| `cameleon.behavior.v1.orderStrategyProfile__{uuid}` | 1 valeur | Profil stratégie ordre |
+
+**Clés globales — inchangées :**
+
+| Clé | Rôle |
+|---|---|
+| `CE_identity_v1` | UUID opérateur — source de vérité identité |
+| `CE_ui_state_v1` | État UI navigateur — éphémère |
+| `CE_payload_current_v1` | Dernier payload moteur — recalculable |
+| `CE_migration_v1_done` | Flag migration legacy → `CE_*` |
+| `CE_migration_uuid_v1_done` | Flag migration `CE_*` → namespacé |
+| `CE_migration_uuid_cleanup_done` | Flag suppression clés legacy post-migration |
+
+### Pipeline de migration au lancement
+
+```
+runMigration()           — migration legacy → CE_* (existant)
+  → runUUIDMigration()   — copie CE_* → CE_*__{uuid} (ADU-04B)
+    → runUUIDCleanup()   — suppression legacy au 2e lancement (ADU-04B)
+```
+
+Session de grâce : si flag migration absent, `withUserKey()` retourne la clé legacy — aucune perte de données.
+
+### Fonctionnalités opérationnelles
+
+| Fonctionnalité | Statut | Commit |
+|---|---|---|
+| UUID local généré silencieusement | ✅ | `358d9b2` |
+| Namespacing 9 clés opérateur | ✅ | `7118244` |
+| Migration automatique legacy → UUID | ✅ | `b4eb8d2` |
+| Nettoyage clés legacy (2e lancement) | ✅ | `b4eb8d2` |
+| Import Registry activé (13 champs) | ✅ | `1b0f51b` |
+| Export JSON opérateur complet | ✅ | `7468940` |
+| Schema backup enrichi (profil, score, macro) | ✅ | `11019c7` |
+| Snapshot analytique session comportementale | ✅ | `b6ec361` |
+
+### Dettes résiduelles actives
+
+| Dette | Nature | Décision |
+|---|---|---|
+| ARCH-N3 | QuotaExceededError silencieux sur sessions FIFO | Différée — attendre données terrain |
+| DO-02 | Renommage "Mémoire comportementale" → "Signal comportemental courant" | Différée — aucun impact fonctionnel immédiat |
+| DO-04 | Multi-opérateur sur même navigateur | Différée V2+ — contournement : profils navigateur |
+
+### Ce qui reste à construire (hors périmètre ADU)
+
+| Entité | Statut | Débloquant |
+|---|---|---|
+| Mémoire opérateur | Non démarré | Signal terrain post-bêta |
+| Portefeuille utilisateur | Non démarré | Signal terrain post-bêta |
+| Corrélations personnelles | Non démarré | Mémoire opérateur + Portefeuille |
+| Compte utilisateur (V2) | Différé | Post-mise en ligne |
