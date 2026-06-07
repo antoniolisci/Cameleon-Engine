@@ -13,6 +13,7 @@ import { computeCoaching       } from '../analytics/coaching.js';
 import { buildBehaviorBridgeOutput } from '../behavior-bridge.js';
 import { groupGridTrades } from '../analytics/grid-grouper.js';
 import { anonymizeTrades } from '../anonymize/anonymizer.js';
+import { importRegistry  } from '../../storage.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -1257,7 +1258,35 @@ async function handleImport(file, root) {
     behaviorRepo.set('validationWarnings', result.validationWarnings || []);
   }
 
+  if (result.ok) {
+    importRegistry.append(buildRegistryEntry(result, file));
+  }
+
   mount(root);
+}
+
+// ── Import registry ───────────────────────────────────────────────────────────
+
+function buildRegistryEntry(result, file) {
+  const format = file.name.split('.').pop().toUpperCase();
+  return {
+    schemaVersion:   1,
+    importedAt:      new Date().toISOString(),
+    source:          result.type === 'order_history' ? 'Order History'
+                   : result.type === 'wallet'        ? 'Wallet History'
+                   : 'Trade History',
+    format,
+    importType:      result.type,
+    fileName:        file.name        ?? null,
+    rowsRead:        result.type === 'wallet' ? (result.metrics?.totalOperations ?? 0)
+                   : (result.trades?.length ?? 0) + (result.skipped ?? 0),
+    rowsKept:        result.type === 'wallet' ? (result.metrics?.totalOperations ?? 0)
+                   : (result.trades?.length ?? 0),
+    rowsIgnored:     result.type === 'wallet' ? 0 : (result.skipped ?? 0),
+    analysisQuality: result.analysisQuality  ?? null,
+    pdfQuality:      result.pdfQuality       ?? null,
+    sessionId:       result.sessionId        ?? null,
+  };
 }
 
 // ── Session snapshot ──────────────────────────────────────────────────────────

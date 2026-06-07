@@ -16,7 +16,8 @@ export const KEYS = {
 };
 
 const SCHEMA_VERSION = 1;
-const BACKUPS_LIMIT = 50;
+const BACKUPS_LIMIT          = 50;
+const IMPORT_REGISTRY_LIMIT  = 100;
 
 // ── Core I/O ──────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export const importRegistry = {
   append(entry) {
     const imports = this.getAll();
     imports.unshift(entry);
-    return _write(withUserKey(KEYS.importRegistry), _wrap({ imports }));
+    return _write(withUserKey(KEYS.importRegistry), _wrap({ imports: imports.slice(0, IMPORT_REGISTRY_LIMIT) }));
   },
   clear() {
     return _write(withUserKey(KEYS.importRegistry), _wrap({ imports: [] }));
