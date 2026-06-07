@@ -594,3 +594,33 @@ Plan J0→J90 : préparation → réseau personnel (3–5 users) → communauté
 → bilan. Peu d'utilisateurs, beaucoup d'observation.
 
 **Ce document ne modifie pas la roadmap officielle en vigueur.**
+
+---
+
+## MàJ 2026-06-07 — Faisabilité miroir comportemental archivée
+
+**Étude de faisabilité produit** — commit `d4e2f69`
+Fichier : `docs/product/feasibility-miroir-comportemental.md`
+
+Orientation validée conceptuellement. Aucun chantier ouvert.
+
+**Diagnostic central :** le miroir comportemental est sous-alimenté par la
+limite actuelle de 20 sessions FIFO. Tout miroir sérieux requiert 50–100
+sessions minimum. Le chantier Mémoire opérateur (position 2 roadmap) est
+le prérequis qui débloque tout.
+
+**Règles doctrinales permanentes figées — MIR-01→04 :**
+- MIR-01 : Décrire, ne pas juger — s'applique aux messages ET aux noms de patterns
+- MIR-02 : Ne jamais inférer l'intention à partir du comportement observable seul
+- MIR-03 : Le moteur ne diagnostique pas une personnalité
+- MIR-04 : La rareté des messages est une propriété de design
+
+**Risques psychologiques documentés :** résistance sans changement, biais de
+confirmation, attribution interne ≠ auto-flagellation.
+
+**Prérequis avant implémentation :** auditer les noms de patterns actuels —
+la dérive vers le juge vient de l'ontologie, pas des formulations de phrases.
+
+**Séquence juste :** Mémoire longue → miroir minimal → verbatims terrain → décision.
+
+**Ce document ne modifie pas la roadmap officielle en vigueur.**
