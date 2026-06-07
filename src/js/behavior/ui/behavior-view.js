@@ -206,6 +206,9 @@ function buildImportCard(state) {
 }
 
 function buildImportSummary(s) {
+  const qualityWarning = s.pdfQuality === 'DEGRADED'
+    ? `<div class="bhv-summary-row bhv-summary-row--warning"><span class="bhv-summary-label">Qualité extraction</span><span class="bhv-summary-val">Dégradée — résultats indicatifs</span></div>`
+    : '';
   return `
     <div class="bhv-import-summary">
       <div class="bhv-summary-row"><span class="bhv-summary-label">Source détectée</span><span class="bhv-summary-val">${escHtml(s.source)}</span></div>
@@ -213,6 +216,7 @@ function buildImportSummary(s) {
       <div class="bhv-summary-row"><span class="bhv-summary-label">Lignes lues</span><span class="bhv-summary-val">${s.lus}</span></div>
       <div class="bhv-summary-row"><span class="bhv-summary-label">Lignes retenues</span><span class="bhv-summary-val">${s.retenus}</span></div>
       <div class="bhv-summary-row"><span class="bhv-summary-label">Lignes ignorées</span><span class="bhv-summary-val">${s.ignores}</span></div>
+      ${qualityWarning}
     </div>`;
 }
 
@@ -1204,7 +1208,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('walletResult',       null);
     behaviorRepo.set('orderResult',        result.orderAnalysis);
     behaviorRepo.set('importInfo',         info);
-    behaviorRepo.set('importSummary',      { source: isPdf ? 'Order History PDF' : 'Ordres de marché', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0 });
+    behaviorRepo.set('importSummary',      { source: isPdf ? 'Order History PDF' : 'Ordres de marché', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0, pdfQuality: result.pdfQuality ?? null });
     behaviorRepo.set('importNotice',       null);
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');
     behaviorRepo.set('validationWarning',  false);
@@ -1244,7 +1248,7 @@ async function handleImport(file, root) {
     // Un profil GRID d'un Order History récent doit pouvoir contextualiser
     // plusieurs imports Trade History successifs pendant 7 jours.
     behaviorRepo.set('importInfo',        info);
-    behaviorRepo.set('importSummary',     { source: isPdf ? 'Trade History PDF' : 'Transactions exécutées', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0 });
+    behaviorRepo.set('importSummary',     { source: isPdf ? 'Trade History PDF' : 'Transactions exécutées', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0, pdfQuality: result.pdfQuality ?? null });
     behaviorRepo.set('importNotice',      null);
     behaviorRepo.set('trades',            anonymizeTrades(result.trades));
     behaviorRepo.set('analysisQuality',    result.analysisQuality || 'full');

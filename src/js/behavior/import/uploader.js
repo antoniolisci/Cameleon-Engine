@@ -481,7 +481,9 @@ async function importBinancePDF(file) {
     }
     const validation = validateTrades(trades);
     return {
-      ok: true, type: 'trades', trades, skipped, sessionId, analysisQuality: 'full',
+      ok: true, type: 'trades', trades, skipped, sessionId,
+      analysisQuality: pdfResult.quality === 'DEGRADED' ? 'partial' : 'full',
+      pdfQuality: pdfResult.quality,
       validationWarning: !validation.isValid, validationWarnings: validation.warnings
     };
   }
@@ -499,7 +501,9 @@ async function importBinancePDF(file) {
     return { ok: false, error: 'Order History PDF importé mais aucun ordre FILLED trouvé.', trades: [] };
   }
   return {
-    ok: true, type: 'order_history', trades, skipped, sessionId, analysisQuality: 'full',
+    ok: true, type: 'order_history', trades, skipped, sessionId,
+    analysisQuality: pdfResult.quality === 'DEGRADED' ? 'partial' : 'full',
+    pdfQuality: pdfResult.quality,
     orderAnalysis: null
   };
 }
