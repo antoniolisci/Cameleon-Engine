@@ -13,7 +13,8 @@ import { computeCoaching       } from '../analytics/coaching.js';
 import { buildBehaviorBridgeOutput } from '../behavior-bridge.js';
 import { groupGridTrades } from '../analytics/grid-grouper.js';
 import { anonymizeTrades } from '../anonymize/anonymizer.js';
-import { importRegistry  } from '../../storage.js';
+import { importRegistry, portfolio } from '../../storage.js';
+import { extract as extractPortfolio } from '../wallet/portfolio-extractor.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -1260,6 +1261,9 @@ async function handleImport(file, root) {
 
   if (result.ok) {
     importRegistry.append(buildRegistryEntry(result, file));
+    if (result.type === 'wallet') {
+      try { persistPortfolioSnapshot(result, file); } catch { /* non-bloquant */ }
+    }
   }
 
   mount(root);
@@ -1287,6 +1291,69 @@ function buildRegistryEntry(result, file) {
     pdfQuality:      result.pdfQuality       ?? null,
     sessionId:       result.sessionId        ?? null,
   };
+}
+
+// ── Portfolio V1 ──────────────────────────────────────────────────────────────
+
+function getUniqueCoinsCount(metrics) {
+  if (!metrics) return 0;
+  const uc = metrics.uniqueCoins;
+  if (Array.isArray(uc))      return uc.length;
+  if (typeof uc === 'number') return uc;
+  return 0;
+}
+
+function buildPortfolioSnapshot(result, file, assets, duplicateWarning) {
+  const now = new Date().toISOString();
+  const m   = result?.metrics ?? {};
+  const s   = result?.summary ?? {};
+  const id  = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
+  return {
+    snapshotId:    id,
+    schemaVersion: 1,
+    createdAt:     now,
+    importRef: {
+      fileName:   file?.name ?? null,
+      fileSize:   file?.size ?? 0,
+      importedAt: now,
+    },
+    assets: Array.isArray(assets) ? assets : [],
+    metrics: {
+      totalOperations:  m.totalOperations  ?? 0,
+      uniqueCoinsCount: getUniqueCoinsCount(m),
+      activityLevel:    s.activityLevel    ?? m.activityLevel ?? null,
+      feeIntensity:     s.feeIntensity     ?? m.feeIntensity  ?? null,
+    },
+    duplicateWarning: Boolean(duplicateWarning),
+  };
+}
+
+function detectPortfolioDuplicate(file) {
+  try {
+    const snapshots = portfolio.getAll();
+    if (!snapshots.length) return false;
+    const last    = snapshots[0];
+    const elapsed = Date.now() - Date.parse(last.importRef?.importedAt);
+    if (isNaN(elapsed)) return false;
+    return (
+      last.importRef?.fileName === file.name &&
+      last.importRef?.fileSize === file.size &&
+      elapsed < 86400000   // 24h en ms
+    );
+  } catch {
+    return false;
+  }
+}
+
+function persistPortfolioSnapshot(result, file) {
+  if (result.type !== 'wallet')             return false;
+  if (!Array.isArray(result.rawRows))       return false;
+  const extraction       = extractPortfolio(result.rawRows);
+  const duplicateWarning = detectPortfolioDuplicate(file);
+  const snapshot         = buildPortfolioSnapshot(result, file, extraction.assets, duplicateWarning);
+  return portfolio.append(snapshot);
 }
 
 // ── Session snapshot ──────────────────────────────────────────────────────────
