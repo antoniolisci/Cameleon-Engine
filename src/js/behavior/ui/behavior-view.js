@@ -164,6 +164,7 @@ function buildShell(state) {
       </div>
       ${buildImportCard(state)}
       ${buildSessionsCard(state)}
+      ${buildPortfolioSection()}
       ${state.trades && !state.orderResult ? buildAnalysis(state)
           : state.orderResult              ? buildOrderAnalysis(state.orderResult)
           : state.walletResult             ? buildWalletAnalysis(state.walletResult)
@@ -1354,6 +1355,85 @@ function persistPortfolioSnapshot(result, file) {
   const duplicateWarning = detectPortfolioDuplicate(file);
   const snapshot         = buildPortfolioSnapshot(result, file, extraction.assets, duplicateWarning);
   return portfolio.append(snapshot);
+}
+
+function _fmtQty(n) {
+  const num = Number(n);
+  if (isNaN(num)) return '—';
+  return num.toFixed(8).replace(/\.?0+$/, '') || '0';
+}
+
+function _fmtDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  } catch { return '—'; }
+}
+
+function _fmtLevel(v) {
+  if (v === 'high')   return 'Élevé';
+  if (v === 'medium') return 'Moyen';
+  if (v === 'low')    return 'Faible';
+  return '—';
+}
+
+function buildPortfolioSection() {
+  const snapshots = portfolio.getAll();
+  const latest    = Array.isArray(snapshots) && snapshots.length ? snapshots[0] : null;
+
+  if (!latest) {
+    return `
+      <div class="bhv-card bhv-portfolio-card">
+        <div class="bhv-card-head">
+          <span class="bhv-card-title">Portefeuille</span>
+        </div>
+        <div class="bhv-portfolio-empty">Aucun portefeuille importé. Importez un fichier Wallet History pour voir votre composition.</div>
+      </div>`;
+  }
+
+  const assets        = Array.isArray(latest.assets) ? latest.assets : [];
+  const m             = latest.metrics ?? {};
+  const displayAssets = assets.slice(0, 20);
+  const hiddenCount   = assets.length - displayAssets.length;
+
+  const assetRows = displayAssets.map(a => `
+    <div class="bhv-portfolio-asset">
+      <span class="bhv-portfolio-symbol">${escHtml(a.symbol)}</span>
+      <span class="bhv-portfolio-category">${escHtml(a.category)}</span>
+      <span class="bhv-portfolio-qty">${escHtml(_fmtQty(a.netQuantity))}</span>
+    </div>`).join('');
+
+  const assetsBlock = assets.length === 0
+    ? `<div class="bhv-portfolio-empty">Aucun actif exploitable détecté dans ce snapshot.</div>`
+    : `<div class="bhv-portfolio-assets">
+        <div class="bhv-portfolio-asset bhv-portfolio-asset--header">
+          <span>Actif</span><span>Catégorie</span><span>Quantité nette</span>
+        </div>
+        ${assetRows}
+        ${hiddenCount > 0 ? `<div class="bhv-portfolio-more">+ ${hiddenCount} actif${hiddenCount > 1 ? 's' : ''} masqué${hiddenCount > 1 ? 's' : ''}</div>` : ''}
+      </div>`;
+
+  const duplicateNotice = latest.duplicateWarning
+    ? `<div class="bhv-portfolio-notice">Ce fichier semble avoir déjà été importé récemment. Le snapshot a été conservé.</div>`
+    : '';
+
+  return `
+    <div class="bhv-card bhv-portfolio-card">
+      <div class="bhv-card-head">
+        <span class="bhv-card-title">Portefeuille</span>
+      </div>
+      ${duplicateNotice}
+      <div class="bhv-portfolio-meta">
+        <div class="bhv-summary-row"><span class="bhv-summary-label">Snapshot</span><span class="bhv-summary-val">${escHtml(_fmtDate(latest.createdAt))}</span></div>
+        <div class="bhv-summary-row"><span class="bhv-summary-label">Fichier</span><span class="bhv-summary-val">${escHtml(latest.importRef?.fileName ?? '—')}</span></div>
+        <div class="bhv-summary-row"><span class="bhv-summary-label">Actifs</span><span class="bhv-summary-val">${assets.length}</span></div>
+        <div class="bhv-summary-row"><span class="bhv-summary-label">Opérations</span><span class="bhv-summary-val">${m.totalOperations ?? '—'}</span></div>
+        <div class="bhv-summary-row"><span class="bhv-summary-label">Activité wallet</span><span class="bhv-summary-val">${escHtml(_fmtLevel(m.activityLevel))}</span></div>
+        <div class="bhv-summary-row"><span class="bhv-summary-label">Intensité frais</span><span class="bhv-summary-val">${escHtml(_fmtLevel(m.feeIntensity))}</span></div>
+      </div>
+      ${assetsBlock}
+    </div>`;
 }
 
 // ── Session snapshot ──────────────────────────────────────────────────────────
