@@ -309,7 +309,8 @@ async function importBinanceSpot(file) {
     return {
       ok:      true,
       message: 'Fichier wallet détecté — analyse comportementale financière appliquée.',
-      ...walletResult
+      ...walletResult,
+      rawRows: rows
     };
   }
 
