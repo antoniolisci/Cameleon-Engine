@@ -21,8 +21,8 @@ import {
   getMarketStateConfig
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
-import { canUseStorage, estimateStateSize, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard, behaviorMemory, downloadOperatorData } from "./storage.js";
+import { canUseStorage, loadState, saveState } from "./state.js";
+import { backups, behaviorGuard, behaviorMemory, downloadOperatorData, getStorageLevel } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -3061,7 +3061,10 @@ function renderHistory() {
 
 function renderDiagnostics() {
   setText("storageStatus", canUseStorage() ? "Disponible" : "Mémoire locale");
-  setText("storageSize", estimateStateSize(appState));
+  const storage = getStorageLevel();
+  setText("storageSize", `${storage.kb} KB (${storage.percent}%)`);
+  const storageEl = document.getElementById("storageSize");
+  if (storageEl) storageEl.dataset.level = storage.level;
   setText("lastSaved", appState.lastSaved ? new Date(appState.lastSaved).toLocaleString("fr-FR") : "Aucune");
   setText("snapshotCount", String(appState.history.length));
 }

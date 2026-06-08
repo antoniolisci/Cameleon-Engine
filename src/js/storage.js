@@ -324,10 +324,25 @@ export function canUseStorage() {
 }
 
 export function estimateTotalSize() {
-  return Object.values(KEYS).reduce((acc, key) => {
+  let total = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    if (!key.startsWith('CE_') && !key.startsWith('cameleon')) continue;
     const raw = localStorage.getItem(key);
-    return acc + (raw ? new Blob([raw]).size : 0);
-  }, 0);
+    if (raw) total += new Blob([raw]).size;
+  }
+  return total;
+}
+
+export function getStorageLevel() {
+  const bytes   = estimateTotalSize();
+  const limit   = 5 * 1024 * 1024;
+  const percent = Math.min(100, Math.round((bytes / limit) * 100));
+  const level   = percent >= 90 ? 'critique'
+                : percent >= 70 ? 'vigilance'
+                : 'normal';
+  return { bytes, kb: (bytes / 1024).toFixed(1), percent, level };
 }
 
 export function estimateKeySize(key) {

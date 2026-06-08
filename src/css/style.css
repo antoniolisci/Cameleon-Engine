@@ -2289,6 +2289,9 @@ pre {
   background: linear-gradient(180deg, rgba(24, 24, 24, 0.96), rgba(18, 18, 18, 0.96));
 }
 
+#storageSize[data-level="vigilance"] { color: #f59e0b; }
+#storageSize[data-level="critique"]  { color: #ef4444; }
+
 .publications-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
