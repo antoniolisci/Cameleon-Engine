@@ -13,11 +13,13 @@ export const KEYS = {
   uiState: 'CE_ui_state_v1',
   backups: 'CE_backups_v1',
   behaviorMemory: 'cameleon_behavior_memory_v1',
+  portfolio: 'CE_portfolio_v1',
 };
 
 const SCHEMA_VERSION = 1;
-const BACKUPS_LIMIT          = 50;
-const IMPORT_REGISTRY_LIMIT  = 100;
+const BACKUPS_LIMIT              = 50;
+const IMPORT_REGISTRY_LIMIT      = 100;
+const PORTFOLIO_SNAPSHOTS_LIMIT  = 50;
 
 // ── Core I/O ──────────────────────────────────────────────────
 
@@ -150,6 +152,26 @@ export const importRegistry = {
   },
   clear() {
     return _write(withUserKey(KEYS.importRegistry), _wrap({ imports: [] }));
+  },
+};
+
+// ── Portfolio V1 snapshots ────────────────────────────────────
+
+export const portfolio = {
+  getAll() {
+    const data = _read(withUserKey(KEYS.portfolio));
+    if (!data)                          return [];
+    if (!Array.isArray(data.snapshots)) return [];
+    return data.snapshots;
+  },
+  append(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object') return false;
+    const snapshots = this.getAll();
+    snapshots.unshift(snapshot);
+    return _write(withUserKey(KEYS.portfolio), _wrap({ snapshots: snapshots.slice(0, PORTFOLIO_SNAPSHOTS_LIMIT) }));
+  },
+  clear() {
+    return _write(withUserKey(KEYS.portfolio), _wrap({ snapshots: [] }));
   },
 };
 
@@ -343,6 +365,7 @@ export function exportOperatorData() {
         orderStrategyProfile: _readRawJSON(withUserKey(_BHV_NS + 'orderStrategyProfile')),
         importRegistry:       importRegistry.getAll(),
         uiState:              uiState.get(),
+        portfolio:            portfolio.getAll(),
       },
     };
   } catch {
@@ -447,7 +470,7 @@ export function runMigration() {
 const _UUID_MIGRATION_FLAG = 'CE_migration_uuid_v1_done';
 const _UUID_CLEANUP_FLAG   = 'CE_migration_uuid_cleanup_done';
 
-// Liste canonique des 9 clés opérateur à migrer (ARCH-N1).
+// Liste canonique des clés opérateur à migrer (ARCH-N1).
 // Clés globales exclues : CE_ui_state_v1, CE_payload_current_v1, CE_identity_v1, flags.
 const _OPERATOR_KEYS = [
   'CE_journal_entries_v1',
@@ -455,6 +478,7 @@ const _OPERATOR_KEYS = [
   'CE_import_registry_v1',
   'CE_backups_v1',
   'CE_settings_v1',
+  'CE_portfolio_v1',
   'cameleon_behavior_memory_v1',
   'cameleon.behavior.v1.guardLevel',
   'cameleon.behavior.v1.guardLevelUpdatedAt',
