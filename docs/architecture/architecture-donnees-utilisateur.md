@@ -1,6 +1,6 @@
 # Architecture données utilisateur — Caméléon Engine
 
-> Document d'architecture · **Clôturé** · 2026-06-07 · ADU-01 ✅ `c69b15a` · ADU-02 ✅ `2ac2835` · ADU-03 ✅ ARCH-N1 figée · ADU-04 ✅ `7118244` · ADU-05 ✅ `1b0f51b` · ADU-06 ✅ `7468940`
+> Document d'architecture · **Clôturé** · 2026-06-07 · ADU-01 ✅ `c69b15a` · ADU-02 ✅ `2ac2835` · ADU-03 ✅ ARCH-N1 figée · ADU-04 ✅ `7118244` · ADU-05 ✅ `1b0f51b` · ADU-06 ✅ `7468940` · Portefeuille V1 ✅ T1–T5 `9275466`→`2d6d635`
 
 ---
 
@@ -147,9 +147,9 @@ Chaque entrée est namespacée sous UUID opérateur via `withUserKey()`. **ARCH-
 | **Responsabilité** | Révéler l'écart entre ce que l'opérateur croit faire et ce qu'il fait vraiment financièrement. |
 | **Propriétaire** | Identité locale. |
 | **Durée de vie** | Long terme. |
-| **Source de vérité** | **N'existe pas encore.** `wallet_analyzer.js` présent et connecté (importé `uploader.js`, branché pipeline NON_TRADING/wallet, rendu `behavior-view.js`) — **ARCH-N5 ✅ CADUQUE** : module non orphelin, données éphémères non persistées. Périmètre Portefeuille différé après signal terrain. |
+| **Source de vérité** | `CE_portfolio_v1__{uuid}` — ✅ **Portefeuille V1 implémenté** · FIFO 50 snapshots · T4-prérequis `9275466` · T1 `a574209` · T2 `3e46c6c` · T3 `fa17e6d` · T4 `88c2edd` · T5 `2d6d635` |
 
-Prérequis : Architecture données + Identité locale (pour rattacher l'exposition à un opérateur).
+Portefeuille V1 capture la composition du wallet à chaque import Wallet History (netQuantity par symbole, catégorie, firstSeenAt/lastSeenAt, métriques). Pas de valorisation, pas d'API prix, pas de recommandation d'investissement. Snapshots indexés dans l'onglet Comportement (section Mémoire).
 
 ---
 
@@ -193,7 +193,7 @@ IDENTITÉ LOCALE
 ├── possède ──→ Import Registry
 ├── possède ──→ Signal comportemental courant (état 7j)
 ├── possède ──→ [Mémoire opérateur]          — futur
-├── possède ──→ [Portefeuille]               — futur
+├── possède ──→ Portefeuille                 — ✅ V1 implémenté
 └── possède ──→ [Corrélations personnelles]  — futur
 
 SESSION MOTEUR
@@ -214,7 +214,7 @@ SIGNAL COMPORTEMENTAL COURANT
 ├── distillée de ──→ Sessions comportementales (long terme)
 └── prérequis de ──→ Corrélations personnelles
 
-[PORTEFEUILLE]
+PORTEFEUILLE (V1)
 ├── alimenté par ──→ Wallet History imports
 └── prérequis de ──→ Corrélations personnelles
 
@@ -247,6 +247,7 @@ Identité locale
 | Sessions comportementales | `CE_behavior_sessions_v1__{uuid}` | **50 FIFO** | Namespacé · cap relevé MEM-01B Bloc A · `abed3b4` |
 | Signal comportemental courant | `cameleon_behavior_memory_v1__{uuid}` | — | ✅ PRIV-01 résolu (`c69b15a`) · namespacé ADU-04 |
 | Import Registry | `CE_import_registry_v1__{uuid}` | **100 FIFO** | Namespacé · activé MEM-01B Bloc D · `1b0f51b` |
+| Portefeuille V1 | `CE_portfolio_v1__{uuid}` | **50 FIFO** | ✅ Portefeuille V1 · `fa17e6d` · snapshots wallet |
 | Paramètres | `CE_settings_v1__{uuid}` | — | ✅ Namespacé ADU-04 |
 | Backups moteur | `CE_backups_v1__{uuid}` | 50 FIFO | ✅ Namespacé ADU-04 · schema enrichi MEM-01B Bloc B |
 | Guard level overtrading | `cameleon.behavior.v1.guardLevel__{uuid}` | 1 valeur · 7j TTL | ✅ Namespacé ADU-04 |
@@ -263,6 +264,7 @@ Toutes les cibles ci-dessous sont opérationnelles. La migration est automatique
 | Sessions comportementales | `CE_behavior_sessions_v1__{uuid}` | ✅ ADU-04A/B · cap 50 |
 | Signal comportemental courant | `cameleon_behavior_memory_v1__{uuid}` | ✅ ADU-04C · PRIV-01 résolu |
 | Import Registry | `CE_import_registry_v1__{uuid}` | ✅ ADU-05 / MEM-01B Bloc D · `1b0f51b` |
+| Portefeuille V1 | `CE_portfolio_v1__{uuid}` | ✅ Portefeuille V1 · T3 `fa17e6d` · 50 FIFO |
 | Paramètres | `CE_settings_v1__{uuid}` | ✅ ADU-04A/B |
 | Backups | `CE_backups_v1__{uuid}` | ✅ ADU-04A/B · schema enrichi MEM-01B Bloc B |
 
@@ -394,7 +396,7 @@ Ces décisions doivent être tranchées dans le chantier d'implémentation, pas 
 ### Classification des clés
 
 **Migrer vers UUID (données opérateur) :**
-`CE_journal_entries_v1` · `CE_behavior_sessions_v1` · `CE_import_registry_v1` · `CE_backups_v1` · `CE_settings_v1` · `cameleon_behavior_memory_v1` · `cameleon.behavior.v1.guardLevel` · `cameleon.behavior.v1.guardLevelUpdatedAt` · `cameleon.behavior.v1.orderStrategyProfile`
+`CE_journal_entries_v1` · `CE_behavior_sessions_v1` · `CE_import_registry_v1` · `CE_backups_v1` · `CE_settings_v1` · `CE_portfolio_v1` · `cameleon_behavior_memory_v1` · `cameleon.behavior.v1.guardLevel` · `cameleon.behavior.v1.guardLevelUpdatedAt` · `cameleon.behavior.v1.orderStrategyProfile`
 
 **Laisser globales (état navigateur / éphémère) :**
 `CE_ui_state_v1` · `CE_payload_current_v1`
@@ -438,6 +440,7 @@ Le double underscore `__` est le séparateur entre le nom logique de la clé et 
 | `CE_import_registry_v1` | `CE_import_registry_v1__{uuid}` |
 | `CE_backups_v1` | `CE_backups_v1__{uuid}` |
 | `CE_settings_v1` | `CE_settings_v1__{uuid}` |
+| `CE_portfolio_v1` | `CE_portfolio_v1__{uuid}` |
 | `cameleon_behavior_memory_v1` | `cameleon_behavior_memory_v1__{uuid}` |
 | `cameleon.behavior.v1.guardLevel` | `cameleon.behavior.v1.guardLevel__{uuid}` |
 | `cameleon.behavior.v1.guardLevelUpdatedAt` | `cameleon.behavior.v1.guardLevelUpdatedAt__{uuid}` |
@@ -529,10 +532,11 @@ Cette section décrit l'état réel du système après clôture complète de la 
 | `HISTORY_LIMIT` | **200** | `data.js` (source unique) | `abed3b4` (MEM-01B Bloc A) |
 | `BACKUPS_LIMIT` | **50** | `storage.js` | inchangé |
 | `IMPORT_REGISTRY_LIMIT` | **100** | `storage.js` | `1b0f51b` (MEM-01B Bloc D) |
+| `PORTFOLIO_SNAPSHOTS_LIMIT` | **50** | `storage.js` | `fa17e6d` (Portefeuille V1 T3) |
 
 ### Clés localStorage opérationnelles
 
-**9 clés opérateur — namespacées `__{uuid}` :**
+**10 clés opérateur — namespacées `__{uuid}` :**
 
 | Clé | Cap | Notes |
 |---|---|---|
@@ -541,6 +545,7 @@ Cette section décrit l'état réel du système après clôture complète de la 
 | `CE_import_registry_v1__{uuid}` | 100 FIFO | Registre imports — 13 champs V1 |
 | `CE_backups_v1__{uuid}` | 50 FIFO | Snapshots moteur — schema enrichi (MEM-01B Bloc B) |
 | `CE_settings_v1__{uuid}` | — | Paramètres opérateur |
+| `CE_portfolio_v1__{uuid}` | 50 FIFO | Snapshots portefeuille — Portefeuille V1 · `fa17e6d` |
 | `cameleon_behavior_memory_v1__{uuid}` | — | Signal comportemental courant (7j TTL) |
 | `cameleon.behavior.v1.guardLevel__{uuid}` | 1 valeur | Guard level overtrading |
 | `cameleon.behavior.v1.guardLevelUpdatedAt__{uuid}` | 1 valeur | Timestamp guard level |
@@ -579,6 +584,7 @@ Session de grâce : si flag migration absent, `withUserKey()` retourne la clé l
 | Export JSON opérateur complet | ✅ | `7468940` |
 | Schema backup enrichi (profil, score, macro) | ✅ | `11019c7` |
 | Snapshot analytique session comportementale | ✅ | `b6ec361` |
+| Portefeuille V1 — snapshots wallet persistés | ✅ | `88c2edd` (T4) · `2d6d635` (T5 UI) |
 
 ### Dettes résiduelles actives
 
@@ -593,6 +599,7 @@ Session de grâce : si flag migration absent, `withUserKey()` retourne la clé l
 | Entité | Statut | Débloquant |
 |---|---|---|
 | Mémoire opérateur | Non démarré | Signal terrain post-bêta |
-| Portefeuille utilisateur | Non démarré | Signal terrain post-bêta |
+| Portefeuille V1 | ✅ Implémenté | T1–T5 `9275466`→`2d6d635` · snapshots + UI |
+| Portefeuille V2+ (valorisation, API) | Différé | Post-mise en ligne |
 | Corrélations personnelles | Non démarré | Mémoire opérateur + Portefeuille |
 | Compte utilisateur (V2) | Différé | Post-mise en ligne |

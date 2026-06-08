@@ -279,6 +279,35 @@ Aucune promesse de performance. Aucun conseil financier.
 
 ---
 
+## Dettes soldées — session 2026-06-07 (Portefeuille V1)
+
+### Portfolio V1 — persistance snapshots wallet · CLÔTURÉ
+
+**Commits :** `9275466` / `a574209` / `3e46c6c` / `fa17e6d` / `88c2edd` / `2d6d635`
+
+Premier chantier produit post-DOC-ALIGN. Objectif : capturer la composition wallet après chaque import Wallet History et l'afficher dans l'onglet Comportement.
+
+| Tâche | Commit | Contenu |
+|---|---|---|
+| T4-prérequis — `rawRows` exposé dans `uploader.js` (branche wallet uniquement) | `9275466` | 1 ligne — `rawRows: rows` dans l'objet retourné |
+| T1 — `portfolio-extractor.js` | `a574209` | Module pur : `extract(rows)` → `{ assets[] }` · classification statique stablecoin/major/altcoin · `parseQuantity()` · `parseDate()` |
+| T2 — `portfolio-repo.js` | `3e46c6c` | Repo isolation : `getAll()` / `append()` / `clear()` / `buildSnapshot()` · clé `CE_portfolio_v1__{uuid}` |
+| T3 — `storage.js` | `fa17e6d` | `KEYS.portfolio` · `PORTFOLIO_SNAPSHOTS_LIMIT=50` · `portfolio` API centrale · `_OPERATOR_KEYS` · `exportOperatorData()` |
+| T4 — branchement `behavior-view.js` | `88c2edd` | `persistPortfolioSnapshot()` · injection post-import wallet · détection doublon (fileName + fileSize + 24h) |
+| T5 — UI `buildPortfolioSection()` | `2d6d635` | Affichage dernier snapshot — 20 actifs max · métriques · warning doublon · `escHtml()` sur toutes les valeurs utilisateur |
+| T6 — Vérification export | — | Audit lecture : `portfolio: portfolio.getAll()` présent ligne 368 `storage.js` · aucun code à modifier |
+
+**10 décisions validées :** D1 valorisation import-only · D2 Wallet History uniquement · D3 snapshot à chaque import · D4 stablecoins inclus · D5 actifs externes différés · D6 clé namespacée · D7 FIFO 50 · D8 append only · D9 doublon non-bloquant · D10 UI section onglet Mémoire
+
+**Dettes résiduelles du chantier :**
+
+| Dette | Nature | Décision |
+|---|---|---|
+| `portfolio-repo.js` inutilisé | T2 créé mais supplanté par `storage.portfolio` en T4 — deux implémentations du même repo | Suppression différée post-T7 · non urgente |
+| CSS `bhv-portfolio-*` sans style propre | Classes présentes dans behavior-view.js, non déclarées dans behavior.css | Différée — aucun impact fonctionnel, héritage `.bhv-card` suffisant |
+
+---
+
 ## Dettes à statut conditionnel
 
 ### NAR-IN — Collision narrative cluster Range / Instable · CONDITIONNEL
@@ -307,13 +336,13 @@ ni ouverte (aucun impact démontré), ni reportée (une condition précise la d�
 
 ## État global post-session
 
-| | Avant session 1 | Après session 1 | Après session 2 | Après session 9 |
-|---|---|---|---|---|
-| Total dettes | 21 | 17 | 16 | 5 différées / conditionnelles |
-| Haute priorité | 8 | 6 | 5 | 0 |
-| Moyenne priorité | 5 | 3 | 3 | 0 |
-| Faible priorité | 8 | 8 | 8 | 0 |
-| Différées / conditionnelles | — | — | — | 5 |
+| | Avant session 1 | Après session 1 | Après session 2 | Après session 9 | Post-Portfolio V1 |
+|---|---|---|---|---|---|
+| Total dettes | 21 | 17 | 16 | 5 différées / conditionnelles | 7 différées / conditionnelles |
+| Haute priorité | 8 | 6 | 5 | 0 | 0 |
+| Moyenne priorité | 5 | 3 | 3 | 0 | 0 |
+| Faible priorité | 8 | 8 | 8 | 0 | 0 |
+| Différées / conditionnelles | — | — | — | 5 | 7 (2 nouvelles du chantier Portfolio) |
 
 ---
 
@@ -360,6 +389,7 @@ Condition de traitement : retour terrain cockpit.
 | MEM-01B Bloc D — importRegistry activé | ✅ CLÔTURÉ | `1b0f51b` | 2026-06-07 |
 | GUIDE-01B — Guide Opérateur V1 | ✅ CLÔTURÉ | `2061162` | 2026-06-07 |
 | DOC-ALIGN-01→04 — Cohérence documentaire | ✅ CLÔTURÉ | `f0ef658`→`7ce0b5a` | 2026-06-07 |
+| Portfolio V1 — persistance snapshots wallet (T1–T5) | ✅ CLÔTURÉ | `9275466`→`2d6d635` | 2026-06-07 |
 
 ### Dettes différées, conditionnelles ou post-lancement
 
@@ -375,8 +405,8 @@ Condition de traitement : retour terrain cockpit.
 
 ### Résumé
 
-- **Dettes clôturées ou caduques :** 21
+- **Dettes clôturées ou caduques :** 22
 - **Dettes ouvertes critiques : 0**
 - **Dettes conditionnelles :** 2 (NAR-IN · NAR-CO)
-- **Dettes différées :** 3 (ARCH-N3 · DO-02 · DO-04)
+- **Dettes différées :** 5 (ARCH-N3 · DO-02 · DO-04 · portfolio-repo.js inutilisé · CSS bhv-portfolio-*)
 - **Dettes post-lancement :** 2 groupes (Security M1–M4 · FA-01/02/03)
