@@ -5178,6 +5178,10 @@ function bindControls() {
     focusPanel("lectureDayMain");
   });
 
+  $("saisirContexteBtn")?.addEventListener("click", () => {
+    activateTab("pilotage");
+  });
+
   controlEventsBound = true;
 }
 
