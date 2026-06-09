@@ -8154,7 +8154,7 @@ body[data-behavior-pattern="discipline"]::before {
 
 /* P3-07 — Promesse centrale au premier écran */
 .hero-promesse {
-  margin: 10px 0 18px;
+  margin: 10px 0 4px;
   max-width: 480px;
   font-size: 0.88rem;
   line-height: 1.65;
