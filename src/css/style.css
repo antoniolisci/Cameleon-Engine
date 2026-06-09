@@ -8163,8 +8163,7 @@ body[data-behavior-pattern="discipline"]::before {
   letter-spacing: 0.01em;
 }
 
-/* P3-A LOT 2 — Navigation 3 onglets + Manifeste footer */
-.side-tab[data-tab-target="pilotage"],
+/* P3-A LOT 2 — Manifeste footer (Pilotage restauré dans la nav) */
 .side-tab[data-tab-target="manifeste"] {
   display: none;
 }
@@ -8198,27 +8197,4 @@ body[data-behavior-pattern="discipline"]::before {
 .footer-link.active {
   color: var(--text-soft);
   opacity: 0.85;
-}
-
-/* P3-A LOT 3 — Accès explicite au formulaire de contexte */
-.saisir-contexte-btn {
-  display: block;
-  width: 100%;
-  margin-top: 2px;
-  padding: 6px 12px;
-  background: none;
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  color: var(--muted);
-  font-size: 0.65rem;
-  font-family: var(--font-ui);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-align: left;
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-}
-.saisir-contexte-btn:hover {
-  opacity: 1;
 }
