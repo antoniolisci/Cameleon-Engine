@@ -5027,9 +5027,8 @@ function bindControls() {
     button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
   });
 
-  $("constelliumNavBtn")?.addEventListener("click", () => {
-    window.location.href = "constellium.html";
-  });
+  // constellium.html non déployé (D3 dormant) — navigation désactivée
+  // $("constelliumNavBtn") garde son handler vide pour ne pas produire de 404
 
   $("prefillBtn")?.addEventListener("click", () => {
     appState.form = prefillConstellium(collectForm());
