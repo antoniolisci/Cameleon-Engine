@@ -8162,3 +8162,40 @@ body[data-behavior-pattern="discipline"]::before {
   opacity: 0.8;
   letter-spacing: 0.01em;
 }
+
+/* P3-A LOT 2 — Navigation 3 onglets + Manifeste footer */
+.side-tab[data-tab-target="pilotage"],
+.side-tab[data-tab-target="manifeste"] {
+  display: none;
+}
+.sidebar-doctrine-link {
+  display: none;
+}
+.footer-nav {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  padding: 8px 0 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 4px;
+}
+.footer-link {
+  background: none;
+  border: none;
+  font-size: 0.68rem;
+  color: var(--muted);
+  opacity: 0.55;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-ui);
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s;
+  padding: 0;
+}
+.footer-link:hover {
+  opacity: 1;
+}
+.footer-link.active {
+  color: var(--text-soft);
+  opacity: 0.85;
+}
