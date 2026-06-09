@@ -8110,3 +8110,55 @@ body[data-behavior-pattern="discipline"]::before {
 /* A2 — Récession spatiale de la zone système (KPI / Mode / CORE / SNIPER)      */
 /* Effet : gap visuel 24px → 44px avant navigation-shell                        */
 .moteur-flow > .navigation-shell { margin-top: 20px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   P3-A LOT 1 — Modifications d'interface dérivées du User Journey V1
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* P3-03 — Constellium dormant (D5) : boutons masqués — HTML intact, réactivable */
+#prefillBtn,
+#constelliumNavBtn,
+#prefillWarning {
+  display: none;
+}
+
+/* P3-01 — Debug Brain masqué par défaut (D3) */
+#debug-brain {
+  display: none;
+}
+#debug-brain.expert-visible {
+  display: block;
+}
+
+/* P3-01 — Bouton Mode expert */
+.expert-mode-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-family: var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.expert-mode-btn:hover {
+  opacity: 1;
+}
+
+/* P3-07 — Promesse centrale au premier écran */
+.hero-promesse {
+  margin: 10px 0 0;
+  max-width: 480px;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--text-soft);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
