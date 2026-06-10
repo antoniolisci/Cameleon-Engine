@@ -660,3 +660,58 @@ la dérive vers le juge vient de l'ontologie, pas des formulations de phrases.
 **Statut : ARCHITECTURE VALIDÉE — EN ATTENTE D'IMPLÉMENTATION**
 
 Le chantier ne rouvre que sur signal d'implémentation réelle, après mise en ligne et satisfaction des 5 conditions.
+
+---
+
+## MàJ 2026-06-10 — Corpus d'architecture Compte Utilisateur V1 figé
+
+**7 documents d'architecture commités.** Aucun code produit.
+
+**Documents commités — commits `06ef92b` → `12b450d` :**
+- `constellium_position_audit.md` — Position officielle Constellium (Sens A / Sens B)
+- `user_memory_long_term_audit.md` — Audit mémoire longue : C. Fondatrice
+- `user_account_phaseA_audit.md` — Audit Phase A : C. Fondateur — pivot outil→système vivant
+- `intelligence_layer_position_audit.md` — Intelligence = couche d'observation uniquement
+- `doctrine_to_product_transition_audit.md` — Séquence corrigée, risque dérive par addition
+- `user_account_v1_execution_architecture.md` — **Architecture d'exécution GELÉE**
+- `user_account_v1_pre_implementation_checklist.md` — Checklist pré-chantier 76 cases
+- `user_real_journey_v1.md` — Parcours J0→J+365 — classification A (document fondateur)
+
+**Décisions immuables figées :**
+- Admin V1 = co-bloquante avec le Compte Utilisateur (confirmé)
+- 5 champs compte V1 : email · server_uuid · created_at · status · rgpd_consent · local_uuid_bridge
+- 6 espaces de données physiquement séparés — Espace 1 (identité) n'a aucune donnée comportementale
+- Magic link uniquement — pas de mot de passe
+- Migration refus : corpus serveur commence à la date de création du compte (pas J0 local)
+- Export serveur garanti = condition ferme avant premier commit
+- Intelligence = observatoire — 7 formes interdites — seuil de confiance bloquant
+- R-INT-08 : prescription passive par accumulation — protection architecturale, pas lexicale
+- "Le moteur souverain ne sait pas que le compte existe." — règle permanente finale
+
+**Conditions bloquantes GO/NO GO — 5 fermes :**
+1. HTTPS actif
+2. Documents légaux complets (CGU · politique · mentions)
+3. Pipeline RGPD testé (suppression + export sur données fictives)
+4. Admin V1 opérationnelle
+5. Export serveur garanti
+
+**5 décisions encore ouvertes :**
+1. Fournisseur serveur
+2. Fournisseur SMTP
+3. TTL magic link
+4. Matrice Gratuit / Premium V1
+5. Périmètre exact de migration UUID local → serveur
+
+**Paliers de valeur utilisateur figés (user_real_journey_v1.md) :**
+- J+45/J+60 : première vraie valeur mémoire longue (preservation vs FIFO localStorage)
+- J+90/J+180 : première vraie valeur Couche Macro (≥20 sessions en contextes variés)
+- Post J+180 : première valeur Intelligence — seulement si seuil de confiance atteint
+- **J+180 = moment où la valeur devient réellement différenciante**
+- Vallée de patience J+14→J+45 = moment le plus dangereux d'abandon
+
+**Checklist pré-chantier :**
+76 cases sur 7 blocs A→G. Règle absolue : une seule condition critique ouverte = NO GO.
+
+**Statut chantier Compte Utilisateur V1 (implémentation) : EN ATTENTE GO/NO GO**
+
+Le chantier ne s'ouvre qu'après validation des 5 conditions bloquantes + 5 décisions ouvertes. La checklist `user_account_v1_pre_implementation_checklist.md` est l'instrument de validation.
