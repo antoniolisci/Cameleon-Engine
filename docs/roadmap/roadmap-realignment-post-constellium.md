@@ -754,3 +754,53 @@ Cases restantes (64) : tâches d'implémentation uniquement — blocs A1, A3, B,
 Les 5 décisions préalables sont fermées. Le chantier peut ouvrir. Les conditions d'implémentation (64 cases restantes) se cochent pendant le chantier, pas avant.
 
 **Statut chantier Compte Utilisateur V1 (implémentation) : PRÊT À OUVRIR**
+
+---
+
+## MàJ 2026-06-10 — État de la séquence Fondations produit
+
+Mise à jour complète de la séquence officielle issue de l'audit architectural 2026-06-05.
+
+### PHASE FONDATIONS
+
+| # | Chantier | Statut | Référence |
+|---|----------|--------|-----------|
+| 1 | Architecture des données utilisateur | ✅ CLÔTURÉE — ADU-01→06 | `project_architecture_donnees_utilisateur.md` |
+| 2 | Compte utilisateur | 🔓 PRÊT À OUVRIR — 5/5 décisions fermées · GO conditionnel | `user_account_v1_pre_implementation_checklist.md` · `598970b` |
+| 3 | Mémoire opérateur | ○ Non démarré — MEM-01B caps/schemas ✅ · MEM-V2 architecture référencée | Après Compte V1 |
+| 4 | Portefeuille utilisateur interne | ✅ CLÔTURÉ localStorage V1 — T1→T7 · 2 dettes différées (repo.js + CSS) | `9275466`→`6c05db8` · migration serveur après Compte |
+
+### PHASE PRODUIT
+
+| # | Chantier | Statut | Référence |
+|---|----------|--------|-----------|
+| 5 | Matrice Gratuit / Premium | ✅ FERMÉE — Option B · local=gratuit · serveur=premium | `freemium_matrix_v1.md` · `2bad403` |
+| 6 | Récolte Emails | ○ Non démarré | Indépendant — peut avancer en parallèle |
+| 7 | Documents légaux | ✅ Socle V1 CLÔTURÉ — CGU/politique/mentions = post-lancement | `project_legal_v1.md` · `b02afc3` |
+| 8 | Paiement | ○ Non démarré | Après Compte + Matrice |
+| 9 | Pass & Invitations | ○ Non démarré | Après Compte + Paiement |
+
+### PHASE LANCEMENT
+
+| # | Chantier | Statut | Référence |
+|---|----------|--------|-----------|
+| 10 | Administration V1 | ○ Non démarré — co-bloquante avec Compte | Condition de mise en ligne — pas post-lancement |
+| 11 | Mise en ligne | ○ Non démarré | Gate event — débloque Phase Intelligence |
+| 12 | Validation terrain | ○ Non démarré | Protocole bêta V1 documenté · `9d4b832` |
+
+### PHASE INTELLIGENCE
+
+| # | Chantier | Statut | Référence |
+|---|----------|--------|-----------|
+| 13 | Macro V1 implémentation | ○ Différé — architecture figée · 5 conditions bloquantes | `macro_layer_doctrine_v1.md` · `4b7dfa5` |
+| 14 | BMSM | ○ Non démarré — Priorité B | `5130332` · signal terrain ≥ 5 exports requis |
+| 15 | Corrélations personnelles avancées | ○ Long terme | Après Macro V1 + volume sessions |
+
+### Décisions structurelles permanentes — rappel
+
+- **Séquence inviolable :** Utilisateur → Sessions → Mémoire → Contexte → Corrélations
+- **Compte = pivot :** propriétaire de la Mémoire et du Portefeuille côté serveur
+- **Portefeuille V1 localStorage** est fonctionnel mais reste isolé jusqu'à la migration UUID serveur
+- **Admin V1 = condition de mise en ligne** — pas un chantier post-lancement
+- **Macro V1** ne s'ouvre qu'après mise en ligne + Mémoire opérationnelle + utilisateurs réels
+- **Matrice Gratuit/Premium** : décision prise — ne pas construire de fonctionnalité premium avant que le Compte existe
