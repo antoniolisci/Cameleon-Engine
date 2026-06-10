@@ -456,6 +456,27 @@ img {
   line-height: 1;
 }
 
+.side-tab-role {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  font-style: italic;
+  opacity: 0.65;
+  text-transform: none;
+}
+
+.pilotage-chapeau {
+  margin-bottom: 18px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+  font-style: italic;
+}
+
 .hero {
   position: relative;
   overflow: hidden;

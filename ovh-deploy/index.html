@@ -60,21 +60,25 @@
           <button class="side-tab active" id="sideTabMoteur" type="button" data-tab-target="moteur">
             <div class="side-tab-icon">M</div>
             <div class="side-tab-label">Moteur</div>
+            <div class="side-tab-role">Lis le verdict</div>
             <div class="side-tab-state" id="sideStateMoteur">Actif</div>
           </button>
           <button class="side-tab" type="button" data-tab-target="pilotage">
             <div class="side-tab-icon">P</div>
             <div class="side-tab-label">Pilotage</div>
+            <div class="side-tab-role">Pose le cadre</div>
             <div class="side-tab-state" id="sideStatePilotage">Prêt</div>
           </button>
           <button class="side-tab" type="button" data-tab-target="memoire">
             <div class="side-tab-icon">H</div>
             <div class="side-tab-label">Mémoire</div>
+            <div class="side-tab-role">Garde la trace</div>
             <div class="side-tab-state" id="sideStateMemoire">Prêt</div>
           </button>
           <button class="side-tab" id="behaviorTabBtn" type="button">
             <div class="side-tab-icon">C</div>
             <div class="side-tab-label">Comportement</div>
+            <div class="side-tab-role">Vois qui tu es vraiment</div>
             <div class="side-tab-state">Import données</div>
           </button>
           <button class="side-tab" type="button" data-tab-target="manifeste">
@@ -528,12 +532,16 @@
                 </div>
 
                 <div class="tab-panel" data-tab-panel="pilotage">
+                  <div class="pilotage-chapeau">
+                    Tu n'es pas en train de remplir un formulaire.<br>
+                    Tu définis dans quelles conditions le moteur est autorisé à travailler.
+                  </div>
                   <div class="pilot-grid">
                     <section class="side-card">
                       <div class="card-head">
                         <div>
-                          <h2 class="card-title">Saisie marché</h2>
-                          <p class="card-desc">Le moteur universel lit d'abord ces variables avant d'appliquer le filtre adaptatif.</p>
+                          <h2 class="card-title">Lecture du marché</h2>
+                          <p class="card-desc">Ce que tu observes — les variables que le moteur lit pour évaluer le contexte.</p>
                         </div>
                       </div>
                       <div class="form-grid" id="marketFields"></div>
@@ -559,8 +567,8 @@
                     <section class="side-card">
                       <div class="card-head">
                         <div>
-                          <h2 class="card-title">Filtre adaptatif</h2>
-                          <p class="card-desc">Profil, setup, validation humaine et note de session dans un même plan de lecture.</p>
+                          <h2 class="card-title">Cadre opérateur</h2>
+                          <p class="card-desc">Ce que tu décides — profil, filtre, validation : les contraintes que le moteur respecte.</p>
                         </div>
                       </div>
                       <div class="form-grid" id="adaptiveFields"></div>
@@ -1181,6 +1189,16 @@
           <div class="tiny-label">Règle finale</div>
           <p>Si tu hésites → tu ne fais rien</p>
         </div>
+      </div>
+      <div class="onboarding-block">
+        <div class="tiny-label">Comment démarrer</div>
+        <p>
+          <strong>PILOTAGE</strong> — Tu poses le cadre : régime, filtre, validation.<br>
+          <strong>MOTEUR</strong> — Le moteur interprète à l'intérieur de ce cadre.<br>
+          <strong>MÉMOIRE</strong> — Tu conserves les lectures et les décisions.<br>
+          <strong>COMPORTEMENT</strong> — Tu confrontes ce que tu crois faire à ce que tu fais.
+        </p>
+        <p style="margin-top:8px;font-size:11px;opacity:0.55;">Commence par PILOTAGE.</p>
       </div>
       <button class="onboarding-btn" id="onboardingBtn" type="button">Compris</button>
     </div>
