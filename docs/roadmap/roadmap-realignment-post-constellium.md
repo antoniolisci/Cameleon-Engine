@@ -624,3 +624,39 @@ la dérive vers le juge vient de l'ontologie, pas des formulations de phrases.
 **Séquence juste :** Mémoire longue → miroir minimal → verbatims terrain → décision.
 
 **Ce document ne modifie pas la roadmap officielle en vigueur.**
+
+---
+
+## MàJ 2026-06-10 — Architecture Macro V1 gelée
+
+**Chantier d'architecture terminé.** La doctrine complète de la Couche Macro V1 est figée en 8 documents. Aucun code produit.
+
+**Documents commités — commits `15d1b33` → `4b7dfa5` :**
+- `macro_layer_phase0.md` — Mission et doctrine
+- `macro_layer_acquisition_phase1.md` — Architecture d'acquisition
+- `macro_layer_import_format_phase2.md` — Format d'import
+- `macro_state_calculation_phase3.md` — Calcul du Macro_State
+- `macro_narrative_layer_phase4.md` — Registre narratif
+- `macro_logging_phase5.md` — Logging Session × Macro_State
+- `macro_product_integration_phase6.md` — Intégration produit
+- `macro_layer_doctrine_v1.md` — **Document de référence unique (porte d'entrée)**
+
+**Décisions immuables figées :**
+- MACRO-RULE-01 : score / posture / actions strictement intouchables
+- Pas de proxy Constellium (§10)
+- 3 états : EXPANSIF / NEUTRE / CONTRACTÉ
+- Consensus symétrique par familles — NEUTRE si contradiction
+- Option B : mention discrète — jamais au niveau visuel du score
+- Logging Session × Macro_State dès le premier commit du chantier
+- Couche transversale — jamais 5e couche, jamais deuxième moteur, jamais dashboard
+
+**Conditions bloquantes restantes (5) :**
+1. Mise en ligne effective
+2. Seuils qualitatifs calibrés avec trader réel
+3. Labels des champs validés par trader non-développeur
+4. Séparation visuelle documentée
+5. Plafond de conservation des sessions résolu (> 50)
+
+**Statut : ARCHITECTURE VALIDÉE — EN ATTENTE D'IMPLÉMENTATION**
+
+Le chantier ne rouvre que sur signal d'implémentation réelle, après mise en ligne et satisfaction des 5 conditions.
