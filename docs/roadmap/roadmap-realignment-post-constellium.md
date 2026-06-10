@@ -715,3 +715,42 @@ Le chantier ne rouvre que sur signal d'implémentation réelle, après mise en l
 **Statut chantier Compte Utilisateur V1 (implémentation) : EN ATTENTE GO/NO GO**
 
 Le chantier ne s'ouvre qu'après validation des 5 conditions bloquantes + 5 décisions ouvertes. La checklist `user_account_v1_pre_implementation_checklist.md` est l'instrument de validation.
+
+---
+
+## MàJ 2026-06-10 — 5 décisions pré-implémentation Compte Utilisateur V1 fermées
+
+**Toutes les décisions d'architecture préalables sont documentées et figées.** Aucun code produit.
+
+**Documents commités — commits `2bad403` → `598970b` :**
+
+| # | Décision | Résultat | Document | Commit |
+|---|----------|----------|----------|--------|
+| 1 | Frontière Gratuit / Premium | Option B — local = gratuit · serveur = premium | `freemium_matrix_v1.md` | `2bad403` |
+| 2 | TTL Magic Link | 15 min · usage unique · 3/15 min rate limit · 24h rejeté | `magic_link_ttl_v1.md` | `dbb7578` |
+| 3 | Fournisseur SMTP | Postmark · Resend = repli · SES rejeté | `smtp_provider_v1.md` | `2b86678` |
+| 4 | Fournisseur serveur | Supabase · PocketBase = repli · Firebase rejeté | `server_provider_v1.md` | `ee16310` |
+| 5 | Migration UUID local → serveur | Option C — progressive consentie · UUID bridge auto · sessions sur consentement · local intact | `uuid_migration_scope_v1.md` | `6c5cffd` |
+
+**Checklist pré-implémentation mise à jour** — commit `598970b`
+
+12 cases cochées [x] sur 76 :
+- A2 (4/4) — frontière Gratuit/Premium documentée
+- C1 (1/4) — Magic Link confirmé
+- C2 (3/4) — SMTP choisi + TTL documenté + réémission documentée
+- D4 (4/4) — refus migration : limitation documentée, corpus serveur, Impact Intelligence, Impact Macro
+
+Cases restantes (64) : tâches d'implémentation uniquement — blocs A1, A3, B, C1 (3), C2 (1), C3, D1/D2/D3, E, F, G.
+
+**Décisions immuables figées par cette session :**
+- Frontière locale/serveur : le moteur souverain ne sait pas qu'un abonnement existe
+- Magic Link : usage unique · TTL = 15 min · non configurable V1
+- SMTP : Postmark branché sur Supabase Auth — email marketing interdit via ce fournisseur
+- Serveur : PostgreSQL Supabase · périmètre strict = identité + persistance uniquement
+- Migration : jamais silencieuse · jamais destructive · local = filet de sécurité permanent
+
+**Statut GO/NO GO — 2026-06-10 : GO CONDITIONNEL**
+
+Les 5 décisions préalables sont fermées. Le chantier peut ouvrir. Les conditions d'implémentation (64 cases restantes) se cochent pendant le chantier, pas avant.
+
+**Statut chantier Compte Utilisateur V1 (implémentation) : PRÊT À OUVRIR**
