@@ -19,7 +19,7 @@ let _attentionState = null;
  * Phase 1 : tensionMap calculé, visible Debug uniquement
  * Phase 2 (T2-01) : hierarchyResult calculé, visible Debug uniquement
  * Phase 3 (T2-02) : attentionResult calculé, visible Debug uniquement (shadow mode)
- * Phase 4 (T2-03) : expositionResult calculé, visible Debug uniquement (shadow mode)
+ * Phase 4 (T2-03) : expositionResult calculé — message cockpit actif (V2_COCKPIT_MESSAGE: true)
  *
  * @param {object} payloadV1 - Payload produit par buildPayload()
  * @param {Function|null} [behaviorGetter=null] - Getter profil comportemental
@@ -48,7 +48,7 @@ export function runV2(payloadV1, behaviorGetter = null) {
   );
   _attentionState = nextState;
 
-  // ── Phase 4 — Explicabilité (T2-03, shadow mode) ─────────────────────────
+  // ── Phase 4 — Explicabilité (T2-03) — cockpit actif via V2_COCKPIT_MESSAGE ─
   if (!V2_FLAGS.V2_EXPOSITION) {
     return { tensionMap, hierarchyResult, attentionResult, expositionResult: null };
   }
