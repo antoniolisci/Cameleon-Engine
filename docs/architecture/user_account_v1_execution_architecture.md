@@ -119,7 +119,7 @@ Règle permanente : transfert Espace 2 → Espace 6 uniquement sur opt-in explic
 ### 3.1 Création du compte
 
 1. L'opérateur saisit son email dans le formulaire d'inscription
-2. Un magic link est envoyé à cette adresse (TTL : 15–30 minutes, usage unique)
+2. Un magic link est envoyé à cette adresse (TTL : 15 minutes, usage unique — `magic_link_ttl_v1.md`)
 3. L'opérateur clique le lien → token validé côté serveur
 4. Le serveur crée le compte : server_uuid généré, email associé, rgpd_consent enregistré
 5. Le serveur détecte le local_uuid du navigateur (transmis à la validation)
@@ -306,11 +306,11 @@ Le premier commit sur le Compte Utilisateur V1 ne peut pas être posé avant que
 
 ### Conditions de décision (arbitrages requis avant code)
 
-- ☐ Fournisseur infrastructure serveur choisi (hors périmètre de ce document — décision technique externe)
-- ☐ Fournisseur SMTP pour magic link choisi
-- ☐ TTL du magic link décidé
-- ☐ Décision Gratuit/Premium V1 : même "tout est gratuit en V1" doit être une décision explicite documentée
-- ☐ Périmètre de migration proposé à l'opérateur décidé : automatique / proposé / manuel
+- ✅ Fournisseur infrastructure serveur choisi — **Supabase** (`server_provider_v1.md` · `ee16310`)
+- ✅ Fournisseur SMTP pour magic link choisi — **Postmark** (`smtp_provider_v1.md` · `2b86678`)
+- ✅ TTL du magic link décidé — **15 minutes, usage unique** (`magic_link_ttl_v1.md` · `dbb7578`)
+- ✅ Décision Gratuit/Premium V1 — **Option B : local=gratuit, serveur=premium** (`freemium_matrix_v1.md` · `2bad403`)
+- ✅ Périmètre de migration décidé — **Option C progressive consentie** (`uuid_migration_scope_v1.md` · `6c5cffd`)
 
 ### Conditions techniques déjà satisfaites
 

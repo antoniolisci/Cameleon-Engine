@@ -229,16 +229,17 @@ Option C (Intelligence premium) est redondante avec Option B : par doctrine, l'I
 
 ## 8. Conditions bloquantes résiduelles
 
-La décision Gratuit / Premium V1 est proposée ici comme fermée. Elle n'ouvre pas le chantier Compte Utilisateur V1 à elle seule — quatre autres décisions restent ouvertes.
+La décision Gratuit / Premium V1 est fermée. Les quatre autres décisions préalables sont désormais également fermées.
 
-**Décisions ouvertes restantes après cet audit :**
+**5 décisions préalables — TOUTES FERMÉES (2026-06-10) :**
 
-| Décision | Statut |
-|----------|--------|
-| Fournisseur serveur | ❌ Non décidé |
-| Fournisseur SMTP | ❌ Non décidé |
-| TTL magic link (15 min ? 30 min ?) | ❌ Non décidé |
-| Périmètre exact de migration UUID local → serveur | ❌ Non décidé |
+| Décision | Statut | Référence |
+|----------|--------|-----------|
+| Fournisseur serveur | ✅ Supabase | `server_provider_v1.md` · `ee16310` |
+| Fournisseur SMTP | ✅ Postmark | `smtp_provider_v1.md` · `2b86678` |
+| TTL magic link | ✅ 15 minutes | `magic_link_ttl_v1.md` · `dbb7578` |
+| Périmètre migration UUID | ✅ Option C progressive | `uuid_migration_scope_v1.md` · `6c5cffd` |
+| Gratuit / Premium V1 | ✅ Option B (ce document) | `freemium_matrix_v1.md` · `2bad403` |
 
 **Une question secondaire à clarifier avant implémentation :**
 
