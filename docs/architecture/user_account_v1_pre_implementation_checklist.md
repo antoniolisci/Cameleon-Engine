@@ -1,9 +1,25 @@
 # Compte Utilisateur V1 — Checklist Pré-Implémentation
 
 **Caméléon Engine · Document opérationnel**
-**Date : 2026-06-10 · Statut : PRÉ-CHANTIER**
+**Date : 2026-06-10 · MàJ : 2026-06-10 · Statut : PRÉ-CHANTIER — DÉCISIONS FERMÉES**
 
 > Vérifier que toutes les conditions sont réunies avant le premier commit du Compte Utilisateur V1.
+
+---
+
+## Décisions préalables — TOUTES FERMÉES
+
+Les 5 décisions bloquantes identifiées dans `user_account_v1_execution_architecture.md` sont désormais documentées et figées.
+
+| # | Décision | Résultat | Document | Commit |
+|---|----------|----------|----------|--------|
+| 1 | Frontière Gratuit / Premium | Option B — local = gratuit · serveur = premium | `freemium_matrix_v1.md` | `2bad403` |
+| 2 | TTL Magic Link | 15 minutes · usage unique · 3/15 min rate limit | `magic_link_ttl_v1.md` | `dbb7578` |
+| 3 | Fournisseur SMTP | Postmark · Resend = repli · SES rejeté | `smtp_provider_v1.md` | `2b86678` |
+| 4 | Fournisseur serveur | Supabase · PocketBase = repli · Firebase rejeté | `server_provider_v1.md` | `ee16310` |
+| 5 | Migration UUID local → serveur | Option C — progressive consentie · UUID bridge auto · sessions sur consentement | `uuid_migration_scope_v1.md` | `6c5cffd` |
+
+Ces décisions ferment directement les cases marquées `[x]` dans les blocs ci-dessous. Les cases encore ouvertes `[ ]` appartiennent à la phase d'implémentation.
 
 ---
 
@@ -17,12 +33,12 @@
 - [ ] Version publique accessible depuis Internet
 - [ ] Vérification multi-appareils réalisée
 
-### A2 — Positionnement produit figé
+### A2 — Positionnement produit figé ✅ `freemium_matrix_v1.md` · `2bad403`
 
-- [ ] Version gratuite définie
-- [ ] Version premium définie
-- [ ] Frontière Gratuit / Premium documentée
-- [ ] Aucun impact sur le moteur souverain
+- [x] Version gratuite définie
+- [x] Version premium définie
+- [x] Frontière Gratuit / Premium documentée
+- [x] Aucun impact sur le moteur souverain
 
 ### A3 — Gouvernance validée
 
@@ -63,17 +79,17 @@
 
 ### C1 — Identité
 
-- [ ] Magic Link confirmé
+- [x] Magic Link confirmé *(`magic_link_ttl_v1.md` + `smtp_provider_v1.md` + `server_provider_v1.md`)*
 - [ ] Structure UUID serveur validée
 - [ ] Bridge UUID local → serveur validé
 - [ ] Règles de création de compte documentées
 
-### C2 — Email
+### C2 — Email ✅ (partiel) `smtp_provider_v1.md` · `2b86678` · `magic_link_ttl_v1.md` · `dbb7578`
 
-- [ ] Fournisseur SMTP choisi
+- [x] Fournisseur SMTP choisi *(Postmark)*
 - [ ] Envoi Magic Link testé
-- [ ] Gestion expiration des liens documentée
-- [ ] Gestion réémission documentée
+- [x] Gestion expiration des liens documentée *(TTL = 15 min · usage unique)*
+- [x] Gestion réémission documentée *(rate limiting 3 demandes / 15 min)*
 
 ### C3 — Stockage
 
@@ -104,12 +120,12 @@
 - [ ] Synchronisation historique
 - [ ] Gestion conflits documentée
 
-### D4 — Cas refus migration
+### D4 — Cas refus migration ✅ `uuid_migration_scope_v1.md` · `6c5cffd`
 
-- [ ] Limitation explicitement documentée
-- [ ] Corpus serveur démarre à la date du compte
-- [ ] Impact Intelligence documenté
-- [ ] Impact Macro documenté
+- [x] Limitation explicitement documentée *(local intact · aucune relance)*
+- [x] Corpus serveur démarre à la date du compte *(sessions pré-compte = locales sauf migration explicite)*
+- [x] Impact Intelligence documenté *(sessions non migrées = absentes de la mémoire longue)*
+- [x] Impact Macro documenté *(traces Macro hors périmètre migration V1)*
 
 ---
 
@@ -182,6 +198,22 @@ Le chantier Compte Utilisateur V1 peut ouvrir uniquement si :
 - Aucun conflit n'existe avec les doctrines gelées
 
 > **Si une seule condition critique est ouverte → NO GO.**
+
+### État actuel — 2026-06-10
+
+**Décisions préalables : 5/5 FERMÉES ✅**
+
+Les cases encore ouvertes dans les blocs A→G sont des tâches d'implémentation — elles ne bloquent pas l'ouverture du chantier mais doivent être cochées avant le premier commit en production.
+
+| Bloc | Cases fermées par les décisions | Cases restantes (implémentation) |
+|------|--------------------------------|----------------------------------|
+| A | A2 (4/4) | A1, A3 |
+| B | — | B1, B2, B3 (intégralité) |
+| C | C1 partiel (1/4), C2 partiel (3/4) | C1 (3), C2 (1), C3 (4) |
+| D | D4 (4/4) | D1, D2, D3 |
+| E | — | E1, E2, E3 (intégralité) |
+| F | — | F1, F2 (intégralité) |
+| G | — | G1, G2 (intégralité) |
 
 ---
 
