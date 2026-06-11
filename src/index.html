@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self'; object-src 'none'; worker-src 'self' blob:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self'; object-src 'none'; worker-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
   <title>Cameleon Engine</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/behavior.css">
+  <link rel="stylesheet" href="./css/account.css">
   <script src="./js/onboarding-init.js"></script>
 </head>
 <body data-shell-state="range">
@@ -37,6 +38,7 @@
           <div class="header-chip">Moteur : <strong id="headerState">Range</strong></div>
           <div class="header-chip">Mode : <strong id="headerMode">Socle</strong></div>
           <button class="header-chip header-help-btn" id="helpBtn" type="button">Mode d'emploi</button>
+          <div id="header-account-chip" class="header-chip" hidden>Compte : <strong id="headerAccountStatus">—</strong></div>
           <div class="header-chip">Heure : <strong id="liveClockHeader">--:--:--</strong></div>
         </div>
       </div>
@@ -85,6 +87,12 @@
             <div class="side-tab-icon">§</div>
             <div class="side-tab-label">Manifeste</div>
             <div class="side-tab-state" id="sideStateManifeste">Doctrine</div>
+          </button>
+          <button class="side-tab" type="button" data-tab-target="compte">
+            <div class="side-tab-icon">@</div>
+            <div class="side-tab-label">Compte</div>
+            <div class="side-tab-role">Mémoire longue</div>
+            <div class="side-tab-state" id="sideStateCompte">Non connecté</div>
           </button>
         </div>
 
@@ -994,6 +1002,12 @@
                   </div>
                 </div>
 
+                <div class="tab-panel" data-tab-panel="compte" hidden aria-hidden="true">
+                  <div class="ac-panel-root">
+                    <div id="account-root"></div>
+                  </div>
+                </div>
+
           </div>
 
           <aside class="side-panel">
@@ -1229,8 +1243,10 @@
     </div>
   </div>
 
+  <script type="module" src="./js/account/account-init.js"></script>
   <script type="module" src="./js/render.js"></script>
   <script type="module" src="./js/behavior/behavior-main.js"></script>
+  <script type="module" src="./js/account/account-ui.js"></script>
 
   <div id="constelliumPanel" class="cst-panel" hidden>
     <div class="cst-panel-card">
