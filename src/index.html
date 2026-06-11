@@ -88,7 +88,7 @@
             <div class="side-tab-label">Manifeste</div>
             <div class="side-tab-state" id="sideStateManifeste">Doctrine</div>
           </button>
-          <button class="side-tab" type="button" data-tab-target="compte">
+          <button class="side-tab" id="sideTabCompte" type="button">
             <div class="side-tab-icon">@</div>
             <div class="side-tab-label">Compte</div>
             <div class="side-tab-role">Mémoire longue</div>
@@ -278,6 +278,12 @@
 
 
         <div id="guidanceCard" class="side-card guidance-card"></div>
+
+        <div class="account-screen" hidden aria-hidden="true">
+          <div class="ac-panel-root">
+            <div id="account-root"></div>
+          </div>
+        </div>
 
         <div class="main-grid">
           <div class="stack moteur-flow">
@@ -1002,11 +1008,6 @@
                   </div>
                 </div>
 
-                <div class="tab-panel" data-tab-panel="compte" hidden aria-hidden="true">
-                  <div class="ac-panel-root">
-                    <div id="account-root"></div>
-                  </div>
-                </div>
 
           </div>
 

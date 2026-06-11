@@ -1,9 +1,15 @@
 /* account.css — Styles du panel Compte Utilisateur V1 */
 /* Caméléon Engine · LOT 3 · Préfixe : .ac- */
 
+/* ── Écran Compte ── */
+/* Vit dans <main> juste avant .main-grid. Masqué par défaut.              */
+/* Quand actif : hero + .main-grid sont masqués, .account-screen est seul. */
+.account-screen {
+  margin-top: 36px;
+}
+
 /* ── Panel root ── */
 .ac-panel-root {
-  padding: 20px;
   max-width: 500px;
 }
 
