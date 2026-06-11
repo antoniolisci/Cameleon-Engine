@@ -14,8 +14,8 @@ import { createClient } from '../vendor/supabase.esm.js';
 // ── Coordonnées du projet Supabase (Settings > API) ──────────────────────────
 // À remplir avec les valeurs réelles du projet.
 // La clé anon est conçue pour être publique (RLS protège les données).
-const SUPABASE_URL      = 'https://VOTRE_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'VOTRE_ANON_KEY';
+const SUPABASE_URL      = 'https://rxxkneevcdshxiwezzoe.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_AZOWIYxRY2d4CcpgBRD0IA_lKLh4pTX';
 
 // ── Constantes module ─────────────────────────────────────────────────────────
 
