@@ -81,3 +81,24 @@ transaction_history_*.xlsx
 .DS_Store
 Thumbs.db
 node_modules/
+
+# Environment variables
+.env
+.env.*
+*.env
+
+# Supabase
+supabase/.env
+supabase/.env.*
+supabase/config.local.toml
+
+# Secrets
+secrets/
+secrets.*
+*.secret
+*.key
+*.pem
+
+# Local configuration
+config.local.*
+local.settings.*
