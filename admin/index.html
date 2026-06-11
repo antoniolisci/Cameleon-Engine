@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Bootstrap — Caméléon Engine</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0e0e0e;
+      color: #d4d4d4;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    /* ── Header ── */
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .admin-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #ccb577;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .admin-subtitle {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    /* ── Avertissement R-03 ── */
+    .warning-banner {
+      background: #1a1400;
+      border: 1px solid #5a4a10;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #ccb577;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .warning-banner strong { color: #e8cc80; }
+
+    /* ── Bannière d'erreur ── */
+    #error-banner {
+      background: #2a0a0a;
+      border: 1px solid #8b1a1a;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #ff6b6b;
+      margin-bottom: 16px;
+    }
+
+    #error-banner.hidden { display: none; }
+
+    /* ── Statistiques ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #d4d4d4;
+    }
+
+    .stat-card.premium  .stat-value { color: #ccb577; }
+    .stat-card.disabled .stat-value { color: #666; }
+
+    /* ── Actions bar ── */
+    .actions-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .btn-refresh {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      color: #aaa;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .btn-refresh:hover { border-color: #666; color: #ccc; }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    thead tr {
+      background: #161616;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #1e1e1e;
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #161616; }
+
+    td { padding: 10px 14px; vertical-align: middle; }
+
+    .cell-email { color: #d4d4d4; font-weight: 500; }
+    .cell-uuid  { font-family: monospace; color: #666; font-size: 0.78rem; }
+    .cell-date  { color: #888; white-space: nowrap; }
+    .cell-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .empty { color: #555; text-align: center; padding: 24px; }
+
+    /* ── Badges statut ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-free     { background: #1e2a1e; color: #6abf6a; border: 1px solid #2a4a2a; }
+    .badge-premium  { background: #2a2210; color: #ccb577; border: 1px solid #4a3a10; }
+    .badge-disabled { background: #1e1e1e; color: #555;    border: 1px solid #2a2a2a; }
+
+    /* ── Boutons d'action ── */
+    .btn-action {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-action:hover { opacity: 0.8; }
+
+    .btn-premium  { background: #2a2210; color: #ccb577; border-color: #4a3a10; }
+    .btn-free     { background: #1e2a1e; color: #6abf6a; border-color: #2a4a2a; }
+    .btn-disabled { background: #1e1e1e; color: #888;    border-color: #333; }
+
+    /* ── Modal overlay ── */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    #modal-overlay.hidden { display: none; }
+
+    .modal {
+      background: #161616;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 28px 32px;
+      width: 420px;
+      max-width: 90vw;
+    }
+
+    .modal-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #d4d4d4;
+      margin-bottom: 8px;
+    }
+
+    .modal-target {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 20px;
+    }
+
+    .modal-target strong { color: #ccb577; }
+
+    .modal-warning {
+      background: #1a1400;
+      border: 1px solid #4a3a10;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: #ccb577;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .modal-label {
+      font-size: 0.78rem;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .modal-email-ref {
+      font-weight: 600;
+      color: #d4d4d4;
+      font-family: monospace;
+      font-size: 0.82rem;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: #0e0e0e;
+      border: 1px solid #333;
+      border-radius: 5px;
+      padding: 8px 12px;
+      color: #d4d4d4;
+      font-size: 0.82rem;
+      margin-bottom: 20px;
+      outline: none;
+      font-family: monospace;
+    }
+
+    .modal-input:focus { border-color: #555; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      color: #888;
+      padding: 7px 18px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-cancel:hover { border-color: #555; color: #aaa; }
+
+    #modal-confirm-btn {
+      background: #2a2210;
+      border: 1px solid #4a3a10;
+      color: #ccb577;
+      padding: 7px 18px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    #modal-confirm-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    #modal-confirm-btn:not(:disabled):hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+
+  <div class="admin-header">
+    <div>
+      <div class="admin-title">Admin Bootstrap — Caméléon Engine</div>
+      <div class="admin-subtitle">Outil local uniquement · LOT 2.5 · Accès service_role</div>
+    </div>
+    <button class="btn-refresh" id="btn-refresh">↺ Actualiser</button>
+  </div>
+
+  <div class="warning-banner">
+    <strong>Rappel :</strong> Désactiver un compte = blocage des fonctionnalités premium uniquement.
+    L'utilisateur peut toujours se connecter. Le changement de statut est pris en compte
+    à la prochaine reconnexion de l'utilisateur.
+  </div>
+
+  <div id="error-banner" class="hidden"></div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value" id="stat-total">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Actifs</div>
+      <div class="stat-value" id="stat-actifs">—</div>
+    </div>
+    <div class="stat-card premium">
+      <div class="stat-label">Premium</div>
+      <div class="stat-value" id="stat-premium">—</div>
+    </div>
+    <div class="stat-card disabled">
+      <div class="stat-label">Disabled</div>
+      <div class="stat-value" id="stat-disabled">—</div>
+    </div>
+  </div>
+
+  <!-- Table comptes -->
+  <div class="actions-bar">
+    <div class="section-title">Comptes</div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Statut</th>
+          <th>UUID local</th>
+          <th>Créé le</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="accounts-tbody">
+        <tr><td colspan="5" class="empty">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal confirmation -->
+  <div id="modal-overlay" class="hidden">
+    <div class="modal">
+      <div class="modal-title">Confirmer le changement de statut</div>
+      <div class="modal-target">
+        Nouveau statut : <strong id="modal-target-status">—</strong>
+      </div>
+      <div class="modal-warning">
+        Désactiver un compte = blocage des fonctionnalités premium uniquement.
+        L'utilisateur peut toujours se connecter. Le changement est effectif
+        à la prochaine reconnexion.
+      </div>
+      <div class="modal-label">
+        Saisir l'email du compte pour confirmer :<br>
+        <span class="modal-email-ref" id="modal-email-label">—</span>
+      </div>
+      <input
+        type="email"
+        id="modal-email-input"
+        class="modal-input"
+        placeholder="email@exemple.com"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modal-cancel-btn">Annuler</button>
+        <button id="modal-confirm-btn" disabled>Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>

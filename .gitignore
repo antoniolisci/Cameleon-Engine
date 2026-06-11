@@ -102,3 +102,6 @@ secrets.*
 # Local configuration
 config.local.*
 local.settings.*
+
+# Admin Bootstrap — configuration locale (contient SERVICE_ROLE_KEY)
+admin/admin-config.local.js
