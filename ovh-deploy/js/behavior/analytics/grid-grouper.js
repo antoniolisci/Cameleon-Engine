@@ -126,7 +126,7 @@ function groupGridTrades(trades) {
   const remaining   = result.length;
 
   if (gridGroups.length > 0) {
-    console.debug('[bhv:grid] %d trades → %d (groupes: %d, absorbés: %d)',
+    dbg('%d trades → %d (groupes: %d, absorbés: %d)',
       sorted.length, remaining, gridGroups.length, absorbed);
   } else {
     dbg('aucun groupe détecté — tous les trades conservés');
