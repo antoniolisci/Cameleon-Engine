@@ -241,6 +241,12 @@ const _MAIN_ELEMENTS = [
 ];
 
 function _showComptePanel() {
+  // Désactiver le panel Comportement s'il est ouvert
+  document.body.classList.remove('bhv-panel-open');
+  const bRoot = document.getElementById('behavior-root');
+  if (bRoot) bRoot.hidden = true;
+  document.getElementById('behaviorTabBtn')?.classList.remove('bhv-active');
+
   // Masquer hero + contenu moteur
   _MAIN_ELEMENTS.forEach(sel => {
     const el = document.querySelector(sel);
@@ -295,6 +301,8 @@ function _initTab() {
   document.querySelectorAll('[data-tab-target]').forEach(btn => {
     btn.addEventListener('click', _hideComptePanel);
   });
+  // Clic sur Comportement → fermer le panel Compte
+  document.getElementById('behaviorTabBtn')?.addEventListener('click', _hideComptePanel);
 }
 
 // ── Sidebar + Header ──────────────────────────────────────────
