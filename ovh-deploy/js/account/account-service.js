@@ -62,7 +62,10 @@ export async function sendMagicLink(email) {
   try {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: window.location.href.split('#')[0],
+      },
     });
 
     if (error) return { success: false, error: error.message };
@@ -171,6 +174,16 @@ export function verifyMagicLink() {
     } else if (event === 'SIGNED_OUT') {
       clearAccountState();
       emit(ACCOUNT_EVENTS.DISCONNECTED, {});
+    }
+  });
+
+  // Supabase v2 : après rechargement post-magic-link, le SDK émet INITIAL_SESSION
+  // et non SIGNED_IN — _syncAccount() n'est pas appelé par le listener ci-dessus.
+  // Vérification explicite au chargement : si session active et CE_account_v1 absent,
+  // on déclenche _syncAccount() directement.
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session && !getAccountState()) {
+      _syncAccount(session);
     }
   });
 }
