@@ -252,6 +252,8 @@ function _showComptePanel() {
     const el = document.querySelector(sel);
     if (el) el.hidden = true;
   });
+  // Replacer le viewport en haut avant d'afficher le panel (évite le scroll natif)
+  window.scrollTo({ top: 0, behavior: 'instant' });
   // Désactiver les boutons tab render.js
   document.querySelectorAll('[data-tab-target]').forEach(b => {
     b.classList.remove('active');
