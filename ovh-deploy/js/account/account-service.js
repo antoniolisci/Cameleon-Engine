@@ -184,7 +184,22 @@ export function verifyMagicLink() {
   supabase.auth.getSession().then(({ data: { session } }) => {
     if (session && !getAccountState()) {
       _syncAccount(session);
+    } else if (!session && getAccountState()) {    // P1-A : état local périmé
+      clearAccountState();
+      emit(ACCOUNT_EVENTS.DISCONNECTED, {});
     }
+  });
+
+  // P1-B — validation au focus navigateur
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (!getAccountState()) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        clearAccountState();
+        emit(ACCOUNT_EVENTS.DISCONNECTED, {});
+      }
+    });
   });
 }
 
@@ -197,6 +212,9 @@ export function getAccount() {
 // ── signOut() ─────────────────────────────────────────────────────────────────
 // Déconnexion Supabase + nettoyage local + émission account:disconnected.
 // L'appel supabase.auth.signOut() est défensif : erreur réseau = silencieuse.
+//
+// V1 bêta : Magic Link obligatoire après déconnexion.
+// Aucun mode "rester connecté", email/password, ou OAuth prévu en V1.
 export async function signOut() {
   try {
     await supabase.auth.signOut();
