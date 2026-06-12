@@ -1682,8 +1682,8 @@ const SNAP_STATE_MAP = {
 
 let latestSnapshotContext = null;
 let saveSnapshotFeedbackTimer = null;
-const SNAPSHOT_BTN_LABEL = "Mémoriser cet état";
-const SNAPSHOT_BTN_CONFIRM = "État mémorisé";
+const SNAPSHOT_BTN_LABEL = "Marquer cette lecture";
+const SNAPSHOT_BTN_CONFIRM = "Lecture marquée";
 
 function saveSnapshot(snapshot) {
   const last = backups.getAll()[0];
@@ -1719,6 +1719,17 @@ const SNAP_QUALITY_MAP = {
   medium: "🟡",
   bad:    "🔴"
 };
+
+function _maybeAutoSave(payload, cockpit, decisionState, tradingStatusFormatted) {
+  const ms = payload.market_state  || '';
+  const es = payload.emotion_state || '';
+  if (!ms || ms === 'unknown' || !es || es === 'unknown') return;
+
+  const vs = (payload.validation?.state || '').toLowerCase();
+  if (vs !== 'accepted' && vs !== 'adjusted') return;
+
+  handleManualSnapshot(payload, cockpit, decisionState, tradingStatusFormatted);
+}
 
 function handleManualSnapshot(payload, cockpit, decisionState, tradingStatusFormatted) {
   const quality = computeSnapshotQuality({
@@ -2756,8 +2767,11 @@ function renderHero(payload) {
     heroSection.classList.toggle("hero-warning", isWarning);
   }
 
-  // P4 — contexte snapshotable mis à jour (enregistrement manuel uniquement)
+  // P4 — contexte snapshotable mis à jour
   latestSnapshotContext = { payload, cockpit, decisionState, tradingStatusFormatted };
+
+  // Option D — autosave conditionnel (sans feedback UI)
+  _maybeAutoSave(payload, cockpit, decisionState, tradingStatusFormatted);
 }
 
 function renderLightContext(payload) {
