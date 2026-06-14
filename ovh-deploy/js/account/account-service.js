@@ -6,7 +6,7 @@
 // Toutes les opérations réseau sont async et encapsulées dans try/catch.
 // Aucune exception non capturée ne doit remonter dans le moteur.
 
-import { supabase }                                                     from './account-config.js';
+import { supabase, REDIRECT_URL }                                        from './account-config.js';
 import { emit, ACCOUNT_EVENTS }                                         from './account-events.js';
 import { getAccountState, setAccountState, clearAccountState,
          getLocalUUID }                                                  from './account-storage.js';
@@ -64,7 +64,7 @@ export async function sendMagicLink(email) {
       email,
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: window.location.href.split('#')[0],
+        emailRedirectTo: REDIRECT_URL,
       },
     });
 
