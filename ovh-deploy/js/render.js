@@ -1682,8 +1682,8 @@ const SNAP_STATE_MAP = {
 
 let latestSnapshotContext = null;
 let saveSnapshotFeedbackTimer = null;
-const SNAPSHOT_BTN_LABEL = "Marquer cette lecture";
-const SNAPSHOT_BTN_CONFIRM = "Lecture marquée";
+const SNAPSHOT_BTN_LABEL = "Mémoriser cet état";
+const SNAPSHOT_BTN_CONFIRM = "État mémorisé";
 
 function saveSnapshot(snapshot) {
   const last = backups.getAll()[0];
@@ -2767,11 +2767,8 @@ function renderHero(payload) {
     heroSection.classList.toggle("hero-warning", isWarning);
   }
 
-  // P4 — contexte snapshotable mis à jour
+  // P4 — contexte snapshotable mis à jour (enregistrement manuel uniquement)
   latestSnapshotContext = { payload, cockpit, decisionState, tradingStatusFormatted };
-
-  // Option D — autosave conditionnel (sans feedback UI)
-  _maybeAutoSave(payload, cockpit, decisionState, tradingStatusFormatted);
 }
 
 function renderLightContext(payload) {
