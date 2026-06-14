@@ -104,9 +104,9 @@ function _renderForm() {
         <input type="checkbox" id="ac-rgpd" class="ac-checkbox">
         <span>
           J'accepte les
-          <a href="#" class="ac-link">CGU</a>
+          <a href="./cgu/" class="ac-link">CGU</a>
           et la
-          <a href="#" class="ac-link">Politique de confidentialité</a>.
+          <a href="./politique-confidentialite/" class="ac-link">Politique de confidentialité</a>.
         </span>
       </label>
       <button id="ac-submit" class="ac-btn" disabled>
@@ -254,7 +254,9 @@ function _showComptePanel() {
     if (el) el.hidden = true;
   });
   // Replacer le viewport en haut avant d'afficher le panel (évite le scroll natif)
+  document.documentElement.style.scrollBehavior = 'auto';
   window.scrollTo({ top: 0, behavior: 'instant' });
+  document.documentElement.style.scrollBehavior = '';
   // Désactiver les boutons tab render.js
   document.querySelectorAll('[data-tab-target]').forEach(b => {
     b.classList.remove('active');
