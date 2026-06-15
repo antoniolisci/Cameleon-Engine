@@ -4914,6 +4914,7 @@ function syncTabs(activeTab) {
 
 function activateTab(tab) {
   if (!tab) return;
+  window.scrollTo({ top: 0, behavior: 'instant' }); // reset scroll avant reflow — évite zone blanche iPad Safari
   syncTabs(tab);
   saveState(appState);
   render();

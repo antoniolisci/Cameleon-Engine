@@ -254,9 +254,12 @@ function _showComptePanel() {
     if (el) el.hidden = true;
   });
   // Replacer le viewport en haut avant d'afficher le panel (évite le scroll natif)
-  document.documentElement.style.scrollBehavior = 'auto';
-  window.scrollTo({ top: 0, behavior: 'instant' });
-  document.documentElement.style.scrollBehavior = '';
+  // rAF : attend la fin du reflow DOM avant scroll — réduit la race condition barre Safari
+  requestAnimationFrame(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    document.documentElement.style.scrollBehavior = '';
+  });
   // Désactiver les boutons tab render.js
   document.querySelectorAll('[data-tab-target]').forEach(b => {
     b.classList.remove('active');
