@@ -240,29 +240,39 @@ export function buildPayload(v, previousPayload = null) {
   const adaptive = applyAdaptiveFilter(profiled, v);
   const filtered = applyValidation(adaptive, v);
 
-  // ── Overtrading guard ────────────────────────────────────────────────
-  // Bonus/malus constants — ajuster ici pour calibrer la sensibilité
-  const OT_BONUS_NEED_ACTION  = 1;  // +1 si nécessité réelle d'agir = Oui
-  const OT_BONUS_PENDING      = 1;  // +1 si validation humaine = En attente
-  const OT_BONUS_NO_STRUCTURE = 1;  // +1 si signal de structure = Aucun
-  const OT_BONUS_NO_MOMENTUM  = 1;  // +1 si confirmation d'élan = Aucune
-  const OT_MALUS_CALM         = 1;  // -1 si état émotionnel = Calme
+  // ── Market pressure + Position context ──────────────────────────────
+  // marketPressureLevel : pression marché pure — f(engine.score) uniquement.
+  // positionContext     : état de position de l'opérateur (HOLDING / ENTRY_INTENT / FLAT).
+  //
+  // Ces deux signaux remplacent l'ancien overtradingLevel composite pour le filtrage de
+  // filtered.*. Le comportement prouvé (behavior.riskLevel) n'est jamais disponible ici :
+  // il est calculé dans render.js à partir des sources comportementales réelles
+  // (CSV guardLevel + adaptive rolling tone). Ne jamais mélanger les deux couches.
+  const marketPressureLevel = engine.score > 85 ? 5
+                            : engine.score > 70 ? 4
+                            : engine.score > 50 ? 3
+                            : engine.score >= 30 ? 2
+                            : 1;
 
-  const overtradingBase = engine.score > 85 ? 5 : engine.score > 70 ? 4 : engine.score > 50 ? 3 : engine.score >= 30 ? 2 : 1;
-  const overtradingAdj = (v.needAction === "yes"        ? OT_BONUS_NEED_ACTION  : 0)
-                       + (v.validationState === "pending" ? OT_BONUS_PENDING      : 0)
-                       + (v.structureSignal === "none"    ? OT_BONUS_NO_STRUCTURE : 0)
-                       + (v.momentumSignal === "none"     ? OT_BONUS_NO_MOMENTUM  : 0)
-                       - (v.emotion === "calm"            ? OT_MALUS_CALM         : 0);
-  const overtradingLevel = Math.min(5, Math.max(1, overtradingBase + overtradingAdj));
+  // HOLDING  : validation acceptée ou ajustée — l'opérateur tient déjà une position.
+  // ENTRY_INTENT : validation en attente ET nécessité d'agir déclarée — intention d'entrée.
+  // FLAT     : aucune position active, pas d'intention d'entrée déclarée.
+  const positionContext = (v.validationState === 'accepted' || v.validationState === 'adjusted')
+    ? 'HOLDING'
+    : (v.needAction === 'yes' && v.validationState === 'pending')
+      ? 'ENTRY_INTENT'
+      : 'FLAT';
 
-  if (overtradingLevel >= 4) {
+  // Filtre de pression marché — ne s'applique pas si l'opérateur est en HOLDING.
+  // Réduire l'engagement d'une position déjà tenue sur la seule base du score marché
+  // serait une accusation de suractivité sans fondement comportemental.
+  if (marketPressureLevel >= 4 && positionContext !== 'HOLDING') {
     if (filtered.engagement_level !== "NONE") filtered.engagement_level = "REDUCED";
     if (filtered.attack === "ON") filtered.attack = "LIGHT";
     adaptive.engagement_level = "REDUCED";
   }
 
-  if (overtradingLevel === 5) {
+  if (marketPressureLevel === 5 && positionContext !== 'HOLDING') {
     filtered.attack = "OFF";
     filtered.sniper = "OFF";
     if (filtered.tradingStatus !== "VALIDATION BLOCK") filtered.tradingStatus = "NO TRADE";
@@ -370,16 +380,22 @@ export function buildPayload(v, previousPayload = null) {
     updated_at: new Date().toISOString(),
     marketReading,
     decision: { ...decision, bestAlternative },
-    // ── Behavior Guard (instant) ─────────────────────────────────────────
-    // overtradingLevel is the INSTANT Behavior Guard.
-    // It is computed from the current form state + engine score on every run.
-    // It is NOT the historical CSV/XLS Behavior Analysis module (src/js/behavior/).
-    // Future integration: the historical module may supply its own level, but it
-    // must be merged here explicitly — not by overwriting overtradingLevel directly.
-    // See: src/js/behavior/README.md
+    // ── Couche marché + contexte + comportement ──────────────────────────
+    // market.pressureLevel  : pression marché pure (1–5), f(engine.score).
+    // context.positionContext : état de position (HOLDING / ENTRY_INTENT / FLAT).
+    // behavior.riskLevel    : risque comportemental prouvé — toujours 1 (neutre) ici.
+    //   Seule la couche render.js peut élever cette valeur, via les sources réelles :
+    //   CSV behaviorGuard (guardLevel, TTL 7j) + adaptive rolling tone (getAdaptiveTone).
+    //   Ne jamais inférer un risque comportemental depuis le score marché dans ce fichier.
     // ─────────────────────────────────────────────────────────────────────
+    market: {
+      pressureLevel: marketPressureLevel
+    },
+    context: {
+      positionContext
+    },
     behavior: {
-      overtradingLevel
+      riskLevel: 1  // neutre par défaut — élevé uniquement par render.js (comportement prouvé)
     }
   };
 

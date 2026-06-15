@@ -54,26 +54,36 @@ const TAB_FOCUS_TARGETS = {
 // ── getBehaviorState ─────────────────────────────────────────────────────────
 // Single source of truth for the effective behavioral state.
 // Priority: OVERTRADING > FOMO > STRESS > NEUTRE > CALME.
-// Sources: payload.behavior.overtradingLevel (instant) + localStorage guardLevel (historical, 7-day TTL).
-// No engine, scoring, or decision logic involved.
+//
+// Sources comportementales acceptées (seules sources légitimes) :
+//   1. localStorage guardLevel (CSV historique, TTL 7j) — preuve comportementale réelle.
+//   2. getAdaptiveTone() === 'tilt' — score rolling sessions, semi-comportemental.
+//
+// Source exclue intentionnellement :
+//   payload.behavior.overtradingLevel (ancienne valeur composite score marché + inputs)
+//   est remplacé par payload.behavior.riskLevel, toujours 1 (neutre) à ce stade.
+//   La pression marché est dans payload.market.pressureLevel — elle ne doit jamais
+//   déclencher OVERTRADING ou BLOCKED sans preuve comportementale.
 function getBehaviorState(payload) {
-  let _otLevel = payload?.behavior?.overtradingLevel || 1;
+  // behavior.riskLevel est toujours 1 (neutre) depuis engine.js.
+  // Seul le CSV guardLevel ou le rolling tone peut élever le niveau comportemental.
+  let _bhvLevel = payload?.behavior?.riskLevel ?? 1;
   const _historicalLvl = behaviorGuard.readHistoricalLevel();
-  if (_historicalLvl !== null) _otLevel = Math.max(_otLevel, _historicalLvl);
+  if (_historicalLvl !== null) _bhvLevel = Math.max(_bhvLevel, _historicalLvl);
 
   const _emo = (payload?.emotion_state || 'neutral').toLowerCase();
-  const _effectiveOt = (_emo === 'calm') ? Math.min(_otLevel, 2) : _otLevel;
-  if (_effectiveOt >= 4)     return 'OVERTRADING';
-  if (_emo === 'fomo')       return 'FOMO';
-  if (_emo === 'stress')     return 'STRESS';
-  if (_emo === 'neutral')    return 'NEUTRE';
+  const _effectiveBhvLevel = (_emo === 'calm') ? Math.min(_bhvLevel, 2) : _bhvLevel;
+  if (_effectiveBhvLevel >= 4) return 'OVERTRADING';
+  if (_emo === 'fomo')         return 'FOMO';
+  if (_emo === 'stress')       return 'STRESS';
+  if (_emo === 'neutral')      return 'NEUTRE';
 
   // Secondary safety override from behavior.js adaptive tone (score-based, decay-aware)
   const _tone = getAdaptiveTone();
-  if (_tone === 'tilt')                    return 'OVERTRADING';
-  if (_tone === 'tension')                 return 'STRESS';
+  if (_tone === 'tilt')        return 'OVERTRADING';
+  if (_tone === 'tension')     return 'STRESS';
   // hesitation only upgrades CALME (the fallback) — never downgrades confirmed states
-  if (_tone === 'hesitation')              return 'NEUTRE';
+  if (_tone === 'hesitation')  return 'NEUTRE';
 
   return 'CALME';
 }
