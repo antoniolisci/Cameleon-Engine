@@ -777,7 +777,7 @@ const CONFIDENCE_MODE_FR = {
 const CONFIDENCE_ACTION_FR = {
   NO_TRADE:        "Aucune initiative",
   LIMITED_ENTRIES: "Entrées limitées",
-  FULL_SETUP:      "Setup exploitable"
+  FULL_SETUP:      "Lisibilité complète"
 };
 
 function translateMode(mode) {
@@ -900,7 +900,7 @@ function getStateAgent(marketKey) {
 const STATE_SYNTHESIS = {
   RANGE:       "Range → aucune action",
   COMPRESSION: "Compression → attendre signal",
-  BREAKOUT:    "Impulsion → opportunité exploitable",
+  BREAKOUT:    "Impulsion → lecture à confirmer",
   TREND:       "Tendance → suivre le mouvement",
   CHAOS:       "Chaos → rester hors marché",
   DEFENSE:     "Défense → protéger capital",
@@ -1331,7 +1331,7 @@ const DECISION_COPY_MAP = {
     subtitle: "Cassure en cours. Confirmer signal."
   },
   TREND: {
-    title: "✅ Opportunité en cours",
+    title: "Direction confirmée",
     subtitle: "Direction claire. Entrée sélective."
   },
   CHAOS: {
@@ -1482,9 +1482,9 @@ function computeDecisionState(payload) {
   if (expansion && score >= 55 && !accepted) {
     return {
       state:   "READY",
-      label:   "SETUP PRÊT",
+      label:   "SETUP DÉTECTÉ",
       cls:     "status-ready",
-      message: "👀 Setup favorable — attendre confirmation"
+      message: "👀 Setup lisible — confirmation attendue"
     };
   }
 
@@ -1495,7 +1495,7 @@ function computeDecisionState(payload) {
       state:   "ALIGNED",
       label:   "ALIGNÉ",
       cls:     "status-aligned",
-      message: "✅ Exécution autorisée"
+      message: "Conditions réunies — exécution sur confirmation"
     };
   }
 
@@ -1544,7 +1544,7 @@ function computeDecisionState(payload) {
       state:   "ALIGNED",
       label:   "ALIGNÉ",
       cls:     "status-aligned",
-      message: "✅ Exécution autorisée"
+      message: "Conditions réunies — exécution sur confirmation"
     };
   }
 
@@ -2540,7 +2540,7 @@ function renderGuidanceBlock() {
     PROTECT: "Présence réduite",
     WAIT:    "En attente",
     TENSION: "Réduire l'exposition",
-    READY:   "Signal disponible",
+    READY:   "Signal détecté",
   };
 
   const modeLabel    = MODE[effectiveState]     || "ATTENTE";
@@ -2820,7 +2820,7 @@ function renderNavigation(payload) {
 
   // Mises à jour immédiates
   setWidth("scoreBar", `${_safeScore}%`);
-  setText("scoreSub",       _safeScore >= 70 ? "Contexte puissant" : _safeScore >= 40 ? "Contexte exploitable" : "Contexte fragile");
+  setText("scoreSub",       _safeScore >= 70 ? "Contexte puissant" : _safeScore >= 40 ? "Contexte lisible" : "Contexte fragile");
   setText("confidenceFlag", _flag);
   setText("score-posture",  _posture);
   setText("score-action",   translatePolicyAction(_action));
@@ -3380,7 +3380,7 @@ function renderWhyDecision(payload) {
 
   // ── STATUS + phrase centrale ─────────────────────────────────────────
   const statusMap = {
-    'EXECUTION':  { icon: '🟢', cls: 'status-green',  phrase: 'Signal confirmé. Exécution possible.'  },
+    'EXECUTION':  { icon: '—',  cls: 'status-green',  phrase: 'Signal confirmé. Conditions alignées.' },
     'ATTENTE':    { icon: '🟡', cls: 'status-orange', phrase: 'Rien à saisir pour l\'instant.'         },
     'PROTECTION': { icon: '🔴', cls: 'status-red',    phrase: 'Protéger le capital en priorité.'      }
   };
@@ -3667,7 +3667,7 @@ function getActionScoreLabel(score) {
   if (score <= 30) return "En observation";
   if (score <= 55) return "En préparation";
   if (score <= 75) return "Exposition réduite";
-  return "Prêt à agir";
+  return "Conditions réunies";
 }
 
 function renderActionScore(payload) {
