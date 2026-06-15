@@ -1,5 +1,10 @@
 # DOC-ALIGN-01 — Audit global de cohérence documentaire
 
+> ⚠️ **[PRÉ-LANGUAGE SYSTEM V1]**
+> Ce document a été produit avant le chantier Language System V1 (terminé 2026-06-15).
+> Le vocabulaire et les observations qu'il contient peuvent ne pas être alignés avec la doctrine actuelle.
+> Pour la référence langage officielle, voir : `docs/doctrine/cameleon_engine_language_system_v1.md`
+
 > Caméléon Engine · 2026-06-07 · Aucun code · Aucune modification fonctionnelle
 
 ---

@@ -220,6 +220,11 @@ Le cockpit ne dit jamais :
 
 Ces formulations appartiennent à des registres incompatibles avec la philosophie produit (carcéral, alarmant, vendeur, flatteur, paternaliste, apologétique).
 
+> **Référence exhaustive — Language System V1 :**
+> La liste complète des mots bannis, les règles par couche, la grille de conformité et les reformulations types sont définies dans :
+> `docs/doctrine/cameleon_engine_language_system_v1.md`
+> Ce document est la **source de vérité** pour tout texte visible utilisateur (2026-06-15).
+
 ### Règles formelles d'écriture
 
 - Pas de point d'exclamation, jamais

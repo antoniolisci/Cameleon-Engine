@@ -1,9 +1,14 @@
 # AUDIT-CAMELEON-ENGINE-V1 — Inventaire stratégique complet
 
+> ⚠️ **[PRÉ-LANGUAGE SYSTEM V1]**
+> Ce document a été produit avant le chantier Language System V1 (terminé 2026-06-15).
+> Le vocabulaire et les observations qu'il contient peuvent ne pas être alignés avec la doctrine actuelle.
+> Pour la référence langage officielle, voir : `docs/doctrine/cameleon_engine_language_system_v1.md`
+
 > Document d'audit produit · Non implémentable · 2026-06-09
 > Auteur : audit produit interne
 > Référence : codebase `src/` · docs/ · mémoire projet
-> Statut : RÉFÉRENCE AUDIT V1
+> Statut : RÉFÉRENCE AUDIT V1 — PRÉ-LANGUAGE SYSTEM V1
 
 ---
 

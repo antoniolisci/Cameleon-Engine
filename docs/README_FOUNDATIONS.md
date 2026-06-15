@@ -27,6 +27,19 @@ Ces documents ne sont pas du marketing. Ils définissent :
 
 ## 2. Documents fondamentaux
 
+> **Mise à jour 2026-06-15 — Language System V1**
+> Deux documents doctrinaux ont été ajoutés et constituent désormais la **source de vérité pour tout texte visible utilisateur** :
+> - `docs/doctrine/cameleon_engine_language_system_v1.md` — règles de langage exhaustives, 5 couches, mots bannis, 20 règles fondatrices.
+> - `docs/doctrine/lecture_not_equal_action.md` — principe fondateur Lecture ≠ Action, 10 tests de conformité.
+> - `docs/doctrine/IDENTITY_V1.md` — point d'entrée synthétique, hiérarchie doctrinale N0–N5.
+>
+> Le modèle cognitif officiel est désormais : **Lecture → Compréhension → Décision humaine**
+> (remplace définitivement : Lecture → Signal → Exécution)
+>
+> Pour la hiérarchie complète des sources de vérité, voir : `memory/project_doctrine_hierarchy.md`
+
+---
+
 ### How Caméléon Reads — V1
 
 | | |

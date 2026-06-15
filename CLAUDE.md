@@ -36,6 +36,9 @@ Form Input (16 fields)
     → getTradingPolicy()     [posture + state → allowed/forbidden actions, called from render.js]
 ```
 
+> **Source officielle des états moteur :** `docs/architecture/canonical_motor_state_2026.md`
+> Ce document est la référence technique canonique pour les états, engagements, guards et comportements du pipeline.
+
 ## Key Files
 
 | File | Role |
