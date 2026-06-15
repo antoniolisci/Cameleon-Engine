@@ -111,7 +111,7 @@ export function profileMatrix(profile, engine, v) {
       sniper = "ON";
       attack = "ON";
       tradingStatus = "SNIPER READY";
-      traffic = "Lecture SNIPER cohérente avec le profil. Taille disciplinée et exécution nette requises.";
+      traffic = "Lecture SNIPER cohérente avec le profil. Taille disciplinée et exécution nette si décision prise.";
     } else if (engine.attackRaw === "ON") {
       attack = "LIGHT";
       tradingStatus = "TRADE LIGHT";

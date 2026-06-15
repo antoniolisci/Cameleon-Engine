@@ -45,7 +45,7 @@ export const MARKET_STATES = {
     description: "Le marché se resserre. Un mouvement arrive.",
     verdict: "Attente",
     posture: "Patience",
-    action: "Surveiller la cassure",
+    action: "Cassure à observer",
     avoid: "Entrée non valide",
     decision: "Un mouvement se prépare, mais aucune entrée n'est encore valide."
   },
@@ -54,7 +54,7 @@ export const MARKET_STATES = {
     description: "Le prix sort clairement d'une zone.",
     verdict: "Opportunité",
     posture: "Momentum",
-    action: "Entrer avec confirmation",
+    action: "Cassure en cours — confirmation à lire",
     avoid: "Entrée non valide",
     decision: "Cassure en cours — confirmation nécessaire."
   },
@@ -63,7 +63,7 @@ export const MARKET_STATES = {
     description: "Le prix suit une direction claire.",
     verdict: "Tendance active",
     posture: "Alignement",
-    action: "Entrer sur retracement",
+    action: "Structure de retracement identifiée",
     avoid: "Risque trop élevé",
     decision: "Le marché avance clairement dans une direction."
   },

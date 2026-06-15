@@ -275,7 +275,7 @@ function renderDecision(payload, behaviorState) {
       allowed:     ['Engagement réduit', 'Attendre confirmation supplémentaire'],
       title:       null,
       intentCls:   'intent-wait',
-      agentAction: 'Setup validé — exécuter en taille réduite uniquement.',
+      agentAction: 'Structure validée — taille réduite si décision prise.',
       heroAllowed: 'Engagement réduit',
       heroPrio:    bhvState === 'OVERTRADING' ? 'Surtrading — setup validé' : 'FOMO — setup validé'
     };
@@ -316,7 +316,7 @@ function renderDecision(payload, behaviorState) {
   if (bhvState === 'OVERTRADING') {
     if (_isValidatedSetup(payload)) {
       setText('lectureDayMain', 'Prudence comportementale');
-      setText('lectureDaySub',  'Suractivité détectée — setup validé, taille réduite.');
+      setText('lectureDaySub',  'Suractivité détectée — structure validée, taille réduite si décision prise.');
       const _ldcCard = document.querySelector('.hero-bottom-zone > .lecture-day-card');
       if (_ldcCard) _ldcCard.dataset.ldcState = 'caution';
     } else {
@@ -870,7 +870,7 @@ const POLICY_MESSAGE_FR = {
   "Defensive context. Capital preservation takes priority.":          "Contexte défensif. Le risque impose de réduire l'exposition. Aucune nouvelle entrée.",
   "No clean execution window yet.":                                   "Pas de fenêtre exploitable. Attendre est souvent la meilleure décision.",
   "Context is becoming actionable, but still incomplete.":            "Setup incomplet. Attendre confirmation évite de forcer une position.",
-  "Favorable setup detected. Wait for confirmation before execution.":"Setup favorable. Une opportunité n'existe que si elle est validée.",
+  "Structure lisible. Confirmation en attente.":                       "Structure lisible. Confirmation en attente.",
   "Context validated. Controlled execution allowed.":                 "Contexte validé. L'exécution est autorisée dans le cadre défini."
 };
 
@@ -1222,7 +1222,7 @@ const HERO_COPY_MAP = {
   },
   COMPRESSION: {
     title: "Attente structurée",
-    subtitle: "Setup en cours. Laisser la structure se confirmer."
+    subtitle: "Structure en cours de formation. Confirmation à lire."
   },
   BREAKOUT: {
     title: "Confirmation requise",
@@ -1259,7 +1259,7 @@ const RULE_OF_DAY_MAP = {
   RANGE:       "Ne pas forcer une direction. Attendre la structure avant d'engager.",
   COMPRESSION: "La patience prime. Anticiper coûte plus qu'attendre le signal.",
   BREAKOUT:    "Confirmation avant entrée. Le momentum se valide, il ne s'anticipe pas.",
-  TREND:       "Suivre, ne pas devancer. Entrer sur retracement propre uniquement.",
+  TREND:       "Structure de tendance active. Retracement propre à lire si présent.",
   CHAOS:       "Capital d'abord. Aucun trade ne vaut un drawdown non maîtrisé.",
   DEFENSE:     "Réduire l'exposition, pas l'attention. Rester en observation active.",
   UNKNOWN:     "Sans lecture claire, l'abstention est une décision à part entière."
@@ -1281,7 +1281,7 @@ function getHeroCopy(payload) {
   if (ds.state === "BLOCKED") {
     // Validated setup: caution copy instead of stop
     if (_isValidatedSetup(payload)) {
-      return { title: "Vigilance maintenue", subtitle: "Setup validé — exécution partielle possible, taille réduite." };
+      return { title: "Vigilance maintenue", subtitle: "Structure validée — taille réduite si décision prise." };
     }
     const emotion = (payload.emotion_state || "").toLowerCase();
     switch (emotion) {
@@ -1307,9 +1307,9 @@ function getHeroCopy(payload) {
       }
       return { title: "En attente",              subtitle: "Aucun setup exploitable pour l'instant." };
     case "ALIGNED":
-      return { title: "Exécution",               subtitle: "Conditions réunies." };
+      return { title: "Lecture alignée",           subtitle: "Conditions réunies." };
     case "READY":
-      return { title: "Setup détecté",           subtitle: "Signal favorable. Confirmation attendue." };
+      return { title: "Structure identifiée",     subtitle: "Structure lisible. Validation en cours." };
     case "TENSION":
       return { title: "Tension active",          subtitle: "Contexte fragile. Exposition réduite conseillée." };
     default:
@@ -1323,7 +1323,7 @@ const DECISION_COPY_MAP = {
     subtitle: "Pas de direction."
   },
   COMPRESSION: {
-    title: "Setup en cours",
+    title: "Structure en cours",
     subtitle: "Signal pas validé. Ne pas anticiper."
   },
   BREAKOUT: {
@@ -1495,7 +1495,7 @@ function computeDecisionState(payload) {
       state:   "ALIGNED",
       label:   "ALIGNÉ",
       cls:     "status-aligned",
-      message: "Conditions réunies — exécution sur confirmation"
+      message: "Structure alignée — décision à l'utilisateur"
     };
   }
 
@@ -1544,7 +1544,7 @@ function computeDecisionState(payload) {
       state:   "ALIGNED",
       label:   "ALIGNÉ",
       cls:     "status-aligned",
-      message: "Conditions réunies — exécution sur confirmation"
+      message: "Structure alignée — décision à l'utilisateur"
     };
   }
 
@@ -2724,7 +2724,7 @@ function renderHero(payload) {
     BLOCKED:  "Présence réduite. Retour au calme d'abord.",
     PROTECT:  "Mode défensif. Capital en priorité.",
     WAIT:     "Lecture en cours. Aucun setup confirmé.",
-    READY:    "Setup détecté. Confirmation attendue.",
+    READY:    "Structure identifiée. Lecture en cours de confirmation.",
     TENSION:  "Contexte fragile. Exposition réduite."
   };
   const heroH1Text = (_isDeclaredBreakout(payload) && decisionState.state === "WAIT")
@@ -3132,8 +3132,8 @@ function getActiveAgent(decision) {
 
 const AGENT_ACTION_MAP = {
   DEFENDER: "Le risque doit être réduit sans délai.",
-  ATTACKER: "Une opportunité n'existe que si elle est validée.",
-  EXECUTE:  "L'exécution suit le signal, jamais l'inverse.",
+  ATTACKER: "Une lecture n'est pertinente que si elle est confirmée.",
+  EXECUTE:  "La lecture précède la décision, toujours.",
   OBSERVER: "L'absence de signal est une information."
 };
 
@@ -3514,8 +3514,8 @@ function getDecisionAwareActionPlan(payload) {
   return {
     tone: "active",
     now: [
-      "Exécuter sur signal valide",
-      "Gérer risque dès entrée"
+      "Signal structuré — validation humaine requise",
+      "Cadre de risque à définir avant toute décision"
     ],
     prepare: [
       "Préparer allègement partiel",
@@ -3583,8 +3583,8 @@ function getActionPlan(payload) {
 
   if (state === "ALIGNED") {
     return [
-      "Exécution possible sur signal confirmé.",
-      "Définir le plan de sortie avant l'entrée.",
+      "Signal confirmé — lecture disponible.",
+      "Définir le cadre de sortie avant toute décision.",
       "Pas de sur-engagement — taille maîtrisée."
     ];
   }

@@ -124,7 +124,7 @@ const DECISION_STATE_POLICY = {
       "Aggressive Add Size",
       "Blind Market Order"
     ],
-    message: "Favorable setup detected. Wait for confirmation before execution."
+    message: "Structure lisible. Confirmation en attente."
   },
 
   ALIGNED: {

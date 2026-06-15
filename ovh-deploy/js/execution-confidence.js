@@ -76,10 +76,10 @@ function resolvePhrase(state, engagementLevel, score) {
   if (state === "PROTECT")                            return "Contexte défensif — réduire l'exposition en priorité.";
   if (state === "WAIT" && engagementLevel === "MINIMAL") return "Structure en formation — observation active uniquement.";
   if (state === "WAIT")                               return "Attente active — préparer sans anticiper.";
-  if (state === "READY")                              return "Setup proche — entrée possible sous confirmation.";
+  if (state === "READY")                              return "Structure proche — lecture en cours de confirmation.";
   if (state === "TENSION")                            return "Fenêtre ouverte avec friction — discipline requise.";
-  if (state === "ALIGNED" && engagementLevel === "REDUCED") return "Conditions réunies, engagement partiel recommandé.";
-  if (state === "ALIGNED")                            return "Lecture claire — conditions optimales d'exécution.";
+  if (state === "ALIGNED" && engagementLevel === "REDUCED") return "Conditions réunies, engagement réduit cohérent avec la lecture.";
+  if (state === "ALIGNED")                            return "Lecture claire — structure alignée.";
   return "En attente de lecture complète.";
 }
 

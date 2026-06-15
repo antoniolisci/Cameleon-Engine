@@ -82,7 +82,7 @@ export const MARKET_DICTIONARY = {
     posture: "Sélectif ou dehors",
     actions: {
       autorisees: [
-        "Entrer sur retracement validé",
+        "Retracement validé — structure lisible",
         "Déplacer le stop sur extension",
         "Réduire si le mouvement s'étire"
       ],
@@ -115,11 +115,11 @@ export const MARKET_DICTIONARY = {
     actions: {
       autorisees: [
         "Attendre la clôture confirmée",
-        "Entrer sur le retest tenu",
+        "Retest tenu — structure lisible",
         "Taille réduite"
       ],
       interdites: [
-        "Entrer sur la mèche",
+        "Structure de mèche identifiée",
         "Ignorer un rejet",
         "Forcer l'entrée"
       ]

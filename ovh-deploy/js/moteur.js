@@ -37,7 +37,7 @@ const STATE_MATRIX = {
   BREAKOUT: {
     posture: "Accompagner le mouvement",
     actions: [
-      "Entrer avec confirmation de cassure",
+      "Cassure — confirmation à lire",
       "Prendre profit partiel au prochain niveau",
       "Serrer le stop sous la zone de reclaim"
     ],
@@ -67,7 +67,7 @@ const STATE_MATRIX = {
   TREND: {
     posture: "Suivre la direction",
     actions: [
-      "Entrer sur retracement propre",
+      "Structure de retracement propre identifiée",
       "Laisser courir la position principale",
       "Ajouter sur confirmation de continuation"
     ],
