@@ -3261,7 +3261,7 @@ function buildWhyReasons(payload) {
   const market       = (payload.market_state || 'range').toLowerCase();
   const risk         = payload.trigger_level || 'Faible';
   const score        = payload.score ?? 50;
-  const instantLevel = payload.behavior?.overtradingLevel || 1;
+  const instantLevel = payload.behavior?.riskLevel ?? 1;
   // effectiveLevel — mirrors visual layer: calm caps behavioral display at 2.
   const effectiveLevel = (emotion === 'calm') ? Math.min(instantLevel, 2) : instantLevel;
 
@@ -4760,20 +4760,20 @@ function render() {
 
   // ── Overtrading Block — Merged Behavior Guard ────────────────────────
   // The final level is the MAX of two independent sources:
-  //   1. Instant Guard  — computed by engine.js / buildPayload() on every run.
-  //      Source: currentPayload.behavior.overtradingLevel (integer 1–5).
-  //      Always live. Always authoritative. Never reduced by historical data.
+  //   1. Behavioral risk — behavior.riskLevel from engine.js payload (always 1/neutral).
+  //      Only elevated by the behavioral layer (render.js) via proven sources:
+  //      CSV guardLevel (localStorage, 7-day TTL) or adaptive rolling tone (tilt).
+  //      market.pressureLevel (market score) is intentionally excluded here.
   //   2. Historical Guard — produced by the CSV/XLS Behavior Analysis module
   //      (src/js/behavior/) after a file import, stored in localStorage.
   //      Key: cameleon.behavior.v1.guardLevel
   //      Expires after 7 days. If absent or expired, falls back to 1 (no effect).
   //
-  // MERGE RULE: finalLevel = Math.max(instant, historical)
-  // Historical behavior may raise caution but must never reduce the instant guard.
-  // engine.js and buildPayload() are not involved in this merge.
+  // MERGE RULE: finalLevel = Math.max(riskLevel, historical)
+  // market.pressureLevel never feeds this block — pression marché ≠ comportement prouvé.
   // See: src/js/behavior/README.md
   // ──────────────────────────────────────────────────────────────────────
-  const instantLevel = currentPayload?.behavior?.overtradingLevel || 1;
+  const instantLevel = currentPayload?.behavior?.riskLevel ?? 1;
 
   let historicalLevel = 1;
   const _storedLvl = behaviorGuard.readHistoricalLevel();
