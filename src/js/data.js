@@ -56,7 +56,7 @@ export const MARKET_STATES = {
     posture: "Momentum",
     action: "Entrer avec confirmation",
     avoid: "Entrée non valide",
-    decision: "Le marché démarre un mouvement exploitable."
+    decision: "Cassure en cours — confirmation nécessaire."
   },
   TREND: {
     label: "Tendance",
