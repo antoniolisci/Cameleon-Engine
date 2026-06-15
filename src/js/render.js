@@ -2735,7 +2735,7 @@ function renderHero(payload) {
   // Mantra opérationnel — contextuel selon état marché
   const _presDict = _getPresentationDict(payload, MARKET_DICTIONARY[getDictKey(cockpit.marketKey)] || {});
   setQueryText(".mantra-operationnel-main",
-    _presDict.mantra || "Lire. Filtrer. Agir."
+    _presDict.mantra || "Lire. Filtrer. Décider."
   );
 
   // Signal narratif — contextuel selon état marché
