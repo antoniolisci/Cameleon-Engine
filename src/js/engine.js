@@ -101,7 +101,7 @@ export function profileMatrix(profile, engine, v) {
       sniper = "ON";
       attack = "LIGHT";
       tradingStatus = "SNIPER LIGHT";
-      traffic = "Fenêtre SNIPER légère, uniquement si l'action est réellement nécessaire et immédiatement défendable.";
+      traffic = "Signal SNIPER présent. Contexte défendable uniquement si la nécessité d'agir est réelle.";
     }
   }
 
@@ -111,7 +111,7 @@ export function profileMatrix(profile, engine, v) {
       sniper = "ON";
       attack = "ON";
       tradingStatus = "SNIPER READY";
-      traffic = "La lecture autorise une fenêtre SNIPER, avec une taille disciplinée et une exécution nette.";
+      traffic = "Lecture SNIPER cohérente avec le profil. Taille disciplinée et exécution nette requises.";
     } else if (engine.attackRaw === "ON") {
       attack = "LIGHT";
       tradingStatus = "TRADE LIGHT";
@@ -125,7 +125,7 @@ export function profileMatrix(profile, engine, v) {
       sniper = "ON";
       attack = "ON";
       tradingStatus = "SNIPER READY";
-      traffic = "Fenêtre offensive ouverte, à condition de conserver une exécution propre et réversible.";
+      traffic = "Signal offensif présent. Exécution propre et réversible obligatoire.";
     } else if (engine.attackRaw === "ON") {
       attack = "ON";
       tradingStatus = "TRADE OK";
@@ -213,7 +213,7 @@ export function applyValidation(profileOut, v) {
     if (result.sniper === "ON") result.sniper = "WATCH";
     if (result.attack === "ON") result.attack = "LIGHT";
     result.tradingStatus = "WAIT VALIDATION";
-    validationSummary = "Le setup est visible, mais la validation humaine manque encore pour ouvrir franchement la fenêtre.";
+    validationSummary = "Le setup est visible. La validation humaine reste nécessaire avant toute exécution.";
   }
 
   // Semi-verrou contextuel : accepté sans note → sniper en observation
@@ -300,16 +300,16 @@ export function buildPayload(v, previousPayload = null) {
   let tags = ["universel", v.userProfile.toLowerCase(), "core"];
 
   if (filtered.sniper === "ON") {
-    action = "La fenêtre SNIPER est ouverte : l'opportunité existe, mais elle doit rester légère, propre et parfaitement tenue.";
-    summary = "Le setup est suffisamment clair pour autoriser une lecture SNIPER alignée avec le profil et la validation.";
+    action = "Signal SNIPER présent. Contexte lisible. Contraintes de taille et de tenue identifiées.";
+    summary = "Le setup est suffisamment clair. La lecture SNIPER est cohérente avec le profil et la validation.";
     tags = ["sniper", v.userProfile.toLowerCase(), "adaptatif"];
   } else if (filtered.sniper === "WATCH") {
     action = "Le setup mérite une veille SNIPER, sans déclenchement tant que la validation humaine n'a pas verrouillé le contexte.";
     summary = "La structure existe, mais l'exécution reste volontairement retenue jusqu'à confirmation humaine.";
     tags = ["sniper-watch", v.userProfile.toLowerCase(), "validation"];
   } else if (filtered.attack === "ON") {
-    action = "Une offensive peut être travaillée : le contexte l'autorise, mais uniquement dans un cadre de risque strict.";
-    summary = "Le moteur ouvre une couche offensive parce que le profil, la structure et la validation restent cohérents.";
+    action = "Couche offensive possible dans un cadre de risque strict. Contexte cohérent.";
+    summary = "Le profil, la structure et la validation restent cohérents. Couche offensive retenue.";
     tags = ["attack", v.userProfile.toLowerCase(), "adaptatif"];
   } else if (filtered.attack === "LIGHT") {
     action = "Une offensive légère peut être envisagée, avec une exposition réduite et un niveau d'exigence inchangé.";
@@ -418,7 +418,7 @@ export function deriveUiModel(payload) {
     journalRisk: payload.trigger_level,
     journalAction: payload.trading_status,
     signalPill: payload.trigger_intelligent.level,
-    signalMain: offensive ? "Le moteur lit une fenêtre exploitable, mais elle reste filtrée par le profil et la tenue d'exécution." : "Le moteur préfère encore la clarté du cadre à la tentation de précipiter un geste moyen.",
+    signalMain: offensive ? "Le moteur détecte un contexte offensif filtré par le profil et la tenue d'exécution." : "Le moteur préfère encore la clarté du cadre à la tentation de précipiter un geste moyen.",
     signalSub: payload.validation.summary,
     mantraPill: payload.validation.state.toUpperCase(),
     mantraMain: offensive ? "Exécuter léger, confirmer vite, sortir net si la structure se fissure." : "Préserver le socle, filtrer l'émotion, attendre la preuve qui mérite vraiment l'action.",
@@ -426,7 +426,7 @@ export function deriveUiModel(payload) {
     structureSub: payload.setup_inputs.structure_signal === "none" ? "Aucune structure offensive propre n'est encore installée." : "Le setup apporte une base lisible pour travailler la décision.",
     riskAlert: payload.trigger_level,
     riskSub: payload.traffic_light,
-    opportunityAlert: offensive ? "Ouverte" : waiting ? "Patiente" : "Contrôlée",
+    opportunityAlert: offensive ? "Signal présent" : waiting ? "Patiente" : "Contrôlée",
     opportunitySub: payload.action_recommended,
     disciplineAlert: payload.validation.state === "rejected" ? "Blocage" : "Critique",
     disciplineSub: payload.validation.summary,
@@ -439,6 +439,6 @@ export function deriveUiModel(payload) {
     decisionPanel: payload.action_recommended,
     ultraShortPanel: `${payload.market_label} · ${payload.trading_status}`,
     alignmentNote: payload.alignment === "Bon" ? "Le marché et la Constellium restent cohérents." : "Une friction interne impose davantage de retenue.",
-    scoreSub: payload.score >= 70 ? "Contexte puissant" : payload.score >= 50 ? "Contexte exploitable" : "Contexte fragile"
+    scoreSub: payload.score >= 70 ? "Contexte puissant" : payload.score >= 50 ? "Contexte lisible" : "Contexte fragile"
   };
 }
