@@ -22,6 +22,7 @@ Ce principe contient tout. Il n'admet aucune exception.
 - Un **système de friction intelligente** : il ralentit le geste impulsif sans bloquer l'action.
 - Un **miroir lucide** : il restitue l'état comportemental de l'utilisateur sans le juger.
 - Une **présence calme** : plus la situation est intense, plus le cockpit est calme.
+- Un **conservateur de mémoire déclarative** : il conserve les états comportementaux déclarés session par session et permet leur mise en regard avec le présent.
 
 Référence complète : `docs/manifesto-cameleon-engine.md §I`
 
@@ -75,6 +76,7 @@ N0  Principe fondateur        manifesto-cameleon-engine.md §XVI
 N1  Doctrine identité         manifesto-cameleon-engine.md + IDENTITY_V1.md (ce document)
 N2  Doctrine langage          cameleon_engine_language_system_v1.md
                                lecture_not_equal_action.md
+                               memory_doctrine_v1.md
 N3  Doctrine architecture     how-cameleon-reads-v1.md
                                canonical_motor_state_2026.md
 N4  Déclinaisons opérat.      guide-operateur-v1.md

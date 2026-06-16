@@ -669,6 +669,64 @@ La doctrine linguistique de Caméléon Engine n'est pas un guide de style. C'est
 
 ---
 
+## PARTIE 10 — Doctrine de la mémoire comportementale
+
+---
+
+### Principe
+
+La mémoire comportementale est une extension temporelle de la Couche 1 — Lecture — appliquée au comportement passé de l'opérateur. Elle hérite de toutes les contraintes de la Lecture : décrire l'observable, jamais prescrire.
+
+Elle ne constitue pas une sixième couche. Elle ne produit pas de verdict. Si un affichage mémoire ressemble à une instruction, il est mal placé dans la hiérarchie.
+
+---
+
+### Ce que les affichages mémoire ont le droit de faire
+
+- Retenir et restituer ce que l'opérateur a déclaré lors des sessions passées.
+- Comparer un état passé et l'état présent.
+- Décrire un état comportemental en termes factuels et au passé de constat.
+
+---
+
+### Ce que les affichages mémoire n'ont jamais le droit de faire
+
+- Conseiller, prescrire, recommander.
+- Prédire ou extrapoler.
+- Expliquer causalement ("à cause de", "parce que").
+- Fusionner lecture marché et mémoire comportementale en un verdict unique.
+- Présenter une évolution non prouvée comme un fait accompli.
+
+---
+
+### Règles de langage pour les affichages mémoire
+
+**R-M01 — Temps de constat uniquement**
+Passé composé, imparfait. Interdits : futur, conditionnel prescriptif, impératif.
+- ✅ *"Tu as déclaré 7 fois une entrée FOMO sur les 10 dernières sessions."*
+- ❌ *"Tu devrais éviter les entrées FOMO."*
+
+**R-M02 — La mise en regard est descriptive, jamais directive**
+- ✅ *"Tu faisais cela. Aujourd'hui, le contexte est différent."*
+- ❌ *"Le motif passé indique que tu devrais attendre."*
+
+**R-M03 — L'absence de changement est un fait, pas un échec**
+- ✅ *"Le motif reste stable sur les 10 dernières sessions."*
+- ❌ *"Tu n'as pas progressé."*
+
+**R-M04 — La certification du changement est factuelle ou absente**
+- ✅ *"Ce motif n'est plus apparu sur les dernières sessions."* (changement constaté)
+- ❌ *"Tu as changé."* (assertion non vérifiée)
+
+**R-M05 — La mémoire ne produit pas de verdict**
+Elle décrit. Elle ne conclut pas. Toute conclusion appartient à la Final Decision.
+
+---
+
+**Référence doctrine complète :** `docs/doctrine/memory_doctrine_v1.md`
+
+---
+
 *CAMÉLÉON ENGINE — LANGUAGE SYSTEM V1*
 *Document fondateur. Aucun code. Aucune modification. Référence permanente.*
 *Chemin : `docs/doctrine/cameleon_engine_language_system_v1.md`*

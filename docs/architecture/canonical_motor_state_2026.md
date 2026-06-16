@@ -3,6 +3,9 @@
 **Commit de référence :** `aacfad1` — 2026-06-03
 **Périmètre :** code source uniquement. Aucune intention, aucune vision future.
 
+> **Révision 2026-06-16**
+> Le §2 initial décrivait un `overtradingLevel` calculé dans `buildPayload()` avec 4 ajustements formulaire (`needAction`, `validationState`, `structureSignal`, `momentumSignal`). Ce calcul **n'existe plus dans le code actuel**. `buildPayload()` assigne `behavior.riskLevel = 1` (neutre, fixe). La pression comportementale instantanée est exposée via `payload.market.pressureLevel`. §2 et §6 ont été mis à jour.
+
 ---
 
 ## 1. Pipeline principal
@@ -21,7 +24,7 @@ Form Input (16 champs)
   → render.js                  src/js/render.js          — injection DOM + mise à jour historique
 ```
 
-Le `buildPayload()` intègre également le calcul du guard comportemental instantané (voir §2) et le pipeline V2 (voir §4).
+Le `buildPayload()` expose également `payload.market.pressureLevel` et `payload.behavior.riskLevel` (voir §2) et le pipeline V2 (voir §4).
 
 **Persistance :** état formulaire + historique (max 50 snapshots) en `localStorage` via `src/js/state.js` et `src/js/storage.js`.
 
@@ -41,39 +44,33 @@ Le `buildPayload()` intègre également le calcul du guard comportemental instan
 
 ---
 
-### Calcul du guard instantané — `engine.js:251–257`
+### Pression marché instantanée — `engine.js` · `buildPayload()`
 
-Le `overtradingLevel` est calculé dans `buildPayload()` en deux temps.
+Depuis la refactorisation de juin 2026, `buildPayload()` expose deux champs distincts. Aucun `overtradingLevel` composite n'est calculé.
 
-**Base** — dérivée de `engine.score` (score d'urgence brut, 0–100, sens inverse de la santé comportementale) :
-
-```
-engine.score > 85  →  base 5
-engine.score > 70  →  base 4
-engine.score > 50  →  base 3
-engine.score >= 30 →  base 2
-engine.score < 30  →  base 1
-```
-
-**Ajustements** appliqués sur la base (résultat clampé entre 1 et 5) :
+**`payload.market.pressureLevel`** — pression marché pure, dérivée de `engine.score` (5 seuils, aucun ajustement formulaire) :
 
 ```
-+1  si needAction         = "yes"
-+1  si validationState    = "pending"
-+1  si structureSignal    = "none"
-+1  si momentumSignal     = "none"
-−1  si emotion            = "calm"
+engine.score > 85  →  5
+engine.score > 70  →  4
+engine.score > 50  →  3
+engine.score >= 30 →  2
+engine.score < 30  →  1
 ```
 
-`overtradingLevel = Math.min(5, Math.max(1, base + ajustements))`
+**`payload.behavior.riskLevel`** — toujours `1` (neutre, fixe). Valeur déclarée, non calculée. Neutre jusqu'à la connexion effective du module comportemental historique (voir §5).
 
-**Note sur les sens d'échelle :** `engine.score` élevé = marché actif/risqué → niveau guard élevé. Le score comportemental historique (§5) est sur l'échelle inverse : élevé = discipliné → niveau guard faible.
+Le niveau effectif affiché dans la carte comportementale est calculé dans `render.js` par merge :
+`effectiveLevel = Math.max(payload.behavior.riskLevel, behaviorGuard.readHistoricalLevel())`
+avec cap émotionnel (`calm → Math.min(level, 2)`).
+
+**Note sur les sens d'échelle :** `engine.score` élevé = marché actif/risqué → `pressureLevel` élevé. Le score comportemental historique (§5) est sur l'échelle inverse : score élevé = discipliné → `guardLevel` faible dans `behavior-bridge.js`.
 
 ---
 
 ### Guard historique — lecture dans `render.js`
 
-`render.js:56–64` lit le `guardLevel` stocké en `localStorage` (TTL 7 jours, écrit par `behavior-view.js` après import CSV/XLSX). Le niveau effectif affiché est `Math.max(instantLevel, historicalLevel)`. Ce merge de lecture n'affecte **pas** les effets moteur (engagement REDUCED, attack OFF, etc.) — ceux-ci sont déterminés uniquement par l'`overtradingLevel` de `buildPayload()`.
+`render.js:56–64` lit le `guardLevel` stocké en `localStorage` (TTL 7 jours, écrit par `behavior-view.js` après import CSV/XLSX). Le niveau effectif affiché est `Math.max(instantLevel, historicalLevel)`. Ce merge de lecture n'affecte **pas** les effets moteur (engagement REDUCED, attack OFF, etc.) — ceux-ci sont déterminés uniquement par l'`effectiveLevel` calculé dans `render.js` (merge de `riskLevel` et du niveau historique).
 
 ## 3. Distinction Friction / friction.js
 
@@ -85,18 +82,19 @@ Deux objets distincts portent le mot "friction". Aucun conflit d'exécution. Con
 | Fichier | `overtrading-dictionary.js` | `src/js/friction.js` |
 | Rôle | Étiquette qualitative : résistance cognitive naissante, biais début | Délai temporel sur boutons d'action proportionnel au score de confiance |
 | Effets moteur | Aucun (niveau 3 ne déclenche pas de modification payload) | Aucun — la callback s'exécute toujours, quel que soit le score |
-| Déclenchement | Calculé par `buildPayload()` si `overtradingLevel = 3` | Appelé dans `render.js` sur clic snapshot / attack / sniper |
+| Déclenchement | Atteint si `effectiveLevel = 3` dans `render.js` (merge `riskLevel` + historique) | Appelé dans `render.js` sur clic snapshot / attack / sniper |
 | Grille de délai | — | score ≥ 80 → 0 ms · score ≥ 55 → 1 500 ms · score ≥ 30 → 3 000 ms · score < 30 → 5 000 ms |
 | Accès localStorage | — | Aucun (contrat explicite dans le fichier) |
 
 ## 4. Ce qui est connecté aujourd'hui
 
-### Guard instantané → payload → render
+### Pression marché → payload → render
 
 ```
 engine.js buildPayload()
-  → payload.behavior.overtradingLevel  (entier 1–5)
-  → render.js getBehaviorState()       lecture + Math.max avec historical
+  → payload.behavior.riskLevel = 1     (fixe, neutre)
+  → payload.market.pressureLevel       (entier 1–5, dérivé engine.score)
+  → render.js getBehaviorState()       instantLevel = riskLevel ?? 1 · Math.max avec historical
   → renderBehaviorCard()               affichage carte comportementale
   → OVERTRADING_DICT[effectiveLevel]   données texte / images
 ```
@@ -171,7 +169,7 @@ Trois systèmes distincts produisent des lectures comportementales. Ils coexiste
 
 | Système | Fichier | Calcul | Sortie | Affiché où |
 |---------|---------|--------|--------|-----------|
-| Guard instantané | `engine.js:251` | engine.score + 4 modificateurs | `overtradingLevel` 1–5 | Carte comportementale, effets moteur |
+| Pression marché | `engine.js` | engine.score seul (5 seuils) | `pressureLevel` 1–5 dans `payload.market` | Carte comportementale (merge avec historique dans `render.js`) |
 | UX State | `ux-state.js` | Historique snapshots session (émotion, décision, marché) | `CALM / TENSION / DRIFT / DANGER` | `.behavior-block` dans actionPlan |
 | Drift detection | `render.js:2330` | Comptage FOMO / tension / blocages / attentes sur 20 derniers snapshots localStorage | Alerte contextuelle | `#behaviorAlertCard` / `#preBehaviorAlertCard` |
 

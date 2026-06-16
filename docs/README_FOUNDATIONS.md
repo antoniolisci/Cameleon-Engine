@@ -32,11 +32,23 @@ Ces documents ne sont pas du marketing. Ils définissent :
 > - `docs/doctrine/cameleon_engine_language_system_v1.md` — règles de langage exhaustives, 5 couches, mots bannis, 20 règles fondatrices.
 > - `docs/doctrine/lecture_not_equal_action.md` — principe fondateur Lecture ≠ Action, 10 tests de conformité.
 > - `docs/doctrine/IDENTITY_V1.md` — point d'entrée synthétique, hiérarchie doctrinale N0–N5.
+> - `docs/doctrine/memory_doctrine_v1.md` — doctrine N2 de la mémoire comportementale : règles d'affichage, ce que la mémoire peut et ne peut jamais faire.
 >
 > Le modèle cognitif officiel est désormais : **Lecture → Compréhension → Décision humaine**
 > (remplace définitivement : Lecture → Signal → Exécution)
 >
 > Pour la hiérarchie complète des sources de vérité, voir : `memory/project_doctrine_hierarchy.md`
+
+---
+
+### IDENTITY V1 — Point d'entrée identitaire
+
+| | |
+|---|---|
+| **Chemin** | `docs/doctrine/IDENTITY_V1.md` |
+| **Rôle** | Point d'entrée synthétique pour toute question identitaire. Ce que le produit est, ce qu'il n'est pas, le modèle cognitif officiel, la hiérarchie doctrinale N0–N5. |
+| **Statut** | Référence active · Document fondateur |
+| **Importance** | À lire en premier avant tout chantier. Contient les 5 tests de conformité rapides et le vocabulaire officiel. |
 
 ---
 
@@ -75,11 +87,12 @@ Ces documents ne sont pas du marketing. Ils définissent :
 
 ## 3. Ordre de lecture recommandé
 
-1. **How Caméléon Reads** — comprendre ce que le moteur fait réellement avant tout le reste.
-2. **Constellium Visual Charter** — comprendre les règles de la couche de représentation secondaire.
-3. **Synthèse stratégique 48h** — comprendre le contexte des décisions et les directions exclues.
+1. **IDENTITY V1** — comprendre ce que le produit est et n'est pas avant tout le reste. Contient la hiérarchie doctrinale complète et les tests de conformité.
+2. **How Caméléon Reads** — comprendre le fonctionnement structurel du moteur.
+3. **Constellium Visual Charter** — comprendre les règles de la couche de représentation secondaire.
+4. **Synthèse stratégique 48h** — comprendre le contexte des décisions et les directions exclues.
 
-Cet ordre existe parce que la lecture du moteur est le socle. La représentation visuelle est secondaire au moteur. La synthèse stratégique donne le contexte des arbitrages sans lequel les deux premiers documents semblent arbitraires.
+Cet ordre existe parce que la doctrine identitaire est le filtre de tout le reste. La lecture du moteur est le socle technique. La représentation visuelle est secondaire au moteur. La synthèse stratégique donne le contexte des arbitrages sans lequel les documents précédents semblent arbitraires.
 
 ---
 
