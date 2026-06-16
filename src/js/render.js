@@ -2349,9 +2349,9 @@ function detectBehaviorDrift(history) {
   const blockedCount = history.filter(h => h.state === "BLOCKED").length;
   const waitCount    = history.filter(h => h.state === "WAIT").length;
 
-  if (fomoCount    >= 3) return { type: "warning", message: "FOMO répété — ralentir avant d'agir" };
-  if (tensionCount >= 3) return { type: "warning", message: "Tension élevée — réduire l'exposition" };
-  if (blockedCount >= 4) return { type: "warning", message: "Blocages fréquents — éviter toute entrée" };
+  if (fomoCount    >= 3) return { type: "warning", message: "FOMO répété sur les sessions observées." };
+  if (tensionCount >= 3) return { type: "warning", message: "Tension élevée observée sur la période." };
+  if (blockedCount >= 4) return { type: "warning", message: "Blocages fréquents sur les sessions récentes." };
   if (waitCount    >= 5) return { type: "warning", message: "Attente prolongée — marché peu lisible" };
   return null;
 }
@@ -2421,9 +2421,9 @@ function detectPreBehaviorDrift(history) {
   const scores    = history.map(h => h.score).filter(s => s !== null && s !== undefined);
   const scoreDrop = scores.length >= 3 && scores[0] < scores[1] && scores[1] < scores[2];
 
-  if (fomoCount    >= 2)                return { type: "soft-warning", message: "Signal FOMO récurrent. Vérifier avant toute entrée." };
-  if (tensionCount >= 2)                return { type: "soft-warning", message: "Tension persistante sur la période. Ralentir le rythme." };
-  if (scoreDrop)                        return { type: "soft-warning", message: "Clarté en baisse. Éviter les décisions sous pression." };
+  if (fomoCount    >= 2)                return { type: "soft-warning", message: "Signal FOMO récurrent sur la période observée." };
+  if (tensionCount >= 2)                return { type: "soft-warning", message: "Tension persistante sur la période observée." };
+  if (scoreDrop)                        return { type: "soft-warning", message: "Clarté en baisse sur les sessions récentes." };
   if (waitCount >= 1 && fomoCount >= 1) return { type: "soft-warning", message: "Patience fragile. Risque de forcer une entrée." };
   return null;
 }
