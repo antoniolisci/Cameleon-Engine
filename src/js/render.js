@@ -4865,17 +4865,17 @@ function buildCurrentPayload() {
 
   // Levier 1 — tag comportemental par snapshot (mémoire déclarative)
   // Levier 2 — niveau historique dans le payload persisté
-  // Même logique de merge que le bloc overtrading de render() :
-  //   effectiveLevel = max(riskLevel, historical), cap calm→2.
+  // overtradingLevel = merge brut (max riskLevel, historical).
+  // Le cap émotionnel calm→2 est une protection visuelle : il appartient
+  // exclusivement au bloc overtrading de render(), pas à la persistance.
+  // Stocker le niveau cappé en mémoire distordrait les motifs futurs.
   const _instantLvl    = payload.behavior?.riskLevel ?? 1;
   const _historicalLvl = behaviorGuard.readHistoricalLevel() ?? 1;
   const _mergedLvl     = Math.max(_instantLvl, _historicalLvl);
-  const _emotion       = appState.form?.emotion || '';
-  const _effectiveLvl  = (_emotion === 'calm') ? Math.min(_mergedLvl, 2) : _mergedLvl;
   payload.behavior = {
     ...payload.behavior,
-    overtradingLevel:    _effectiveLvl,
-    overtradingLabel:    OVERTRADING_DICT[_effectiveLvl]?.etat ?? 'Ancré',
+    overtradingLevel:    _mergedLvl,
+    overtradingLabel:    OVERTRADING_DICT[_mergedLvl]?.etat ?? 'Ancré',
     historicalGuardLevel: _historicalLvl,
   };
 
