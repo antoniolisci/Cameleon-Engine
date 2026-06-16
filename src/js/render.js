@@ -30,6 +30,12 @@ import { applyFriction } from "./friction.js";
 import { applyMacroOverlay } from "./macro-context.js";
 import { computeUXState } from "./ux-state.js";
 import { V2_FLAGS } from "./v2/flags.js";
+import {
+  extractBehaviorSeries,
+  computeTransitionPairs,
+  detectPatterns,
+  formatPatternDescriptions,
+} from "./memory-reader.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1694,6 +1700,9 @@ let latestSnapshotContext = null;
 let saveSnapshotFeedbackTimer = null;
 const SNAPSHOT_BTN_LABEL = "Mémoriser cet état";
 const SNAPSHOT_BTN_CONFIRM = "État mémorisé";
+let saveBehaviorFeedbackTimer = null;
+const SAVE_BEHAVIOR_BTN_LABEL   = "Enregistrer dans la mémoire";
+const SAVE_BEHAVIOR_BTN_CONFIRM = "Lecture enregistrée";
 
 function saveSnapshot(snapshot) {
   const last = backups.getAll()[0];
@@ -4900,6 +4909,35 @@ function saveDay() {
   appState.history = [...appState.history, currentPayload].slice(-HISTORY_LIMIT);
   saveState(appState);
   render();
+  renderPatternReflection();
+}
+
+function renderPatternReflection() {
+  const container = $('patternReflectionCard');
+  if (!container) return;
+
+  const extracted = extractBehaviorSeries();
+
+  let lines;
+  if (extracted.state === 'INSUFFICIENT') {
+    lines = formatPatternDescriptions(
+      { state: 'INSUFFICIENT' },
+      { count: extracted.count, bounds: null }
+    );
+  } else {
+    const { series, bounds } = extracted;
+    const pairs   = computeTransitionPairs(series);
+    const result  = detectPatterns(pairs);
+    lines = formatPatternDescriptions(result, { count: series.length, bounds });
+  }
+
+  container.innerHTML = '';
+  lines.forEach(text => {
+    const p = document.createElement('p');
+    p.className = 'pattern-reflection-line';
+    p.textContent = text;
+    container.appendChild(p);
+  });
 }
 
 function clearHistory() {
@@ -4944,6 +4982,7 @@ function activateTab(tab) {
   syncTabs(tab);
   saveState(appState);
   render();
+  if (tab === 'memoire') renderPatternReflection();
   focusPanel(TAB_FOCUS_TARGETS[tab] || TAB_FOCUS_TARGETS.moteur);
 }
 
@@ -5111,6 +5150,23 @@ function bindControls() {
   });
 
   $("saveBtn")?.addEventListener("click", saveDay);
+  $("saveBehaviorBtn")?.addEventListener("click", () => {
+    saveDay();
+    const btn   = $("saveBehaviorBtn");
+    const label = btn?.querySelector(".mode-btn-title");
+    if (btn && label) {
+      clearTimeout(saveBehaviorFeedbackTimer);
+      label.textContent = SAVE_BEHAVIOR_BTN_CONFIRM;
+      btn.classList.add("snapshot-confirm");
+      btn.disabled = true;
+      saveBehaviorFeedbackTimer = setTimeout(() => {
+        label.textContent = SAVE_BEHAVIOR_BTN_LABEL;
+        btn.classList.remove("snapshot-confirm");
+        btn.disabled = false;
+        saveBehaviorFeedbackTimer = null;
+      }, 1200);
+    }
+  });
   $("clearBtn")?.addEventListener("click", clearHistory);
   $("clearSnapshotBtn")?.addEventListener("click", clearSnapshotHistory);
   $("exportDataBtn")?.addEventListener("click", () => { downloadOperatorData(); });

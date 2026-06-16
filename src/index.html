@@ -661,6 +661,9 @@
                       <div class="mode-btn-title">Mémoriser cet état</div>
                     </button>
                     <div id="snapshotFrictionMsg" class="friction-message" hidden aria-live="polite"></div>
+                    <button id="saveBehaviorBtn" class="mode-btn compact-btn" type="button">
+                      <div class="mode-btn-title">Enregistrer dans la mémoire</div>
+                    </button>
                   </div>
 
                   <div class="table-shell">
@@ -706,6 +709,17 @@
                         <div id="history"></div>
                       </div>
                       <div id="behaviorRepetitionCard" class="side-card"></div>
+
+                      <!-- LECTEUR DE MÉMOIRE MINIMAL V1 — Refléter le motif -->
+                      <section class="side-card">
+                        <div class="card-head">
+                          <div>
+                            <h2 class="card-title">Motifs de transition</h2>
+                            <p class="card-desc">Transitions comportementales issues des lectures sauvegardées via « Sauvegarder la lecture ».</p>
+                          </div>
+                        </div>
+                        <div id="patternReflectionCard"></div>
+                      </section>
                     </div>
 
                     <!-- SIGNAL -->
