@@ -2,21 +2,21 @@
 
 **Niveau :** N5 — Documentation technique d'implémentation
 **Créé :** 2026-06-16
-**Statut :** Prêt pour implémentation
+**Statut :** Terminé — Étape 4 opérationnelle (Lecteur de Mémoire Minimal V1, commit c853be8)
 **Doctrine de référence :** `docs/doctrine/memory_doctrine_v1.md`
 
 ---
 
 ## État de la boucle mémoire
 
-La boucle comporte 5 étapes. 3 sont opérationnelles. 2 sont en construction.
+La boucle comporte 5 étapes. 4 sont opérationnelles. 1 est en construction.
 
 ```
 Déclarer          ✅ Opérationnel  — l'opérateur déclare son état à chaque snapshot
 Retenir           ✅ Opérationnel  — les snapshots sont persistés en localStorage
 Mettre en tension ✅ Opérationnel  — la Drift Detection compare passé et présent
-Refléter le motif 🔧 En construction — tag comportemental par snapshot (Levier 1)
-Certifier le      🔧 En construction — observation stable du changement (dépend de Levier 1)
+Refléter le motif ✅ Opérationnel  — Lecteur de Mémoire Minimal V1 livré (commit c853be8)
+Certifier le      🔧 En construction — dépend de l'accumulation de données réelles
 changement
 ```
 
