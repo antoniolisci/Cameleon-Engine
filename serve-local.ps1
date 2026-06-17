@@ -42,12 +42,13 @@ function Write-HttpResponse {
 }
 
 $rootPath = [System.IO.Path]::GetFullPath($Root)
-$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $Port)
+$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $Port)
 
 try {
   $listener.Start()
   Write-Host "Serving $rootPath"
   Write-Host "Open http://localhost:$Port$StartPage"
+  Write-Host "Open http://192.168.1.156:$Port$StartPage  (reseau local - iPad)"
   Write-Host "Press Ctrl+C to stop."
 
   while ($true) {
