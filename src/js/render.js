@@ -35,6 +35,9 @@ import {
   computeTransitionPairs,
   detectPatterns,
   formatPatternDescriptions,
+  splitSeriesIntoWindows,
+  computeWindowDistribution,
+  formatCertificationDescriptions,
 } from "./memory-reader.js";
 
 const $ = (id) => document.getElementById(id);
@@ -4910,6 +4913,7 @@ function saveDay() {
   saveState(appState);
   render();
   renderPatternReflection();
+  renderChangeCertification();
 }
 
 function renderPatternReflection() {
@@ -4929,6 +4933,48 @@ function renderPatternReflection() {
     const pairs   = computeTransitionPairs(series);
     const result  = detectPatterns(pairs);
     lines = formatPatternDescriptions(result, { count: series.length, bounds });
+  }
+
+  container.innerHTML = '';
+  lines.forEach(text => {
+    const p = document.createElement('p');
+    p.className = 'pattern-reflection-line';
+    p.textContent = text;
+    container.appendChild(p);
+  });
+}
+
+function renderChangeCertification() {
+  const container = $('changeCertificationCard');
+  if (!container) return;
+
+  const extracted = extractBehaviorSeries();
+  const minTotal  = 10; // CERTIFICATION_MIN_SNAPSHOTS_PER_WINDOW * 2
+
+  let lines;
+
+  if (extracted.state === 'INSUFFICIENT') {
+    const n = extracted.count;
+    lines = [
+      `Données insuffisantes pour comparer deux fenêtres` +
+      ` (${n} snapshot${n !== 1 ? 's' : ''} disponible${n !== 1 ? 's' : ''}` +
+      ` — seuil minimal : ${minTotal}).`
+    ];
+  } else {
+    const split = splitSeriesIntoWindows(extracted.series);
+
+    if (split.state === 'INSUFFICIENT_FOR_CERTIFICATION') {
+      const n = split.total;
+      lines = [
+        `Données insuffisantes pour comparer deux fenêtres` +
+        ` (${n} snapshot${n !== 1 ? 's' : ''} disponible${n !== 1 ? 's' : ''}` +
+        ` — seuil minimal : ${minTotal}).`
+      ];
+    } else {
+      const w1Dist = computeWindowDistribution(split.w1);
+      const w2Dist = computeWindowDistribution(split.w2);
+      lines = formatCertificationDescriptions(w1Dist, w2Dist);
+    }
   }
 
   container.innerHTML = '';
@@ -4982,7 +5028,10 @@ function activateTab(tab) {
   syncTabs(tab);
   saveState(appState);
   render();
-  if (tab === 'memoire') renderPatternReflection();
+  if (tab === 'memoire') {
+    renderPatternReflection();
+    renderChangeCertification();
+  }
   focusPanel(TAB_FOCUS_TARGETS[tab] || TAB_FOCUS_TARGETS.moteur);
 }
 

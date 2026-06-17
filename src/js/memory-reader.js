@@ -26,6 +26,11 @@ const MEMORY_MIN_SNAPSHOTS = 5;
 // Valeur provisoire V1. Ne pas modifier sans décision architecturale explicite.
 const MEMORY_MIN_OCCURRENCES = 2;
 
+// Seuil minimal de snapshots par fenêtre pour "Certifier le changement".
+// Valeur provisoire V1. Ne pas modifier sans décision architecturale explicite.
+// Seuil total requis = CERTIFICATION_MIN_SNAPSHOTS_PER_WINDOW * 2.
+const CERTIFICATION_MIN_SNAPSHOTS_PER_WINDOW = 5;
+
 // ── Extraction et validation ──────────────────────────────────
 
 /**
@@ -233,4 +238,148 @@ export function formatPatternDescriptions(result, seriesInfo) {
       ` (${fenetre}).`
     );
   });
+}
+
+// ── Certification du changement (boucle mémoire étape 5) ─────
+// Doctrine de référence : pattern_reflection_doctrine_v1.md §III, §V, §VI, R-P01–R-P08.
+//
+// Fonctions exportées :
+//   splitSeriesIntoWindows(series)              — divise la série en W1 (antérieure) et W2 (récente)
+//   computeWindowDistribution(windowData)       — moyenne + comptage par niveau pour une fenêtre
+//   formatCertificationDescriptions(w1, w2)     — produit les phrases conformes à PRD V1
+
+/**
+ * Divise la série en deux fenêtres consécutives non chevauchantes.
+ * W1 = première moitié (antérieure). W2 = seconde moitié (récente).
+ * Règle : split au milieu (floor). W2 contient les snapshots les plus récents.
+ *
+ * Entrée  : series — tableau [{ overtradingLevel, timestamp }, ...], ordonné chronologiquement,
+ *           issu de extractBehaviorSeries() avec state === 'READY'.
+ *
+ * Sortie :
+ *   { state: 'INSUFFICIENT_FOR_CERTIFICATION', total: N }
+ *     — série totale < CERTIFICATION_MIN_SNAPSHOTS_PER_WINDOW * 2.
+ *       Aucune certification possible.
+ *
+ *   { state: 'READY', w1: WindowData, w2: WindowData }
+ *     — W1 et W2 prêtes pour computeWindowDistribution().
+ *
+ * WindowData : { snapshots, bounds: { first, last }, count }
+ */
+export function splitSeriesIntoWindows(series) {
+  const total    = series.length;
+  const minTotal = CERTIFICATION_MIN_SNAPSHOTS_PER_WINDOW * 2;
+
+  if (total < minTotal) {
+    return { state: 'INSUFFICIENT_FOR_CERTIFICATION', total };
+  }
+
+  const midpoint = Math.floor(total / 2);
+  const w1Snaps  = series.slice(0, midpoint);
+  const w2Snaps  = series.slice(midpoint);
+
+  return {
+    state: 'READY',
+    w1: {
+      snapshots: w1Snaps,
+      bounds:    { first: w1Snaps[0].timestamp, last: w1Snaps[w1Snaps.length - 1].timestamp },
+      count:     w1Snaps.length,
+    },
+    w2: {
+      snapshots: w2Snaps,
+      bounds:    { first: w2Snaps[0].timestamp, last: w2Snaps[w2Snaps.length - 1].timestamp },
+      count:     w2Snaps.length,
+    },
+  };
+}
+
+/**
+ * Calcule la distribution par niveau et la moyenne pour une fenêtre.
+ *
+ * Entrée  : windowData — { snapshots, bounds, count } issu de splitSeriesIntoWindows().
+ * Sortie  : { count, mean, levelCounts, bounds }
+ *   count       = nombre de snapshots dans la fenêtre
+ *   mean        = niveau moyen arrondi à 1 décimale (Math.round(x*10)/10)
+ *   levelCounts = { [level: number]: occurrences } — uniquement les niveaux présents
+ *   bounds      = { first, last } timestamps ISO
+ *
+ * Aucune évaluation normative. Aucun delta. Aucun tri par fréquence.
+ */
+export function computeWindowDistribution(windowData) {
+  const { snapshots, bounds, count } = windowData;
+  const levelCounts = {};
+  let sum = 0;
+
+  for (const { overtradingLevel } of snapshots) {
+    levelCounts[overtradingLevel] = (levelCounts[overtradingLevel] ?? 0) + 1;
+    sum += overtradingLevel;
+  }
+
+  return {
+    count,
+    mean:        Math.round((sum / count) * 10) / 10,
+    levelCounts,
+    bounds,
+  };
+}
+
+/**
+ * Produit les descriptions textuelles conformes à PRD V1 §VI et R-P01–R-P08.
+ *
+ * Entrée :
+ *   w1Dist — sortie de computeWindowDistribution() pour W1
+ *   w2Dist — sortie de computeWindowDistribution() pour W2
+ *
+ * Sortie : string[] — tableau de phrases.
+ *   2 phrases de moyenne (W1 puis W2)
+ *   2 phrases par niveau présent dans W1 ou W2 (W1 puis W2, ordre ascendant 1→5)
+ *
+ * Contraintes doctrinales appliquées :
+ *   R-P01 — sujet = la fenêtre / le niveau, jamais l'opérateur
+ *   R-P04 — aucune évaluation normative (mieux, moins bien, progrès, régression)
+ *   R-P05 — bornes toujours explicites (dates JJ/MM/AAAA)
+ *   PRD V1 §VI — aucun superlatif, aucun delta directionnel, aucune conclusion
+ *
+ * Cette fonction ne lit aucune source externe. Elle ne touche aucun DOM.
+ */
+export function formatCertificationDescriptions(w1Dist, w2Dist) {
+  const w1d1 = _formatDate(w1Dist.bounds.first);
+  const w1d2 = _formatDate(w1Dist.bounds.last);
+  const w2d1 = _formatDate(w2Dist.bounds.first);
+  const w2d2 = _formatDate(w2Dist.bounds.last);
+
+  const lines = [];
+
+  // ── Moyennes ──────────────────────────────────────────────
+  lines.push(
+    `Dans W1 (du ${w1d1} au ${w1d2}), le niveau moyen observé était ${w1Dist.mean}.`
+  );
+  lines.push(
+    `Dans W2 (du ${w2d1} au ${w2d2}), le niveau moyen observé était ${w2Dist.mean}.`
+  );
+
+  // ── Distribution par niveau ───────────────────────────────
+  // Union des niveaux présents dans W1 ou W2, triés par ordre croissant (1→5).
+  // Aucun tri par fréquence. Aucun niveau désigné dominant.
+  const allLevels = new Set([
+    ...Object.keys(w1Dist.levelCounts).map(Number),
+    ...Object.keys(w2Dist.levelCounts).map(Number),
+  ]);
+  const sortedLevels = [...allLevels].sort((a, b) => a - b);
+
+  for (const level of sortedLevels) {
+    const label   = _label(level);
+    const c1      = w1Dist.levelCounts[level] ?? 0;
+    const c2      = w2Dist.levelCounts[level] ?? 0;
+    const occ     = n => `${n} occurrence${n !== 1 ? 's' : ''}`;
+
+    lines.push(
+      `Dans W1 (${w1Dist.count} snapshots), le niveau ${level} (${label}) représentait ${occ(c1)} sur ${w1Dist.count}.`
+    );
+    lines.push(
+      `Dans W2 (${w2Dist.count} snapshots), le niveau ${level} (${label}) représentait ${occ(c2)} sur ${w2Dist.count}.`
+    );
+  }
+
+  return lines;
 }
