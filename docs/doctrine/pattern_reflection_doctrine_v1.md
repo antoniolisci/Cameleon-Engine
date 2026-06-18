@@ -440,3 +440,4 @@ Le moteur force un vocabulaire contrôlé. "Friction (3)" en mars désigne la m�
 *Document N2. Extension de memory_doctrine_v1.md.*
 *Chemin : `docs/doctrine/pattern_reflection_doctrine_v1.md`*
 *Aucun code. Aucune implémentation. Aucune UI.*
+*Application Constellium de "Refléter le motif" et "Certifier le changement" : `docs/architecture/constellium/constellium_v1_definition.md` (§3 Étoile 3 · §4 Lien 3)*
