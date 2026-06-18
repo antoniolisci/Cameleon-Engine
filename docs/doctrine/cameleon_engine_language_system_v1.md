@@ -725,6 +725,8 @@ Elle décrit. Elle ne conclut pas. Toute conclusion appartient à la Final Decis
 
 **Référence doctrine complète :** `docs/doctrine/memory_doctrine_v1.md`
 
+**Extension Constellium — charte linguistique spécifique :** `docs/architecture/constellium/constellium_v1_definition.md` (§7 Langage autorisé)
+
 ---
 
 *CAMÉLÉON ENGINE — LANGUAGE SYSTEM V1*
