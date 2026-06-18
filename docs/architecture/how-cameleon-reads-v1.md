@@ -163,6 +163,8 @@ La direction visuelle du Constellium s'inspire de la météorologie, de la carto
 
 Un élément Constellium est temporaire. Il change avec les données. Il n'est pas une conclusion sur l'utilisateur.
 
+> Définition opérationnelle complète (étoiles, liens, UX, langage) : `docs/architecture/constellium/constellium_v1_definition.md`
+
 ---
 
 ## 5. Pourquoi les données restent souveraines
