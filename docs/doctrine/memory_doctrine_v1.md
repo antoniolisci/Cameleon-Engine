@@ -51,6 +51,8 @@ Les règles de cette doctrine s'appliquent à tout affichage mémoire, qu'il soi
 
 L'état de déploiement de chaque étape de la boucle est documenté dans `docs/architecture/chantier-boucle-memoire-v1.md`.
 
+La façon dont les traces mémoire (sessions, comparaisons W1/W2) apparaissent comme étoiles dans la visualisation Constellium — et les règles de langage associées — est documentée dans `docs/architecture/constellium/constellium_v1_definition.md` (§3 Étoiles V1 · §4 Liens V1 · §7 Langage autorisé).
+
 ---
 
 *CAMÉLÉON ENGINE — MEMORY DOCTRINE V1*
