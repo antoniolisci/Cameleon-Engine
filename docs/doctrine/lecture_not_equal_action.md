@@ -369,3 +369,4 @@ Ces deux documents forment le socle doctrinal du moteur langagier de Caméléon 
 
 *Document fondateur. Version 1.0.*
 *Référence : Language System V1 — docs/doctrine/cameleon_engine_language_system_v1.md*
+*Application Constellium de ce principe (observer sans prescrire) : `docs/architecture/constellium/constellium_v1_definition.md` (§1 Définition négative · §7 Langage autorisé)*
