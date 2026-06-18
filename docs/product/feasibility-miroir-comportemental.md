@@ -453,3 +453,7 @@ L'objectif produit à valider sur le terrain reste :
 
 Ces deux phrases, dans la bouche d'un utilisateur réel, valident la direction
 mieux que n'importe quelle étude de faisabilité.
+
+---
+
+*Le Miroir est documenté comme Étoile 9 dans la définition opérationnelle du Constellium V1, avec ses conditions d'activation : `docs/architecture/constellium/constellium_v1_definition.md` (§3 Étoile 9)*
