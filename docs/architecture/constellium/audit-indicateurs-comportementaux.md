@@ -1115,3 +1115,4 @@ Il ne produit pas de code. Il produit de la clarté.
 ---
 
 *Audit des indicateurs comportementaux — Version 1.0 — 2026-05-25*
+*Définition opérationnelle V1 du Constellium (étoiles, liens, UX) : `constellium_v1_definition.md`*

@@ -1096,3 +1096,4 @@ Ils ne blanchissent jamais les dérives.
 ---
 
 *Profils opérateurs Constellium — Version 1.0 — 2026-05-25*
+*Définition opérationnelle V1 du Constellium (étoiles, liens, UX) : `constellium_v1_definition.md`*

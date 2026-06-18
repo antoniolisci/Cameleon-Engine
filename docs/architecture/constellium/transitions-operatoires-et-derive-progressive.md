@@ -482,3 +482,4 @@ Un moteur adaptatif qui évolue avec l'opérateur risque de devenir progressivem
 *Document fondateur du chantier Constellium — troisième socle doctrinal.*
 *Non implémentable dans l'état actuel. Fondation conceptuelle du futur moteur adaptatif.*
 *Prochaine étape : classification formelle des indicateurs (universel / semi-adaptatif / contextuel) ou architecture anti-sur-ajustement.*
+*Définition opérationnelle V1 du Constellium (étoiles, liens, UX) : `constellium_v1_definition.md`*
