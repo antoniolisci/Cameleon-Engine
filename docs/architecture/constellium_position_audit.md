@@ -6,6 +6,12 @@
 > Ce document répond à une seule question : quelle est la place exacte du Constellium dans Caméléon Engine ?
 > Il ne contient aucun code, aucune UI, aucune implémentation. C'est un audit de position.
 
+> **Mise à jour 2026-06-18** — La définition opérationnelle V1 est maintenant figée :
+> *"Le Constellium est la visualisation des liens entre les traces du décideur."*
+> Référence : `docs/architecture/constellium/constellium_v1_definition.md`
+> Ce document (audit de position) reste la référence pour la place du Constellium dans l'architecture code.
+> La définition V1 répond à la question complémentaire : *que voit l'opérateur quand il accède au Constellium ?*
+
 ---
 
 ## 1. Mission du document
@@ -274,6 +280,7 @@ Le Constellium Sens B (application principale) est la vision produit validée. S
 | Pas de chantier code Constellium maintenant | Figé jusqu'à signal |
 | Option B pédagogique : active et maintenue | Décision active |
 | CST-NAME / CST-NARR / CST-ASSETS : ouvertes, non urgentes | Gelées |
+| Définition opérationnelle V1 figée (2026-06-18) | `constellium/constellium_v1_definition.md` |
 
 ---
 
@@ -299,5 +306,5 @@ Position officielle aujourd'hui : Couche 5 Expression dans l'architecture à 6 c
 
 ---
 
-*Caméléon Engine — Architecture Produit · 2026-06-10*
-*Documents connexes : `product_architecture_post_6c3f6fd.md` · `constellium_code_audit_2026.md` · `macro_layer_doctrine_v1.md`*
+*Caméléon Engine — Architecture Produit · 2026-06-10 · Mise à jour 2026-06-18*
+*Documents connexes : `product_architecture_post_6c3f6fd.md` · `constellium_code_audit_2026.md` · `macro_layer_doctrine_v1.md` · `constellium/constellium_v1_definition.md`*
