@@ -14,6 +14,7 @@ Ces documents décrivent :
 
 | Fichier | Rôle |
 |---|---|
+| `constellium_v1_definition.md` | **Définition officielle V1** — ce que le Constellium est, étoiles, liens, UX, langage, risques · 2026-06-18 |
 | `audit-indicateurs-comportementaux.md` | Audit structurel des 5 patterns comportementaux — limites, problèmes, classification |
 | `profils-operateurs-constellium.md` | 5 régimes opératoires — faux positifs, faux négatifs, garde-fous par profil |
 | `transitions-operatoires-et-derive-progressive.md` | Transitions, dérive progressive, mémoire comportementale, stabilité de profil |
@@ -30,3 +31,9 @@ Le chantier Constellium est considéré comme :
 ## Phrase fondatrice
 
 > La calibration adapte l'interprétation. Elle ne blanchit jamais les dérives.
+
+## Définition de référence (2026-06-18)
+
+> **Le Constellium est la visualisation des liens entre les traces du décideur.**
+
+Voir `constellium_v1_definition.md` pour la définition complète, les étoiles V1, les liens affichables, et les risques.

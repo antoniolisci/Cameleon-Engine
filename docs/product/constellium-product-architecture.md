@@ -2,6 +2,13 @@
 
 > Document canonique · Décision structurante · 2026-06-03
 
+> **Mise à jour 2026-06-18 — Définition opérationnelle V1 disponible**
+> La définition de ce que l'opérateur *voit* dans le Constellium est maintenant figée :
+> *"Le Constellium est la visualisation des liens entre les traces du décideur."*
+> Référence : `docs/architecture/constellium/constellium_v1_definition.md`
+> Ce document couvre l'architecture à 8 couches (vision long terme).
+> La définition V1 couvre les étoiles, les liens affichables, l'UX, le langage et les risques.
+
 ---
 
 ## 1. Décision fondatrice
