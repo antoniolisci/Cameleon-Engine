@@ -353,6 +353,11 @@ Constellium devient pertinent comme chantier d'implémentation quand les conditi
 
 **Avant ces conditions : Constellium reste doctrinal et archivé.**
 
+> **Mise à jour 2026-06-18** — La définition opérationnelle V1 est maintenant figée :
+> *"Le Constellium est la visualisation des liens entre les traces du décideur."*
+> Étoiles, liens affichables, placement UX, langage autorisé et risques documentés dans :
+> `docs/architecture/constellium/constellium_v1_definition.md`
+
 ---
 
 ## 10. Feuille de route réaliste
