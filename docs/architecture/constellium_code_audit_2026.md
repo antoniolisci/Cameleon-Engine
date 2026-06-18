@@ -143,3 +143,5 @@ Un commentaire dans `engine.js` peut documenter leur origine. Leur usage dans `c
 ---
 
 *Ce document décrit ce qui existe. Pas ce qui est espéré.*
+
+*Documents connexes : `constellium_position_audit.md` (position officielle, §13 conditions de déclenchement) · `constellium/constellium_v1_definition.md` (définition opérationnelle V1 — étoiles, liens, UX)*

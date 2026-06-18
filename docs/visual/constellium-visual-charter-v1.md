@@ -283,3 +283,8 @@ Avant d'ajouter un nouvel asset Constellium, vérifier :
 6. Aide-t-il à lire ou raconte-t-il une histoire ?
 
 Si la réponse est floue, l'asset ne doit pas être intégré.
+
+---
+
+*Caméléon Engine — Direction artistique Constellium · 2026-05-27*
+*Documents connexes : `docs/architecture/constellium/constellium_v1_definition.md` (§8 Risques — Risque 1) · `docs/architecture/constellium_position_audit.md` (§7 Couche 5 Expression)*
