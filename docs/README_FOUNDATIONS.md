@@ -63,6 +63,17 @@ Ces documents ne sont pas du marketing. Ils définissent :
 
 ---
 
+### Constellium — Définition V1
+
+| | |
+|---|---|
+| **Chemin** | `docs/architecture/constellium/constellium_v1_definition.md` |
+| **Rôle** | Définit ce que l'opérateur voit dans le Constellium : définition positive et négative, 9 étoiles (traces du décideur), 6 liens affichables, placement UX, charte linguistique, 7 risques. |
+| **Statut** | Référence officielle · 2026-06-18 · Implémentation gelée |
+| **Importance** | Phrase fondatrice : "Le Constellium est la visualisation des liens entre les traces du décideur." Document à consulter avant tout chantier Constellium. |
+
+---
+
 ### Constellium — Visual Charter V1
 
 | | |
@@ -89,8 +100,9 @@ Ces documents ne sont pas du marketing. Ils définissent :
 
 1. **IDENTITY V1** — comprendre ce que le produit est et n'est pas avant tout le reste. Contient la hiérarchie doctrinale complète et les tests de conformité.
 2. **How Caméléon Reads** — comprendre le fonctionnement structurel du moteur.
-3. **Constellium Visual Charter** — comprendre les règles de la couche de représentation secondaire.
-4. **Synthèse stratégique 48h** — comprendre le contexte des décisions et les directions exclues.
+3. **Constellium Définition V1** — comprendre ce que le Constellium devient : traces, liens, UX, langage autorisé.
+4. **Constellium Visual Charter** — comprendre les règles de la couche de représentation secondaire.
+5. **Synthèse stratégique 48h** — comprendre le contexte des décisions et les directions exclues.
 
 Cet ordre existe parce que la doctrine identitaire est le filtre de tout le reste. La lecture du moteur est le socle technique. La représentation visuelle est secondaire au moteur. La synthèse stratégique donne le contexte des arbitrages sans lequel les documents précédents semblent arbitraires.
 
