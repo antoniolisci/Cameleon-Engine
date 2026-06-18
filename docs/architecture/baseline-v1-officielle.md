@@ -402,6 +402,8 @@ Constellium est actuellement dormant (CSS `display: none`, HTML intact). La lect
 
 > La Baseline est une donnée moteur. Constellium est une surface d'expression narrative. Le flux est à sens unique : moteur → Constellium. Jamais l'inverse.
 
+> Définition opérationnelle du Constellium (étoiles, liens, UX, langage) : `docs/architecture/constellium/constellium_v1_definition.md`
+
 ## 10. Conditions non négociables avant implémentation
 
 Ces conditions doivent être intégrées à la roadmap et satisfaites avant qu'une seule ligne de code liée à la Baseline soit écrite. Leur non-respect crée des dettes irréparables sans refactorisation majeure.
