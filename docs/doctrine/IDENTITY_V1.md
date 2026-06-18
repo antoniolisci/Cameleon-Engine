@@ -81,6 +81,7 @@ N3  Doctrine architecture     how-cameleon-reads-v1.md
                                canonical_motor_state_2026.md
 N4  Déclinaisons opérat.      guide-operateur-v1.md
                                constellium-product-architecture.md
+                               constellium/constellium_v1_definition.md
 N5  Documentation technique   CLAUDE.md · README.md · docs/architecture/
 ```
 
