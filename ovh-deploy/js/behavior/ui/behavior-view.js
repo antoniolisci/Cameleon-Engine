@@ -1380,6 +1380,7 @@ function buildImportFingerprint(trades, result) {
 }
 
 async function handleImport(file, root) {
+  const isPdf    = file.name.split('.').pop().toLowerCase() === 'pdf';
   const dropZone = root.querySelector('#bhvDropZone');
   if (dropZone) dropZone.classList.add('bhv-loading');
   let result;
