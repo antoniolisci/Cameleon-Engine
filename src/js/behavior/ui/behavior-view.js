@@ -1231,6 +1231,12 @@ async function handleImport(file, root) {
       `Statuts trouvés  : ${d.statuts ?? '(non atteint)'}`,
       '',
       ...(ex ? [
+        '── Signature X ─────────────────────',
+        `Source    : ${ex.sigSource} (score=${ex.sigScore})`,
+        `Détectée  : ${ex.sigFound ? 'OUI' : 'NON — fallback statique b3.pdf'}`,
+        `Header Y  : ${ex.sigHeaderY ?? '—'}`,
+        `Positions : ${ex.sigPositions}`,
+        '',
         `── Items bruts p${ex.pagesProcessed[0]}–${ex.pagesProcessed[1] ?? ex.pagesProcessed[0]} (30 max) ─`,
         ...ex.debugItems,
         '',

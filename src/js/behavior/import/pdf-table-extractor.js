@@ -1,14 +1,17 @@
 // PDF_IMPORT_V1 — Phase 2 : extraction positionnelle des tables Binance PDF
 // Stratégie : clustering Y=2pt · skip page 1 Order History (PDF-ARCH-03)
-//             · filtrage en-têtes Order par signature X (PDF-ARCH-02)
+//             · signature X détectée dynamiquement depuis l'en-tête du PDF
+//             · fallback vers signature statique (corpus b3.pdf) si en-tête non trouvé
 // Référence architecturale : docs/architecture/pdf-import-v1-architecture.md
 
 // ── Constantes ─────────────────────────────────────────────────────────────
 
-const Y_TOLERANCE = 2;   // pt — validé sur corpus B1-B19 (variance X = 0.0pt)
-const X_TOLERANCE = 3;   // pt — tolérance signature Order History (PDF-ARCH-02)
+const Y_TOLERANCE        = 2;    // pt — validé sur corpus B1-B19
+const X_TOLERANCE_STATIC = 3;    // pt — fallback signature statique (PDF-ARCH-02, b3.pdf)
+const X_TOLERANCE_DYN    = 10;   // pt — signature dynamique (détectée depuis l'en-tête réel)
 
-// Signature X Order History (PDF-ARCH-02) — validée sur b3.pdf
+// Signature X Order History statique (PDF-ARCH-02) — fallback uniquement, validée sur b3.pdf.
+// Utilisée si la détection dynamique échoue (score en-tête < 4).
 const ORDER_X_SIGNATURE = [
   38.8,   // created_at
   117.9,  // order_id
@@ -26,6 +29,33 @@ const ORDER_X_SIGNATURE = [
 
 // Termes de colonnes Trade History (normalisés) — pour détection en-têtes
 const TRADE_HEADER_TERMS = ['duree', 'paire', 'cote', 'prix', 'execute', 'montant', 'frais'];
+
+// Termes d'en-têtes Order History (normalisés, sortie de _normCell).
+// Couvre FR et EN — utilisé pour scorer chaque cluster et localiser la ligne d'en-tête.
+const ORDER_HEADER_TERMS = [
+  // Temporel
+  'date', 'duree', 'created time', 'date de creation', 'update time', 'heure',
+  // Identifiant
+  'order id', 'n commande', 'numero de commande', 'orderid',
+  // Actif
+  'pair', 'paire', 'symbol',
+  // Classification
+  'type', 'order type',
+  // Côté
+  'side', 'cote',
+  // Prix
+  'price', 'prix', 'order price', 'prix de l ordre',
+  'avg price', 'prix moyen', 'average price',
+  // Quantité / montant
+  'amount', 'montant', 'order amount', 'montant de l ordre',
+  // Exécution
+  'executed', 'execute', 'filled', 'qty',
+  'execution time', 'temps d execution',
+  // Total
+  'total', 'trading total', 'total echange',
+  // Statut
+  'status', 'statut',
+];
 
 // ── Utilitaires internes ────────────────────────────────────────────────────
 
@@ -45,11 +75,6 @@ function _normCell(str) {
 // Utilisée pour discriminer données vs en-têtes — le parsing réel est Phase 3.
 function _isDateCell(str) {
   return /^\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str.trim());
-}
-
-// Vérifie si une coordonnée X correspond à un emplacement de la signature Order
-function _matchesSig(x) {
-  return ORDER_X_SIGNATURE.some(sx => Math.abs(x - sx) <= X_TOLERANCE);
 }
 
 // ── Clustering Y ───────────────────────────────────────────────────────────
@@ -88,10 +113,101 @@ function _isTradeHeader(cells) {
   return hits.length >= 4;
 }
 
-// ── Comptage matches signature X (Order History) ───────────────────────────
+// ── Détection dynamique signature X (Order History) ───────────────────────
 
-function _sigMatchCount(items) {
-  return items.filter(i => i.str.trim().length > 0 && _matchesSig(i.x)).length;
+// Score d'en-tête Order History d'un cluster :
+// nombre de termes ORDER_HEADER_TERMS présents dans les cellules normalisées.
+// Correspondance : exacte OU le terme est un token de début/fin de cellule.
+function _orderHeaderScore(cluster) {
+  const normed = cluster.items
+    .map(i => _normCell(i.str))
+    .filter(s => s.length > 0);
+  let score = 0;
+  for (const term of ORDER_HEADER_TERMS) {
+    if (normed.some(c => c === term || c.startsWith(term + ' ') || c.endsWith(' ' + term))) {
+      score++;
+    }
+  }
+  return score;
+}
+
+// Cherche la ligne d'en-tête Order History dans un ensemble de clusters,
+// extrait les positions X pour construire la signature dynamique.
+//
+// Retourne :
+//   { xSig, tolerance, found, source, score, headerY }
+//   source : 'dynamic' — en-tête détecté, positions X extraites du PDF réel
+//            'static'  — fallback sur ORDER_X_SIGNATURE (b3.pdf)
+function _detectOrderXSig(clusters) {
+  // Trouver le cluster avec le meilleur score d'en-tête
+  let bestIdx  = -1;
+  let bestScore = 0;
+  for (let i = 0; i < clusters.length; i++) {
+    const s = _orderHeaderScore(clusters[i]);
+    if (s > bestScore) { bestScore = s; bestIdx = i; }
+  }
+
+  // Score minimum de 4 requis pour considérer qu'un en-tête a été trouvé
+  if (bestIdx === -1 || bestScore < 4) {
+    return {
+      xSig:      ORDER_X_SIGNATURE,
+      tolerance: X_TOLERANCE_STATIC,
+      found:     false,
+      source:    'static',
+      score:     bestScore,
+      headerY:   null,
+    };
+  }
+
+  // Collecter les items de l'en-tête principal.
+  // Si la ligne suivante a aussi un score ≥ 2, l'en-tête est fragmenté sur 2 lignes
+  // (ex. "Prix de l'ordre" → "Prix" / "de l'ordre") — on fusionne les deux.
+  const headerItems = [...clusters[bestIdx].items];
+  if (bestIdx + 1 < clusters.length && _orderHeaderScore(clusters[bestIdx + 1]) >= 2) {
+    headerItems.push(...clusters[bestIdx + 1].items);
+  }
+
+  // Positions X uniques de tous les items non-vides de l'en-tête (triées, dédupliquées ±2pt)
+  const rawX = headerItems
+    .filter(i => i.str.trim().length > 0)
+    .map(i => i.x)
+    .sort((a, b) => a - b);
+
+  const xSig = rawX.reduce((acc, x) => {
+    if (acc.length === 0 || x - acc[acc.length - 1] > 2) acc.push(x);
+    return acc;
+  }, []);
+
+  // En-tête trop pauvre pour être fiable → fallback
+  if (xSig.length < 4) {
+    return {
+      xSig:      ORDER_X_SIGNATURE,
+      tolerance: X_TOLERANCE_STATIC,
+      found:     false,
+      source:    'static',
+      score:     bestScore,
+      headerY:   clusters[bestIdx].yRef,
+    };
+  }
+
+  return {
+    xSig,
+    tolerance: X_TOLERANCE_DYN,
+    found:     true,
+    source:    'dynamic',
+    score:     bestScore,
+    headerY:   clusters[bestIdx].yRef,
+  };
+}
+
+// Vérifie si x est dans la signature (xSig, tolerance)
+function _inSig(x, xSig, tolerance) {
+  return xSig.some(sx => Math.abs(x - sx) <= tolerance);
+}
+
+// Compte les items non-vides d'un cluster qui tombent dans la signature
+function _sigMatchCount(items, xSig, tolerance) {
+  return items.filter(i => i.str.trim().length > 0 && _inSig(i.x, xSig, tolerance)).length;
 }
 
 // ── extractPdfTableRows ────────────────────────────────────────────────────
@@ -104,7 +220,7 @@ function _sigMatchCount(items) {
 //     rows,              — tableau de rows, chaque row = tableau de cellules texte brutes
 //     skippedHeaderRows, — en-têtes détectés et ignorés
 //     pagesProcessed,    — tableau des numéros de page traités
-//     diagnostics        — métriques de diagnostic
+//     diagnostics        — métriques de diagnostic (dont sigSource, sigFound, sigScore)
 //   }
 //
 // Contrat Phase 2 :
@@ -132,6 +248,15 @@ function extractPdfTableRows(pdfResult, family) {
   const skippedHeaderRows = [];
   let rawLineCount = 0;
   let rejectedRowCount = 0;
+
+  // ── Détection signature X (ORDER_HISTORY uniquement) ─────────────────────
+  // Effectuée une seule fois sur tous les clusters de la première page traitée.
+  // La signature est ensuite appliquée uniformément à toutes les pages.
+  let sig = null;
+  if (family === 'ORDER_HISTORY' && pagesProcessed.length > 0) {
+    const firstPageClusters = _clusterByY(byPage[pagesProcessed[0]] || []);
+    sig = _detectOrderXSig(firstPageClusters);
+  }
 
   for (const pageNum of pagesProcessed) {
     const clusters = _clusterByY(byPage[pageNum]);
@@ -162,21 +287,20 @@ function extractPdfTableRows(pdfResult, family) {
         rejectedRowCount++;
 
       } else if (family === 'ORDER_HISTORY') {
-        // Filtrage par signature X (PDF-ARCH-02) : garde uniquement les lignes de table.
-        // Un cluster avec <6 positions matchant la signature = bruit (texte libre, numéros de page…).
-        const sigCount = _sigMatchCount(cluster.items);
+        // Filtrage par signature X : garde uniquement les lignes de table.
+        // Seuil : ≥6 items dont la position X correspond à la signature.
+        const sigCount = _sigMatchCount(cluster.items, sig.xSig, sig.tolerance);
         if (sigCount < 6) { rejectedRowCount++; continue; }
 
         // Extraction des cellules dans les colonnes de la signature (ordre X croissant)
         const sigItems = cluster.items
-          .filter(i => i.str.trim().length > 0 && _matchesSig(i.x))
+          .filter(i => i.str.trim().length > 0 && _inSig(i.x, sig.xSig, sig.tolerance))
           .sort((a, b) => a.x - b.x);
 
         const sigCells = sigItems.map(i => i.str.trim());
         if (sigCells.length === 0) { rejectedRowCount++; continue; }
 
         // Discrimination données / en-tête : première cellule = date Binance → données
-        // En-têtes Order History : premier cell = "Durée" / fragment de nom de colonne
         if (_isDateCell(sigCells[0])) {
           rows.push(sigCells);
         } else {
@@ -200,18 +324,22 @@ function extractPdfTableRows(pdfResult, family) {
     minCells:        cellCounts.length ? Math.min(...cellCounts) : 0,
     maxCells:        cellCounts.length ? Math.max(...cellCounts) : 0,
     sampleRows:      rows.slice(0, 3),
+    // Infos signature (ORDER_HISTORY uniquement)
+    sigSource:       sig?.source    ?? null,
+    sigFound:        sig?.found     ?? null,
+    sigScore:        sig?.score     ?? null,
+    sigPositions:    sig?.xSig?.map(x => x.toFixed(1)) ?? null,
+    sigHeaderY:      sig?.headerY   ?? null,
   };
 
   // DEBUG-IPAD — retirer après diagnostic
   if (family === 'ORDER_HISTORY') {
-    // Items bruts des 2 premières pages traitées (max 30 items) avec X, Y, str
     const debugPages  = pagesProcessed.slice(0, 2);
     const debugItems  = items
       .filter(i => debugPages.includes(i.page) && i.str.trim().length > 0)
       .slice(0, 30)
       .map(i => `p${i.page} x=${i.x.toFixed(1).padStart(6)} y=${i.y.toFixed(1).padStart(6)}  "${i.str.trim()}"`);
 
-    // Distribution X sur les 200 premiers items non-vides des pages traitées
     const sampleItems = items
       .filter(i => i.page >= startPage && i.str.trim().length > 0)
       .slice(0, 200);
@@ -225,14 +353,17 @@ function extractPdfTableRows(pdfResult, family) {
       .map(([x, n]) => `x≈${x.padStart(4)} : ${'█'.repeat(Math.min(n, 20))} (${n})`)
       .join('\n');
 
-    // Signature sigCount de chaque cluster (premières 10 lignes de p2)
-    const p2Items = (byPage[pagesProcessed[0]] || []);
-    const p2Clusters = _clusterByY(p2Items).slice(0, 10);
-    const sigCounts = p2Clusters.map((cl, i) =>
-      `cluster ${String(i).padStart(2)} | y=${cl.yRef.toFixed(1).padStart(6)} | items=${cl.items.length} | sigMatches=${_sigMatchCount(cl.items)}`
+    const p2Clusters = _clusterByY(byPage[pagesProcessed[0]] || []).slice(0, 10);
+    const sigCounts  = p2Clusters.map((cl, i) =>
+      `cluster ${String(i).padStart(2)} | y=${cl.yRef.toFixed(1).padStart(6)} | items=${cl.items.length} | sigMatches=${_sigMatchCount(cl.items, sig.xSig, sig.tolerance)}`
     );
 
     diagnostics._debugExtract = {
+      sigSource:    sig.source,
+      sigFound:     sig.found,
+      sigScore:     sig.score,
+      sigPositions: sig.xSig.map(x => x.toFixed(1)).join(', '),
+      sigHeaderY:   sig.headerY?.toFixed(1) ?? null,
       debugItems,
       xDist,
       sigCounts,
