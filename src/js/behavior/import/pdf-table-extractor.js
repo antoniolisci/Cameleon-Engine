@@ -137,8 +137,16 @@ function _orderHeaderScore(cluster) {
 // Cherche la ligne d'en-tête Order History dans un ensemble de clusters,
 // extrait les positions X pour construire la signature dynamique.
 //
+// Stratégie de fusion multi-cluster :
+//   Les PDF Binance 2026 fragmentent les libellés de colonnes sur plusieurs
+//   clusters Y consécutifs (ex. "Numéro de commande" → cluster "Numéro de" + cluster "mmande").
+//   Ces fragments ont score=0 (aucun terme complet de ORDER_HEADER_TERMS).
+//   La boucle tolère jusqu'à MAX_SKIP=3 fragments consécutifs avant d'abandonner,
+//   et reprend la fusion dès qu'un cluster score≥2 est retrouvé.
+//   Arrêt absolu sur date (_isDateCell) ou MAX_WINDOW=10 clusters inspecté.
+//
 // Retourne :
-//   { xSig, tolerance, found, source, score, headerY }
+//   { xSig, tolerance, found, source, score, headerY, mergedLines, clusterAudit }
 //   source : 'dynamic' — en-tête détecté, positions X extraites du PDF réel
 //            'static'  — fallback sur ORDER_X_SIGNATURE (b3.pdf)
 function _detectOrderXSig(clusters) {
@@ -163,61 +171,81 @@ function _detectOrderXSig(clusters) {
   }
 
   // Collecter les items de l'en-tête principal.
-  // L'en-tête Binance peut être fragmenté sur 3+ lignes PDF consécutives
-  // (ex. "Prix de l'ordre" → "Prix" / "de l'" / "ordre").
-  // On fusionne jusqu'à 5 lignes suivantes dont le score ≥ 2 et dont
-  // la première cellule non-vide n'est pas une date (arrêt sur données).
-  const headerItems = [...clusters[bestIdx].items];
-  let nextIdx = bestIdx + 1;
-  let mergedLines = 0;
+  // Les en-têtes Binance PDF 2026 sont fragmentés : chaque colonne peut tenir sur
+  // 2-3 clusters Y consécutifs (ex. "Numéro de commande" → "Numéro de" / "mmande").
+  // Ces clusters intermédiaires ont score=0 car leurs fragments ne correspondent
+  // à aucun terme complet de ORDER_HEADER_TERMS.
+  //
+  // Stratégie : tolérer jusqu'à MAX_SKIP clusters faibles consécutifs (fragments),
+  // continuer dès qu'un cluster score≥2 est retrouvé, s'arrêter uniquement sur :
+  //   — une ligne de données réelle (_isDateCell)
+  //   — MAX_SKIP fragments consécutifs sans rebond
+  //   — MAX_WINDOW clusters inspectés depuis bestIdx
 
-  // DEBUG-IPAD — audit de fusion : trace chaque cluster voisin (bestIdx-2 … bestIdx+8)
+  const MAX_SKIP   = 3;   // fragments consécutifs tolérés avant abandon
+  const MAX_WINDOW = 10;  // fenêtre maximale depuis bestIdx
+
+  // DEBUG-IPAD — audit : entrées BEFORE_HEADER (bestIdx-2 … bestIdx-1)
   const clusterAudit = [];
-  for (let ai = Math.max(0, bestIdx - 2); ai < Math.min(clusters.length, bestIdx + 9); ai++) {
+  for (let ai = Math.max(0, bestIdx - 2); ai < bestIdx; ai++) {
     const cl = clusters[ai];
-    const clScore = _orderHeaderScore(cl);
-    const clFirst = cl.items.map(i => i.str.trim()).find(s => s.length > 0) ?? '';
-    const clNormedCells = cl.items.map(i => _normCell(i.str)).filter(s => s.length > 0);
-    let role, rejectReason;
-    if (ai === bestIdx) {
-      role = 'BEST_HEADER';
-      rejectReason = null;
-    } else if (ai < bestIdx) {
-      role = 'BEFORE_HEADER';
-      rejectReason = 'avant le cluster principal — non considéré pour fusion';
-    } else {
-      // Simule la logique de la boucle while en séquentiel
-      const relIdx = ai - bestIdx;
-      if (relIdx > 5) {
-        role = 'SKIPPED'; rejectReason = 'limite mergedLines=5 atteinte';
-      } else if (clScore < 2) {
-        role = 'REJECTED'; rejectReason = `score=${clScore} < 2`;
-      } else if (_isDateCell(clFirst)) {
-        role = 'REJECTED'; rejectReason = `firstCell est une date : "${clFirst}"`;
-      } else {
-        role = 'MERGED'; rejectReason = null;
-      }
-    }
     clusterAudit.push({
-      idx: ai,
-      isBest: ai === bestIdx,
-      y: cl.yRef.toFixed(1),
-      score: clScore,
-      firstCell: clFirst,
-      normedCells: clNormedCells.slice(0, 8),
-      role,
-      rejectReason,
+      idx: ai, isBest: false,
+      y:           cl.yRef.toFixed(1),
+      score:       _orderHeaderScore(cl),
+      firstCell:   cl.items.map(i => i.str.trim()).find(s => s.length > 0) ?? '',
+      normedCells: cl.items.map(i => _normCell(i.str)).filter(s => s.length > 0).slice(0, 8),
+      role: 'BEFORE_HEADER',
+      rejectReason: 'avant le cluster principal — non considéré pour fusion',
     });
   }
-  // FIN DEBUG-IPAD
+  // DEBUG-IPAD — entrée BEST_HEADER
+  clusterAudit.push({
+    idx: bestIdx, isBest: true,
+    y:           clusters[bestIdx].yRef.toFixed(1),
+    score:       bestScore,
+    firstCell:   clusters[bestIdx].items.map(i => i.str.trim()).find(s => s.length > 0) ?? '',
+    normedCells: clusters[bestIdx].items.map(i => _normCell(i.str)).filter(s => s.length > 0).slice(0, 8),
+    role: 'BEST_HEADER',
+    rejectReason: null,
+  });
 
-  while (nextIdx < clusters.length && mergedLines < 5) {
-    const nextScore = _orderHeaderScore(clusters[nextIdx]);
-    if (nextScore < 2) break;
-    const firstCell = clusters[nextIdx].items.map(i => i.str.trim()).find(s => s.length > 0) ?? '';
-    if (_isDateCell(firstCell)) break;
-    headerItems.push(...clusters[nextIdx].items);
-    mergedLines++;
+  const headerItems = [...clusters[bestIdx].items];
+  let nextIdx        = bestIdx + 1;
+  let mergedLines    = 0;
+  let skippedFrags   = 0;  // fragments consécutifs ignorés depuis le dernier merge
+
+  while (nextIdx < clusters.length && (nextIdx - bestIdx) <= MAX_WINDOW) {
+    const cl        = clusters[nextIdx];
+    const nextScore = _orderHeaderScore(cl);
+    const firstCell = cl.items.map(i => i.str.trim()).find(s => s.length > 0) ?? '';
+    const normedCells = cl.items.map(i => _normCell(i.str)).filter(s => s.length > 0).slice(0, 8);
+
+    // Arrêt absolu : ligne de données réelle détectée
+    if (_isDateCell(firstCell)) {
+      clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
+        role: 'REJECTED_DATA_ROW', rejectReason: `date détectée : "${firstCell}"` });
+      break;
+    }
+
+    if (nextScore >= 2) {
+      // Cluster header valide → fusionner, réinitialiser le compteur de fragments
+      headerItems.push(...cl.items);
+      mergedLines++;
+      skippedFrags = 0;
+      clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
+        role: 'MERGED', rejectReason: null });
+    } else {
+      // Fragment faible (score<2) — toléré jusqu'à MAX_SKIP consécutifs
+      if (skippedFrags >= MAX_SKIP) {
+        clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
+          role: 'REJECTED_MAX_SKIP', rejectReason: `${MAX_SKIP} fragments consécutifs atteints` });
+        break;
+      }
+      skippedFrags++;
+      clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
+        role: 'SKIPPED_FRAGMENT', rejectReason: `score=${nextScore} < 2, fragment toléré (${skippedFrags}/${MAX_SKIP})` });
+    }
     nextIdx++;
   }
 
