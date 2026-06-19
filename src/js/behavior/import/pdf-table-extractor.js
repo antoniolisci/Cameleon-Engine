@@ -71,10 +71,13 @@ function _normCell(str) {
     .trim();
 }
 
-// Détecte une cellule date Binance PDF : format YY-MM-DD HH:MM:SS (PDF-ARCH-04)
-// Utilisée pour discriminer données vs en-têtes — le parsing réel est Phase 3.
+// Détecte une cellule date Binance PDF.
+// Accepte 2 ou 4 chiffres pour l'année :
+//   YY-MM-DD HH:MM:SS   (ancien format, ex. "26-04-18 20:47:49")
+//   YYYY-MM-DD HH:MM:SS (nouveau format, ex. "2026-04-18 20:47:49")
+// Le parsing réel est délégué à Phase 3 (pdf-normalizer.js).
 function _isDateCell(str) {
-  return /^\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str.trim());
+  return /^\d{2,4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str.trim());
 }
 
 // ── Clustering Y ───────────────────────────────────────────────────────────
@@ -258,6 +261,11 @@ function extractPdfTableRows(pdfResult, family) {
     sig = _detectOrderXSig(firstPageClusters);
   }
 
+  // DEBUG-IPAD — retirer après diagnostic
+  // Collecte les clusters ORDER_HISTORY dont sigCount >= 6 mais rejetés par _isDateCell
+  const _dbgRejected = [];
+  // FIN DEBUG-IPAD
+
   for (const pageNum of pagesProcessed) {
     const clusters = _clusterByY(byPage[pageNum]);
 
@@ -304,6 +312,16 @@ function extractPdfTableRows(pdfResult, family) {
         if (_isDateCell(sigCells[0])) {
           rows.push(sigCells);
         } else {
+          // DEBUG-IPAD — retirer après diagnostic
+          if (_dbgRejected.length < 5) {
+            _dbgRejected.push({
+              firstCell: sigCells[0] ?? '(vide)',
+              isDate:    _isDateCell(sigCells[0] ?? ''),
+              cellCount: sigCells.length,
+              sample:    sigCells.slice(0, 5),
+            });
+          }
+          // FIN DEBUG-IPAD
           // En-tête (potentiellement fragmenté sur 2 lignes — PDF-ARCH-02)
           skippedHeaderRows.push(sigCells);
         }
@@ -364,6 +382,7 @@ function extractPdfTableRows(pdfResult, family) {
       sigScore:     sig.score,
       sigPositions: sig.xSig.map(x => x.toFixed(1)).join(', '),
       sigHeaderY:   sig.headerY?.toFixed(1) ?? null,
+      rejectedSample: _dbgRejected,  // DEBUG-IPAD : clusters sigCount>=6 rejetés par _isDateCell
       debugItems,
       xDist,
       sigCounts,
