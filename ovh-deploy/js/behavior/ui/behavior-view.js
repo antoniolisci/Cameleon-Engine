@@ -1341,41 +1341,6 @@ function bindEvents(root, state) {
   }
 }
 
-// ── DEBUG-IPAD — overlay visible sans DevTools · retirer après diagnostic ─────
-async function _debugIpadOverlay(file) {
-  const lines = [
-    `Fichier   : ${file.name}`,
-    `Extension : .${file.name.split('.').pop().toLowerCase()}`,
-    `MIME      : ${file.type || '(vide — courant iOS Safari)'}`,
-    `Taille    : ${(file.size / 1024).toFixed(1)} Ko`,
-  ];
-  if (file.name.split('.').pop().toLowerCase() !== 'pdf') {
-    try {
-      const raw    = await file.slice(0, 600).text();
-      const bom    = raw.startsWith('\ufeff');
-      const clean  = raw.replace(/^\ufeff/, '');
-      const sep    = clean.includes('\t') ? 'TAB' : clean.includes(';') ? ';' : ',';
-      const lignes = clean.split(/\r?\n/).filter(l => l.trim());
-      const cols   = (lignes[0] ?? '').split(sep === 'TAB' ? '\t' : sep);
-      lines.push(`BOM UTF-8  : ${bom}`);
-      lines.push(`Séparateur : ${sep}`);
-      lines.push(`Lignes vues (600o) : ${lignes.length}`);
-      lines.push(`Colonnes L1 : ${cols.length} — ${cols.slice(0, 5).join(' | ')}`);
-      lines.push(`Début : ${clean.slice(0, 100).replace(/[\r\n]/g, '↵')}`);
-    } catch (e) {
-      lines.push(`Aperçu CSV : ERREUR — ${e.message}`);
-    }
-  }
-  const el = document.createElement('pre');
-  el.id = '_bhv_debug_ipad';
-  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
-  el.textContent = '[DEBUG IMPORT iPad]\n' + lines.join('\n');
-  document.getElementById('_bhv_debug_ipad')?.remove();
-  document.body.appendChild(el);
-  console.warn('[DEBUG-IPAD] import\n' + lines.join('\n'));
-}
-// ── FIN DEBUG-IPAD ─────────────────────────────────────────────────────────────
-
 // ── Fingerprint anti-doublon ───────────────────────────────────────────────────
 // Construit un identifiant de contenu à partir des trades extraits.
 // Résistant aux renommages de fichier et aux changements de format (PDF vs CSV vs XLSX).
@@ -1415,8 +1380,6 @@ function buildImportFingerprint(trades, result) {
 }
 
 async function handleImport(file, root) {
-  await _debugIpadOverlay(file);  // DEBUG-IPAD — retirer après diagnostic
-  const isPdf = file.name.split('.').pop().toLowerCase() === 'pdf';
   const dropZone = root.querySelector('#bhvDropZone');
   if (dropZone) dropZone.classList.add('bhv-loading');
   let result;
@@ -1426,78 +1389,6 @@ async function handleImport(file, root) {
     console.warn('[bhv:import] exception non catchée dans importBinanceSpot:', err);
     result = { ok: false, error: 'Erreur inattendue lors de la lecture du fichier.', trades: [] };
   }
-
-  // DEBUG-IPAD — retirer après diagnostic
-  if (isPdf && result._debugPdf) {
-    const d  = result._debugPdf;
-    const ex = d.debugExtract;
-    const pdfLines = [
-      '',
-      '── Extraction PDF ──────────────',
-      `Qualité          : ${d.quality}`,
-      `Pages            : ${d.pages}`,
-      `Items extraits   : ${d.items}`,
-      `Chars utiles     : ${d.chars}`,
-      `Famille détectée : ${d.family ?? '(non atteinte — bloqué avant)'}`,
-      `Rows extraits    : ${d.rowsExtracted ?? '(non atteint)'}`,
-      `Rows normalisés  : ${d.rowsNormalized ?? '(non atteint)'}`,
-      `Statuts trouvés  : ${d.statuts ?? '(non atteint)'}`,
-      '',
-      ...(d.normalizedSample ? [
-        '── Audit mapping status ────────────',
-        `Longueurs rows brutes (5) : [${(d.rawRowLengths ?? []).join(', ')}]`,
-        '',
-        ...d.normalizedSample.map((r, i) => [
-          `Row ${i} (${r.row_length} cells)`,
-          `  row[11] brut  : "${r.row11_raw}"`,
-          `  status normalisé : ${r.status === null ? 'null' : JSON.stringify(r.status)}`,
-          `  symbol=${r.symbol}  side=${r.side}  created_at=${r.created_at}  executed_qty=${r.executed_qty}`,
-        ].join('\n')),
-        '',
-        '── Rows brutes (3 premières) ───────',
-        ...(d.rawRowSample ?? []).map((cells, i) =>
-          `Row ${i}: ${cells.map((c, j) => `[${j}]${c}`).join('  ')}`
-        ),
-        '',
-      ] : []),
-      ...(ex ? [
-        '── Signature X ─────────────────────',
-        `Source    : ${ex.sigSource} (score=${ex.sigScore})`,
-        `Détectée  : ${ex.sigFound ? 'OUI' : 'NON — fallback statique b3.pdf'}`,
-        `Header Y  : ${ex.sigHeaderY ?? '—'}`,
-        `Colonnes sig     : ${ex.sigColCount ?? '—'} (attendu 12)`,
-        `Lignes header fusionnées : ${ex.sigMergedLines ?? '—'}`,
-        `Positions : ${ex.sigPositions}`,
-        '',
-        '── Audit fusion clusters (★=BEST_HEADER) ─',
-        ...(ex.clusterAuditLines ?? ['(aucun audit disponible)']),
-        '',
-        `── Items bruts p${ex.pagesProcessed[0]}–${ex.pagesProcessed[1] ?? ex.pagesProcessed[0]} (30 max) ─`,
-        ...ex.debugItems,
-        '',
-        '── sigMatches / cluster (10 premiers) ─',
-        ...ex.sigCounts,
-        '',
-        '── Distribution X (200 items, buckets 5pt) ─',
-        ex.xDist,
-      ] : [
-        'Extrait brut (200c) :',
-        d.extrait || '(vide)',
-      ]),
-    ].join('\n');
-    const existing = document.getElementById('_bhv_debug_ipad');
-    if (existing) {
-      existing.textContent += pdfLines;
-    } else {
-      const el = document.createElement('pre');
-      el.id = '_bhv_debug_ipad';
-      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:60vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
-      el.textContent = '[DEBUG PDF]\n' + pdfLines;
-      document.body.appendChild(el);
-    }
-    console.warn('[DEBUG-IPAD] pdf\n' + pdfLines);
-  }
-  // FIN DEBUG-IPAD
 
   if (!result.ok) {
     behaviorRepo.set('importError',       result.error);
