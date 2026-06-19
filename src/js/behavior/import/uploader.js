@@ -555,7 +555,7 @@ async function importBinancePDF(file) {
     analysisQuality: pdfResult.quality === 'DEGRADED' ? 'partial' : 'full',
     pdfQuality: pdfResult.quality,
     _debugPdf: _dbgPdf,  // DEBUG-IPAD
-    orderAnalysis: null
+    orderAnalysis: analyzeOrders(trades, normalized.length)
   };
 }
 

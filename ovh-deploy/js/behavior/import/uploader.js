@@ -505,7 +505,7 @@ async function importBinancePDF(file) {
     ok: true, type: 'order_history', trades, skipped, sessionId,
     analysisQuality: pdfResult.quality === 'DEGRADED' ? 'partial' : 'full',
     pdfQuality: pdfResult.quality,
-    orderAnalysis: null
+    orderAnalysis: analyzeOrders(trades, normalized.length)
   };
 }
 
