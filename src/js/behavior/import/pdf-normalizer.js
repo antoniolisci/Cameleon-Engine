@@ -12,13 +12,21 @@
 // ── Utilitaires de parsing ─────────────────────────────────────────────────
 
 // PDF-ARCH-04 : parse la date Binance PDF → timestamp UTC ms
-// Retourne null si la chaîne n'est pas au format attendu.
+// Accepte deux formats :
+//   YY-MM-DD HH:MM:SS   (17 chars) — ancien export Binance
+//   YYYY-MM-DD HH:MM:SS (19 chars) — nouveau export Binance (adopté en 2026)
+// Retourne null si la chaîne n'est pas dans l'un de ces formats.
 function _parseDate(raw) {
   if (!raw || !raw.trim()) return null;
   const s = raw.trim();
-  if (!/^\d{2}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) return null;
-  // "26-05-24 07:01:57" → "2026-05-24T07:01:57+02:00" → UTC ms
-  return new Date('20' + s.replace(' ', 'T') + '+02:00').getTime();
+  if (!/^\d{2,4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) return null;
+  // Préfixer "20" uniquement pour les années à 2 chiffres (longueur 17).
+  // Les années à 4 chiffres (longueur 19) sont utilisées telles quelles.
+  // Garde-fou : ne jamais transformer 2026 en 202026.
+  const iso = s.length === 17
+    ? '20' + s.replace(' ', 'T')   // "26-05-24 07:01:57" → "2026-05-24T07:01:57"
+    :         s.replace(' ', 'T'); // "2026-05-24 07:01:57" → "2026-05-24T07:01:57"
+  return new Date(iso + '+02:00').getTime();
 }
 
 // Extrait la valeur numérique d'une cellule avec unité optionnelle.
