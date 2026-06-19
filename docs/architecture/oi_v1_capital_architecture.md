@@ -355,10 +355,16 @@ Ces formulations violent les frontières épistémiques — elles déduisent des
 
 ### CL1 — Mono-actif (REAL_002 : 1 symbole)
 
-- CR3 = 100% → Concentré certain
-- rotation_score = non calculable (1 seul actif)
-- confiance : Faible (période 47 jours < seuils minimums)
-- Note : *"Un seul actif observé sur 47 jours. Style Capital : Concentré. Données insuffisantes pour qualifier la stabilité temporelle."*
+**Comportement officiel (aligné §5) :** `symboles_actifs = 1 < MIN_SYMBOLES (2)` → garde §5 déclenche `état = "Indisponible"`. La Dimension Capital n'est pas calculable avec un seul actif.
+
+Justification : la Dimension Capital décrit une **répartition** entre actifs. Avec un seul actif, il n'y a pas de répartition à décrire — seulement une absence d'alternative observable. Ce cas sort du périmètre de la dimension.
+
+- CR3 = 100% (observable mais non interprétable comme style Capital)
+- rotation_score = null (un seul actif, rotation impossible)
+- confiance : **Indisponible**
+- Note : *"Un seul actif observé sur 47 jours — Dimension Capital non calculable (symboles_actifs < 2)."*
+
+> **Note descriptive (hors classification) :** une concentration triviale sur un seul actif peut être mentionnée dans la restitution comme observation brute, mais ne constitue pas une classification Capital valide. Le moteur déclare Indisponible et ne déduit aucun style.
 
 ### CL2 — Très grand nombre de symboles (REAL_004 : ~89 symboles)
 
@@ -441,6 +447,33 @@ Exportation unique : `computeCapital(trades)` → retourne l'objet JSON §8.
 
 ---
 
-*Ce document est validé avant tout code.*  
-*Aucune implémentation ne commence sans confirmation explicite de l'opérateur.*  
-*Les seuils sont provisoires et seront calibrés lors de l'implémentation sur corpus réel.*
+---
+
+## 13. Notes de validation corpus (post-implémentation)
+
+**Commit implémentation :** `5d862c8` — `src/js/behavior/analytics/oi-capital.js`
+
+### Résultats corpus réel (session 2026-06-19)
+
+| Dataset | État | Confiance | CR3 | HHI | Rotation | Top-3 |
+|---|---|---|---|---|---|---|
+| REAL_002 (1 symb, 47j) | Indisponible | Indisponible | 1.0 | 1.0 | null | TAO |
+| REAL_003 (10 symb, 5.6m) | **Rotatif** | Moyen | 0.977 | 0.851 | 0.50 | TAO · FET · ONDO |
+| REAL_001 (64 symb, 25m) | **Rotatif** | Élevé | 0.653 | 0.199 | 0.67 | HBAR · FET · ADA |
+| REAL_004 (89 symb, 28m) | **Diversifié** | Moyen | 0.486 | 0.106 | 0.71 | HBAR · FET · GLM |
+
+### Note sur le test synthétique Rotatif
+
+Le test synthétique initial (4 groupes de 3 symboles entièrement distincts qui tournent chaque mois) produisait un CR3 global de ~0.24 — en dessous du seuil de concentration (0.65). Le moteur classifiait correctement en Diversifié.
+
+**Ce comportement est correct.** La définition de Rotatif dans ce document (§1) requiert une **concentration globale élevée** (CR3 ≥ 0.65 sur l'ensemble de la période) combinée à un **changement de composition** du top-3 d'un mois à l'autre. Un opérateur qui distribue son activité sur 12 actifs distincts en rotation complète produit un profil Diversifié au sens global — même si chaque mois pris individuellement semble concentré.
+
+Un vrai profil Rotatif doit conserver 3 à 5 actifs récurrents qui captent la majorité du volume global, tout en changeant lesquels d'entre eux dominent à chaque fenêtre. REAL_001 (CR3 = 0.65, rotation = 0.67) et REAL_003 (CR3 = 0.98, rotation = 0.50) illustrent ce pattern mieux que tout test synthétique à groupes entièrement distincts.
+
+*Le test synthétique Rotatif sera à revoir dans un chantier de tests dédié.*
+
+---
+
+*Ce document a été validé avant tout code.*  
+*Les seuils V1 sont confirmés après validation corpus réel (session 2026-06-19).*  
+*Toute révision des seuils requiert une décision explicite de l'opérateur.*
