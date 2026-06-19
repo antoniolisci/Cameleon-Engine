@@ -448,10 +448,23 @@ async function importBinancePDF(file) {
     return { ok: false, error: 'Impossible de lire le fichier PDF. Vérifiez qu\'il n\'est pas corrompu.', trades: [] };
   }
 
+  // DEBUG-IPAD — retirer après diagnostic
+  console.warn('[DEBUG-IPAD] pdfResult', {
+    quality: pdfResult.quality,
+    pages:   pdfResult.pages,
+    items:   pdfResult.items.length,
+    chars:   (pdfResult.rawText || '').replace(/\s+/g, '').length,
+    extrait: (pdfResult.rawText || '').slice(0, 150),
+  });
+  // FIN DEBUG-IPAD
+
   if (pdfResult.quality === 'UNREADABLE' || pdfResult.quality === 'SCANNED') {
     return {
       ok: false,
       error: `PDF non lisible (qualité : ${pdfResult.quality}). Seuls les PDFs Binance natifs (texte encodé) sont supportés.`,
+      // DEBUG-IPAD — retirer après diagnostic
+      diagnostic: `Qualité : ${pdfResult.quality}\nPages : ${pdfResult.pages}\nItems extraits : ${pdfResult.items.length}\nCaractères utiles : ${(pdfResult.rawText || '').replace(/\s+/g, '').length}\nExtrait (150c) : ${(pdfResult.rawText || '').slice(0, 150) || '(vide)'}`,
+      // FIN DEBUG-IPAD
       trades: []
     };
   }
@@ -461,6 +474,9 @@ async function importBinancePDF(file) {
     return {
       ok: false,
       error: 'Format PDF non reconnu. Seuls les exports Binance Trade History et Order History Spot sont supportés.',
+      // DEBUG-IPAD — retirer après diagnostic
+      diagnostic: `Famille : UNKNOWN\nQualité : ${pdfResult.quality}\nPages : ${pdfResult.pages}\nItems : ${pdfResult.items.length}\nExtrait brut (200c) :\n${(pdfResult.rawText || '').slice(0, 200) || '(vide)'}`,
+      // FIN DEBUG-IPAD
       trades: []
     };
   }

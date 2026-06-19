@@ -1078,6 +1078,7 @@ function bindEvents(root, state) {
     fileInput.addEventListener('change', e => {
       const file = e.target.files[0];
       if (file) handleImport(file, root);
+      e.target.value = '';  // reset : permet re-sélection du même fichier (iOS)
     });
   }
 
@@ -1165,7 +1166,43 @@ function bindEvents(root, state) {
   }
 }
 
+// ── DEBUG-IPAD — overlay visible sans DevTools · retirer après diagnostic ─────
+async function _debugIpadOverlay(file) {
+  const lines = [
+    `Fichier   : ${file.name}`,
+    `Extension : .${file.name.split('.').pop().toLowerCase()}`,
+    `MIME      : ${file.type || '(vide — courant iOS Safari)'}`,
+    `Taille    : ${(file.size / 1024).toFixed(1)} Ko`,
+  ];
+  if (file.name.split('.').pop().toLowerCase() !== 'pdf') {
+    try {
+      const raw    = await file.slice(0, 600).text();
+      const bom    = raw.startsWith('\ufeff');
+      const clean  = raw.replace(/^\ufeff/, '');
+      const sep    = clean.includes('\t') ? 'TAB' : clean.includes(';') ? ';' : ',';
+      const lignes = clean.split(/\r?\n/).filter(l => l.trim());
+      const cols   = (lignes[0] ?? '').split(sep === 'TAB' ? '\t' : sep);
+      lines.push(`BOM UTF-8  : ${bom}`);
+      lines.push(`Séparateur : ${sep}`);
+      lines.push(`Lignes vues (600o) : ${lignes.length}`);
+      lines.push(`Colonnes L1 : ${cols.length} — ${cols.slice(0, 5).join(' | ')}`);
+      lines.push(`Début : ${clean.slice(0, 100).replace(/[\r\n]/g, '↵')}`);
+    } catch (e) {
+      lines.push(`Aperçu CSV : ERREUR — ${e.message}`);
+    }
+  }
+  const el = document.createElement('pre');
+  el.id = '_bhv_debug_ipad';
+  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
+  el.textContent = '[DEBUG IMPORT iPad]\n' + lines.join('\n');
+  document.getElementById('_bhv_debug_ipad')?.remove();
+  document.body.appendChild(el);
+  console.warn('[DEBUG-IPAD] import\n' + lines.join('\n'));
+}
+// ── FIN DEBUG-IPAD ─────────────────────────────────────────────────────────────
+
 async function handleImport(file, root) {
+  await _debugIpadOverlay(file);  // DEBUG-IPAD — retirer après diagnostic
   const isPdf = file.name.split('.').pop().toLowerCase() === 'pdf';
   const dropZone = root.querySelector('#bhvDropZone');
   if (dropZone) dropZone.classList.add('bhv-loading');
