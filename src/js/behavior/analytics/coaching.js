@@ -49,7 +49,9 @@ const PATTERN_WEIGHTS = {
 
 // ── Fonction principale ────────────────────────────────────────────────────────
 
-function computeCoaching(patterns, metrics, scoreData) {
+// personalContext : objet optionnel issu de personal-context-builder.js.
+// null si sessionCount < 3 ou données absentes. Si null → comportement identique à avant.
+function computeCoaching(patterns, metrics, scoreData, personalContext = null) {
   if (!metrics) return { priority: 'Aucun risque dominant clair', tips: [] };
 
   const pats = patterns || [];
@@ -58,9 +60,17 @@ function computeCoaching(patterns, metrics, scoreData) {
   const dominantType = resolveDominantType(scoreData?.dominantRisk, pats);
 
   // 2. Label de priorité
-  const priority = dominantType
+  let priority = dominantType
     ? (TYPE_TO_PRIORITY[dominantType] || 'Aucun risque dominant clair')
     : 'Aucun risque dominant clair';
+
+  // Préfixe récurrence si le pattern dominant est chronique dans l'historique long-terme.
+  // Condition : dominantType est dans personalContext.dominantPatterns (≥ 30% sessions).
+  // Indique à l'opérateur qu'il ne s'agit pas d'un signal isolé mais d'un comportement ancré.
+  if (personalContext?.hasEnoughData && dominantType &&
+      personalContext.dominantPatterns?.includes(dominantType)) {
+    priority = `Récurrent (${personalContext.sessionCount} sessions) — ${priority}`;
+  }
 
   // 3. Ordre de traitement : dominant en tête, puis par poids × intensité décroissant
   const orderedTypes = buildOrderedTypes(dominantType, pats);
@@ -112,6 +122,24 @@ function computeCoaching(patterns, metrics, scoreData) {
   // Concentration horaire excessive
   if (tips.length < 5 && metrics.activeHours !== undefined && metrics.activeHours <= 5) {
     tips.push('Évite de concentrer toute ton activité sur une fenêtre trop courte.');
+  }
+
+  // ── Tips PersonalContext ──────────────────────────────────────────────────────
+  // Ajoutés après les tips existants — ne remplacent aucun conseil en place.
+  // Un seul tip PersonalContext maximum (improving et declining sont mutuellement exclusifs).
+  // Cap global 5 tips respecté.
+  if (personalContext?.hasEnoughData) {
+    const trend        = personalContext.window10?.trend;
+    const profileKey   = scoreData?.profile?.key;
+    const currentScore = typeof scoreData?.score === 'number' ? scoreData.score : 0;
+
+    if (trend === 'improving' && currentScore >= 60 && tips.length < 5) {
+      tips.push('Progression confirmée sur vos dernières sessions — continuez dans cette direction.');
+    } else if (trend === 'declining' &&
+               (profileKey === 'impulsive' || profileKey === 'aggressive') &&
+               tips.length < 5) {
+      tips.push('Tendance à la dégradation détectée sur vos dernières sessions — vigilance renforcée.');
+    }
   }
 
   return { priority, tips, plan };
