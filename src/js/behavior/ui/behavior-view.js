@@ -89,6 +89,7 @@ function mount(root) {
   const importDiagnostic  = behaviorRepo.get('importDiagnostic');
   const importInfo        = behaviorRepo.get('importInfo');
   const importSummary     = behaviorRepo.get('importSummary');
+  const importNotice      = behaviorRepo.get('importNotice');
   const walletResult      = behaviorRepo.get('walletResult');
   const orderResult       = behaviorRepo.get('orderResult');
   const validationWarning  = behaviorRepo.get('validationWarning');
@@ -135,9 +136,11 @@ function mount(root) {
     // Ce flag évite d'incrémenter la mémoire sur chaque re-render (tab click,
     // save session, load session depuis l'historique, delete session, etc.).
     if (score !== null && behaviorRepo.get('pendingMemorySave')) {
-      const updatedMemory = updateMemory(memory, { patterns, metrics, scoreData: score, coaching });
+      const importFingerprint = behaviorRepo.get('pendingImportFingerprint') ?? null;
+      const updatedMemory = updateMemory(memory, { patterns, metrics, scoreData: score, coaching, importFingerprint });
       memoryRepo.saveMemory(updatedMemory);
       behaviorRepo.set('pendingMemorySave', false);
+      behaviorRepo.set('pendingImportFingerprint', null);
     }
     // ─────────────────────────────────────────────────────────────────────
 
@@ -168,7 +171,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, walletResult, orderResult, gridContext, validationWarning, validationWarnings, personalContext });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, gridContext, validationWarning, validationWarnings, personalContext });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -208,21 +211,29 @@ function buildDebugMemoryBlock() {
       .map(([k, v]) => `${k.replace('_', ' ')}: ${v}`)
       .join(' · ') || 'aucun';
 
+    const fingerprintCount = Array.isArray(mem.importedFingerprints)
+      ? mem.importedFingerprints.length : 0;
+    const pendingFp = behaviorRepo.get('pendingImportFingerprint');
+    const notice    = behaviorRepo.get('importNotice');
+
     const row = (key, val) =>
       `<div class="bhv-dbg-row"><span class="bhv-dbg-key">${key}</span><span class="bhv-dbg-val">${escHtml(String(val))}</span></div>`;
 
     return `
       <div class="bhv-dbg-mem">
         <div class="bhv-dbg-title">Mémoire Opérateur (DEBUG)</div>
-        ${row('Sessions',         mem.sessionCount)}
-        ${row('Score moyen',      avgScore)}
-        ${row('Dernier score',    lastScore)}
-        ${row('Dernier profil',   lastProfile)}
-        ${row('Tendance',         trend)}
-        ${row('Certifications',   certList)}
-        ${row('Fréquences',       freqStr)}
-        ${row('window10',         mem.window10.length + ' / 10')}
-        ${row('pendingMemorySave', pending ? 'true ⚠' : 'false')}
+        ${row('Sessions',              mem.sessionCount)}
+        ${row('Score moyen',           avgScore)}
+        ${row('Dernier score',         lastScore)}
+        ${row('Dernier profil',        lastProfile)}
+        ${row('Tendance',              trend)}
+        ${row('Certifications',        certList)}
+        ${row('Fréquences',            freqStr)}
+        ${row('window10',              mem.window10.length + ' / 10')}
+        ${row('Fingerprints connus',   fingerprintCount + ' / 200')}
+        ${row('pendingMemorySave',     pending ? 'true ⚠' : 'false')}
+        ${row('pendingFingerprint',    pendingFp ? pendingFp.slice(0, 40) + '…' : 'null')}
+        ${row('importNotice',          notice ?? 'null')}
       </div>`;
   } catch (e) {
     return `<div class="bhv-dbg-mem" style="color:#f66">DEBUG erreur: ${escHtml(String(e))}</div>`;
@@ -340,6 +351,7 @@ function buildImportCard(state) {
       ${state.importDiagnostic ? `<pre class="bhv-msg bhv-msg--diagnostic">${escHtml(state.importDiagnostic)}</pre>` : ''}
       ${state.importSummary ? buildImportSummary(state.importSummary)
         : state.importInfo  ? `<div class="bhv-msg bhv-msg--info">${escHtml(state.importInfo)}</div>` : ''}
+      ${state.importNotice ? `<div class="bhv-msg bhv-msg--notice">${escHtml(state.importNotice)}</div>` : ''}
 
       ${(state.trades || state.walletResult || state.orderResult) ? `
         <div class="bhv-import-actions">
@@ -1360,6 +1372,44 @@ async function _debugIpadOverlay(file) {
 }
 // ── FIN DEBUG-IPAD ─────────────────────────────────────────────────────────────
 
+// ── Fingerprint anti-doublon ───────────────────────────────────────────────────
+// Construit un identifiant de contenu à partir des trades extraits.
+// Résistant aux renommages de fichier et aux changements de format (PDF vs CSV vs XLSX).
+//
+// Composantes :
+//   type        : 'trades' | 'order_history' — le même historique en deux formats
+//                 produit le même fingerprint si les données sont identiques
+//   count       : nombre de lignes retenues
+//   first / last : timestamps extrêmes (ms epoch) — jamais les mêmes pour deux périodes distinctes
+//   sumQuote    : somme arrondie des montants quote — renforce la discrimination
+//
+// Retourne null si aucun timestamp exploitable (import ne sera pas bloqué).
+function buildImportFingerprint(trades, result) {
+  if (!trades || trades.length === 0) return null;
+
+  const type  = result?.type ?? 'unknown';
+  const count = trades.length;
+
+  let first    = Infinity;
+  let last     = -Infinity;
+  let sumQuote = 0;
+
+  for (const t of trades) {
+    const raw = t.timestamp;
+    const ts  = typeof raw === 'number' ? raw
+              : raw ? new Date(raw).getTime() : NaN;
+    if (!isNaN(ts) && isFinite(ts)) {
+      if (ts < first) first = ts;
+      if (ts > last)  last  = ts;
+    }
+    sumQuote += parseFloat(t.quote_value ?? t.quote_quantity ?? 0) || 0;
+  }
+
+  if (!isFinite(first)) return null;  // aucun timestamp valide → pas de fingerprint
+
+  return `${type}|${count}|${first}|${last}|${Math.round(sumQuote)}`;
+}
+
 async function handleImport(file, root) {
   await _debugIpadOverlay(file);  // DEBUG-IPAD — retirer après diagnostic
   const isPdf = file.name.split('.').pop().toLowerCase() === 'pdf';
@@ -1533,11 +1583,29 @@ async function handleImport(file, root) {
     if (result.type === 'wallet') {
       try { persistPortfolioSnapshot(result, file); } catch { /* non-bloquant */ }
     }
-    // Autorise une seule mise à jour mémoire pour cet import.
-    // Consommé et effacé dans mount() après saveMemory().
-    // Ne pas poser pour wallet : aucun score comportemental produit.
+    // ── Anti-doublon fingerprint ──────────────────────────────────────────────
+    // L'analyse visuelle reste autorisée pour tout import valide.
+    // Seule l'incrémentation mémoire est conditionnée à un fingerprint nouveau.
+    //
+    //   fingerprint null  → impossible de distinguer (0 timestamp) → on autorise
+    //   fingerprint connu → doublon confirmé → notice, pas d'incrément
+    //   fingerprint nouveau → pendingMemorySave + pendingImportFingerprint
     if (result.type !== 'wallet') {
-      behaviorRepo.set('pendingMemorySave', true);
+      const fingerprint    = buildImportFingerprint(result.trades, result);
+      const mem            = memoryRepo.getMemory();
+      const alreadyCounted = fingerprint !== null
+        && Array.isArray(mem.importedFingerprints)
+        && mem.importedFingerprints.includes(fingerprint);
+
+      if (alreadyCounted) {
+        behaviorRepo.set('importNotice',           'Fichier déjà comptabilisé — mémoire non incrémentée.');
+        behaviorRepo.set('pendingImportFingerprint', null);
+        // pendingMemorySave intentionnellement non posé → mount() n'incrémente pas
+      } else {
+        behaviorRepo.set('importNotice',           null);
+        behaviorRepo.set('pendingMemorySave',      true);
+        behaviorRepo.set('pendingImportFingerprint', fingerprint);
+      }
     }
   }
 

@@ -29,8 +29,9 @@ function initMemory() {
       },
       profileHistory: [],
     },
-    window10:       [],
-    certifications: [],
+    window10:             [],
+    certifications:       [],
+    importedFingerprints: [],
   };
 }
 
@@ -59,9 +60,16 @@ function _isValidMemory(m) {
 
 // Retourne toujours un objet valide — jamais null.
 // Si la donnée stockée est absente ou corrompue → initMemory().
+// Normalisation backward-compat : les mémoires antérieures à V1.1 n'ont pas
+// importedFingerprints — on l'ajoute à la volée sans réécriture en localStorage.
 function getMemory() {
   const stored = operatorMemory.get();
-  if (_isValidMemory(stored)) return stored;
+  if (_isValidMemory(stored)) {
+    if (!Array.isArray(stored.importedFingerprints)) {
+      return { ...stored, importedFingerprints: [] };
+    }
+    return stored;
+  }
   return initMemory();
 }
 

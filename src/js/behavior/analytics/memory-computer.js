@@ -25,7 +25,7 @@ const ALL_PATTERN_KEYS = [
 // ── Mise à jour principale ────────────────────────────────────
 
 function updateMemory(memory, sessionResult) {
-  const { patterns = [], scoreData = null } = sessionResult;
+  const { patterns = [], scoreData = null, importFingerprint = null } = sessionResult;
 
   // Sécurité : session invalide (pas de score) → mémoire inchangée
   if (!scoreData || typeof scoreData.score !== 'number') return memory;
@@ -84,11 +84,24 @@ function updateMemory(memory, sessionResult) {
     }
   }
 
+  // ── 5. Fingerprints — anti-doublon ────────────────────────────
+  // Ajout du fingerprint de cet import à la liste historique.
+  // Caps à 200 entrées (cohérent avec profileHistory).
+  // On n'ajoute pas si null ou déjà présent (double-guard, vérification primaire dans behavior-view.js).
+  const prevFingerprints = Array.isArray(memory.importedFingerprints) ? memory.importedFingerprints : [];
+  let newFingerprints;
+  if (importFingerprint !== null && !prevFingerprints.includes(importFingerprint)) {
+    newFingerprints = [...prevFingerprints, importFingerprint].slice(-200);
+  } else {
+    newFingerprints = prevFingerprints;
+  }
+
   return {
-    sessionCount:   newSessionCount,
-    allTime:        newAllTime,
-    window10:       newWindow10,
-    certifications: newCertifications,
+    sessionCount:         newSessionCount,
+    allTime:              newAllTime,
+    window10:             newWindow10,
+    certifications:       newCertifications,
+    importedFingerprints: newFingerprints,
   };
 }
 
