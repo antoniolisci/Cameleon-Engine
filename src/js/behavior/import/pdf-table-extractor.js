@@ -202,6 +202,47 @@ function extractPdfTableRows(pdfResult, family) {
     sampleRows:      rows.slice(0, 3),
   };
 
+  // DEBUG-IPAD — retirer après diagnostic
+  if (family === 'ORDER_HISTORY') {
+    // Items bruts des 2 premières pages traitées (max 30 items) avec X, Y, str
+    const debugPages  = pagesProcessed.slice(0, 2);
+    const debugItems  = items
+      .filter(i => debugPages.includes(i.page) && i.str.trim().length > 0)
+      .slice(0, 30)
+      .map(i => `p${i.page} x=${i.x.toFixed(1).padStart(6)} y=${i.y.toFixed(1).padStart(6)}  "${i.str.trim()}"`);
+
+    // Distribution X sur les 200 premiers items non-vides des pages traitées
+    const sampleItems = items
+      .filter(i => i.page >= startPage && i.str.trim().length > 0)
+      .slice(0, 200);
+    const xBuckets = {};
+    for (const it of sampleItems) {
+      const bucket = Math.round(it.x / 5) * 5;
+      xBuckets[bucket] = (xBuckets[bucket] || 0) + 1;
+    }
+    const xDist = Object.entries(xBuckets)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([x, n]) => `x≈${x.padStart(4)} : ${'█'.repeat(Math.min(n, 20))} (${n})`)
+      .join('\n');
+
+    // Signature sigCount de chaque cluster (premières 10 lignes de p2)
+    const p2Items = (byPage[pagesProcessed[0]] || []);
+    const p2Clusters = _clusterByY(p2Items).slice(0, 10);
+    const sigCounts = p2Clusters.map((cl, i) =>
+      `cluster ${String(i).padStart(2)} | y=${cl.yRef.toFixed(1).padStart(6)} | items=${cl.items.length} | sigMatches=${_sigMatchCount(cl.items)}`
+    );
+
+    diagnostics._debugExtract = {
+      debugItems,
+      xDist,
+      sigCounts,
+      startPage,
+      pagesProcessed: pagesProcessed.slice(0, 5),
+    };
+    console.warn('[DEBUG-IPAD] extractPdfTableRows', diagnostics._debugExtract);
+  }
+  // FIN DEBUG-IPAD
+
   return { family, rows, skippedHeaderRows, pagesProcessed, diagnostics };
 }
 

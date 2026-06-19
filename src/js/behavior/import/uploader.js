@@ -491,9 +491,10 @@ async function importBinancePDF(file) {
   const extracted  = extractPdfTableRows(pdfResult, family);
   const normalized = normalizePdfRows(extracted.rows, family);
   // DEBUG-IPAD
-  _dbgPdf.rowsExtracted  = extracted.rows.length;
-  _dbgPdf.rowsNormalized = normalized.length;
-  _dbgPdf.statuts = [...new Set(normalized.map(r => r.status || '?'))].slice(0, 8).join(', ') || '(aucun)';
+  _dbgPdf.rowsExtracted   = extracted.rows.length;
+  _dbgPdf.rowsNormalized  = normalized.length;
+  _dbgPdf.statuts         = [...new Set(normalized.map(r => r.status || '?'))].slice(0, 8).join(', ') || '(aucun)';
+  _dbgPdf.debugExtract    = extracted.diagnostics?._debugExtract ?? null;
   console.warn('[DEBUG-IPAD] extraction', { rowsExtracted: _dbgPdf.rowsExtracted, rowsNormalized: _dbgPdf.rowsNormalized, statuts: _dbgPdf.statuts });
   // FIN DEBUG-IPAD
   const sessionId  = `session_${Date.now()}`;

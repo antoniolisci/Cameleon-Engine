@@ -1216,7 +1216,8 @@ async function handleImport(file, root) {
 
   // DEBUG-IPAD — retirer après diagnostic
   if (isPdf && result._debugPdf) {
-    const d = result._debugPdf;
+    const d  = result._debugPdf;
+    const ex = d.debugExtract;
     const pdfLines = [
       '',
       '── Extraction PDF ──────────────',
@@ -1228,8 +1229,20 @@ async function handleImport(file, root) {
       `Rows extraits    : ${d.rowsExtracted ?? '(non atteint)'}`,
       `Rows normalisés  : ${d.rowsNormalized ?? '(non atteint)'}`,
       `Statuts trouvés  : ${d.statuts ?? '(non atteint)'}`,
-      `Extrait brut (200c) :`,
-      d.extrait || '(vide)',
+      '',
+      ...(ex ? [
+        `── Items bruts p${ex.pagesProcessed[0]}–${ex.pagesProcessed[1] ?? ex.pagesProcessed[0]} (30 max) ─`,
+        ...ex.debugItems,
+        '',
+        '── sigMatches / cluster (10 premiers) ─',
+        ...ex.sigCounts,
+        '',
+        '── Distribution X (200 items, buckets 5pt) ─',
+        ex.xDist,
+      ] : [
+        'Extrait brut (200c) :',
+        d.extrait || '(vide)',
+      ]),
     ].join('\n');
     const existing = document.getElementById('_bhv_debug_ipad');
     if (existing) {
@@ -1237,7 +1250,7 @@ async function handleImport(file, root) {
     } else {
       const el = document.createElement('pre');
       el.id = '_bhv_debug_ipad';
-      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:55vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:60vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
       el.textContent = '[DEBUG PDF]\n' + pdfLines;
       document.body.appendChild(el);
     }
