@@ -235,10 +235,15 @@ function render(root, state) {
 }
 
 function buildShell(state) {
+  const debugActive = localStorage.getItem('CE_DEBUG_MEMORY') === 'true';
   return `
     <div class="bhv-shell">
       <div class="bhv-header">
         <h2 class="bhv-title">Analyse comportementale</h2>
+        <button class="bhv-debug-toggle${debugActive ? ' bhv-debug-toggle--on' : ''}"
+                id="bhvDebugMemToggle" type="button">
+          ${debugActive ? '◉' : '○'} Debug Mémoire
+        </button>
       </div>
       ${buildDebugMemoryBlock()}
       ${buildImportCard(state)}
@@ -1210,6 +1215,20 @@ function fmtK(n) {
 // ── Events ────────────────────────────────────────────────────────────────────
 
 function bindEvents(root, state) {
+  // Toggle debug mémoire — temporaire, validé sur iPad
+  const debugToggle = root.querySelector('#bhvDebugMemToggle');
+  if (debugToggle) {
+    debugToggle.addEventListener('click', () => {
+      const next = localStorage.getItem('CE_DEBUG_MEMORY') !== 'true';
+      if (next) {
+        localStorage.setItem('CE_DEBUG_MEMORY', 'true');
+      } else {
+        localStorage.removeItem('CE_DEBUG_MEMORY');
+      }
+      mount(root);
+    });
+  }
+
   const fileInput = root.querySelector('#bhvFileInput');
   const dropZone  = root.querySelector('#bhvDropZone');
   const clearBtn  = root.querySelector('#bhvClearBtn');
