@@ -275,6 +275,9 @@ function buildMemoryProfileCard(memory, personalContext) {
 
   return `
     <div class="bhv-card bhv-mem-profile">
+      <div class="bhv-card-head">
+        <span class="bhv-card-title">Mémoire comportementale</span>
+      </div>
       <div class="bhv-mem-profile-count">${n} session${n > 1 ? 's' : ''} analysée${n > 1 ? 's' : ''}</div>
       ${patternsBlock}
       ${trendBlock}
