@@ -128,11 +128,14 @@ const PROFILES = [
 
 // ── Fonction principale ────────────────────────────────────────────────────────
 
-// gridContext : objet optionnel issu de readGridContext() dans behavior-view.js.
+// gridContext    : objet optionnel issu de readGridContext() dans behavior-view.js.
 // { hasGridProfile: true, gridProfileFresh: true, symbols: [], confidence: 0–1 }
 // Transmis depuis l'Order History via behaviorRepo.orderStrategyProfile.
 // N'est actif que si profil GRID détecté dans les 7 derniers jours.
-function computeScore(patterns, metrics, gridContext = null) {
+//
+// personalContext : objet optionnel issu de personal-context-builder.js.
+// null si sessionCount < 3 ou données absentes. Si null → comportement identique à avant.
+function computeScore(patterns, metrics, gridContext = null, personalContext = null) {
   if (!metrics) return null;
   const pats = patterns || [];
 
@@ -162,6 +165,9 @@ function computeScore(patterns, metrics, gridContext = null) {
   // 1. Pénalités patterns avec contexte
   let patternPenalty = 0;
   let anyGridApplied = false;   // tracé pour score.gridContextApplied
+  // Pénalité effective par type — utilisée pour les ajustements PersonalContext.
+  // Stockée après application de gridContext pour rester cohérente avec le total.
+  const patternPenalties = new Map();
 
   pats.forEach(p => {
     // ── Corrélation symbole GRID ──────────────────────────────────────────────
@@ -200,8 +206,31 @@ function computeScore(patterns, metrics, gridContext = null) {
       // gridConfidence : null si corrélation symbole échoue → pénalité normale.
       gridConfidence:  hasGridForPattern ? (gridContext?.confidence ?? null) : null
     };
-    patternPenalty += getPenalty(p, ctx);
+    const penalty = getPenalty(p, ctx);
+    patternPenalty += penalty;
+    patternPenalties.set(p.type, penalty);
   });
+
+  // ── Modulation PersonalContext ────────────────────────────────────────────────
+  // Appliquée avant le cap 65 pts — le cap reste la limite absolue.
+  // +5% sur la pénalité d'un pattern si récurrent dans l'historique (≥ 25% sessions).
+  // -5% sur la pénalité d'un pattern si non récurrent ET tendance improving.
+  // Les deux conditions sont mutuellement exclusives pour un même pattern.
+  // Si personalContext === null → bloc entier ignoré, comportement identique à avant.
+  if (personalContext?.hasEnoughData) {
+    const isImproving = personalContext.window10?.trend === 'improving';
+    for (const [type, penalty] of patternPenalties) {
+      if (penalty === 0) continue;
+      if (personalContext.isRecurringPattern?.[type]) {
+        // Pattern chronique : +5% — signal de gravité accumulée
+        patternPenalty += Math.ceil(penalty * 0.05);
+      } else if (isImproving) {
+        // Tendance positive + pattern non récurrent : -5% — progrès visible
+        patternPenalty -= Math.ceil(penalty * 0.05);
+      }
+    }
+    patternPenalty = Math.max(0, patternPenalty); // garde contre valeur négative
+  }
 
   // Plafond à 65 pts de pénalités patterns : empêche l'effondrement brutal du score
   // quand plusieurs patterns modérés s'accumulent. Un score ≥ 35 reste atteignable

@@ -15,6 +15,9 @@ import { groupGridTrades } from '../analytics/grid-grouper.js';
 import { anonymizeTrades } from '../anonymize/anonymizer.js';
 import { importRegistry, portfolio } from '../../storage.js';
 import { extract as extractPortfolio } from '../wallet/portfolio-extractor.js';
+import * as memoryRepo          from '../storage/memory-repo.js';
+import { updateMemory }         from '../analytics/memory-computer.js';
+import { buildPersonalContext } from '../analytics/personal-context-builder.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -86,6 +89,7 @@ function mount(root) {
   const importDiagnostic  = behaviorRepo.get('importDiagnostic');
   const importInfo        = behaviorRepo.get('importInfo');
   const importSummary     = behaviorRepo.get('importSummary');
+  const importNotice      = behaviorRepo.get('importNotice');
   const walletResult      = behaviorRepo.get('walletResult');
   const orderResult       = behaviorRepo.get('orderResult');
   const validationWarning  = behaviorRepo.get('validationWarning');
@@ -99,6 +103,12 @@ function mount(root) {
   let style       = null;
   let transitions = null;
   let gridContext = null;
+
+  // Mémoire opérateur — lue AVANT l'analyse pour que la session courante
+  // n'influence pas ses propres modulations (pas de boucle). La sauvegarde
+  // intervient après computeScore/computeCoaching (voir plus bas).
+  const memory          = memoryRepo.getMemory();
+  const personalContext = buildPersonalContext(memory);
 
   if (trades && trades.length > 0) {
     // Regroupement grille avant pattern detection.
@@ -114,10 +124,25 @@ function mount(root) {
     metrics     = computeMetrics(tradesForAnalysis);
     patterns    = detectPatterns(tradesForAnalysis, metrics);
     tradeTags   = tagTrades(tradesForAnalysis, metrics);
-    score       = computeScore(patterns, metrics, gridContext);
-    coaching    = computeCoaching(patterns, metrics, score);
+    score       = computeScore(patterns, metrics, gridContext, personalContext);
+    coaching    = computeCoaching(patterns, metrics, score, personalContext);
     style       = detectStyle(tradesForAnalysis, metrics);
     transitions = detectStyleTransitions(tradesForAnalysis, style?.key);
+
+    // ── Mémoire opérateur — persistance post-analyse ─────────────────────
+    // Alimentée uniquement si :
+    //   1. score !== null (session valide avec trades filtrés)
+    //   2. pendingMemorySave === true (posé par handleImport, consommé ici)
+    // Ce flag évite d'incrémenter la mémoire sur chaque re-render (tab click,
+    // save session, load session depuis l'historique, delete session, etc.).
+    if (score !== null && behaviorRepo.get('pendingMemorySave')) {
+      const importFingerprint = behaviorRepo.get('pendingImportFingerprint') ?? null;
+      const updatedMemory = updateMemory(memory, { patterns, metrics, scoreData: score, coaching, importFingerprint });
+      memoryRepo.saveMemory(updatedMemory);
+      behaviorRepo.set('pendingMemorySave', false);
+      behaviorRepo.set('pendingImportFingerprint', null);
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     // ── Behavior Bridge — storage-mediated merge ──────────────────────────
     // Translates the historical score (0–100) into a Guard level (1–5) and
@@ -146,7 +171,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, gridContext, validationWarning, validationWarnings, memory, personalContext });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -164,6 +189,7 @@ function buildShell(state) {
       </div>
       ${buildImportCard(state)}
       ${buildSessionsCard(state)}
+      ${buildMemoryProfileCard(state.memory, state.personalContext)}
       ${buildPortfolioSection()}
       ${state.trades && !state.orderResult ? buildAnalysis(state)
           : state.orderResult              ? buildOrderAnalysis(state.orderResult)
@@ -172,7 +198,103 @@ function buildShell(state) {
     </div>`;
 }
 
+// ── Panneau Mémoire Comportementale ───────────────────────────────────────────
+// Affiché si memory.sessionCount >= 3. Absent en dessous.
+//
+// Contenu : sessionCount · patterns (N sessions sur M) · tendance factuelle
+// Règles doctrine : descriptif uniquement, aucun profil identitaire, aucune prescription.
+//
+// Gestion mémoire : lien discret "Gérer la mémoire →" déclenche une zone de
+// confirmation inline. L'opérateur doit saisir "RESET" pour confirmer l'effacement.
+
+const _MIN_SESSIONS_PANEL = 3;   // seuil d'activation du panneau
+const _TREND_MIN_WINDOW   = 6;   // taille minimale window10 pour afficher la tendance
+
+const _PANEL_PATTERN_LABELS = {
+  overtrading:        'Overtrading',
+  revenge_trading:    'Revenge trading',
+  rapid_reentry:      'Réentrée rapide',
+  size_inconsistency: 'Tailles incohérentes',
+  loss_chasing:       'Escalade de position',
+};
+
+function buildMemoryProfileCard(memory, personalContext) {
+  if (!memory || memory.sessionCount < _MIN_SESSIONS_PANEL) return '';
+
+  const n     = memory.sessionCount;
+  const freq  = memory.allTime?.patternFrequency ?? {};
+  const showMemManage = behaviorRepo.get('showMemoryManage') === true;
+
+  // ── Patterns — uniquement ceux observés au moins une fois ──────────────────
+  const patternRows = Object.entries(freq)
+    .filter(([, count]) => count > 0)
+    .sort(([, a], [, b]) => b - a)
+    .map(([key, count]) => {
+      const label = _PANEL_PATTERN_LABELS[key] ?? key;
+      return `<div class="bhv-mem-profile-pattern-row">
+        <span class="bhv-mem-profile-pattern-label">${escHtml(label)}</span>
+        <span class="bhv-mem-profile-pattern-val">${count} session${count > 1 ? 's' : ''} sur ${n}</span>
+      </div>`;
+    })
+    .join('');
+
+  const patternsBlock = patternRows
+    ? `<div class="bhv-mem-profile-section">Comportements observés</div>${patternRows}`
+    : '';
+
+  // ── Tendance — libellé factuel, aucun adjectif prescriptif ─────────────────
+  // Condition : window10 assez grande ET trend non stable.
+  let trendBlock = '';
+  const trend = personalContext?.window10?.trend;
+  if (
+    Array.isArray(memory.window10) &&
+    memory.window10.length >= _TREND_MIN_WINDOW &&
+    trend && trend !== 'stable'
+  ) {
+    const trendText = trend === 'improving'
+      ? 'Scores récents supérieurs à la moyenne des sessions précédentes.'
+      : 'Scores récents inférieurs à la moyenne des sessions précédentes.';
+    trendBlock = `<div class="bhv-mem-profile-trend">${escHtml(trendText)}</div>`;
+  }
+
+  // ── Zone de gestion mémoire ─────────────────────────────────────────────────
+  const manageBlock = showMemManage
+    ? `<div class="bhv-mem-profile-reset-zone">
+        <div class="bhv-mem-profile-reset-warn">Cette action efface définitivement l'historique comportemental.</div>
+        <div class="bhv-mem-profile-reset-actions">
+          <input type="text" class="bhv-mem-profile-reset-input"
+                 id="bhvMemManageInput" placeholder="Taper RESET pour confirmer"
+                 autocomplete="off" spellcheck="false">
+          <button class="bhv-btn bhv-btn--danger bhv-btn--sm" id="bhvMemManageConfirm" type="button">Confirmer</button>
+          <button class="bhv-btn bhv-btn--sm" id="bhvMemManageCancel" type="button">Annuler</button>
+        </div>
+      </div>`
+    : `<div class="bhv-mem-profile-manage">
+        <button class="bhv-mem-profile-manage-link" id="bhvMemManageLink" type="button">Gérer la mémoire →</button>
+      </div>`;
+
+  return `
+    <div class="bhv-card bhv-mem-profile">
+      <div class="bhv-card-head">
+        <span class="bhv-card-title">Mémoire comportementale</span>
+      </div>
+      <div class="bhv-mem-profile-count">${n} session${n > 1 ? 's' : ''} analysée${n > 1 ? 's' : ''}</div>
+      ${patternsBlock}
+      ${trendBlock}
+      ${manageBlock}
+    </div>`;
+}
+
 // ── Import card ───────────────────────────────────────────────────────────────
+
+// Mapping clé interne → label affichable (miroir de patterns.js / coaching.js).
+const _PATTERN_LABELS = {
+  overtrading:        'Overtrading',
+  revenge_trading:    'Revenge trading',
+  rapid_reentry:      'Réentrée rapide',
+  size_inconsistency: 'Tailles incohérentes',
+  loss_chasing:       'Escalade de position',
+};
 
 function buildImportCard(state) {
   return `
@@ -200,6 +322,7 @@ function buildImportCard(state) {
       ${state.importDiagnostic ? `<pre class="bhv-msg bhv-msg--diagnostic">${escHtml(state.importDiagnostic)}</pre>` : ''}
       ${state.importSummary ? buildImportSummary(state.importSummary)
         : state.importInfo  ? `<div class="bhv-msg bhv-msg--info">${escHtml(state.importInfo)}</div>` : ''}
+      ${state.importNotice ? `<div class="bhv-msg bhv-msg--notice">${escHtml(state.importNotice)}</div>` : ''}
 
       ${(state.trades || state.walletResult || state.orderResult) ? `
         <div class="bhv-import-actions">
@@ -402,7 +525,7 @@ function buildAnalysis(state) {
         ${warningsList}
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
-        ${buildPatternsCard(patterns)}
+        ${buildPatternsCard(patterns, state.personalContext)}
         ${buildReadingCard(metrics, patterns, style, transitions)}
         ${buildSummaryCard(metrics)}
         ${buildJournalCard(trades, tradeTags)}
@@ -875,7 +998,7 @@ function buildReadingSentences(m, patterns) {
 
 // ── Patterns card ─────────────────────────────────────────────────────────────
 
-function buildPatternsCard(patterns) {
+function buildPatternsCard(patterns, personalContext = null) {
   const head = `
     <div class="bhv-card-head">
       <span class="bhv-card-title">Patterns détectés</span>
@@ -897,11 +1020,16 @@ function buildPatternsCard(patterns) {
     return 'tertiary';
   };
 
-  const items = sorted.map((p, i) => `
+  const items = sorted.map((p, i) => {
+    const recurringBadge = personalContext?.isRecurringPattern?.[p.type]
+      ? `<span class="bhv-badge bhv-badge--recurring">Récurrent</span>`
+      : '';
+    return `
     <div class="bhv-pattern bhv-pattern--${tier(p, i)}">
-      <div class="bhv-pattern-name">${escHtml(p.label)}</div>
+      <div class="bhv-pattern-name">${escHtml(p.label)}${recurringBadge}</div>
       <div class="bhv-pattern-desc">${escHtml(p.description)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   return `<div class="bhv-card">${head}<div class="bhv-patterns">${items}</div></div>`;
 }
@@ -1070,6 +1198,40 @@ function fmtK(n) {
 // ── Events ────────────────────────────────────────────────────────────────────
 
 function bindEvents(root, state) {
+  // ── Gestion mémoire — lien + zone de confirmation RESET ────────────────────
+  const memManageLink = root.querySelector('#bhvMemManageLink');
+  if (memManageLink) {
+    memManageLink.addEventListener('click', () => {
+      behaviorRepo.set('showMemoryManage', true);
+      mount(root);
+    });
+  }
+
+  const memManageCancel = root.querySelector('#bhvMemManageCancel');
+  if (memManageCancel) {
+    memManageCancel.addEventListener('click', () => {
+      behaviorRepo.set('showMemoryManage', false);
+      mount(root);
+    });
+  }
+
+  const memManageConfirm = root.querySelector('#bhvMemManageConfirm');
+  if (memManageConfirm) {
+    memManageConfirm.addEventListener('click', () => {
+      const input = root.querySelector('#bhvMemManageInput');
+      if (!input) return;
+      if (input.value.trim().toUpperCase() === 'RESET') {
+        memoryRepo.resetMemory();
+        behaviorRepo.set('showMemoryManage', false);
+        mount(root);
+      } else {
+        input.classList.add('bhv-mem-profile-reset-input--error');
+        setTimeout(() => input.classList.remove('bhv-mem-profile-reset-input--error'), 900);
+      }
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const fileInput = root.querySelector('#bhvFileInput');
   const dropZone  = root.querySelector('#bhvDropZone');
   const clearBtn  = root.querySelector('#bhvClearBtn');
@@ -1078,6 +1240,7 @@ function bindEvents(root, state) {
     fileInput.addEventListener('change', e => {
       const file = e.target.files[0];
       if (file) handleImport(file, root);
+      e.target.value = '';  // reset : permet re-sélection du même fichier (iOS)
     });
   }
 
@@ -1165,7 +1328,81 @@ function bindEvents(root, state) {
   }
 }
 
+// ── DEBUG-IPAD — overlay visible sans DevTools · retirer après diagnostic ─────
+async function _debugIpadOverlay(file) {
+  const lines = [
+    `Fichier   : ${file.name}`,
+    `Extension : .${file.name.split('.').pop().toLowerCase()}`,
+    `MIME      : ${file.type || '(vide — courant iOS Safari)'}`,
+    `Taille    : ${(file.size / 1024).toFixed(1)} Ko`,
+  ];
+  if (file.name.split('.').pop().toLowerCase() !== 'pdf') {
+    try {
+      const raw    = await file.slice(0, 600).text();
+      const bom    = raw.startsWith('\ufeff');
+      const clean  = raw.replace(/^\ufeff/, '');
+      const sep    = clean.includes('\t') ? 'TAB' : clean.includes(';') ? ';' : ',';
+      const lignes = clean.split(/\r?\n/).filter(l => l.trim());
+      const cols   = (lignes[0] ?? '').split(sep === 'TAB' ? '\t' : sep);
+      lines.push(`BOM UTF-8  : ${bom}`);
+      lines.push(`Séparateur : ${sep}`);
+      lines.push(`Lignes vues (600o) : ${lignes.length}`);
+      lines.push(`Colonnes L1 : ${cols.length} — ${cols.slice(0, 5).join(' | ')}`);
+      lines.push(`Début : ${clean.slice(0, 100).replace(/[\r\n]/g, '↵')}`);
+    } catch (e) {
+      lines.push(`Aperçu CSV : ERREUR — ${e.message}`);
+    }
+  }
+  const el = document.createElement('pre');
+  el.id = '_bhv_debug_ipad';
+  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
+  el.textContent = '[DEBUG IMPORT iPad]\n' + lines.join('\n');
+  document.getElementById('_bhv_debug_ipad')?.remove();
+  document.body.appendChild(el);
+  console.warn('[DEBUG-IPAD] import\n' + lines.join('\n'));
+}
+// ── FIN DEBUG-IPAD ─────────────────────────────────────────────────────────────
+
+// ── Fingerprint anti-doublon ───────────────────────────────────────────────────
+// Construit un identifiant de contenu à partir des trades extraits.
+// Résistant aux renommages de fichier et aux changements de format (PDF vs CSV vs XLSX).
+//
+// Composantes :
+//   type        : 'trades' | 'order_history' — le même historique en deux formats
+//                 produit le même fingerprint si les données sont identiques
+//   count       : nombre de lignes retenues
+//   first / last : timestamps extrêmes (ms epoch) — jamais les mêmes pour deux périodes distinctes
+//   sumQuote    : somme arrondie des montants quote — renforce la discrimination
+//
+// Retourne null si aucun timestamp exploitable (import ne sera pas bloqué).
+function buildImportFingerprint(trades, result) {
+  if (!trades || trades.length === 0) return null;
+
+  const type  = result?.type ?? 'unknown';
+  const count = trades.length;
+
+  let first    = Infinity;
+  let last     = -Infinity;
+  let sumQuote = 0;
+
+  for (const t of trades) {
+    const raw = t.timestamp;
+    const ts  = typeof raw === 'number' ? raw
+              : raw ? new Date(raw).getTime() : NaN;
+    if (!isNaN(ts) && isFinite(ts)) {
+      if (ts < first) first = ts;
+      if (ts > last)  last  = ts;
+    }
+    sumQuote += parseFloat(t.quote_value ?? t.quote_quantity ?? 0) || 0;
+  }
+
+  if (!isFinite(first)) return null;  // aucun timestamp valide → pas de fingerprint
+
+  return `${type}|${count}|${first}|${last}|${Math.round(sumQuote)}`;
+}
+
 async function handleImport(file, root) {
+  await _debugIpadOverlay(file);  // DEBUG-IPAD — retirer après diagnostic
   const isPdf = file.name.split('.').pop().toLowerCase() === 'pdf';
   const dropZone = root.querySelector('#bhvDropZone');
   if (dropZone) dropZone.classList.add('bhv-loading');
@@ -1176,6 +1413,78 @@ async function handleImport(file, root) {
     console.warn('[bhv:import] exception non catchée dans importBinanceSpot:', err);
     result = { ok: false, error: 'Erreur inattendue lors de la lecture du fichier.', trades: [] };
   }
+
+  // DEBUG-IPAD — retirer après diagnostic
+  if (isPdf && result._debugPdf) {
+    const d  = result._debugPdf;
+    const ex = d.debugExtract;
+    const pdfLines = [
+      '',
+      '── Extraction PDF ──────────────',
+      `Qualité          : ${d.quality}`,
+      `Pages            : ${d.pages}`,
+      `Items extraits   : ${d.items}`,
+      `Chars utiles     : ${d.chars}`,
+      `Famille détectée : ${d.family ?? '(non atteinte — bloqué avant)'}`,
+      `Rows extraits    : ${d.rowsExtracted ?? '(non atteint)'}`,
+      `Rows normalisés  : ${d.rowsNormalized ?? '(non atteint)'}`,
+      `Statuts trouvés  : ${d.statuts ?? '(non atteint)'}`,
+      '',
+      ...(d.normalizedSample ? [
+        '── Audit mapping status ────────────',
+        `Longueurs rows brutes (5) : [${(d.rawRowLengths ?? []).join(', ')}]`,
+        '',
+        ...d.normalizedSample.map((r, i) => [
+          `Row ${i} (${r.row_length} cells)`,
+          `  row[11] brut  : "${r.row11_raw}"`,
+          `  status normalisé : ${r.status === null ? 'null' : JSON.stringify(r.status)}`,
+          `  symbol=${r.symbol}  side=${r.side}  created_at=${r.created_at}  executed_qty=${r.executed_qty}`,
+        ].join('\n')),
+        '',
+        '── Rows brutes (3 premières) ───────',
+        ...(d.rawRowSample ?? []).map((cells, i) =>
+          `Row ${i}: ${cells.map((c, j) => `[${j}]${c}`).join('  ')}`
+        ),
+        '',
+      ] : []),
+      ...(ex ? [
+        '── Signature X ─────────────────────',
+        `Source    : ${ex.sigSource} (score=${ex.sigScore})`,
+        `Détectée  : ${ex.sigFound ? 'OUI' : 'NON — fallback statique b3.pdf'}`,
+        `Header Y  : ${ex.sigHeaderY ?? '—'}`,
+        `Colonnes sig     : ${ex.sigColCount ?? '—'} (attendu 12)`,
+        `Lignes header fusionnées : ${ex.sigMergedLines ?? '—'}`,
+        `Positions : ${ex.sigPositions}`,
+        '',
+        '── Audit fusion clusters (★=BEST_HEADER) ─',
+        ...(ex.clusterAuditLines ?? ['(aucun audit disponible)']),
+        '',
+        `── Items bruts p${ex.pagesProcessed[0]}–${ex.pagesProcessed[1] ?? ex.pagesProcessed[0]} (30 max) ─`,
+        ...ex.debugItems,
+        '',
+        '── sigMatches / cluster (10 premiers) ─',
+        ...ex.sigCounts,
+        '',
+        '── Distribution X (200 items, buckets 5pt) ─',
+        ex.xDist,
+      ] : [
+        'Extrait brut (200c) :',
+        d.extrait || '(vide)',
+      ]),
+    ].join('\n');
+    const existing = document.getElementById('_bhv_debug_ipad');
+    if (existing) {
+      existing.textContent += pdfLines;
+    } else {
+      const el = document.createElement('pre');
+      el.id = '_bhv_debug_ipad';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:60vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
+      el.textContent = '[DEBUG PDF]\n' + pdfLines;
+      document.body.appendChild(el);
+    }
+    console.warn('[DEBUG-IPAD] pdf\n' + pdfLines);
+  }
+  // FIN DEBUG-IPAD
 
   if (!result.ok) {
     behaviorRepo.set('importError',       result.error);
@@ -1264,6 +1573,30 @@ async function handleImport(file, root) {
     importRegistry.append(buildRegistryEntry(result, file));
     if (result.type === 'wallet') {
       try { persistPortfolioSnapshot(result, file); } catch { /* non-bloquant */ }
+    }
+    // ── Anti-doublon fingerprint ──────────────────────────────────────────────
+    // L'analyse visuelle reste autorisée pour tout import valide.
+    // Seule l'incrémentation mémoire est conditionnée à un fingerprint nouveau.
+    //
+    //   fingerprint null  → impossible de distinguer (0 timestamp) → on autorise
+    //   fingerprint connu → doublon confirmé → notice, pas d'incrément
+    //   fingerprint nouveau → pendingMemorySave + pendingImportFingerprint
+    if (result.type !== 'wallet') {
+      const fingerprint    = buildImportFingerprint(result.trades, result);
+      const mem            = memoryRepo.getMemory();
+      const alreadyCounted = fingerprint !== null
+        && Array.isArray(mem.importedFingerprints)
+        && mem.importedFingerprints.includes(fingerprint);
+
+      if (alreadyCounted) {
+        behaviorRepo.set('importNotice',           'Fichier déjà comptabilisé — mémoire non incrémentée.');
+        behaviorRepo.set('pendingImportFingerprint', null);
+        // pendingMemorySave intentionnellement non posé → mount() n'incrémente pas
+      } else {
+        behaviorRepo.set('importNotice',           null);
+        behaviorRepo.set('pendingMemorySave',      true);
+        behaviorRepo.set('pendingImportFingerprint', fingerprint);
+      }
     }
   }
 

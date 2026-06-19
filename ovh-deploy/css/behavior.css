@@ -1279,3 +1279,138 @@ body.bhv-panel-open .main-shell {
   color: var(--muted, #bba76b);
   letter-spacing: 0.02em;
 }
+
+/* ── Panneau Mémoire Comportementale ─────────────────────────────────────────── */
+
+.bhv-mem-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bhv-mem-profile-count {
+  font-size: 0.82rem;
+  color: var(--text, #f4ecd0);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.bhv-mem-profile-section {
+  font-size: 0.70rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted, #bba76b);
+  margin-bottom: 2px;
+}
+
+.bhv-mem-profile-pattern-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bhv-mem-profile-pattern-label {
+  font-size: 0.82rem;
+  color: var(--text, #f4ecd0);
+}
+
+.bhv-mem-profile-pattern-val {
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  white-space: nowrap;
+}
+
+.bhv-mem-profile-trend {
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.bhv-mem-profile-manage {
+  padding-top: 4px;
+  text-align: right;
+}
+
+.bhv-mem-profile-manage-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--muted, #bba76b);
+  opacity: 0.65;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+.bhv-mem-profile-manage-link:hover {
+  opacity: 1;
+}
+
+.bhv-mem-profile-reset-zone {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bhv-mem-profile-reset-warn {
+  font-size: 0.76rem;
+  color: var(--muted, #bba76b);
+  line-height: 1.5;
+}
+
+.bhv-mem-profile-reset-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bhv-mem-profile-reset-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: var(--text, #f4ecd0);
+  font-size: 0.80rem;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.bhv-mem-profile-reset-input:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.bhv-mem-profile-reset-input--error {
+  border-color: rgba(255, 123, 123, 0.70);
+  animation: bhv-shake 0.25s ease;
+}
+
+@keyframes bhv-shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-4px); }
+  75%       { transform: translateX(4px); }
+}
+
+.bhv-btn--sm {
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  border-radius: 6px;
+}
+
+/* ── Badge récurrent — patterns card ─────────────────────────────────────────── */
+
+.bhv-badge--recurring {
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-size: 0.66rem;
+  background: rgba(255, 123, 123, 0.10);
+  color: var(--danger, #ff7b7b);
+  border-color: rgba(255, 123, 123, 0.28);
+  vertical-align: middle;
+}
+

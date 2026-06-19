@@ -14,6 +14,7 @@ export const KEYS = {
   backups: 'CE_backups_v1',
   behaviorMemory: 'cameleon_behavior_memory_v1',
   portfolio: 'CE_portfolio_v1',
+  operatorMemory: 'CE_operator_memory_v1',
 };
 
 const SCHEMA_VERSION = 1;
@@ -205,6 +206,22 @@ export const backups = {
   },
 };
 
+// ── Operator memory — mémoire comportementale long-terme ─────
+// Structurée (sessionCount, allTime, window10, certifications).
+// Accès via withUserKey — namespacing UUID identique aux autres clés opérateur.
+
+export const operatorMemory = {
+  get() {
+    return _read(withUserKey(KEYS.operatorMemory))?.data ?? null;
+  },
+  set(data) {
+    return _write(withUserKey(KEYS.operatorMemory), _wrap({ data }));
+  },
+  clear() {
+    return _remove(withUserKey(KEYS.operatorMemory));
+  },
+};
+
 // ── Behavior memory — signal comportemental courant ──────────
 // Format : tableau brut JSON (pas de _wrap) — compatibilité données existantes.
 // Écriture centralisée ici ; render.js ne doit plus appeler localStorage directement.
@@ -381,6 +398,7 @@ export function exportOperatorData() {
         importRegistry:       importRegistry.getAll(),
         uiState:              uiState.get(),
         portfolio:            portfolio.getAll(),
+        operatorMemory:       operatorMemory.get(),
       },
     };
   } catch {
