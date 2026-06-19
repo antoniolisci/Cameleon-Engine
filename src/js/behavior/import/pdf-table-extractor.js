@@ -170,6 +170,47 @@ function _detectOrderXSig(clusters) {
   const headerItems = [...clusters[bestIdx].items];
   let nextIdx = bestIdx + 1;
   let mergedLines = 0;
+
+  // DEBUG-IPAD — audit de fusion : trace chaque cluster voisin (bestIdx-2 … bestIdx+8)
+  const clusterAudit = [];
+  for (let ai = Math.max(0, bestIdx - 2); ai < Math.min(clusters.length, bestIdx + 9); ai++) {
+    const cl = clusters[ai];
+    const clScore = _orderHeaderScore(cl);
+    const clFirst = cl.items.map(i => i.str.trim()).find(s => s.length > 0) ?? '';
+    const clNormedCells = cl.items.map(i => _normCell(i.str)).filter(s => s.length > 0);
+    let role, rejectReason;
+    if (ai === bestIdx) {
+      role = 'BEST_HEADER';
+      rejectReason = null;
+    } else if (ai < bestIdx) {
+      role = 'BEFORE_HEADER';
+      rejectReason = 'avant le cluster principal — non considéré pour fusion';
+    } else {
+      // Simule la logique de la boucle while en séquentiel
+      const relIdx = ai - bestIdx;
+      if (relIdx > 5) {
+        role = 'SKIPPED'; rejectReason = 'limite mergedLines=5 atteinte';
+      } else if (clScore < 2) {
+        role = 'REJECTED'; rejectReason = `score=${clScore} < 2`;
+      } else if (_isDateCell(clFirst)) {
+        role = 'REJECTED'; rejectReason = `firstCell est une date : "${clFirst}"`;
+      } else {
+        role = 'MERGED'; rejectReason = null;
+      }
+    }
+    clusterAudit.push({
+      idx: ai,
+      isBest: ai === bestIdx,
+      y: cl.yRef.toFixed(1),
+      score: clScore,
+      firstCell: clFirst,
+      normedCells: clNormedCells.slice(0, 8),
+      role,
+      rejectReason,
+    });
+  }
+  // FIN DEBUG-IPAD
+
   while (nextIdx < clusters.length && mergedLines < 5) {
     const nextScore = _orderHeaderScore(clusters[nextIdx]);
     if (nextScore < 2) break;
@@ -205,12 +246,13 @@ function _detectOrderXSig(clusters) {
 
   return {
     xSig,
-    tolerance:   X_TOLERANCE_DYN,
-    found:       true,
-    source:      'dynamic',
-    score:       bestScore,
-    headerY:     clusters[bestIdx].yRef,
-    mergedLines, // nombre de lignes header fusionnées (0 = une seule ligne)
+    tolerance:    X_TOLERANCE_DYN,
+    found:        true,
+    source:       'dynamic',
+    score:        bestScore,
+    headerY:      clusters[bestIdx].yRef,
+    mergedLines,  // nombre de lignes header fusionnées (0 = une seule ligne)
+    clusterAudit, // DEBUG-IPAD — audit de fusion par cluster
   };
 }
 
@@ -406,6 +448,15 @@ function extractPdfTableRows(pdfResult, family) {
       `cluster ${String(i).padStart(2)} | y=${cl.yRef.toFixed(1).padStart(6)} | items=${cl.items.length} | sigMatches=${_sigMatchCount(cl.items, sig.xSig, sig.tolerance)}`
     );
 
+    // DEBUG-IPAD — format texte de l'audit de fusion pour l'overlay
+    const clusterAuditLines = (sig.clusterAudit ?? []).map(ca =>
+      `${ca.isBest ? '★' : ' '} idx=${String(ca.idx).padStart(2)} y=${String(ca.y).padStart(7)} ` +
+      `score=${ca.score} role=${ca.role.padEnd(14)} ` +
+      `firstCell="${ca.firstCell.slice(0, 20)}" ` +
+      (ca.rejectReason ? `→ ${ca.rejectReason}` : '') +
+      `\n    normed=[${ca.normedCells.join(' | ')}]`
+    );
+
     diagnostics._debugExtract = {
       sigSource:      sig.source,
       sigFound:       sig.found,
@@ -414,7 +465,8 @@ function extractPdfTableRows(pdfResult, family) {
       sigMergedLines: sig.mergedLines ?? 0,
       sigPositions:   sig.xSig.map(x => x.toFixed(1)).join(', '),
       sigHeaderY:     sig.headerY?.toFixed(1) ?? null,
-      rejectedSample: _dbgRejected,  // DEBUG-IPAD : clusters sigCount>=6 rejetés par _isDateCell
+      clusterAuditLines,  // DEBUG-IPAD — audit de fusion cluster par cluster
+      rejectedSample: _dbgRejected,
       debugItems,
       xDist,
       sigCounts,
