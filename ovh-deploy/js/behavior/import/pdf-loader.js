@@ -90,4 +90,11 @@ function detectPdfQuality(result) {
   return 'NATIVE';
 }
 
-export { loadPdfTextItems, detectPdfQuality };
+// Pré-chauffe le singleton pdf.js — fire-and-forget, pas d'await.
+// À appeler dès l'ouverture du panneau comportemental pour éviter l'échec
+// à froid sur iOS Safari (Web Worker non initialisé au premier import).
+function warmupPdfLoader() {
+  _getPdfjsLib().catch(() => { /* non-bloquant — ignoré si échec au pré-chargement */ });
+}
+
+export { loadPdfTextItems, detectPdfQuality, warmupPdfLoader };

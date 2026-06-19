@@ -5,6 +5,7 @@ import { behaviorRepo     } from '../storage/behavior-repo.js';
 import { getAll as getSessions, save as saveSession, remove as removeSession, clearAll as clearAllSessions } from '../storage/session-repo.js';
 import { analyzeSessions } from '../analytics/behavior-analyzer.js';
 import { importBinanceSpot } from '../import/uploader.js';
+import { warmupPdfLoader   } from '../import/pdf-loader.js';
 import { computeMetrics, tradeSize } from '../analytics/metrics.js';
 import { detectStyle, detectStyleTransitions, isShiftMoreAggressive } from '../analytics/style.js';
 import { detectPatterns, tagTrades } from '../analytics/patterns.js';
@@ -84,6 +85,12 @@ function readGridContext() {
 }
 
 function mount(root) {
+  // Pré-chauffe pdf.js à l'ouverture du panneau — non bloquant.
+  // iOS Safari : le Web Worker pdf.js ne s'initialise pas instantanément.
+  // Déclencher l'import dès mount() donne le temps au worker d'être prêt
+  // avant que l'opérateur sélectionne un fichier.
+  warmupPdfLoader();
+
   const trades            = behaviorRepo.get('trades');
   const importError       = behaviorRepo.get('importError');
   const importDiagnostic  = behaviorRepo.get('importDiagnostic');
@@ -107,7 +114,9 @@ function mount(root) {
   // Mémoire opérateur — lue AVANT l'analyse pour que la session courante
   // n'influence pas ses propres modulations (pas de boucle). La sauvegarde
   // intervient après computeScore/computeCoaching (voir plus bas).
-  const memory          = memoryRepo.getMemory();
+  // let (pas const) : mise à jour locale après saveMemory pour que le render
+  // affiche immédiatement le nouveau compteur (pas le précédent).
+  let memory            = memoryRepo.getMemory();
   const personalContext = buildPersonalContext(memory);
 
   if (trades && trades.length > 0) {
@@ -141,6 +150,7 @@ function mount(root) {
       memoryRepo.saveMemory(updatedMemory);
       behaviorRepo.set('pendingMemorySave', false);
       behaviorRepo.set('pendingImportFingerprint', null);
+      memory = updatedMemory;  // mise à jour locale — le render voit le nouveau compteur
     }
     // ─────────────────────────────────────────────────────────────────────
 
