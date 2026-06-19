@@ -171,7 +171,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, gridContext, validationWarning, validationWarnings, personalContext });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, gridContext, validationWarning, validationWarnings, memory, personalContext });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -189,11 +189,96 @@ function buildShell(state) {
       </div>
       ${buildImportCard(state)}
       ${buildSessionsCard(state)}
+      ${buildMemoryProfileCard(state.memory, state.personalContext)}
       ${buildPortfolioSection()}
       ${state.trades && !state.orderResult ? buildAnalysis(state)
           : state.orderResult              ? buildOrderAnalysis(state.orderResult)
           : state.walletResult             ? buildWalletAnalysis(state.walletResult)
           : ''}
+    </div>`;
+}
+
+// ── Panneau Mémoire Comportementale ───────────────────────────────────────────
+// Affiché si memory.sessionCount >= 3. Absent en dessous.
+//
+// Contenu : sessionCount · patterns (N sessions sur M) · tendance factuelle
+// Règles doctrine : descriptif uniquement, aucun profil identitaire, aucune prescription.
+//
+// Gestion mémoire : lien discret "Gérer la mémoire →" déclenche une zone de
+// confirmation inline. L'opérateur doit saisir "RESET" pour confirmer l'effacement.
+
+const _MIN_SESSIONS_PANEL = 3;   // seuil d'activation du panneau
+const _TREND_MIN_WINDOW   = 6;   // taille minimale window10 pour afficher la tendance
+
+const _PANEL_PATTERN_LABELS = {
+  overtrading:        'Overtrading',
+  revenge_trading:    'Revenge trading',
+  rapid_reentry:      'Réentrée rapide',
+  size_inconsistency: 'Tailles incohérentes',
+  loss_chasing:       'Escalade de position',
+};
+
+function buildMemoryProfileCard(memory, personalContext) {
+  if (!memory || memory.sessionCount < _MIN_SESSIONS_PANEL) return '';
+
+  const n     = memory.sessionCount;
+  const freq  = memory.allTime?.patternFrequency ?? {};
+  const showMemManage = behaviorRepo.get('showMemoryManage') === true;
+
+  // ── Patterns — uniquement ceux observés au moins une fois ──────────────────
+  const patternRows = Object.entries(freq)
+    .filter(([, count]) => count > 0)
+    .sort(([, a], [, b]) => b - a)
+    .map(([key, count]) => {
+      const label = _PANEL_PATTERN_LABELS[key] ?? key;
+      return `<div class="bhv-mem-profile-pattern-row">
+        <span class="bhv-mem-profile-pattern-label">${escHtml(label)}</span>
+        <span class="bhv-mem-profile-pattern-val">${count} session${count > 1 ? 's' : ''} sur ${n}</span>
+      </div>`;
+    })
+    .join('');
+
+  const patternsBlock = patternRows
+    ? `<div class="bhv-mem-profile-section">Comportements observés</div>${patternRows}`
+    : '';
+
+  // ── Tendance — libellé factuel, aucun adjectif prescriptif ─────────────────
+  // Condition : window10 assez grande ET trend non stable.
+  let trendBlock = '';
+  const trend = personalContext?.window10?.trend;
+  if (
+    Array.isArray(memory.window10) &&
+    memory.window10.length >= _TREND_MIN_WINDOW &&
+    trend && trend !== 'stable'
+  ) {
+    const trendText = trend === 'improving'
+      ? 'Scores récents supérieurs à la moyenne des sessions précédentes.'
+      : 'Scores récents inférieurs à la moyenne des sessions précédentes.';
+    trendBlock = `<div class="bhv-mem-profile-trend">${escHtml(trendText)}</div>`;
+  }
+
+  // ── Zone de gestion mémoire ─────────────────────────────────────────────────
+  const manageBlock = showMemManage
+    ? `<div class="bhv-mem-profile-reset-zone">
+        <div class="bhv-mem-profile-reset-warn">Cette action efface définitivement l'historique comportemental.</div>
+        <div class="bhv-mem-profile-reset-actions">
+          <input type="text" class="bhv-mem-profile-reset-input"
+                 id="bhvMemManageInput" placeholder="Taper RESET pour confirmer"
+                 autocomplete="off" spellcheck="false">
+          <button class="bhv-btn bhv-btn--danger bhv-btn--sm" id="bhvMemManageConfirm" type="button">Confirmer</button>
+          <button class="bhv-btn bhv-btn--sm" id="bhvMemManageCancel" type="button">Annuler</button>
+        </div>
+      </div>`
+    : `<div class="bhv-mem-profile-manage">
+        <button class="bhv-mem-profile-manage-link" id="bhvMemManageLink" type="button">Gérer la mémoire →</button>
+      </div>`;
+
+  return `
+    <div class="bhv-card bhv-mem-profile">
+      <div class="bhv-mem-profile-count">${n} session${n > 1 ? 's' : ''} analysée${n > 1 ? 's' : ''}</div>
+      ${patternsBlock}
+      ${trendBlock}
+      ${manageBlock}
     </div>`;
 }
 
@@ -208,59 +293,12 @@ const _PATTERN_LABELS = {
   loss_chasing:       'Escalade de position',
 };
 
-// Profil déduit du score moyen all-time (seuils identiques à scoring.js).
-function _avgScoreToProfile(score) {
-  if (score >= 80) return 'Discipliné';
-  if (score >= 60) return 'Réactif';
-  if (score >= 40) return 'Impulsif';
-  return 'Agressif';
-}
-
-// Bloc mémoire opérateur — affiché avant la zone de drop si ≥ 3 sessions analysées.
-// Max 3 lignes : profil historique, patterns récurrents, tendance récente.
-// Retourne '' si personalContext === null (0 bruit pour un nouvel opérateur).
-function buildMemoryContextBlock(personalContext) {
-  if (!personalContext) return '';
-
-  const lines = [];
-
-  // Ligne 1 — Profil historique all-time
-  if (typeof personalContext.allTimeAvgScore === 'number') {
-    const profileLabel = _avgScoreToProfile(personalContext.allTimeAvgScore);
-    const avgRounded   = Math.round(personalContext.allTimeAvgScore);
-    lines.push(`Profil historique : <strong>${escHtml(profileLabel)} · ${avgRounded} / 100</strong> · ${personalContext.sessionCount} sessions`);
-  }
-
-  // Ligne 2 — Patterns récurrents (≥ 30% des sessions = dominantPatterns)
-  if (personalContext.dominantPatterns?.length) {
-    const labels = personalContext.dominantPatterns
-      .map(k => _PATTERN_LABELS[k] ?? k)
-      .join(', ');
-    lines.push(`Récurrent : <strong>${escHtml(labels)}</strong>`);
-  }
-
-  // Ligne 3 — Tendance 5 dernières sessions (omise si stable ou données insuffisantes)
-  const trend = personalContext.window10?.trend;
-  if (trend === 'improving') {
-    lines.push('Tendance récente : <strong>progression</strong>');
-  } else if (trend === 'declining') {
-    lines.push('Tendance récente : <strong>dégradation</strong>');
-  }
-
-  if (!lines.length) return '';
-
-  const lineItems = lines.map(l => `<div class="bhv-mem-context-line">${l}</div>`).join('');
-  return `<div class="bhv-mem-context">${lineItems}</div>`;
-}
-
 function buildImportCard(state) {
   return `
     <div class="bhv-card bhv-import-card${state.importInfo ? ' bhv-pulse-ok' : ''}">
       <div class="bhv-card-head">
         <span class="bhv-card-title">Que contient votre fichier ?</span>
       </div>
-
-      ${buildMemoryContextBlock(state.personalContext)}
 
       <div class="bhv-drop-zone" id="bhvDropZone">
         <input type="file" id="bhvFileInput" accept=".csv,.xlsx,.xls,.pdf" class="bhv-file-input">
@@ -1157,6 +1195,40 @@ function fmtK(n) {
 // ── Events ────────────────────────────────────────────────────────────────────
 
 function bindEvents(root, state) {
+  // ── Gestion mémoire — lien + zone de confirmation RESET ────────────────────
+  const memManageLink = root.querySelector('#bhvMemManageLink');
+  if (memManageLink) {
+    memManageLink.addEventListener('click', () => {
+      behaviorRepo.set('showMemoryManage', true);
+      mount(root);
+    });
+  }
+
+  const memManageCancel = root.querySelector('#bhvMemManageCancel');
+  if (memManageCancel) {
+    memManageCancel.addEventListener('click', () => {
+      behaviorRepo.set('showMemoryManage', false);
+      mount(root);
+    });
+  }
+
+  const memManageConfirm = root.querySelector('#bhvMemManageConfirm');
+  if (memManageConfirm) {
+    memManageConfirm.addEventListener('click', () => {
+      const input = root.querySelector('#bhvMemManageInput');
+      if (!input) return;
+      if (input.value.trim().toUpperCase() === 'RESET') {
+        memoryRepo.resetMemory();
+        behaviorRepo.set('showMemoryManage', false);
+        mount(root);
+      } else {
+        input.classList.add('bhv-mem-profile-reset-input--error');
+        setTimeout(() => input.classList.remove('bhv-mem-profile-reset-input--error'), 900);
+      }
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const fileInput = root.querySelector('#bhvFileInput');
   const dropZone  = root.querySelector('#bhvDropZone');
   const clearBtn  = root.querySelector('#bhvClearBtn');
