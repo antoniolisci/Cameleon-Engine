@@ -449,40 +449,53 @@ async function importBinancePDF(file) {
   }
 
   // DEBUG-IPAD — retirer après diagnostic
-  console.warn('[DEBUG-IPAD] pdfResult', {
+  const _dbgPdf = {
     quality: pdfResult.quality,
     pages:   pdfResult.pages,
     items:   pdfResult.items.length,
     chars:   (pdfResult.rawText || '').replace(/\s+/g, '').length,
-    extrait: (pdfResult.rawText || '').slice(0, 150),
-  });
+    extrait: (pdfResult.rawText || '').slice(0, 200),
+    family:          null,
+    rowsExtracted:   null,
+    rowsNormalized:  null,
+    statuts:         null,
+  };
+  console.warn('[DEBUG-IPAD] pdfResult', _dbgPdf);
   // FIN DEBUG-IPAD
 
   if (pdfResult.quality === 'UNREADABLE' || pdfResult.quality === 'SCANNED') {
     return {
       ok: false,
       error: `PDF non lisible (qualité : ${pdfResult.quality}). Seuls les PDFs Binance natifs (texte encodé) sont supportés.`,
-      // DEBUG-IPAD — retirer après diagnostic
       diagnostic: `Qualité : ${pdfResult.quality}\nPages : ${pdfResult.pages}\nItems extraits : ${pdfResult.items.length}\nCaractères utiles : ${(pdfResult.rawText || '').replace(/\s+/g, '').length}\nExtrait (150c) : ${(pdfResult.rawText || '').slice(0, 150) || '(vide)'}`,
-      // FIN DEBUG-IPAD
+      _debugPdf: _dbgPdf,  // DEBUG-IPAD
       trades: []
     };
   }
 
   const family = detectPdfFamily(pdfResult.rawText, pdfResult.items);
+  // DEBUG-IPAD
+  _dbgPdf.family = family;
+  console.warn('[DEBUG-IPAD] famille détectée :', family);
+  // FIN DEBUG-IPAD
   if (family === 'UNKNOWN') {
     return {
       ok: false,
       error: 'Format PDF non reconnu. Seuls les exports Binance Trade History et Order History Spot sont supportés.',
-      // DEBUG-IPAD — retirer après diagnostic
       diagnostic: `Famille : UNKNOWN\nQualité : ${pdfResult.quality}\nPages : ${pdfResult.pages}\nItems : ${pdfResult.items.length}\nExtrait brut (200c) :\n${(pdfResult.rawText || '').slice(0, 200) || '(vide)'}`,
-      // FIN DEBUG-IPAD
+      _debugPdf: _dbgPdf,  // DEBUG-IPAD
       trades: []
     };
   }
 
   const extracted  = extractPdfTableRows(pdfResult, family);
   const normalized = normalizePdfRows(extracted.rows, family);
+  // DEBUG-IPAD
+  _dbgPdf.rowsExtracted  = extracted.rows.length;
+  _dbgPdf.rowsNormalized = normalized.length;
+  _dbgPdf.statuts = [...new Set(normalized.map(r => r.status || '?'))].slice(0, 8).join(', ') || '(aucun)';
+  console.warn('[DEBUG-IPAD] extraction', { rowsExtracted: _dbgPdf.rowsExtracted, rowsNormalized: _dbgPdf.rowsNormalized, statuts: _dbgPdf.statuts });
+  // FIN DEBUG-IPAD
   const sessionId  = `session_${Date.now()}`;
 
   if (family === 'TRADE_HISTORY') {
@@ -494,13 +507,14 @@ async function importBinancePDF(file) {
       else skipped++;
     }
     if (trades.length === 0) {
-      return { ok: false, error: 'PDF Trade History importé mais aucun trade valide trouvé.', trades: [] };
+      return { ok: false, error: 'PDF Trade History importé mais aucun trade valide trouvé.', _debugPdf: _dbgPdf, trades: [] };  // DEBUG-IPAD
     }
     const validation = validateTrades(trades);
     return {
       ok: true, type: 'trades', trades, skipped, sessionId,
       analysisQuality: pdfResult.quality === 'DEGRADED' ? 'partial' : 'full',
       pdfQuality: pdfResult.quality,
+      _debugPdf: _dbgPdf,  // DEBUG-IPAD
       validationWarning: !validation.isValid, validationWarnings: validation.warnings
     };
   }
@@ -515,12 +529,13 @@ async function importBinancePDF(file) {
     else skipped++;
   }
   if (trades.length === 0) {
-    return { ok: false, error: 'Order History PDF importé mais aucun ordre FILLED trouvé.', trades: [] };
+    return { ok: false, error: 'Order History PDF importé mais aucun ordre FILLED trouvé.', _debugPdf: _dbgPdf, trades: [] };  // DEBUG-IPAD
   }
   return {
     ok: true, type: 'order_history', trades, skipped, sessionId,
     analysisQuality: pdfResult.quality === 'DEGRADED' ? 'partial' : 'full',
     pdfQuality: pdfResult.quality,
+    _debugPdf: _dbgPdf,  // DEBUG-IPAD
     orderAnalysis: null
   };
 }

@@ -1214,6 +1214,37 @@ async function handleImport(file, root) {
     result = { ok: false, error: 'Erreur inattendue lors de la lecture du fichier.', trades: [] };
   }
 
+  // DEBUG-IPAD — retirer après diagnostic
+  if (isPdf && result._debugPdf) {
+    const d = result._debugPdf;
+    const pdfLines = [
+      '',
+      '── Extraction PDF ──────────────',
+      `Qualité          : ${d.quality}`,
+      `Pages            : ${d.pages}`,
+      `Items extraits   : ${d.items}`,
+      `Chars utiles     : ${d.chars}`,
+      `Famille détectée : ${d.family ?? '(non atteinte — bloqué avant)'}`,
+      `Rows extraits    : ${d.rowsExtracted ?? '(non atteint)'}`,
+      `Rows normalisés  : ${d.rowsNormalized ?? '(non atteint)'}`,
+      `Statuts trouvés  : ${d.statuts ?? '(non atteint)'}`,
+      `Extrait brut (200c) :`,
+      d.extrait || '(vide)',
+    ].join('\n');
+    const existing = document.getElementById('_bhv_debug_ipad');
+    if (existing) {
+      existing.textContent += pdfLines;
+    } else {
+      const el = document.createElement('pre');
+      el.id = '_bhv_debug_ipad';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#00ff88;padding:12px 14px;font-size:11px;line-height:1.5;max-height:55vh;overflow:auto;white-space:pre-wrap;word-break:break-all;border-bottom:2px solid #00ff88;';
+      el.textContent = '[DEBUG PDF]\n' + pdfLines;
+      document.body.appendChild(el);
+    }
+    console.warn('[DEBUG-IPAD] pdf\n' + pdfLines);
+  }
+  // FIN DEBUG-IPAD
+
   if (!result.ok) {
     behaviorRepo.set('importError',       result.error);
     behaviorRepo.set('importDiagnostic',  result.diagnostic ?? null);
