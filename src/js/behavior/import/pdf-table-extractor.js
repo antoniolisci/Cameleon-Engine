@@ -146,7 +146,7 @@ function _orderHeaderScore(cluster) {
 //   Arrêt absolu sur date (_isDateCell) ou MAX_WINDOW=10 clusters inspecté.
 //
 // Retourne :
-//   { xSig, tolerance, found, source, score, headerY, mergedLines, clusterAudit }
+//   { xSig, tolerance, found, source, score, headerY, mergedLines }
 //   source : 'dynamic' — en-tête détecté, positions X extraites du PDF réel
 //            'static'  — fallback sur ORDER_X_SIGNATURE (b3.pdf)
 function _detectOrderXSig(clusters) {
@@ -185,31 +185,6 @@ function _detectOrderXSig(clusters) {
   const MAX_SKIP   = 3;   // fragments consécutifs tolérés avant abandon
   const MAX_WINDOW = 10;  // fenêtre maximale depuis bestIdx
 
-  // DEBUG-IPAD — audit : entrées BEFORE_HEADER (bestIdx-2 … bestIdx-1)
-  const clusterAudit = [];
-  for (let ai = Math.max(0, bestIdx - 2); ai < bestIdx; ai++) {
-    const cl = clusters[ai];
-    clusterAudit.push({
-      idx: ai, isBest: false,
-      y:           cl.yRef.toFixed(1),
-      score:       _orderHeaderScore(cl),
-      firstCell:   cl.items.map(i => i.str.trim()).find(s => s.length > 0) ?? '',
-      normedCells: cl.items.map(i => _normCell(i.str)).filter(s => s.length > 0).slice(0, 8),
-      role: 'BEFORE_HEADER',
-      rejectReason: 'avant le cluster principal — non considéré pour fusion',
-    });
-  }
-  // DEBUG-IPAD — entrée BEST_HEADER
-  clusterAudit.push({
-    idx: bestIdx, isBest: true,
-    y:           clusters[bestIdx].yRef.toFixed(1),
-    score:       bestScore,
-    firstCell:   clusters[bestIdx].items.map(i => i.str.trim()).find(s => s.length > 0) ?? '',
-    normedCells: clusters[bestIdx].items.map(i => _normCell(i.str)).filter(s => s.length > 0).slice(0, 8),
-    role: 'BEST_HEADER',
-    rejectReason: null,
-  });
-
   const headerItems = [...clusters[bestIdx].items];
   let nextIdx        = bestIdx + 1;
   let mergedLines    = 0;
@@ -219,12 +194,9 @@ function _detectOrderXSig(clusters) {
     const cl        = clusters[nextIdx];
     const nextScore = _orderHeaderScore(cl);
     const firstCell = cl.items.map(i => i.str.trim()).find(s => s.length > 0) ?? '';
-    const normedCells = cl.items.map(i => _normCell(i.str)).filter(s => s.length > 0).slice(0, 8);
 
     // Arrêt absolu : ligne de données réelle détectée
     if (_isDateCell(firstCell)) {
-      clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
-        role: 'REJECTED_DATA_ROW', rejectReason: `date détectée : "${firstCell}"` });
       break;
     }
 
@@ -233,13 +205,9 @@ function _detectOrderXSig(clusters) {
       headerItems.push(...cl.items);
       mergedLines++;
       skippedFrags = 0;
-      clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
-        role: 'MERGED', rejectReason: null });
     } else {
       // Fragment faible (score<2) — toléré jusqu'à MAX_SKIP consécutifs
       if (skippedFrags >= MAX_SKIP) {
-        clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
-          role: 'REJECTED_MAX_SKIP', rejectReason: `${MAX_SKIP} fragments consécutifs atteints` });
         break;
       }
       // Les fragments partagent le même X que leur colonne parente.
@@ -248,8 +216,6 @@ function _detectOrderXSig(clusters) {
       // trading_total, status uniquement présents dans le cluster fragment).
       headerItems.push(...cl.items);
       skippedFrags++;
-      clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
-        role: 'SKIPPED_FRAGMENT', rejectReason: `score=${nextScore} < 2, X collectés, fragment toléré (${skippedFrags}/${MAX_SKIP})` });
     }
     nextIdx++;
   }
@@ -285,7 +251,6 @@ function _detectOrderXSig(clusters) {
     score:        bestScore,
     headerY:      clusters[bestIdx].yRef,
     mergedLines,  // nombre de lignes header fusionnées (0 = une seule ligne)
-    clusterAudit, // DEBUG-IPAD — audit de fusion par cluster
   };
 }
 
@@ -439,59 +404,6 @@ function extractPdfTableRows(pdfResult, family) {
     sigColCount:     sig?.xSig?.length ?? null,   // nb colonnes dans la signature
     sigMergedLines:  sig?.mergedLines ?? null,    // lignes header fusionnées (0 = une seule)
   };
-
-  // DEBUG-IPAD — retirer après diagnostic
-  if (family === 'ORDER_HISTORY') {
-    const debugPages  = pagesProcessed.slice(0, 2);
-    const debugItems  = items
-      .filter(i => debugPages.includes(i.page) && i.str.trim().length > 0)
-      .slice(0, 30)
-      .map(i => `p${i.page} x=${i.x.toFixed(1).padStart(6)} y=${i.y.toFixed(1).padStart(6)}  "${i.str.trim()}"`);
-
-    const sampleItems = items
-      .filter(i => i.page >= startPage && i.str.trim().length > 0)
-      .slice(0, 200);
-    const xBuckets = {};
-    for (const it of sampleItems) {
-      const bucket = Math.round(it.x / 5) * 5;
-      xBuckets[bucket] = (xBuckets[bucket] || 0) + 1;
-    }
-    const xDist = Object.entries(xBuckets)
-      .sort((a, b) => Number(a[0]) - Number(b[0]))
-      .map(([x, n]) => `x≈${x.padStart(4)} : ${'█'.repeat(Math.min(n, 20))} (${n})`)
-      .join('\n');
-
-    const p2Clusters = _clusterByY(byPage[pagesProcessed[0]] || []).slice(0, 10);
-    const sigCounts  = p2Clusters.map((cl, i) =>
-      `cluster ${String(i).padStart(2)} | y=${cl.yRef.toFixed(1).padStart(6)} | items=${cl.items.length} | sigMatches=${_sigMatchCount(cl.items, sig.xSig, sig.tolerance)}`
-    );
-
-    // DEBUG-IPAD — format texte de l'audit de fusion pour l'overlay
-    const clusterAuditLines = (sig.clusterAudit ?? []).map(ca =>
-      `${ca.isBest ? '★' : ' '} idx=${String(ca.idx).padStart(2)} y=${String(ca.y).padStart(7)} ` +
-      `score=${ca.score} role=${ca.role.padEnd(14)} ` +
-      `firstCell="${ca.firstCell.slice(0, 20)}" ` +
-      (ca.rejectReason ? `→ ${ca.rejectReason}` : '') +
-      `\n    normed=[${ca.normedCells.join(' | ')}]`
-    );
-
-    diagnostics._debugExtract = {
-      sigSource:      sig.source,
-      sigFound:       sig.found,
-      sigScore:       sig.score,
-      sigColCount:    sig.xSig.length,
-      sigMergedLines: sig.mergedLines ?? 0,
-      sigPositions:   sig.xSig.map(x => x.toFixed(1)).join(', '),
-      sigHeaderY:     sig.headerY?.toFixed(1) ?? null,
-      clusterAuditLines,  // DEBUG-IPAD — audit de fusion cluster par cluster
-      debugItems,
-      xDist,
-      sigCounts,
-      startPage,
-      pagesProcessed: pagesProcessed.slice(0, 5),
-    };
-  }
-  // FIN DEBUG-IPAD
 
   return { family, rows, skippedHeaderRows, pagesProcessed, diagnostics };
 }
