@@ -192,12 +192,68 @@ function buildShell(state) {
 
 // ── Import card ───────────────────────────────────────────────────────────────
 
+// Mapping clé interne → label affichable (miroir de patterns.js / coaching.js).
+const _PATTERN_LABELS = {
+  overtrading:        'Overtrading',
+  revenge_trading:    'Revenge trading',
+  rapid_reentry:      'Réentrée rapide',
+  size_inconsistency: 'Tailles incohérentes',
+  loss_chasing:       'Escalade de position',
+};
+
+// Profil déduit du score moyen all-time (seuils identiques à scoring.js).
+function _avgScoreToProfile(score) {
+  if (score >= 80) return 'Discipliné';
+  if (score >= 60) return 'Réactif';
+  if (score >= 40) return 'Impulsif';
+  return 'Agressif';
+}
+
+// Bloc mémoire opérateur — affiché avant la zone de drop si ≥ 3 sessions analysées.
+// Max 3 lignes : profil historique, patterns récurrents, tendance récente.
+// Retourne '' si personalContext === null (0 bruit pour un nouvel opérateur).
+function buildMemoryContextBlock(personalContext) {
+  if (!personalContext) return '';
+
+  const lines = [];
+
+  // Ligne 1 — Profil historique all-time
+  if (typeof personalContext.allTimeAvgScore === 'number') {
+    const profileLabel = _avgScoreToProfile(personalContext.allTimeAvgScore);
+    const avgRounded   = Math.round(personalContext.allTimeAvgScore);
+    lines.push(`Profil historique : <strong>${escHtml(profileLabel)} · ${avgRounded} / 100</strong> · ${personalContext.sessionCount} sessions`);
+  }
+
+  // Ligne 2 — Patterns récurrents (≥ 30% des sessions = dominantPatterns)
+  if (personalContext.dominantPatterns?.length) {
+    const labels = personalContext.dominantPatterns
+      .map(k => _PATTERN_LABELS[k] ?? k)
+      .join(', ');
+    lines.push(`Récurrent : <strong>${escHtml(labels)}</strong>`);
+  }
+
+  // Ligne 3 — Tendance 5 dernières sessions (omise si stable ou données insuffisantes)
+  const trend = personalContext.window10?.trend;
+  if (trend === 'improving') {
+    lines.push('Tendance récente : <strong>progression</strong>');
+  } else if (trend === 'declining') {
+    lines.push('Tendance récente : <strong>dégradation</strong>');
+  }
+
+  if (!lines.length) return '';
+
+  const lineItems = lines.map(l => `<div class="bhv-mem-context-line">${l}</div>`).join('');
+  return `<div class="bhv-mem-context">${lineItems}</div>`;
+}
+
 function buildImportCard(state) {
   return `
     <div class="bhv-card bhv-import-card${state.importInfo ? ' bhv-pulse-ok' : ''}">
       <div class="bhv-card-head">
         <span class="bhv-card-title">Que contient votre fichier ?</span>
       </div>
+
+      ${buildMemoryContextBlock(state.personalContext)}
 
       <div class="bhv-drop-zone" id="bhvDropZone">
         <input type="file" id="bhvFileInput" accept=".csv,.xlsx,.xls,.pdf" class="bhv-file-input">
@@ -420,7 +476,7 @@ function buildAnalysis(state) {
         ${warningsList}
         ${score ? buildScoreCard(score) : ''}
         ${coaching && coaching.tips.length ? buildCoachingCard(coaching) : ''}
-        ${buildPatternsCard(patterns)}
+        ${buildPatternsCard(patterns, state.personalContext)}
         ${buildReadingCard(metrics, patterns, style, transitions)}
         ${buildSummaryCard(metrics)}
         ${buildJournalCard(trades, tradeTags)}
@@ -893,7 +949,7 @@ function buildReadingSentences(m, patterns) {
 
 // ── Patterns card ─────────────────────────────────────────────────────────────
 
-function buildPatternsCard(patterns) {
+function buildPatternsCard(patterns, personalContext = null) {
   const head = `
     <div class="bhv-card-head">
       <span class="bhv-card-title">Patterns détectés</span>
@@ -915,11 +971,16 @@ function buildPatternsCard(patterns) {
     return 'tertiary';
   };
 
-  const items = sorted.map((p, i) => `
+  const items = sorted.map((p, i) => {
+    const recurringBadge = personalContext?.isRecurringPattern?.[p.type]
+      ? `<span class="bhv-badge bhv-badge--recurring">Récurrent</span>`
+      : '';
+    return `
     <div class="bhv-pattern bhv-pattern--${tier(p, i)}">
-      <div class="bhv-pattern-name">${escHtml(p.label)}</div>
+      <div class="bhv-pattern-name">${escHtml(p.label)}${recurringBadge}</div>
       <div class="bhv-pattern-desc">${escHtml(p.description)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   return `<div class="bhv-card">${head}<div class="bhv-patterns">${items}</div></div>`;
 }
