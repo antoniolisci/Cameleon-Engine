@@ -32,36 +32,6 @@ body.bhv-panel-open .main-shell {
 
 .bhv-header {
   padding-bottom: 4px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-/* Toggle debug mémoire — temporaire, validé sur iPad */
-.bhv-debug-toggle {
-  flex-shrink: 0;
-  margin-top: 4px;
-  padding: 4px 10px;
-  background: none;
-  border: 1px solid rgba(0, 200, 255, 0.45);
-  border-radius: 4px;
-  color: rgba(0, 200, 255, 0.75);
-  font-size: 0.68rem;
-  font-family: monospace;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-}
-.bhv-debug-toggle:hover {
-  color: rgba(0, 200, 255, 0.95);
-  border-color: rgba(0, 200, 255, 0.70);
-}
-.bhv-debug-toggle--on {
-  color: rgba(0, 200, 255, 0.95);
-  border-color: rgba(0, 200, 255, 0.70);
-  background: rgba(0, 200, 255, 0.10);
 }
 
 .bhv-title {
@@ -1346,44 +1316,3 @@ body.bhv-panel-open .main-shell {
   vertical-align: middle;
 }
 
-/* ── Debug Mémoire Opérateur — temporaire, validé sur iPad ───────────────────── */
-/* Activé par localStorage.setItem('CE_DEBUG_MEMORY','true') + rechargement.      */
-
-.bhv-dbg-mem {
-  border: 1px solid rgba(0, 200, 255, 0.25);
-  border-radius: 6px;
-  background: rgba(0, 200, 255, 0.04);
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-family: monospace;
-  font-size: 0.74rem;
-}
-
-.bhv-dbg-title {
-  color: rgba(0, 200, 255, 0.65);
-  font-weight: 700;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 5px;
-}
-
-.bhv-dbg-row {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-}
-
-.bhv-dbg-key {
-  color: rgba(0, 200, 255, 0.45);
-  min-width: 145px;
-  flex-shrink: 0;
-}
-
-.bhv-dbg-val {
-  color: rgba(0, 200, 255, 0.90);
-  font-weight: 600;
-  word-break: break-all;
-}

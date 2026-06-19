@@ -176,87 +176,17 @@ function mount(root) {
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
 
-// ── Debug Mémoire Opérateur ────────────────────────────────────────────────────
-// Activé par : window.CAMELEON_DEBUG === true  OU  localStorage CE_DEBUG_MEMORY = 'true'
-// Lu dans la console iPad : localStorage.setItem('CE_DEBUG_MEMORY','true') puis recharger.
-// Aucun impact si debug désactivé : retourne '' sans aucun calcul.
-// Lecture seule — ne modifie aucune donnée.
-function buildDebugMemoryBlock() {
-  try {
-    const isDebug = (typeof window !== 'undefined' && window.CAMELEON_DEBUG === true)
-      || localStorage.getItem('CE_DEBUG_MEMORY') === 'true';
-    if (!isDebug) return '';
-
-    const mem     = memoryRepo.getMemory();
-    const ctx     = buildPersonalContext(mem);
-    const pending = behaviorRepo.get('pendingMemorySave');
-
-    const avgScore = mem.allTime.scoreSessions > 0
-      ? (mem.allTime.scoreSum / mem.allTime.scoreSessions).toFixed(1)
-      : '—';
-
-    const lastEntry  = mem.window10[0] ?? null;
-    const lastScore  = lastEntry ? lastEntry.score : '—';
-    const lastProfile = lastEntry ? lastEntry.profile : '—';
-
-    const trend = ctx?.window10?.trend ?? '—';
-
-    const certList = mem.certifications.length
-      ? mem.certifications.map(c => c.key).join(' · ')
-      : 'aucune';
-
-    const freq = mem.allTime.patternFrequency;
-    const freqStr = Object.entries(freq)
-      .filter(([, v]) => v > 0)
-      .map(([k, v]) => `${k.replace('_', ' ')}: ${v}`)
-      .join(' · ') || 'aucun';
-
-    const fingerprintCount = Array.isArray(mem.importedFingerprints)
-      ? mem.importedFingerprints.length : 0;
-    const pendingFp = behaviorRepo.get('pendingImportFingerprint');
-    const notice    = behaviorRepo.get('importNotice');
-
-    const row = (key, val) =>
-      `<div class="bhv-dbg-row"><span class="bhv-dbg-key">${key}</span><span class="bhv-dbg-val">${escHtml(String(val))}</span></div>`;
-
-    return `
-      <div class="bhv-dbg-mem">
-        <div class="bhv-dbg-title">Mémoire Opérateur (DEBUG)</div>
-        ${row('Sessions',              mem.sessionCount)}
-        ${row('Score moyen',           avgScore)}
-        ${row('Dernier score',         lastScore)}
-        ${row('Dernier profil',        lastProfile)}
-        ${row('Tendance',              trend)}
-        ${row('Certifications',        certList)}
-        ${row('Fréquences',            freqStr)}
-        ${row('window10',              mem.window10.length + ' / 10')}
-        ${row('Fingerprints connus',   fingerprintCount + ' / 200')}
-        ${row('pendingMemorySave',     pending ? 'true ⚠' : 'false')}
-        ${row('pendingFingerprint',    pendingFp ? pendingFp.slice(0, 40) + '…' : 'null')}
-        ${row('importNotice',          notice ?? 'null')}
-      </div>`;
-  } catch (e) {
-    return `<div class="bhv-dbg-mem" style="color:#f66">DEBUG erreur: ${escHtml(String(e))}</div>`;
-  }
-}
-
 function render(root, state) {
   root.innerHTML = buildShell(state);
   bindEvents(root, state);
 }
 
 function buildShell(state) {
-  const debugActive = localStorage.getItem('CE_DEBUG_MEMORY') === 'true';
   return `
     <div class="bhv-shell">
       <div class="bhv-header">
         <h2 class="bhv-title">Analyse comportementale</h2>
-        <button class="bhv-debug-toggle${debugActive ? ' bhv-debug-toggle--on' : ''}"
-                id="bhvDebugMemToggle" type="button">
-          ${debugActive ? '◉' : '○'} Debug Mémoire
-        </button>
       </div>
-      ${buildDebugMemoryBlock()}
       ${buildImportCard(state)}
       ${buildSessionsCard(state)}
       ${buildPortfolioSection()}
@@ -1227,20 +1157,6 @@ function fmtK(n) {
 // ── Events ────────────────────────────────────────────────────────────────────
 
 function bindEvents(root, state) {
-  // Toggle debug mémoire — temporaire, validé sur iPad
-  const debugToggle = root.querySelector('#bhvDebugMemToggle');
-  if (debugToggle) {
-    debugToggle.addEventListener('click', () => {
-      const next = localStorage.getItem('CE_DEBUG_MEMORY') !== 'true';
-      if (next) {
-        localStorage.setItem('CE_DEBUG_MEMORY', 'true');
-      } else {
-        localStorage.removeItem('CE_DEBUG_MEMORY');
-      }
-      mount(root);
-    });
-  }
-
   const fileInput = root.querySelector('#bhvFileInput');
   const dropZone  = root.querySelector('#bhvDropZone');
   const clearBtn  = root.querySelector('#bhvClearBtn');
