@@ -242,9 +242,14 @@ function _detectOrderXSig(clusters) {
           role: 'REJECTED_MAX_SKIP', rejectReason: `${MAX_SKIP} fragments consécutifs atteints` });
         break;
       }
+      // Les fragments partagent le même X que leur colonne parente.
+      // On collecte leurs items pour capturer les X des colonnes absentes
+      // de la ligne principale (ex. cols 9-11 Binance 2026 : average_price,
+      // trading_total, status uniquement présents dans le cluster fragment).
+      headerItems.push(...cl.items);
       skippedFrags++;
       clusterAudit.push({ idx: nextIdx, isBest: false, y: cl.yRef.toFixed(1), score: nextScore, firstCell, normedCells,
-        role: 'SKIPPED_FRAGMENT', rejectReason: `score=${nextScore} < 2, fragment toléré (${skippedFrags}/${MAX_SKIP})` });
+        role: 'SKIPPED_FRAGMENT', rejectReason: `score=${nextScore} < 2, X collectés, fragment toléré (${skippedFrags}/${MAX_SKIP})` });
     }
     nextIdx++;
   }
