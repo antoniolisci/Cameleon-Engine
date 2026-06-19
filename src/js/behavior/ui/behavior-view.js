@@ -15,6 +15,9 @@ import { groupGridTrades } from '../analytics/grid-grouper.js';
 import { anonymizeTrades } from '../anonymize/anonymizer.js';
 import { importRegistry, portfolio } from '../../storage.js';
 import { extract as extractPortfolio } from '../wallet/portfolio-extractor.js';
+import * as memoryRepo          from '../storage/memory-repo.js';
+import { updateMemory }         from '../analytics/memory-computer.js';
+import { buildPersonalContext } from '../analytics/personal-context-builder.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -100,6 +103,12 @@ function mount(root) {
   let transitions = null;
   let gridContext = null;
 
+  // Mémoire opérateur — lue AVANT l'analyse pour que la session courante
+  // n'influence pas ses propres modulations (pas de boucle). La sauvegarde
+  // intervient après computeScore/computeCoaching (voir plus bas).
+  const memory          = memoryRepo.getMemory();
+  const personalContext = buildPersonalContext(memory);
+
   if (trades && trades.length > 0) {
     // Regroupement grille avant pattern detection.
     // Les séquences grille (même symbole/côté, intervalle court) sont consolidées
@@ -114,10 +123,19 @@ function mount(root) {
     metrics     = computeMetrics(tradesForAnalysis);
     patterns    = detectPatterns(tradesForAnalysis, metrics);
     tradeTags   = tagTrades(tradesForAnalysis, metrics);
-    score       = computeScore(patterns, metrics, gridContext);
-    coaching    = computeCoaching(patterns, metrics, score);
+    score       = computeScore(patterns, metrics, gridContext, personalContext);
+    coaching    = computeCoaching(patterns, metrics, score, personalContext);
     style       = detectStyle(tradesForAnalysis, metrics);
     transitions = detectStyleTransitions(tradesForAnalysis, style?.key);
+
+    // ── Mémoire opérateur — persistance post-analyse ─────────────────────
+    // Alimentée uniquement si score !== null (session valide avec trades filtrés).
+    // updateMemory() est pur — aucun effet de bord, retourne un nouvel objet.
+    if (score !== null) {
+      const updatedMemory = updateMemory(memory, { patterns, metrics, scoreData: score, coaching });
+      memoryRepo.saveMemory(updatedMemory);
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     // ── Behavior Bridge — storage-mediated merge ──────────────────────────
     // Translates the historical score (0–100) into a Guard level (1–5) and
@@ -146,7 +164,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, walletResult, orderResult, gridContext, validationWarning, validationWarnings });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, walletResult, orderResult, gridContext, validationWarning, validationWarnings, personalContext });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
