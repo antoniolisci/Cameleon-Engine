@@ -42,12 +42,12 @@ body.bhv-panel-open .main-shell {
 .bhv-debug-toggle {
   flex-shrink: 0;
   margin-top: 4px;
-  padding: 3px 9px;
+  padding: 4px 10px;
   background: none;
-  border: 1px solid rgba(0, 200, 255, 0.20);
+  border: 1px solid rgba(0, 200, 255, 0.45);
   border-radius: 4px;
-  color: rgba(0, 200, 255, 0.35);
-  font-size: 0.62rem;
+  color: rgba(0, 200, 255, 0.75);
+  font-size: 0.68rem;
   font-family: monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -55,13 +55,13 @@ body.bhv-panel-open .main-shell {
   transition: color 0.15s, border-color 0.15s;
 }
 .bhv-debug-toggle:hover {
-  color: rgba(0, 200, 255, 0.70);
-  border-color: rgba(0, 200, 255, 0.40);
+  color: rgba(0, 200, 255, 0.95);
+  border-color: rgba(0, 200, 255, 0.70);
 }
 .bhv-debug-toggle--on {
-  color: rgba(0, 200, 255, 0.80);
-  border-color: rgba(0, 200, 255, 0.45);
-  background: rgba(0, 200, 255, 0.06);
+  color: rgba(0, 200, 255, 0.95);
+  border-color: rgba(0, 200, 255, 0.70);
+  background: rgba(0, 200, 255, 0.10);
 }
 
 .bhv-title {
