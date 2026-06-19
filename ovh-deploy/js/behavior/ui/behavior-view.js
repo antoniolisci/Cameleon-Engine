@@ -219,9 +219,22 @@ const _PANEL_PATTERN_LABELS = {
 };
 
 function buildMemoryProfileCard(memory, personalContext) {
-  if (!memory || memory.sessionCount < _MIN_SESSIONS_PANEL) return '';
+  if (!memory) return '';
 
-  const n     = memory.sessionCount;
+  const n = memory.sessionCount;
+
+  // État latent — doctrine États Latents V1 :
+  // visible, minimal, factuel. Pas de seuil, pas de chemin, pas de prescription.
+  if (n < _MIN_SESSIONS_PANEL) {
+    return `
+      <div class="bhv-card bhv-mem-profile">
+        <div class="bhv-card-head">
+          <span class="bhv-card-title">Mémoire comportementale</span>
+        </div>
+        <div class="bhv-mem-profile-count">${n} session${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''}</div>
+      </div>`;
+  }
+
   const freq  = memory.allTime?.patternFrequency ?? {};
   const showMemManage = behaviorRepo.get('showMemoryManage') === true;
 
