@@ -163,11 +163,21 @@ function _detectOrderXSig(clusters) {
   }
 
   // Collecter les items de l'en-tête principal.
-  // Si la ligne suivante a aussi un score ≥ 2, l'en-tête est fragmenté sur 2 lignes
-  // (ex. "Prix de l'ordre" → "Prix" / "de l'ordre") — on fusionne les deux.
+  // L'en-tête Binance peut être fragmenté sur 3+ lignes PDF consécutives
+  // (ex. "Prix de l'ordre" → "Prix" / "de l'" / "ordre").
+  // On fusionne jusqu'à 5 lignes suivantes dont le score ≥ 2 et dont
+  // la première cellule non-vide n'est pas une date (arrêt sur données).
   const headerItems = [...clusters[bestIdx].items];
-  if (bestIdx + 1 < clusters.length && _orderHeaderScore(clusters[bestIdx + 1]) >= 2) {
-    headerItems.push(...clusters[bestIdx + 1].items);
+  let nextIdx = bestIdx + 1;
+  let mergedLines = 0;
+  while (nextIdx < clusters.length && mergedLines < 5) {
+    const nextScore = _orderHeaderScore(clusters[nextIdx]);
+    if (nextScore < 2) break;
+    const firstCell = clusters[nextIdx].items.map(i => i.str.trim()).find(s => s.length > 0) ?? '';
+    if (_isDateCell(firstCell)) break;
+    headerItems.push(...clusters[nextIdx].items);
+    mergedLines++;
+    nextIdx++;
   }
 
   // Positions X uniques de tous les items non-vides de l'en-tête (triées, dédupliquées ±2pt)
@@ -195,11 +205,12 @@ function _detectOrderXSig(clusters) {
 
   return {
     xSig,
-    tolerance: X_TOLERANCE_DYN,
-    found:     true,
-    source:    'dynamic',
-    score:     bestScore,
-    headerY:   clusters[bestIdx].yRef,
+    tolerance:   X_TOLERANCE_DYN,
+    found:       true,
+    source:      'dynamic',
+    score:       bestScore,
+    headerY:     clusters[bestIdx].yRef,
+    mergedLines, // nombre de lignes header fusionnées (0 = une seule ligne)
   };
 }
 
@@ -211,6 +222,25 @@ function _inSig(x, xSig, tolerance) {
 // Compte les items non-vides d'un cluster qui tombent dans la signature
 function _sigMatchCount(items, xSig, tolerance) {
   return items.filter(i => i.str.trim().length > 0 && _inSig(i.x, xSig, tolerance)).length;
+}
+
+// Assigne chaque item à la colonne de xSig la plus proche par distance X.
+// Retourne toujours xSig.length cellules dans l'ordre des colonnes — les colonnes
+// sans item restent vides (""). Garantit la parité avec normalizeOrderHistoryRows.
+function _assignToCols(clusterItems, xSig) {
+  const colBuckets = xSig.map(() => /** @type {string[]} */ ([]));
+  for (const item of clusterItems) {
+    const str = item.str.trim();
+    if (!str) continue;
+    let bestCol  = 0;
+    let bestDist = Math.abs(item.x - xSig[0]);
+    for (let ci = 1; ci < xSig.length; ci++) {
+      const d = Math.abs(item.x - xSig[ci]);
+      if (d < bestDist) { bestDist = d; bestCol = ci; }
+    }
+    colBuckets[bestCol].push(str);
+  }
+  return colBuckets.map(parts => parts.join(' '));
 }
 
 // ── extractPdfTableRows ────────────────────────────────────────────────────
@@ -300,13 +330,11 @@ function extractPdfTableRows(pdfResult, family) {
         const sigCount = _sigMatchCount(cluster.items, sig.xSig, sig.tolerance);
         if (sigCount < 6) { rejectedRowCount++; continue; }
 
-        // Extraction des cellules dans les colonnes de la signature (ordre X croissant)
-        const sigItems = cluster.items
-          .filter(i => i.str.trim().length > 0 && _inSig(i.x, sig.xSig, sig.tolerance))
-          .sort((a, b) => a.x - b.x);
-
-        const sigCells = sigItems.map(i => i.str.trim());
-        if (sigCells.length === 0) { rejectedRowCount++; continue; }
+        // Assignation nearest-column : produit toujours sig.xSig.length cellules.
+        // Garantit que row[0]…row[11] sont présents même si un item est décalé
+        // (nouveau PDF Binance 2026 — colonnes Average Price, Trading Total, Status
+        // hors de la fenêtre ±tolerance du filtre précédent).
+        const sigCells = _assignToCols(cluster.items, sig.xSig);
 
         // Discrimination données / en-tête : première cellule = date Binance → données
         if (_isDateCell(sigCells[0])) {
@@ -343,11 +371,13 @@ function extractPdfTableRows(pdfResult, family) {
     maxCells:        cellCounts.length ? Math.max(...cellCounts) : 0,
     sampleRows:      rows.slice(0, 3),
     // Infos signature (ORDER_HISTORY uniquement)
-    sigSource:       sig?.source    ?? null,
-    sigFound:        sig?.found     ?? null,
-    sigScore:        sig?.score     ?? null,
+    sigSource:       sig?.source      ?? null,
+    sigFound:        sig?.found       ?? null,
+    sigScore:        sig?.score       ?? null,
     sigPositions:    sig?.xSig?.map(x => x.toFixed(1)) ?? null,
-    sigHeaderY:      sig?.headerY   ?? null,
+    sigHeaderY:      sig?.headerY     ?? null,
+    sigColCount:     sig?.xSig?.length ?? null,   // nb colonnes dans la signature
+    sigMergedLines:  sig?.mergedLines ?? null,    // lignes header fusionnées (0 = une seule)
   };
 
   // DEBUG-IPAD — retirer après diagnostic
@@ -377,11 +407,13 @@ function extractPdfTableRows(pdfResult, family) {
     );
 
     diagnostics._debugExtract = {
-      sigSource:    sig.source,
-      sigFound:     sig.found,
-      sigScore:     sig.score,
-      sigPositions: sig.xSig.map(x => x.toFixed(1)).join(', '),
-      sigHeaderY:   sig.headerY?.toFixed(1) ?? null,
+      sigSource:      sig.source,
+      sigFound:       sig.found,
+      sigScore:       sig.score,
+      sigColCount:    sig.xSig.length,
+      sigMergedLines: sig.mergedLines ?? 0,
+      sigPositions:   sig.xSig.map(x => x.toFixed(1)).join(', '),
+      sigHeaderY:     sig.headerY?.toFixed(1) ?? null,
       rejectedSample: _dbgRejected,  // DEBUG-IPAD : clusters sigCount>=6 rejetés par _isDateCell
       debugItems,
       xDist,

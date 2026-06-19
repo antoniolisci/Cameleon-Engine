@@ -1252,6 +1252,8 @@ async function handleImport(file, root) {
         `Source    : ${ex.sigSource} (score=${ex.sigScore})`,
         `Détectée  : ${ex.sigFound ? 'OUI' : 'NON — fallback statique b3.pdf'}`,
         `Header Y  : ${ex.sigHeaderY ?? '—'}`,
+        `Colonnes sig     : ${ex.sigColCount ?? '—'} (attendu 12)`,
+        `Lignes header fusionnées : ${ex.sigMergedLines ?? '—'}`,
         `Positions : ${ex.sigPositions}`,
         '',
         `── Items bruts p${ex.pagesProcessed[0]}–${ex.pagesProcessed[1] ?? ex.pagesProcessed[0]} (30 max) ─`,
