@@ -1265,16 +1265,6 @@ async function handleImport(file, root) {
         '── sigMatches / cluster (10 premiers) ─',
         ...ex.sigCounts,
         '',
-        ...(ex.rejectedSample?.length ? [
-          '── Clusters rejetés par _isDateCell (sigCount≥6) ─',
-          ...ex.rejectedSample.map((r, i) =>
-            `[${i}] firstCell="${r.firstCell}" isDate=${r.isDate} cells=${r.cellCount} sample=[${r.sample.join(' | ')}]`
-          ),
-          '',
-        ] : [
-          '── Aucun cluster rejeté après sigCount≥6 ─',
-          '',
-        ]),
         '── Distribution X (200 items, buckets 5pt) ─',
         ex.xDist,
       ] : [

@@ -366,11 +366,6 @@ function extractPdfTableRows(pdfResult, family) {
     sig = _detectOrderXSig(firstPageClusters);
   }
 
-  // DEBUG-IPAD — retirer après diagnostic
-  // Collecte les clusters ORDER_HISTORY dont sigCount >= 6 mais rejetés par _isDateCell
-  const _dbgRejected = [];
-  // FIN DEBUG-IPAD
-
   for (const pageNum of pagesProcessed) {
     const clusters = _clusterByY(byPage[pageNum]);
 
@@ -415,16 +410,6 @@ function extractPdfTableRows(pdfResult, family) {
         if (_isDateCell(sigCells[0])) {
           rows.push(sigCells);
         } else {
-          // DEBUG-IPAD — retirer après diagnostic
-          if (_dbgRejected.length < 5) {
-            _dbgRejected.push({
-              firstCell: sigCells[0] ?? '(vide)',
-              isDate:    _isDateCell(sigCells[0] ?? ''),
-              cellCount: sigCells.length,
-              sample:    sigCells.slice(0, 5),
-            });
-          }
-          // FIN DEBUG-IPAD
           // En-tête (potentiellement fragmenté sur 2 lignes — PDF-ARCH-02)
           skippedHeaderRows.push(sigCells);
         }
@@ -499,14 +484,12 @@ function extractPdfTableRows(pdfResult, family) {
       sigPositions:   sig.xSig.map(x => x.toFixed(1)).join(', '),
       sigHeaderY:     sig.headerY?.toFixed(1) ?? null,
       clusterAuditLines,  // DEBUG-IPAD — audit de fusion cluster par cluster
-      rejectedSample: _dbgRejected,
       debugItems,
       xDist,
       sigCounts,
       startPage,
       pagesProcessed: pagesProcessed.slice(0, 5),
     };
-    console.warn('[DEBUG-IPAD] extractPdfTableRows', diagnostics._debugExtract);
   }
   // FIN DEBUG-IPAD
 
