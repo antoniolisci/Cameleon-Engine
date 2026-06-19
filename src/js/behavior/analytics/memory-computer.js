@@ -31,7 +31,9 @@ function updateMemory(memory, sessionResult) {
   if (!scoreData || typeof scoreData.score !== 'number') return memory;
 
   const score   = scoreData.score;
-  const profile = typeof scoreData.profile === 'string' ? scoreData.profile : 'Agressif';
+  // scoreData.profile est un objet { key, label, min, color } retourné par scoring.js,
+  // jamais une string — on extrait le label lisible.
+  const profile = scoreData.profile?.label ?? 'Agressif';
 
   // Clés des patterns actifs dans cette session
   // patterns.js produit { type: string } — fallback sur .key pour robustesse

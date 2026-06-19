@@ -129,11 +129,15 @@ function mount(root) {
     transitions = detectStyleTransitions(tradesForAnalysis, style?.key);
 
     // ── Mémoire opérateur — persistance post-analyse ─────────────────────
-    // Alimentée uniquement si score !== null (session valide avec trades filtrés).
-    // updateMemory() est pur — aucun effet de bord, retourne un nouvel objet.
-    if (score !== null) {
+    // Alimentée uniquement si :
+    //   1. score !== null (session valide avec trades filtrés)
+    //   2. pendingMemorySave === true (posé par handleImport, consommé ici)
+    // Ce flag évite d'incrémenter la mémoire sur chaque re-render (tab click,
+    // save session, load session depuis l'historique, delete session, etc.).
+    if (score !== null && behaviorRepo.get('pendingMemorySave')) {
       const updatedMemory = updateMemory(memory, { patterns, metrics, scoreData: score, coaching });
       memoryRepo.saveMemory(updatedMemory);
+      behaviorRepo.set('pendingMemorySave', false);
     }
     // ─────────────────────────────────────────────────────────────────────
 
@@ -1452,6 +1456,12 @@ async function handleImport(file, root) {
     importRegistry.append(buildRegistryEntry(result, file));
     if (result.type === 'wallet') {
       try { persistPortfolioSnapshot(result, file); } catch { /* non-bloquant */ }
+    }
+    // Autorise une seule mise à jour mémoire pour cet import.
+    // Consommé et effacé dans mount() après saveMemory().
+    // Ne pas poser pour wallet : aucun score comportemental produit.
+    if (result.type !== 'wallet') {
+      behaviorRepo.set('pendingMemorySave', true);
     }
   }
 
