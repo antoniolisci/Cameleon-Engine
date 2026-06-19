@@ -495,7 +495,25 @@ async function importBinancePDF(file) {
   _dbgPdf.rowsNormalized  = normalized.length;
   _dbgPdf.statuts         = [...new Set(normalized.map(r => r.status || '?'))].slice(0, 8).join(', ') || '(aucun)';
   _dbgPdf.debugExtract    = extracted.diagnostics?._debugExtract ?? null;
-  console.warn('[DEBUG-IPAD] extraction', { rowsExtracted: _dbgPdf.rowsExtracted, rowsNormalized: _dbgPdf.rowsNormalized, statuts: _dbgPdf.statuts });
+  // Audit mapping status : longueur réelle des rows brutes, contenu de row[11], row normalisée
+  _dbgPdf.rawRowLengths   = extracted.rows.slice(0, 5).map(r => r.length);
+  _dbgPdf.rawRowSample    = extracted.rows.slice(0, 3).map(r => r.map(c => String(c).slice(0, 20)));
+  _dbgPdf.normalizedSample = normalized.slice(0, 3).map((r, i) => ({
+    row_length:   extracted.rows[i]?.length ?? '?',
+    row11_raw:    extracted.rows[i]?.[11]   ?? '(absent)',
+    created_at:   r.created_at,
+    symbol:       r.symbol,
+    side:         r.side,
+    status:       r.status,
+    executed_qty: r.executed_qty,
+  }));
+  console.warn('[DEBUG-IPAD] extraction', {
+    rowsExtracted: _dbgPdf.rowsExtracted,
+    rowsNormalized: _dbgPdf.rowsNormalized,
+    statuts: _dbgPdf.statuts,
+    rawRowLengths: _dbgPdf.rawRowLengths,
+    normalizedSample: _dbgPdf.normalizedSample,
+  });
   // FIN DEBUG-IPAD
   const sessionId  = `session_${Date.now()}`;
 

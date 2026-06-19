@@ -1230,6 +1230,23 @@ async function handleImport(file, root) {
       `Rows normalisés  : ${d.rowsNormalized ?? '(non atteint)'}`,
       `Statuts trouvés  : ${d.statuts ?? '(non atteint)'}`,
       '',
+      ...(d.normalizedSample ? [
+        '── Audit mapping status ────────────',
+        `Longueurs rows brutes (5) : [${(d.rawRowLengths ?? []).join(', ')}]`,
+        '',
+        ...d.normalizedSample.map((r, i) => [
+          `Row ${i} (${r.row_length} cells)`,
+          `  row[11] brut  : "${r.row11_raw}"`,
+          `  status normalisé : ${r.status === null ? 'null' : JSON.stringify(r.status)}`,
+          `  symbol=${r.symbol}  side=${r.side}  created_at=${r.created_at}  executed_qty=${r.executed_qty}`,
+        ].join('\n')),
+        '',
+        '── Rows brutes (3 premières) ───────',
+        ...(d.rawRowSample ?? []).map((cells, i) =>
+          `Row ${i}: ${cells.map((c, j) => `[${j}]${c}`).join('  ')}`
+        ),
+        '',
+      ] : []),
       ...(ex ? [
         '── Signature X ─────────────────────',
         `Source    : ${ex.sigSource} (score=${ex.sigScore})`,
