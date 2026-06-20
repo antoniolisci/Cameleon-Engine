@@ -61,11 +61,11 @@ L'activité Order History présente un **taux élevé de renouvellement des acti
 
 L'activité ne présente **ni noyau stable suffisamment marqué, ni renouvellement systématique des actifs**. La structure est intermédiaire : certains actifs reviennent, d'autres sont nouveaux, sans que l'un ou l'autre signal soit dominant.
 
-> Ce que cela décrit : la zone entre Ancré et Explorateur. Aucun pattern de loyauté ou d'exploration n'est assez fort pour être classifié. Comparable à l'état Irrégulier de la Dimension Cadence : un constat d'absence de signal net, pas un jugement.
+> Ce que cela décrit : la zone entre Ancré et Explorateur. Aucun pattern de récurrence ou de renouvellement n'est assez fort pour être classifié. Comparable à l'état Irrégulier de la Dimension Cadence : un constat d'absence de signal net, pas un jugement.
 
 ### Indisponible
 
-Les données Order History sont insuffisantes pour produire une classification fiable. Trois motifs distincts (voir §6).
+Les données Order History sont insuffisantes pour produire une classification fiable. Trois motifs distincts (voir §8).
 
 **Comportement UI :** Silence structurel — aucun bloc affiché. Conforme au pattern Capital V1 et Cadence V1.
 
@@ -79,7 +79,7 @@ Capital mesure la concentration de l'activité **à un instant t** (CR3, HHI) et
 
 Portefeuille mesure la **récurrence des mêmes actifs sur plusieurs périodes**. C'est une lecture longitudinale.
 
-La distinction est précise. Quatre combinaisons existent et sont toutes réelles :
+La distinction est précise. Quatre combinaisons illustratives (parmi les 9 possibles), toutes réelles :
 
 | Capital | Portefeuille | Ce que la combinaison révèle |
 |---|---|---|
@@ -118,8 +118,8 @@ Order History Binance, filtré FILLED-ONLY, normalisé par `binance_order.js` ve
 
 | Champ | Raison |
 |---|---|
-| `side` | Irrelevant — la récurrence se mesure sur l'actif, pas le sens de l'ordre |
-| `price` | Irrelevant |
+| `side` | Non utilisé — la récurrence se mesure sur l'actif, pas le sens de l'ordre |
+| `price` | Non utilisé |
 | `quantity` | Non utilisé (quote_value en priorité, order_count en fallback) |
 | `type` (LIMIT/MARKET) | Appartient à la Dimension Exécution |
 
@@ -239,7 +239,7 @@ Interprétation :
 - `exploration_rate` = 0.50 → en moyenne, 50% des symboles de chaque période sont de nouveaux symboles jamais vus avant
 - `exploration_rate` = 0.05 → l'opérateur trade principalement des symboles déjà vus dans les périodes précédentes
 
-**Note sur le choix "univers cumulatif" :** La comparaison se fait contre l'ensemble cumulatif de tous les symboles des périodes précédentes (pas seulement la période précédente). Cela mesure si l'opérateur introduit des symboles genuinement nouveaux dans son univers de trading — pas des symboles déjà connus réintroduits après une absence.
+**Note sur le choix "univers cumulatif" :** La comparaison se fait contre l'ensemble cumulatif de tous les symboles des périodes précédentes (pas seulement la période précédente). Cela mesure si l'opérateur introduit des symboles réellement nouveaux dans son univers de trading — pas des symboles déjà connus réintroduits après une absence.
 
 ---
 
@@ -437,7 +437,7 @@ Cette dimension est la plus naturellement longitudinale des trois. Sa valeur cro
 
 **`noyau_stability` (différée V2) :** Avec suffisamment d'historique (≥ 6 mois actifs), il devient possible de mesurer si le noyau de la première moitié de la période est le même que celui de la seconde moitié.
 
-**`return_rate` (différée V2) :** La détection de symboles disparus puis réapparus ouvre une lecture de "retour de conviction" — pertinente en V2 pour la mémoire comportementale.
+**`return_rate` (différée V2) :** La détection de symboles disparus puis réapparus ouvre une lecture de réapparition d'actifs précédemment absents — pertinente en V2 pour la mémoire comportementale.
 
 **Empreinte tridimensionnelle stable :** Capital + Cadence + Portefeuille ensemble forment une signature comportementale comparable dans le temps. Contrairement à une classification sectorielle (qui évolue avec les narratifs de marché), l'Architecture de Portefeuille produit des observations cumulables sur toute la durée de vie de l'opérateur.
 
@@ -451,7 +451,7 @@ Capital=Concentré : peu de symboles dominent l'activité à chaque instant.
 Cadence=Continue : présence régulière, active la plupart des jours.  
 Portefeuille=Ancré : les mêmes actifs reviennent de période en période.
 
-**Lecture :** Un opérateur avec un univers délibérément étroit, géré de façon régulière, sur des instruments stables. La cohérence est triple — concentration, rythme, et identité des actifs.
+**Lecture :** Un opérateur dont l'univers est étroit, l'activité régulière, et les instruments stables d'une période à l'autre. La cohérence est triple — concentration, rythme, et identité des actifs.
 
 ---
 
@@ -461,7 +461,7 @@ Capital=Diversifié : nombreux symboles, distribution équilibrée.
 Cadence=Irrégulier : aucun signal temporel net.  
 Portefeuille=Explorateur : les actifs se renouvellent constamment.
 
-**Lecture :** Aucun axe ne présente de structure répétée — ni concentration, ni régularité, ni fidélité aux instruments. L'activité ne construit pas de patterns stables observables sur les trois dimensions.
+**Lecture :** Aucun axe ne présente de structure répétée — ni concentration, ni régularité, ni récurrence des instruments. L'activité ne construit pas de patterns stables observables sur les trois dimensions.
 
 ---
 
@@ -471,7 +471,7 @@ Capital=Rotatif : les symboles dominants changent d'une période à l'autre.
 Cadence=Burst : activité concentrée en épisodes intenses.  
 Portefeuille=Opportuniste : ni noyau stable, ni exploration systématique.
 
-**Lecture :** Activité épisodique avec rotation des actifs, sans structure de loyauté nette mais sans renouvellement radical non plus. Trois dimensions sans ancrage structurant.
+**Lecture :** Activité épisodique avec rotation des actifs, sans structure de récurrence nette et sans renouvellement radical non plus. Trois dimensions sans ancrage structurant.
 
 ---
 
@@ -481,7 +481,7 @@ Capital=Concentré : peu d'actifs dominent à chaque instant.
 Cadence=Burst : épisodes d'activité intenses.  
 Portefeuille=Explorateur : les actifs se renouvellent à chaque épisode.
 
-**Lecture :** Concentration intense sur quelques actifs — mais des actifs différents à chaque épisode. Zéro loyauté aux instruments malgré une concentration élevée à l'instant t. Cette combinaison illustre la valeur de Portefeuille : Capital seul ne distingue pas un "Concentré fidèle" (Ancré) d'un "Concentré mobile" (Explorateur).
+**Lecture :** Concentration intense sur quelques actifs — mais des actifs différents à chaque épisode. Aucune récurrence des instruments malgré une concentration élevée à l'instant t. Cette combinaison illustre la valeur de Portefeuille : Capital seul ne distingue pas un "Concentré récurrent" (Ancré) d'un "Concentré mobile" (Explorateur).
 
 ---
 
@@ -548,14 +548,9 @@ Les seuils provisoires ne doivent pas être affinés avant calibration sur corpu
 
 ## 17. Recommandation finale et ordre de construction OI V1
 
-Architecture de Portefeuille est la troisième dimension d'Operator Intelligence V1 pour les raisons suivantes :
+La Dimension Portefeuille retenue est l'Architecture de Portefeuille (Ancré / Explorateur / Opportuniste). Les justifications sont développées en §16.
 
-1. Elle mesure une propriété humaine stable, non une propriété de marché.
-2. Elle est orthogonale à Capital et Cadence.
-3. Elle est entièrement calculable depuis FILLED Order History sans dépendance externe.
-4. Elle révèle quelque chose de non-trivial que l'opérateur ne peut pas percevoir sans outil.
-
-Les alternatives sérieusement évaluées :
+Alternatives évaluées et écartées :
 
 - **Exécution** (Patiente / Réactive / Mixte) : dimension plus puissante sur le plan conceptuel, mais requiert les ordres non exécutés (CANCELLED, EXPIRED, PENDING) pour être fiable. Non viable depuis FILLED seul. Mérite d'être la quatrième dimension après décision sur le pipeline ALL-STATUS.
 - **Dimensionnement des positions** : observable, mais orthogonalité partielle avec Capital et valeur cognitive inférieure.
