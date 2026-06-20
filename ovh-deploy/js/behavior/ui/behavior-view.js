@@ -750,7 +750,6 @@ function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null, 
           <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
           <span>${escHtml(cadenceResult.note)}</span>
         </div>` : ''}
-        <div style="color:red;font-size:0.8rem;margin-top:0.5rem">DEBUG UI PORTFEUILLE V1 — VERSION SERVIE</div>
         ${portefeuilleResult && portefeuilleResult.etat !== 'Indisponible' ? `
         <div class="bhv-dominant-banner bhv-dominant-banner--neutral" style="margin-top:0.75rem">
           <span class="bhv-dominant-label">Structure Portefeuille · ${escHtml(portefeuilleResult.etat)}</span>
@@ -759,14 +758,7 @@ function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null, 
         <div class="bhv-reading-line" style="margin-top:0.5rem">
           <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
           <span>${escHtml(portefeuilleResult.note)}</span>
-        </div>` : `
-        <div class="bhv-reading-line" style="margin-top:0.5rem;opacity:0.5;font-size:0.75rem">
-          <span>${
-            !portefeuilleResult
-              ? 'DEBUG Portefeuille : null'
-              : `DEBUG Portefeuille : Indisponible · nb_ordres=${portefeuilleResult.metriques?.nb_ordres_filled ?? '?'} · nb_mois=${portefeuilleResult.metriques?.nb_mois_actifs ?? '?'} · universe=${portefeuilleResult.metriques?.universe_size ?? '?'}`
-          }</span>
-        </div>`}
+        </div>` : ''}
       </div>
     </div>`;
 }
