@@ -10,6 +10,7 @@ import { validateTrades } from '../normalize/trade-validator.js';
 import { analyzeWallet } from '../wallet/wallet_analyzer.js';
 import { detectFormat } from './format-detector.js';
 import { analyzeOrders } from '../analytics/order-analyzer.js';
+import { computeCapital } from '../analytics/oi-capital.js';
 import { loadPdfTextItems }    from './pdf-loader.js';
 import { detectPdfFamily }     from './pdf-family-detector.js';
 import { extractPdfTableRows } from './pdf-table-extractor.js';
@@ -364,6 +365,7 @@ async function importBinanceSpot(file) {
     }
 
     const orderAnalysis = analyzeOrders(orderTrades, rows.length);
+    const capitalResult = computeCapital(orderTrades);
 
     return {
       ok:           true,
@@ -372,7 +374,8 @@ async function importBinanceSpot(file) {
       skipped:      orderSkipped,
       sessionId,
       analysisQuality: level === 'PARTIAL_TRADING' ? 'partial' : 'full',
-      orderAnalysis
+      orderAnalysis,
+      capitalResult
     };
   }
 
@@ -550,12 +553,14 @@ async function importBinancePDF(file) {
   if (trades.length === 0) {
     return { ok: false, error: 'Order History PDF importé mais aucun ordre FILLED trouvé.', _debugPdf: _dbgPdf, trades: [] };  // DEBUG-IPAD
   }
+  const capitalResult = computeCapital(trades);
   return {
     ok: true, type: 'order_history', trades, skipped, sessionId,
     analysisQuality: pdfResult.quality === 'DEGRADED' ? 'partial' : 'full',
     pdfQuality: pdfResult.quality,
     _debugPdf: _dbgPdf,  // DEBUG-IPAD
-    orderAnalysis: analyzeOrders(trades, normalized.length)
+    orderAnalysis: analyzeOrders(trades, normalized.length),
+    capitalResult
   };
 }
 
