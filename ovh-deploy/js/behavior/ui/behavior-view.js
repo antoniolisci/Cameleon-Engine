@@ -99,8 +99,9 @@ function mount(root) {
   const importNotice      = behaviorRepo.get('importNotice');
   const walletResult      = behaviorRepo.get('walletResult');
   const orderResult       = behaviorRepo.get('orderResult');
-  const capitalResult     = behaviorRepo.get('capitalResult');
-  const cadenceResult     = behaviorRepo.get('cadenceResult');
+  const capitalResult      = behaviorRepo.get('capitalResult');
+  const cadenceResult      = behaviorRepo.get('cadenceResult');
+  const portefeuilleResult = behaviorRepo.get('portefeuilleResult');
   const validationWarning  = behaviorRepo.get('validationWarning');
   const validationWarnings = behaviorRepo.get('validationWarnings');
 
@@ -183,7 +184,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, capitalResult, cadenceResult, gridContext, validationWarning, validationWarnings, memory, personalContext });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, capitalResult, cadenceResult, portefeuilleResult, gridContext, validationWarning, validationWarnings, memory, personalContext });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -204,7 +205,7 @@ function buildShell(state) {
       ${buildMemoryProfileCard(state.memory, state.personalContext)}
       ${buildPortfolioSection()}
       ${state.trades && !state.orderResult ? buildAnalysis(state)
-          : state.orderResult              ? buildOrderAnalysis(state.orderResult, state.capitalResult, state.cadenceResult)
+          : state.orderResult              ? buildOrderAnalysis(state.orderResult, state.capitalResult, state.cadenceResult, state.portefeuilleResult)
           : state.walletResult             ? buildWalletAnalysis(state.walletResult)
           : ''}
     </div>`;
@@ -659,7 +660,7 @@ function buildWalletAnalysis(result) {
 // Rendered when the imported file is an Order History (Format B).
 // Shows strategy profile, fill rate, directional ratio, grid spacing.
 
-function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null) {
+function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null, portefeuilleResult = null) {
   if (!result) return '';
   const { metrics: m, profile, summary } = result;
 
@@ -748,6 +749,15 @@ function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null) 
         <div class="bhv-reading-line" style="margin-top:0.5rem">
           <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
           <span>${escHtml(cadenceResult.note)}</span>
+        </div>` : ''}
+        ${portefeuilleResult && portefeuilleResult.etat !== 'Indisponible' ? `
+        <div class="bhv-dominant-banner bhv-dominant-banner--neutral" style="margin-top:0.75rem">
+          <span class="bhv-dominant-label">Structure Portefeuille · ${escHtml(portefeuilleResult.etat)}</span>
+          <span class="bhv-dominant-value">${escHtml(portefeuilleResult.confiance)}</span>
+        </div>
+        <div class="bhv-reading-line" style="margin-top:0.5rem">
+          <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
+          <span>${escHtml(portefeuilleResult.note)}</span>
         </div>` : ''}
       </div>
     </div>`;
@@ -1339,10 +1349,11 @@ function bindEvents(root, state) {
       if (!session) return;
       behaviorRepo.set('trades',       session.trades);
       behaviorRepo.set('importError',  null);
-      behaviorRepo.set('walletResult',  null);
-      behaviorRepo.set('orderResult',  null);
-      behaviorRepo.set('capitalResult', null);
-      behaviorRepo.set('cadenceResult', null);
+      behaviorRepo.set('walletResult',       null);
+      behaviorRepo.set('orderResult',        null);
+      behaviorRepo.set('capitalResult',      null);
+      behaviorRepo.set('cadenceResult',      null);
+      behaviorRepo.set('portefeuilleResult', null);
       behaviorRepo.set('importInfo',   `Session chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''} analysé${session.trades.length !== 1 ? 's' : ''}`);
       behaviorRepo.set('importSummary', null);
       mount(root);
@@ -1430,10 +1441,11 @@ async function handleImport(file, root) {
     behaviorRepo.set('importSummary',     null);
     behaviorRepo.set('importNotice',      null);
     behaviorRepo.set('trades',            null);
-    behaviorRepo.set('walletResult',      null);
-    behaviorRepo.set('orderResult',       null);
-    behaviorRepo.set('capitalResult',     null);
-    behaviorRepo.set('cadenceResult',     null);
+    behaviorRepo.set('walletResult',       null);
+    behaviorRepo.set('orderResult',        null);
+    behaviorRepo.set('capitalResult',      null);
+    behaviorRepo.set('cadenceResult',      null);
+    behaviorRepo.set('portefeuilleResult', null);
     behaviorRepo.set('analysisQuality',    null);
     behaviorRepo.set('validationWarning',  false);
     behaviorRepo.set('validationWarnings', []);
@@ -1445,6 +1457,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('orderResult',        null);
     behaviorRepo.set('capitalResult',      null);
     behaviorRepo.set('cadenceResult',      null);
+    behaviorRepo.set('portefeuilleResult', null);
     behaviorRepo.set('importInfo',         result.message);
     behaviorRepo.set('importSummary',      null);
     behaviorRepo.set('importNotice',       null);
@@ -1461,8 +1474,9 @@ async function handleImport(file, root) {
     behaviorRepo.set('trades',             anonymizeTrades(result.trades));
     behaviorRepo.set('walletResult',       null);
     behaviorRepo.set('orderResult',        result.orderAnalysis);
-    behaviorRepo.set('capitalResult',      result.capitalResult ?? null);
-    behaviorRepo.set('cadenceResult',      result.cadenceResult ?? null);
+    behaviorRepo.set('capitalResult',      result.capitalResult      ?? null);
+    behaviorRepo.set('cadenceResult',      result.cadenceResult      ?? null);
+    behaviorRepo.set('portefeuilleResult', result.portefeuilleResult ?? null);
     behaviorRepo.set('importInfo',         info);
     behaviorRepo.set('importSummary',      { source: isPdf ? 'Order History PDF' : 'Ordres de marché', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0, pdfQuality: result.pdfQuality ?? null });
     behaviorRepo.set('importNotice',       null);
@@ -1498,10 +1512,11 @@ async function handleImport(file, root) {
       : `${count} trade${pl(count) ? 's' : ''} importé${pl(count) ? 's' : ''} · ${skip} ligne${pl(skip) ? 's' : ''} ignorée${pl(skip) ? 's' : ''}`;
     behaviorRepo.set('importError',       null);
     behaviorRepo.set('importDiagnostic',  null);
-    behaviorRepo.set('walletResult',      null);
-    behaviorRepo.set('orderResult',       null);
-    behaviorRepo.set('capitalResult',     null);
-    behaviorRepo.set('cadenceResult',     null);
+    behaviorRepo.set('walletResult',       null);
+    behaviorRepo.set('orderResult',        null);
+    behaviorRepo.set('capitalResult',      null);
+    behaviorRepo.set('cadenceResult',      null);
+    behaviorRepo.set('portefeuilleResult', null);
     // orderStrategyProfile : intentionnellement NON effacé ici.
     // Un profil GRID d'un Order History récent doit pouvoir contextualiser
     // plusieurs imports Trade History successifs pendant 7 jours.
