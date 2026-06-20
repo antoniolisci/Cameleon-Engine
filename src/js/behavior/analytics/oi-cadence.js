@@ -268,6 +268,12 @@ function buildNote(etat, confiance, metriques, periode, meta = {}) {
         + `style Cadence : Burst (confiance : ${confiance}).`;
     }
 
+  } else if (etat === 'Irrégulier') {
+    corps = `L'activité est présente sur ${ratepct} des jours `
+      + `(${nb_jours_actifs} jours actifs sur ${nb_jours_periode}). `
+      + `Les signaux ne permettent pas d'identifier un profil de cadence net — `
+      + `style Cadence : Irrégulier (confiance : ${confiance}).`;
+
   } else {
     corps = `Style Cadence : ${etat} (confiance : ${confiance}).`;
   }
@@ -394,7 +400,7 @@ function computeCadence(trades) {
     etat = 'Burst';
 
   } else {
-    etat         = 'Burst';
+    etat         = 'Irrégulier';
     zone_ambigue = true;
   }
 
