@@ -758,7 +758,14 @@ function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null, 
         <div class="bhv-reading-line" style="margin-top:0.5rem">
           <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
           <span>${escHtml(portefeuilleResult.note)}</span>
-        </div>` : ''}
+        </div>` : `
+        <div class="bhv-reading-line" style="margin-top:0.5rem;opacity:0.5;font-size:0.75rem">
+          <span>${
+            !portefeuilleResult
+              ? 'DEBUG Portefeuille : null'
+              : `DEBUG Portefeuille : Indisponible · nb_ordres=${portefeuilleResult.metriques?.nb_ordres_filled ?? '?'} · nb_mois=${portefeuilleResult.metriques?.nb_mois_actifs ?? '?'} · universe=${portefeuilleResult.metriques?.universe_size ?? '?'}`
+          }</span>
+        </div>`}
       </div>
     </div>`;
 }
