@@ -524,10 +524,11 @@ body.bhv-panel-open .main-shell {
 }
 
 /* Variantes colorées du dot (score card) */
-.bhv-reading-dot--ok     { background: var(--ok,     #7dffb3); }
-.bhv-reading-dot--gold   { background: var(--gold,   #d4af37); }
-.bhv-reading-dot--warn   { background: var(--warn,   #ffd36e); }
-.bhv-reading-dot--danger { background: var(--danger, #ff7b7b); }
+.bhv-reading-dot--ok      { background: var(--ok,      #7dffb3); }
+.bhv-reading-dot--gold    { background: var(--gold,    #d4af37); }
+.bhv-reading-dot--warn    { background: var(--warn,    #ffd36e); }
+.bhv-reading-dot--danger  { background: var(--danger,  #ff7b7b); }
+.bhv-reading-dot--neutral { background: rgba(233, 221, 183, 0.35); }
 
 /* ── Score card ──────────────────────────────────────────────────────────────── */
 

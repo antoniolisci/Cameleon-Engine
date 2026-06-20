@@ -99,6 +99,7 @@ function mount(root) {
   const importNotice      = behaviorRepo.get('importNotice');
   const walletResult      = behaviorRepo.get('walletResult');
   const orderResult       = behaviorRepo.get('orderResult');
+  const capitalResult     = behaviorRepo.get('capitalResult');
   const validationWarning  = behaviorRepo.get('validationWarning');
   const validationWarnings = behaviorRepo.get('validationWarnings');
 
@@ -181,7 +182,7 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, gridContext, validationWarning, validationWarnings, memory, personalContext });
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, capitalResult, gridContext, validationWarning, validationWarnings, memory, personalContext });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -202,7 +203,7 @@ function buildShell(state) {
       ${buildMemoryProfileCard(state.memory, state.personalContext)}
       ${buildPortfolioSection()}
       ${state.trades && !state.orderResult ? buildAnalysis(state)
-          : state.orderResult              ? buildOrderAnalysis(state.orderResult)
+          : state.orderResult              ? buildOrderAnalysis(state.orderResult, state.capitalResult)
           : state.walletResult             ? buildWalletAnalysis(state.walletResult)
           : ''}
     </div>`;
@@ -657,7 +658,7 @@ function buildWalletAnalysis(result) {
 // Rendered when the imported file is an Order History (Format B).
 // Shows strategy profile, fill rate, directional ratio, grid spacing.
 
-function buildOrderAnalysis(result) {
+function buildOrderAnalysis(result, capitalResult = null) {
   if (!result) return '';
   const { metrics: m, profile, summary } = result;
 
@@ -728,6 +729,15 @@ function buildOrderAnalysis(result) {
         <div class="bhv-reading-line" style="margin-top:0.5rem">
           <span class="bhv-reading-dot bhv-reading-dot--${m.cancelProfile === 'heavy' ? 'danger' : 'warn'}"></span>
           <span>Annulations : profil <strong>${escHtml(m.cancelProfile)}</strong></span>
+        </div>` : ''}
+        ${capitalResult && capitalResult.etat !== 'Indisponible' ? `
+        <div class="bhv-dominant-banner bhv-dominant-banner--neutral" style="margin-top:0.75rem">
+          <span class="bhv-dominant-label">Style Capital · ${escHtml(capitalResult.etat)}</span>
+          <span class="bhv-dominant-value">${escHtml(capitalResult.confiance)}</span>
+        </div>
+        <div class="bhv-reading-line" style="margin-top:0.5rem">
+          <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
+          <span>${escHtml(capitalResult.note)}</span>
         </div>` : ''}
       </div>
     </div>`;
@@ -1319,8 +1329,9 @@ function bindEvents(root, state) {
       if (!session) return;
       behaviorRepo.set('trades',       session.trades);
       behaviorRepo.set('importError',  null);
-      behaviorRepo.set('walletResult', null);
+      behaviorRepo.set('walletResult',  null);
       behaviorRepo.set('orderResult',  null);
+      behaviorRepo.set('capitalResult', null);
       behaviorRepo.set('importInfo',   `Session chargée · ${session.trades.length} trade${session.trades.length !== 1 ? 's' : ''} analysé${session.trades.length !== 1 ? 's' : ''}`);
       behaviorRepo.set('importSummary', null);
       mount(root);
@@ -1410,6 +1421,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('trades',            null);
     behaviorRepo.set('walletResult',      null);
     behaviorRepo.set('orderResult',       null);
+    behaviorRepo.set('capitalResult',     null);
     behaviorRepo.set('analysisQuality',    null);
     behaviorRepo.set('validationWarning',  false);
     behaviorRepo.set('validationWarnings', []);
@@ -1419,6 +1431,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('trades',             null);
     behaviorRepo.set('walletResult',       result);
     behaviorRepo.set('orderResult',        null);
+    behaviorRepo.set('capitalResult',      null);
     behaviorRepo.set('importInfo',         result.message);
     behaviorRepo.set('importSummary',      null);
     behaviorRepo.set('importNotice',       null);
@@ -1435,6 +1448,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('trades',             anonymizeTrades(result.trades));
     behaviorRepo.set('walletResult',       null);
     behaviorRepo.set('orderResult',        result.orderAnalysis);
+    behaviorRepo.set('capitalResult',      result.capitalResult ?? null);
     behaviorRepo.set('importInfo',         info);
     behaviorRepo.set('importSummary',      { source: isPdf ? 'Order History PDF' : 'Ordres de marché', format: file.name.split('.').pop().toUpperCase(), lus: result.trades.length + (result.skipped || 0), retenus: result.trades.length, ignores: result.skipped || 0, pdfQuality: result.pdfQuality ?? null });
     behaviorRepo.set('importNotice',       null);
@@ -1472,6 +1486,7 @@ async function handleImport(file, root) {
     behaviorRepo.set('importDiagnostic',  null);
     behaviorRepo.set('walletResult',      null);
     behaviorRepo.set('orderResult',       null);
+    behaviorRepo.set('capitalResult',     null);
     // orderStrategyProfile : intentionnellement NON effacé ici.
     // Un profil GRID d'un Order History récent doit pouvoir contextualiser
     // plusieurs imports Trade History successifs pendant 7 jours.
