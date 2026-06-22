@@ -211,12 +211,14 @@ export function getAccount() {
 }
 
 // ── signOut() ─────────────────────────────────────────────────────────────────
-// Déconnexion Supabase + nettoyage local + émission account:disconnected.
-// L'appel supabase.auth.signOut() est défensif : erreur réseau = silencieuse.
+// Déconnexion locale immédiate + invalidation serveur best-effort.
+// Ordre intentionnel : nettoyage local d'abord, réseau ensuite.
+// Garantit que l'UI passe à 'disconnected' même si supabase.auth.signOut()
+// est lent (lock interne SDK, latence réseau mobile).
 export async function signOut() {
+  clearAccountState();
+  emit(ACCOUNT_EVENTS.DISCONNECTED, {});
   try {
     await supabase.auth.signOut();
   } catch {}
-  clearAccountState();
-  emit(ACCOUNT_EVENTS.DISCONNECTED, {});
 }
