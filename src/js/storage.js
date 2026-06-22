@@ -22,6 +22,10 @@ export const KEYS = {
   // onboarding-init.js (script <head> pré-modules) lit cette clé via localStorage direct —
   // contrainte architecturale immuable, ne pas tenter de centraliser ce script.
   onboarding: 'CE_onboarding_v1',
+  // Rate limit magic link — clé globale appareil, non namespacée, éphémère.
+  // Fenêtre glissante 15 min · max 3 envois · protection client uniquement.
+  // Intentionnellement exclue de _OPERATOR_KEYS : jamais exportée, jamais migrée.
+  magicLinkRateLimit: 'CE_magic_link_rl_v1',
 };
 
 const SCHEMA_VERSION = 1;

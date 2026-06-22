@@ -10,12 +10,13 @@ import { supabase, REDIRECT_URL }                                        from '.
 import { emit, ACCOUNT_EVENTS }                                         from './account-events.js';
 import { getAccountState, setAccountState, clearAccountState,
          getLocalUUID }                                                  from './account-storage.js';
+import { KEYS }                                                          from '../storage.js';
 
 // ── Rate limiting — magic link ────────────────────────────────────────────────
 // Clé globale (non namespacée) : stocke la fenêtre glissante de 15 min.
 // Protection côté client uniquement — Supabase applique son propre rate limiting.
 
-const _RATE_LIMIT_KEY    = 'CE_magic_link_rl_v1';
+const _RATE_LIMIT_KEY    = KEYS.magicLinkRateLimit;
 const _RATE_LIMIT_MAX    = 3;
 const _RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 min en ms
 

@@ -215,7 +215,8 @@ function _renderConnected() {
     <button id="ac-signout" class="ac-btn-secondary">Déconnexion</button>
   `;
 
-  card.querySelector('#ac-signout').addEventListener('click', async () => {
+  const signoutBtn = card.querySelector('#ac-signout');
+  signoutBtn.addEventListener('click', async () => {
     await signOut();
   });
 
