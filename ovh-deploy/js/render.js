@@ -30,6 +30,15 @@ import { applyFriction } from "./friction.js";
 import { applyMacroOverlay } from "./macro-context.js";
 import { computeUXState } from "./ux-state.js";
 import { V2_FLAGS } from "./v2/flags.js";
+import {
+  extractBehaviorSeries,
+  computeTransitionPairs,
+  detectPatterns,
+  formatPatternDescriptions,
+  splitSeriesIntoWindows,
+  computeWindowDistribution,
+  formatCertificationDescriptions,
+} from "./memory-reader.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -1694,6 +1703,9 @@ let latestSnapshotContext = null;
 let saveSnapshotFeedbackTimer = null;
 const SNAPSHOT_BTN_LABEL = "Mémoriser cet état";
 const SNAPSHOT_BTN_CONFIRM = "État mémorisé";
+let saveBehaviorFeedbackTimer = null;
+const SAVE_BEHAVIOR_BTN_LABEL   = "Enregistrer dans la mémoire";
+const SAVE_BEHAVIOR_BTN_CONFIRM = "Lecture enregistrée";
 
 function saveSnapshot(snapshot) {
   const last = backups.getAll()[0];
@@ -2349,9 +2361,9 @@ function detectBehaviorDrift(history) {
   const blockedCount = history.filter(h => h.state === "BLOCKED").length;
   const waitCount    = history.filter(h => h.state === "WAIT").length;
 
-  if (fomoCount    >= 3) return { type: "warning", message: "FOMO répété — ralentir avant d'agir" };
-  if (tensionCount >= 3) return { type: "warning", message: "Tension élevée — réduire l'exposition" };
-  if (blockedCount >= 4) return { type: "warning", message: "Blocages fréquents — éviter toute entrée" };
+  if (fomoCount    >= 3) return { type: "warning", message: "FOMO répété sur les sessions observées." };
+  if (tensionCount >= 3) return { type: "warning", message: "Tension élevée observée sur la période." };
+  if (blockedCount >= 4) return { type: "warning", message: "Blocages fréquents sur les sessions récentes." };
   if (waitCount    >= 5) return { type: "warning", message: "Attente prolongée — marché peu lisible" };
   return null;
 }
@@ -2421,9 +2433,9 @@ function detectPreBehaviorDrift(history) {
   const scores    = history.map(h => h.score).filter(s => s !== null && s !== undefined);
   const scoreDrop = scores.length >= 3 && scores[0] < scores[1] && scores[1] < scores[2];
 
-  if (fomoCount    >= 2)                return { type: "soft-warning", message: "Signal FOMO récurrent. Vérifier avant toute entrée." };
-  if (tensionCount >= 2)                return { type: "soft-warning", message: "Tension persistante sur la période. Ralentir le rythme." };
-  if (scoreDrop)                        return { type: "soft-warning", message: "Clarté en baisse. Éviter les décisions sous pression." };
+  if (fomoCount    >= 2)                return { type: "soft-warning", message: "Signal FOMO récurrent sur la période observée." };
+  if (tensionCount >= 2)                return { type: "soft-warning", message: "Tension persistante sur la période observée." };
+  if (scoreDrop)                        return { type: "soft-warning", message: "Clarté en baisse sur les sessions récentes." };
   if (waitCount >= 1 && fomoCount >= 1) return { type: "soft-warning", message: "Patience fragile. Risque de forcer une entrée." };
   return null;
 }
@@ -4863,6 +4875,22 @@ function buildCurrentPayload() {
   const _bState = getBehaviorState(payload);
   payload.finalDecision = computeFinalDecision(payload.decisionState, _bState, payload);
 
+  // Levier 1 — tag comportemental par snapshot (mémoire déclarative)
+  // Levier 2 — niveau historique dans le payload persisté
+  // overtradingLevel = merge brut (max riskLevel, historical).
+  // Le cap émotionnel calm→2 est une protection visuelle : il appartient
+  // exclusivement au bloc overtrading de render(), pas à la persistance.
+  // Stocker le niveau cappé en mémoire distordrait les motifs futurs.
+  const _instantLvl    = payload.behavior?.riskLevel ?? 1;
+  const _historicalLvl = behaviorGuard.readHistoricalLevel() ?? 1;
+  const _mergedLvl     = Math.max(_instantLvl, _historicalLvl);
+  payload.behavior = {
+    ...payload.behavior,
+    overtradingLevel:    _mergedLvl,
+    overtradingLabel:    OVERTRADING_DICT[_mergedLvl]?.etat ?? 'Ancré',
+    historicalGuardLevel: _historicalLvl,
+  };
+
   return payload;
 }
 
@@ -4884,6 +4912,78 @@ function saveDay() {
   appState.history = [...appState.history, currentPayload].slice(-HISTORY_LIMIT);
   saveState(appState);
   render();
+  renderPatternReflection();
+  renderChangeCertification();
+}
+
+function renderPatternReflection() {
+  const container = $('patternReflectionCard');
+  if (!container) return;
+
+  const extracted = extractBehaviorSeries();
+
+  let lines;
+  if (extracted.state === 'INSUFFICIENT') {
+    lines = formatPatternDescriptions(
+      { state: 'INSUFFICIENT' },
+      { count: extracted.count, bounds: null }
+    );
+  } else {
+    const { series, bounds } = extracted;
+    const pairs   = computeTransitionPairs(series);
+    const result  = detectPatterns(pairs);
+    lines = formatPatternDescriptions(result, { count: series.length, bounds });
+  }
+
+  container.innerHTML = '';
+  lines.forEach(text => {
+    const p = document.createElement('p');
+    p.className = 'pattern-reflection-line';
+    p.textContent = text;
+    container.appendChild(p);
+  });
+}
+
+function renderChangeCertification() {
+  const container = $('changeCertificationCard');
+  if (!container) return;
+
+  const extracted = extractBehaviorSeries();
+  const minTotal  = 10; // CERTIFICATION_MIN_SNAPSHOTS_PER_WINDOW * 2
+
+  let lines;
+
+  if (extracted.state === 'INSUFFICIENT') {
+    const n = extracted.count;
+    lines = [
+      `Données insuffisantes pour comparer deux fenêtres` +
+      ` (${n} snapshot${n !== 1 ? 's' : ''} disponible${n !== 1 ? 's' : ''}` +
+      ` — seuil minimal : ${minTotal}).`
+    ];
+  } else {
+    const split = splitSeriesIntoWindows(extracted.series);
+
+    if (split.state === 'INSUFFICIENT_FOR_CERTIFICATION') {
+      const n = split.total;
+      lines = [
+        `Données insuffisantes pour comparer deux fenêtres` +
+        ` (${n} snapshot${n !== 1 ? 's' : ''} disponible${n !== 1 ? 's' : ''}` +
+        ` — seuil minimal : ${minTotal}).`
+      ];
+    } else {
+      const w1Dist = computeWindowDistribution(split.w1);
+      const w2Dist = computeWindowDistribution(split.w2);
+      lines = formatCertificationDescriptions(w1Dist, w2Dist);
+    }
+  }
+
+  container.innerHTML = '';
+  lines.forEach(text => {
+    const p = document.createElement('p');
+    p.className = 'pattern-reflection-line';
+    p.textContent = text;
+    container.appendChild(p);
+  });
 }
 
 function clearHistory() {
@@ -4928,6 +5028,10 @@ function activateTab(tab) {
   syncTabs(tab);
   saveState(appState);
   render();
+  if (tab === 'memoire') {
+    renderPatternReflection();
+    renderChangeCertification();
+  }
   focusPanel(TAB_FOCUS_TARGETS[tab] || TAB_FOCUS_TARGETS.moteur);
 }
 
@@ -5095,6 +5199,23 @@ function bindControls() {
   });
 
   $("saveBtn")?.addEventListener("click", saveDay);
+  $("saveBehaviorBtn")?.addEventListener("click", () => {
+    saveDay();
+    const btn   = $("saveBehaviorBtn");
+    const label = btn?.querySelector(".mode-btn-title");
+    if (btn && label) {
+      clearTimeout(saveBehaviorFeedbackTimer);
+      label.textContent = SAVE_BEHAVIOR_BTN_CONFIRM;
+      btn.classList.add("snapshot-confirm");
+      btn.disabled = true;
+      saveBehaviorFeedbackTimer = setTimeout(() => {
+        label.textContent = SAVE_BEHAVIOR_BTN_LABEL;
+        btn.classList.remove("snapshot-confirm");
+        btn.disabled = false;
+        saveBehaviorFeedbackTimer = null;
+      }, 1200);
+    }
+  });
   $("clearBtn")?.addEventListener("click", clearHistory);
   $("clearSnapshotBtn")?.addEventListener("click", clearSnapshotHistory);
   $("exportDataBtn")?.addEventListener("click", () => { downloadOperatorData(); });
