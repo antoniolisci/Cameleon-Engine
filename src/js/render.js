@@ -5273,7 +5273,18 @@ function bindControls() {
       ? `\nErreurs partielles (${result.errors.length}) : ${result.errors.map(er => er.key).join(", ")}.`
       : "";
 
-    alert(`Restauration réussie — ${result.imported} clé(s) importée(s).${errDetail}\n\nRechargez la page pour appliquer les données restaurées.`);
+    // DETTE TECHNIQUE : UI_REHYDRATION_AFTER_IMPORT
+    // location.reload() est une solution de sécurité temporaire pour garantir la réhydratation
+    // complète après import. Elle fonctionne car elle rejoue le pipeline de boot exact.
+    //
+    // Objectif futur : centraliser la réhydratation dans une fonction unique réutilisable pour
+    // import JSON, login, logout, sync cloud, restauration mémoire, changement d'utilisateur.
+    // Cette fonction devra rappeler loadState() + fillForm() + buildCurrentPayload() + render()
+    // + toutes les fonctions de rendu appelées dans init(), sans le guard initialized.
+    // Ne pas implémenter avant que le besoin soit confirmé par plusieurs cas d'usage réels.
+    if (confirm(`Restauration réussie — ${result.imported} clé(s) importée(s).${errDetail}\n\nRecharger la page maintenant pour appliquer les données restaurées ?`)) {
+      location.reload();
+    }
   });
 
   $("saveSnapshotBtn")?.addEventListener("click", () => {
