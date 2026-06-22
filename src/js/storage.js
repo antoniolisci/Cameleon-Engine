@@ -466,6 +466,144 @@ export function downloadOperatorData() {
   }
 }
 
+// ── Portabilité — import données opérateur ───────────────────
+// Restaure les données opérateur depuis un export JSON produit par exportOperatorData().
+//
+// Préconditions obligatoires :
+//   P1 — CE_migration_uuid_v1_done === '1' : withUserKey() doit être actif avant toute écriture.
+//         Sans ce flag, withUserKey() retourne la clé legacy — l'import écrirait dans l'espace
+//         non-namespacé, créant un conflit lors de la prochaine runUUIDMigration().
+//   P2 — Format valide : version === 1, engine === 'cameleon-engine', data objet non null.
+//
+// Stratégie d'écriture : chaque clé utilise son propre format de stockage (voir ci-dessous).
+// Pas de JSON.stringify(value) générique — chaque clé a son enveloppe attendue par son getter.
+// Pas de rollback : si une écriture échoue (quota), les clés déjà écrites restent.
+//
+// Clés intentionnellement exclues de l'import :
+//   uiState (CE_ui_state_v1)          — état UI device-spécifique
+//   CE_onboarding_v1                  — état appareil, 1 fois par navigateur
+//   CE_identity_v1                    — UUID local, concept local
+//   CE_account_v1                     — cache Supabase
+//   CE_magic_link_rl_v1              — rate limit éphémère
+
+export function importOperatorData(data) {
+  // P1 — Migration UUID obligatoire avant toute écriture.
+  if (localStorage.getItem(_UUID_MIGRATION_FLAG) !== '1') {
+    return { ok: false, error: 'migration_incomplete' };
+  }
+
+  // P2 — Validation format.
+  if (
+    !data ||
+    data.version !== 1 ||
+    data.engine !== 'cameleon-engine' ||
+    !data.data ||
+    typeof data.data !== 'object' ||
+    Array.isArray(data.data)
+  ) {
+    return { ok: false, error: 'invalid_format' };
+  }
+
+  const d = data.data;
+  let imported = 0;
+  const errors = [];
+
+  function _tryWrite(label, fn) {
+    try {
+      const result = fn();
+      if (result === false) {
+        errors.push({ key: label, error: 'write_failed' });
+      } else {
+        imported++;
+      }
+    } catch (err) {
+      errors.push({ key: label, error: err?.message ?? 'write_failed' });
+    }
+  }
+
+  // ── Stores enveloppés avec _wrap ─────────────────────────────
+  // Le getter lit `_read(key)?.entries` (ou .sessions, .imports, .snapshots).
+  // L'import doit restaurer la même enveloppe — sinon le getter retourne le fallback vide.
+
+  if (d.journalEntries !== undefined) {
+    _tryWrite('CE_journal_entries_v1', () =>
+      _write(withUserKey(KEYS.journalEntries), _wrap({ entries: Array.isArray(d.journalEntries) ? d.journalEntries : [] }))
+    );
+  }
+
+  if (d.behaviorSessions !== undefined) {
+    _tryWrite('CE_behavior_sessions_v1', () =>
+      _write(withUserKey(KEYS.behaviorSessions), _wrap({ sessions: Array.isArray(d.behaviorSessions) ? d.behaviorSessions : [] }))
+    );
+  }
+
+  if (d.importRegistry !== undefined) {
+    _tryWrite('CE_import_registry_v1', () =>
+      _write(withUserKey(KEYS.importRegistry), _wrap({ imports: Array.isArray(d.importRegistry) ? d.importRegistry : [] }))
+    );
+  }
+
+  if (d.backups !== undefined) {
+    _tryWrite('CE_backups_v1', () =>
+      _write(withUserKey(KEYS.backups), _wrap({ snapshots: Array.isArray(d.backups) ? d.backups : [] }))
+    );
+  }
+
+  if (d.portfolio !== undefined) {
+    _tryWrite('CE_portfolio_v1', () =>
+      _write(withUserKey(KEYS.portfolio), _wrap({ snapshots: Array.isArray(d.portfolio) ? d.portfolio : [] }))
+    );
+  }
+
+  if (d.oiHistory !== undefined) {
+    _tryWrite('CE_oi_history_v1', () =>
+      _write(withUserKey(KEYS.oiHistory), _wrap({ entries: Array.isArray(d.oiHistory) ? d.oiHistory : [] }))
+    );
+  }
+
+  // ── Stores avec API setter — format géré par l'API ──────────
+  // settings.set() et operatorMemory.set() écrivent _wrap({ data: v }) en interne.
+  // behaviorMemory.setAll() écrit le tableau brut sans enveloppe (format spécifique).
+
+  if (d.settings !== undefined) {
+    _tryWrite('CE_settings_v1', () => settings.set(d.settings));
+  }
+
+  if (d.operatorMemory !== undefined) {
+    _tryWrite('CE_operator_memory_v1', () => operatorMemory.set(d.operatorMemory));
+  }
+
+  if (d.behaviorMemory !== undefined) {
+    _tryWrite('cameleon_behavior_memory_v1', () =>
+      behaviorMemory.setAll(Array.isArray(d.behaviorMemory) ? d.behaviorMemory : [])
+    );
+  }
+
+  // ── Scalaires raw JSON — behavior namespace ──────────────────
+  // Ces clés sont écrites par behavior-repo.js sans _wrap : localStorage.setItem(key, JSON.stringify(val)).
+  // _readRawJSON() les lit en JSON.parse brut — JSON.stringify(v) est donc le format exact attendu.
+
+  if (d.guardLevel !== undefined) {
+    _tryWrite('cameleon.behavior.v1.guardLevel', () =>
+      localStorage.setItem(withUserKey(_BHV_NS + 'guardLevel'), JSON.stringify(d.guardLevel))
+    );
+  }
+
+  if (d.guardLevelUpdatedAt !== undefined) {
+    _tryWrite('cameleon.behavior.v1.guardLevelUpdatedAt', () =>
+      localStorage.setItem(withUserKey(_BHV_NS + 'guardLevelUpdatedAt'), JSON.stringify(d.guardLevelUpdatedAt))
+    );
+  }
+
+  if (d.orderStrategyProfile !== undefined) {
+    _tryWrite('cameleon.behavior.v1.orderStrategyProfile', () =>
+      localStorage.setItem(withUserKey(_BHV_NS + 'orderStrategyProfile'), JSON.stringify(d.orderStrategyProfile))
+    );
+  }
+
+  return { ok: true, imported, errors };
+}
+
 // ── Migration ─────────────────────────────────────────────────
 
 const _LEGACY = {
