@@ -19,6 +19,7 @@ import { extract as extractPortfolio } from '../wallet/portfolio-extractor.js';
 import * as memoryRepo          from '../storage/memory-repo.js';
 import { updateMemory }         from '../analytics/memory-computer.js';
 import { buildPersonalContext } from '../analytics/personal-context-builder.js';
+import * as oiHistoryRepo       from '../storage/oi-history-repo.js';
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
@@ -184,7 +185,16 @@ function mount(root) {
     behaviorRepo.set('coherenceLevel', null);
   }
 
-  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, capitalResult, cadenceResult, portefeuilleResult, gridContext, validationWarning, validationWarnings, memory, personalContext });
+  // Entrée OI V1 précédente — lue uniquement si un orderResult est présent.
+  // entries[0] = entrée courante (auto-sauvegardée dans handleImport avant mount()),
+  // entries[1] = entrée précédente à afficher comme référence silencieuse.
+  let previousOiEntry = null;
+  if (orderResult) {
+    const oiEntries = oiHistoryRepo.getAll();
+    previousOiEntry = oiEntries.length >= 2 ? oiEntries[1] : null;
+  }
+
+  render(root, { trades, metrics, patterns, tradeTags, score, coaching, style, transitions, importError, importDiagnostic, importInfo, importSummary, importNotice, walletResult, orderResult, capitalResult, cadenceResult, portefeuilleResult, gridContext, validationWarning, validationWarnings, memory, personalContext, previousOiEntry });
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -205,7 +215,7 @@ function buildShell(state) {
       ${buildMemoryProfileCard(state.memory, state.personalContext)}
       ${buildPortfolioSection()}
       ${state.trades && !state.orderResult ? buildAnalysis(state)
-          : state.orderResult              ? buildOrderAnalysis(state.orderResult, state.capitalResult, state.cadenceResult, state.portefeuilleResult)
+          : state.orderResult              ? buildOrderAnalysis(state.orderResult, state.capitalResult, state.cadenceResult, state.portefeuilleResult, state.previousOiEntry)
           : state.walletResult             ? buildWalletAnalysis(state.walletResult)
           : ''}
     </div>`;
@@ -657,10 +667,33 @@ function buildWalletAnalysis(result) {
 }
 
 // ── Order History analysis panel ──────────────────────────────────────────────
+// ── Référence OI V1 précédente ────────────────────────────────────────────────
+// Retourne '' si entry est null ou si aucune dimension n'est disponible.
+// Affichage : ligne discrète, aucune action possible.
+
+function buildOiPreviousRef(entry) {
+  if (!entry) return '';
+  const d   = new Date(entry.createdAt);
+  const day = String(d.getDate()).padStart(2, '0');
+  const mon = String(d.getMonth() + 1).padStart(2, '0');
+  const yr  = d.getFullYear();
+  const labels = [
+    entry.capital?.etat,
+    entry.cadence?.etat,
+    entry.portefeuille?.etat,
+  ].filter(Boolean);
+  if (!labels.length) return '';
+  return `
+        <div class="bhv-reading-line" style="margin-top:0.75rem;opacity:0.55">
+          <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
+          <span>Analyse précédente · ${escHtml(`${day}/${mon}/${yr}`)} · ${labels.map(escHtml).join(' · ')}</span>
+        </div>`;
+}
+
 // Rendered when the imported file is an Order History (Format B).
 // Shows strategy profile, fill rate, directional ratio, grid spacing.
 
-function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null, portefeuilleResult = null) {
+function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null, portefeuilleResult = null, previousOiEntry = null) {
   if (!result) return '';
   const { metrics: m, profile, summary } = result;
 
@@ -759,6 +792,7 @@ function buildOrderAnalysis(result, capitalResult = null, cadenceResult = null, 
           <span class="bhv-reading-dot bhv-reading-dot--neutral"></span>
           <span>${escHtml(portefeuilleResult.note)}</span>
         </div>` : ''}
+        ${buildOiPreviousRef(previousOiEntry)}
       </div>
     </div>`;
 }
@@ -1556,6 +1590,24 @@ async function handleImport(file, root) {
         behaviorRepo.set('importNotice',           null);
         behaviorRepo.set('pendingMemorySave',      true);
         behaviorRepo.set('pendingImportFingerprint', fingerprint);
+
+        // ── OI V1 auto-save ────────────────────────────────────────────────
+        // Uniquement pour Order History — non-doublon garanti par la position dans else.
+        // Sauvegardé si au moins une dimension est non-Indisponible.
+        if (result.type === 'order_history') {
+          const capRes = result.capitalResult      ?? null;
+          const cadRes = result.cadenceResult      ?? null;
+          const prtRes = result.portefeuilleResult ?? null;
+          const hasValidOi = [capRes, cadRes, prtRes].some(r => r !== null && r.etat !== 'Indisponible');
+          if (hasValidOi) {
+            const entry = oiHistoryRepo.buildEntry(capRes, cadRes, prtRes, {
+              fileName:     file.name,
+              rowsKept:     result.trades.length,
+              nbMoisActifs: prtRes?.nb_mois_actifs ?? null,
+            });
+            oiHistoryRepo.append(entry);
+          }
+        }
       }
     }
   }
