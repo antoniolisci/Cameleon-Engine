@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard, behaviorMemory, downloadOperatorData, getStorageLevel, KEYS } from "./storage.js";
+import { backups, behaviorGuard, behaviorMemory, downloadOperatorData, exportOperatorData, getStorageLevel, importOperatorData, KEYS } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -5219,6 +5219,63 @@ function bindControls() {
   $("clearBtn")?.addEventListener("click", clearHistory);
   $("clearSnapshotBtn")?.addEventListener("click", clearSnapshotHistory);
   $("exportDataBtn")?.addEventListener("click", () => { downloadOperatorData(); });
+
+  // ── Restauration depuis fichier JSON ─────────────────────────
+  // importDataBtn ouvre le file picker. importDataInput reçoit le fichier.
+  // exportOperatorData() sert uniquement à détecter si des données locales existent
+  // avant d'écraser — aucune modification de l'export ou du bouton export.
+  const _importDataBtn   = $("importDataBtn");
+  const _importDataInput = $("importDataInput");
+
+  _importDataBtn?.addEventListener("click", () => {
+    _importDataInput?.click();
+  });
+
+  _importDataInput?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    _importDataInput.value = "";
+    if (!file) return;
+
+    // Lecture et parse JSON
+    let parsed;
+    try {
+      const text = await file.text();
+      parsed = JSON.parse(text);
+    } catch {
+      alert("Fichier incompatible — impossible de lire le JSON.");
+      return;
+    }
+
+    // Détection données locales existantes pour avertissement
+    const existing = exportOperatorData();
+    const hasLocalData = existing !== null && existing.data &&
+      ["journalEntries", "behaviorSessions", "backups", "behaviorMemory", "operatorMemory", "oiHistory"]
+        .some(k => Array.isArray(existing.data[k]) ? existing.data[k].length > 0 : existing.data[k] != null);
+
+    const confirmMsg = hasLocalData
+      ? "Des données opérateur existent déjà sur cet appareil.\n\nCette opération remplace vos données opérateur locales. Continuer ?"
+      : "Cette opération remplace vos données opérateur locales. Continuer ?";
+
+    if (!confirm(confirmMsg)) return;
+
+    const result = importOperatorData(parsed);
+
+    if (!result.ok) {
+      if (result.error === "migration_incomplete") {
+        alert("Migration locale incomplète, rechargez la page puis réessayez.");
+      } else {
+        alert("Fichier incompatible.");
+      }
+      return;
+    }
+
+    const errDetail = result.errors.length > 0
+      ? `\nErreurs partielles (${result.errors.length}) : ${result.errors.map(er => er.key).join(", ")}.`
+      : "";
+
+    alert(`Restauration réussie — ${result.imported} clé(s) importée(s).${errDetail}\n\nRechargez la page pour appliquer les données restaurées.`);
+  });
+
   $("saveSnapshotBtn")?.addEventListener("click", () => {
     if (!latestSnapshotContext) return;
     const btn = $("saveSnapshotBtn");

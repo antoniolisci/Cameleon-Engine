@@ -659,8 +659,13 @@
                   <div class="memory-actions compact-actions">
                     <button id="saveSnapshotBtn" class="mode-btn compact-btn" type="button">
                       <div class="mode-btn-title">Mémoriser cet état</div>
+                      <div class="mode-btn-desc">Snapshot du moteur — consultable dans l'historique Pilotage.</div>
                     </button>
                     <div id="snapshotFrictionMsg" class="friction-message" hidden aria-live="polite"></div>
+                    <button id="saveBehaviorBtn" class="mode-btn compact-btn" type="button">
+                      <div class="mode-btn-title">Enregistrer dans la mémoire</div>
+                      <div class="mode-btn-desc">Lecture comportementale — alimente Motifs de transition et Comparaison des fenêtres.</div>
+                    </button>
                   </div>
 
                   <div class="table-shell">
@@ -706,6 +711,27 @@
                         <div id="history"></div>
                       </div>
                       <div id="behaviorRepetitionCard" class="side-card"></div>
+
+                      <!-- LECTEUR DE MÉMOIRE MINIMAL V1 — Refléter le motif -->
+                      <section class="side-card">
+                        <div class="card-head">
+                          <div>
+                            <h2 class="card-title">Motifs de transition</h2>
+                            <p class="card-desc">Transitions comportementales issues des lectures sauvegardées via « Sauvegarder la lecture » ou « Enregistrer dans la mémoire ».</p>
+                          </div>
+                        </div>
+                        <div id="patternReflectionCard"></div>
+                      </section>
+
+                      <section class="side-card">
+                        <div class="card-head">
+                          <div>
+                            <h2 class="card-title">Comparaison des fenêtres</h2>
+                            <p class="card-desc">Distribution comportementale comparée entre deux fenêtres temporelles issues des lectures sauvegardées.</p>
+                          </div>
+                        </div>
+                        <div id="changeCertificationCard"></div>
+                      </section>
                     </div>
 
                     <!-- SIGNAL -->
@@ -811,6 +837,11 @@
                         <div class="mode-btn-title">Exporter mes données</div>
                         <div class="mode-btn-desc">Télécharge une sauvegarde JSON de toutes vos données locales.</div>
                       </button>
+                      <button id="importDataBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Restaurer depuis fichier</div>
+                        <div class="mode-btn-desc">Importe une sauvegarde JSON pour restaurer vos données sur cet appareil.</div>
+                      </button>
+                      <input id="importDataInput" type="file" accept=".json,application/json" style="display:none" aria-hidden="true">
                     </section>
                   </div>
                 </div>
