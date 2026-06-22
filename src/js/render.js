@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard, behaviorMemory, downloadOperatorData, exportOperatorData, getStorageLevel, importOperatorData, KEYS } from "./storage.js";
+import { backups, behaviorGuard, behaviorMemory, clearOperatorData, downloadOperatorData, exportOperatorData, getStorageLevel, importOperatorData, KEYS } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -5283,6 +5283,25 @@ function bindControls() {
     // + toutes les fonctions de rendu appelées dans init(), sans le guard initialized.
     // Ne pas implémenter avant que le besoin soit confirmé par plusieurs cas d'usage réels.
     if (confirm(`Restauration réussie — ${result.imported} clé(s) importée(s).${errDetail}\n\nRecharger la page maintenant pour appliquer les données restaurées ?`)) {
+      location.reload();
+    }
+  });
+
+  // ── Réinitialisation complète des données opérateur ──────────
+  $("clearOperatorDataBtn")?.addEventListener("click", () => {
+    // Confirmation 1 — avertissement
+    if (!confirm("Vous êtes sur le point de supprimer définitivement toutes vos données opérateur locales.\n\nCela inclut : lectures sauvegardées, sessions comportementales, mémoire opérateur, historique OI, sauvegardes, portfolio et paramètres.\n\nContinuer ?")) return;
+
+    // Confirmation 2 — irréversibilité
+    if (!confirm("Cette action est irréversible. Confirmer la suppression définitive ?")) return;
+
+    const result = clearOperatorData();
+
+    const errDetail = result.errors.length > 0
+      ? `\nErreurs (${result.errors.length}) : ${result.errors.map(e => e.key).join(", ")}.`
+      : "";
+
+    if (confirm(`${result.cleared} clé(s) supprimée(s).${errDetail}\n\nRecharger la page maintenant ?`)) {
       location.reload();
     }
   });
