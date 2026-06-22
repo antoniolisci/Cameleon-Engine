@@ -15,6 +15,7 @@ export const KEYS = {
   behaviorMemory: 'cameleon_behavior_memory_v1',
   portfolio: 'CE_portfolio_v1',
   operatorMemory: 'CE_operator_memory_v1',
+  oiHistory: 'CE_oi_history_v1',
 };
 
 const SCHEMA_VERSION = 1;
@@ -222,6 +223,25 @@ export const operatorMemory = {
   },
 };
 
+// ── OI V1 history — profils opérateur longitudinaux ──────────
+// FIFO 50 entrées — schemaVersion + oiVersion par entrée.
+// Accès via withUserKey — namespacing UUID identique aux autres clés opérateur.
+
+export const oiHistory = {
+  getAll() {
+    return _read(withUserKey(KEYS.oiHistory))?.entries ?? [];
+  },
+  append(entry) {
+    if (!entry || typeof entry !== 'object') return false;
+    const entries = this.getAll();
+    entries.unshift(entry);
+    return _write(withUserKey(KEYS.oiHistory), _wrap({ entries: entries.slice(0, 50) }));
+  },
+  clear() {
+    return _write(withUserKey(KEYS.oiHistory), _wrap({ entries: [] }));
+  },
+};
+
 // ── Behavior memory — signal comportemental courant ──────────
 // Format : tableau brut JSON (pas de _wrap) — compatibilité données existantes.
 // Écriture centralisée ici ; render.js ne doit plus appeler localStorage directement.
@@ -399,6 +419,7 @@ export function exportOperatorData() {
         uiState:              uiState.get(),
         portfolio:            portfolio.getAll(),
         operatorMemory:       operatorMemory.get(),
+        oiHistory:            oiHistory.getAll(),
       },
     };
   } catch {
@@ -516,6 +537,7 @@ const _OPERATOR_KEYS = [
   'cameleon.behavior.v1.guardLevel',
   'cameleon.behavior.v1.guardLevelUpdatedAt',
   'cameleon.behavior.v1.orderStrategyProfile',
+  'CE_oi_history_v1',
 ];
 
 // Copie la valeur brute de baseKey vers baseKey__{uuid}.
