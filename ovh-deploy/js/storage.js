@@ -604,6 +604,34 @@ export function importOperatorData(data) {
   return { ok: true, imported, errors };
 }
 
+// ── Portabilité — purge données opérateur ────────────────────
+// Supprime les 12 clés opérateur de _OPERATOR_KEYS via withUserKey().
+// Clés intentionnellement préservées :
+//   CE_identity_v1          — UUID local, nécessaire au fonctionnement
+//   CE_onboarding_v1        — état appareil
+//   CE_account_v1           — cache session Supabase
+//   CE_magic_link_rl_v1    — rate limit éphémère
+//   CE_migration_uuid_v1_done + CE_migration_uuid_cleanup_done — flags système
+//
+// Retourne { ok: true, cleared: N, errors: [] }.
+// Pas de rollback : suppression clé par clé, try/catch individuel.
+
+export function clearOperatorData() {
+  let cleared = 0;
+  const errors = [];
+
+  for (const baseKey of _OPERATOR_KEYS) {
+    try {
+      localStorage.removeItem(withUserKey(baseKey));
+      cleared++;
+    } catch (err) {
+      errors.push({ key: baseKey, error: err?.message ?? 'remove_failed' });
+    }
+  }
+
+  return { ok: true, cleared, errors };
+}
+
 // ── Migration ─────────────────────────────────────────────────
 
 const _LEGACY = {
