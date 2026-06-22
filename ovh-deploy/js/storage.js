@@ -534,6 +534,7 @@ const _OPERATOR_KEYS = [
   'CE_settings_v1',
   'CE_portfolio_v1',
   'cameleon_behavior_memory_v1',
+  'CE_operator_memory_v1',
   'cameleon.behavior.v1.guardLevel',
   'cameleon.behavior.v1.guardLevelUpdatedAt',
   'cameleon.behavior.v1.orderStrategyProfile',
