@@ -16,6 +16,12 @@ export const KEYS = {
   portfolio: 'CE_portfolio_v1',
   operatorMemory: 'CE_operator_memory_v1',
   oiHistory: 'CE_oi_history_v1',
+  // Clé globale appareil — intentionnellement exclue de withUserKey et _OPERATOR_KEYS.
+  // Ne jamais synchroniser avec le compte utilisateur.
+  // État UI de première visite : affiché une seule fois par navigateur.
+  // onboarding-init.js (script <head> pré-modules) lit cette clé via localStorage direct —
+  // contrainte architecturale immuable, ne pas tenter de centraliser ce script.
+  onboarding: 'CE_onboarding_v1',
 };
 
 const SCHEMA_VERSION = 1;

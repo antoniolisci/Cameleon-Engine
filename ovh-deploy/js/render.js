@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard, behaviorMemory, downloadOperatorData, getStorageLevel } from "./storage.js";
+import { backups, behaviorGuard, behaviorMemory, downloadOperatorData, getStorageLevel, KEYS } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -5266,14 +5266,13 @@ function bindControls() {
   });
 
   // ── Onboarding — affiché une seule fois ──────────────────────────────────
-  const ONBOARDING_KEY = "CE_onboarding_v1";
   const onboardingOverlay = $("onboardingOverlay");
   if (onboardingOverlay) {
-    if (localStorage.getItem(ONBOARDING_KEY)) {
+    if (localStorage.getItem(KEYS.onboarding)) {
       onboardingOverlay.classList.add("hidden");
     }
     $("onboardingBtn")?.addEventListener("click", () => {
-      localStorage.setItem(ONBOARDING_KEY, "1");
+      localStorage.setItem(KEYS.onboarding, "1");
       onboardingOverlay.classList.add("hidden");
     });
   }
