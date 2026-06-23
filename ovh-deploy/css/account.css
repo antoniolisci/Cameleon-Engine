@@ -206,3 +206,78 @@
   line-height: 1.5;
   margin-bottom: 14px;
 }
+
+/* ── Zone sync LOT 3 ── */
+.ac-sync-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #222;
+}
+
+.ac-sync-status {
+  font-size: 0.78rem;
+  color: #666;
+  margin-bottom: 10px;
+  min-height: 1.2em;
+  line-height: 1.4;
+}
+
+.ac-sync-btn {
+  width: 100%;
+}
+
+/* ── Modale de conflit ── */
+.ac-conflict-modal {
+  margin-top: 16px;
+  padding: 14px;
+  background: #1a1a14;
+  border: 1px solid #3a3a20;
+  border-radius: 8px;
+}
+
+.ac-conflict-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #ccb577;
+  margin-bottom: 8px;
+}
+
+.ac-conflict-body {
+  font-size: 0.78rem;
+  color: #888;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.ac-conflict-meta {
+  font-size: 0.74rem;
+  color: #555;
+  margin-bottom: 14px;
+}
+
+.ac-conflict-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ac-conflict-btn {
+  width: 100%;
+  text-align: center;
+}
+
+.ac-conflict-defer-btn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 0.74rem;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  display: block;
+}
+
+.ac-conflict-defer-btn:hover { color: #888; }

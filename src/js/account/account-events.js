@@ -1,15 +1,23 @@
 // account-events.js — Événements du module account/
-// Caméléon Engine · Compte Utilisateur V1 · LOT 2
+// Caméléon Engine · Compte Utilisateur V1 · LOT 2 / LOT 3
 //
 // Règle d'isolation : émission sur document uniquement.
 // Aucun window.*, aucune variable globale.
 // render.js écoute uniquement ces événements — zéro import account-service.js depuis render.js.
 
 export const ACCOUNT_EVENTS = {
-  CONNECTED:       'account:connected',
-  DISCONNECTED:    'account:disconnected',
-  ERROR:           'account:error',
-  PREMIUM_CHANGED: 'account:premium-changed',
+  // LOT 2 — authentification
+  CONNECTED:          'account:connected',
+  DISCONNECTED:       'account:disconnected',
+  ERROR:              'account:error',
+  PREMIUM_CHANGED:    'account:premium-changed',
+  // LOT 3 — synchronisation cloud
+  // SYNC_COMPLETE  : { state: string, localEmpty?: boolean, error?: string }
+  // SYNC_ERROR     : { step: 'detect'|'restore', error: string }
+  // CONFLICT_DETECTED : { localPayload: object, cloudPayload: object }
+  SYNC_COMPLETE:      'account:sync-complete',
+  SYNC_ERROR:         'account:sync-error',
+  CONFLICT_DETECTED:  'account:conflict-detected',
 };
 
 // emit(event, data) — émet un CustomEvent sur document.

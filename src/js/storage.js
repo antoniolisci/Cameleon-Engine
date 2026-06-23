@@ -182,6 +182,9 @@ export const portfolio = {
     snapshots.unshift(snapshot);
     return _write(withUserKey(KEYS.portfolio), _wrap({ snapshots: snapshots.slice(0, PORTFOLIO_SNAPSHOTS_LIMIT) }));
   },
+  setAll(arr) {
+    return _write(withUserKey(KEYS.portfolio), _wrap({ snapshots: Array.isArray(arr) ? arr.slice(0, PORTFOLIO_SNAPSHOTS_LIMIT) : [] }));
+  },
   clear() {
     return _write(withUserKey(KEYS.portfolio), _wrap({ snapshots: [] }));
   },
@@ -246,6 +249,9 @@ export const oiHistory = {
     const entries = this.getAll();
     entries.unshift(entry);
     return _write(withUserKey(KEYS.oiHistory), _wrap({ entries: entries.slice(0, 50) }));
+  },
+  setAll(arr) {
+    return _write(withUserKey(KEYS.oiHistory), _wrap({ entries: Array.isArray(arr) ? arr.slice(0, 50) : [] }));
   },
   clear() {
     return _write(withUserKey(KEYS.oiHistory), _wrap({ entries: [] }));
