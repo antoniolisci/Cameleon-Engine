@@ -288,3 +288,91 @@ OFFLINE_LOCAL est un état dégradé assumé. Il ne doit pas être interprété 
 > - **S2-LOCAL** — `buildLocalPayload()` → `executeUpload()` via clic "Conserver mes données locales"
 >
 > **Aucun autre chemin autorisé.**
+
+---
+
+## 11. Correctif robustesse — commit 34ba1bd (2026-07-05)
+
+### Contexte
+
+Audit de robustesse effectué avant reprise des tests terrain T3 → T6. Deux risques non couverts identifiés après validation initiale.
+
+### Risque 1 — DETECTING infini : Promise Supabase suspendue
+
+**Description :** Si `await supabase.from('operator_data').select(...)` ne résout ni ne rejette jamais (TCP connecté, serveur silencieux ; changement WiFi → 4G mid-request ; JWT refresh interne Supabase JS bloqué), le `try/catch` ne s'active pas. `_syncState` reste `'DETECTING'` indéfiniment. Bouton "Sauvegarder" désactivé. Aucune sortie sans rechargement de page.
+
+**Correction — `account-cloud.js`, `detectConflict()` :**
+
+```js
+const controller = new AbortController();
+const timeoutId  = setTimeout(() => controller.abort(), 15000);
+
+try {
+  const { data: rows, error } = await supabase
+    .from('operator_data')
+    .select('payload, updated_at')
+    .eq('id', serverUUID)
+    .abortSignal(controller.signal);
+
+  if (error) throw error;
+  // ... logique inchangée
+} catch (err) {
+  return { state: 'OFFLINE_LOCAL', ... };
+} finally {
+  clearTimeout(timeoutId); // garanti sur tous chemins
+}
+```
+
+**Justification `finally` :** `clearTimeout` dans le `try` est manqué si Supabase JS jette avant de l'atteindre → fuite de timer 15 s bornée. `finally` garantit l'exécution inconditionnelle — conforme à "pas d'état caché, nettoyage garanti".
+
+**Impact :** Après 15 s sans réponse, `AbortError` est levé → `catch` retourne `OFFLINE_LOCAL`. Comportement identique à une coupure réseau standard, déjà validé.
+
+### Risque 2 — Dead state : `getAccount()` truthy + `getServerUUID()` null
+
+**Description :** Si `CE_account_v1` existe en localStorage sans clé `serverUUID` (état corrompu), `account-ui.js` init fixait `_syncState = 'DETECTING'` mais `account-sync.js` startup check recevait `null` et n'appelait jamais `_runDetection()`. Aucun événement `SYNC_COMPLETE` ne pouvait jamais être émis. Dead state permanent.
+
+**Correction — `account-ui.js`, fonction `_init()` :**
+
+```js
+_syncState = getServerUUID() !== null ? 'DETECTING' : 'DETECT_ERROR';
+```
+
+Si `serverUUID` absent → `DETECT_ERROR` → "Erreur de vérification. Rechargez la page." État déjà géré dans `_syncStatusText()` et `_isSyncBtnDisabled()`.
+
+### Invariants confirmés après correctif
+
+| Critère | Résultat |
+|---|---|
+| Invariant X = 2 | **Confirmé** — aucun nouveau chemin cloud |
+| FLUX A terrain | **Non affecté** |
+| FLUX B terrain | **Non affecté** |
+| Nouveaux états UI | **Aucun** — OFFLINE_LOCAL et DETECT_ERROR préexistants |
+| Nouveaux chemins d'écriture cloud | **Aucun** |
+
+### Tests complémentaires requis (T3 → T6)
+
+| Test | Description | Attendu |
+|---|---|---|
+| T-TIMEOUT-1 | DevTools throttle 0 kb/s pendant DETECTING, attendre 15 s | OFFLINE_LOCAL affiché, bouton actif |
+| T-TIMEOUT-2 | Rechargement page avant les 15 s | Pas d'erreur console, pas de double SYNC_COMPLETE |
+| T-DEADSTATE-1 | Supprimer `serverUUID` de `CE_account_v1` en localStorage, recharger | DETECT_ERROR affiché, pas de DETECTING permanent |
+| T-FLUX-A-B | Rejouer FLUX A et FLUX B complets | Comportement identique aux validations précédentes |
+
+---
+
+## Décision d'architecture
+
+Les corrections introduites par le commit 34ba1bd sont considérées comme des renforcements de robustesse du système.
+
+Elles ne modifient :
+- ni les invariants fonctionnels ;
+- ni les chemins d'écriture cloud ;
+- ni les flux fonctionnels déjà validés (FLUX A et FLUX B).
+
+Leur objectif est exclusivement de garantir la terminaison déterministe des états de synchronisation et d'éliminer les deux états morts identifiés lors de l'audit pré-T3.
+
+Ces corrections sont désormais considérées comme faisant partie de l'architecture de référence du LOT 3.
+
+---
+
+**STATUT FINAL : LOT 3 CORRIGÉ — REPRISE DES TESTS TERRAIN T3 → T6 AUTORISÉE**
