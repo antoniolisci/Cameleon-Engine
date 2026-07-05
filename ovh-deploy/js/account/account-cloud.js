@@ -91,11 +91,15 @@ function _normalizeCloud(raw) {
 export async function detectConflict(serverUUID) {
   const localPayload = buildLocalPayload();
 
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 15000);
+
   try {
     const { data: rows, error } = await supabase
       .from('operator_data')
       .select('payload, updated_at')
-      .eq('id', serverUUID);
+      .eq('id', serverUUID)
+      .abortSignal(controller.signal);
 
     if (error) throw error;
 
@@ -130,6 +134,9 @@ export async function detectConflict(serverUUID) {
       localEmpty: localPayload === null,
       error:      err?.message ?? 'network_error',
     };
+  } finally {
+    // Nettoyage garanti — tous chemins : succès, erreur, AbortError, exception inattendue.
+    clearTimeout(timeoutId);
   }
 }
 

@@ -538,8 +538,11 @@ function _esc(str) {
 (function _init() {
   const existing = getAccount();
   if (existing) {
-    _uiState   = 'connected';
-    _syncState = 'DETECTING'; // check au démarrage en cours dans account-sync.js
+    _uiState = 'connected';
+    // Dead-state guard : si serverUUID absent (état localStorage corrompu),
+    // _runDetection() ne sera jamais appelé par account-sync.js → DETECT_ERROR
+    // plutôt que DETECTING permanent.
+    _syncState = getServerUUID() !== null ? 'DETECTING' : 'DETECT_ERROR';
   }
   render();
   _syncSidebar();
