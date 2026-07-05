@@ -262,7 +262,63 @@ function _renderConnected() {
     card.appendChild(_renderSyncSection());
   }
 
+  // [TEMP DEBUG] — panneau de trace — à supprimer après diagnostic
+  card.appendChild(_renderDebugTrace());
+
   return card;
+}
+
+// ── [TEMP DEBUG] Panneau de trace — à supprimer après diagnostic ──────────────
+function _renderDebugTrace() {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = [
+    'margin-top:16px',
+    'padding:10px 12px',
+    'background:#111',
+    'border:1px solid #333',
+    'border-radius:6px',
+    'font-size:10px',
+    'font-family:monospace',
+    'color:#888',
+    'white-space:pre-wrap',
+    'word-break:break-all',
+    'max-height:180px',
+    'overflow-y:auto',
+  ].join(';');
+
+  let entries = [];
+  try {
+    entries = JSON.parse(localStorage.getItem('CE_debug_trace_v1') || '[]');
+  } catch {}
+
+  const label = document.createElement('div');
+  label.style.cssText = 'color:#555;margin-bottom:6px;font-size:9px;letter-spacing:.05em;';
+  label.textContent = '[DEBUG TRACE — temporaire]';
+  wrap.appendChild(label);
+
+  const content = document.createElement('div');
+  content.textContent = entries.slice(-15).join('\n') || '(aucune trace)';
+  wrap.appendChild(content);
+
+  const clearBtn = document.createElement('button');
+  clearBtn.textContent = 'Effacer la trace';
+  clearBtn.style.cssText = [
+    'margin-top:8px',
+    'font-size:9px',
+    'padding:2px 8px',
+    'background:transparent',
+    'border:1px solid #444',
+    'color:#666',
+    'border-radius:3px',
+    'cursor:pointer',
+  ].join(';');
+  clearBtn.addEventListener('click', () => {
+    localStorage.removeItem('CE_debug_trace_v1');
+    render();
+  });
+  wrap.appendChild(clearBtn);
+
+  return wrap;
 }
 
 // ── Section sync — bouton "Sauvegarder" ──────────────────────────────────────

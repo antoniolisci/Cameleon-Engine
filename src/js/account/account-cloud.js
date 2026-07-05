@@ -19,6 +19,17 @@ import { supabase }                                                from './accou
 import { journalEntries, operatorMemory, oiHistory,
          portfolio, settings }                                     from '../storage.js';
 
+// ── [TEMP DEBUG] _trace — à supprimer après diagnostic ───────────────────────
+function _trace(msg) {
+  try {
+    const ts = new Date().toISOString().slice(11, 23);
+    const entries = JSON.parse(localStorage.getItem('CE_debug_trace_v1') || '[]');
+    entries.push(`${ts} ${msg}`);
+    if (entries.length > 40) entries.splice(0, entries.length - 40);
+    localStorage.setItem('CE_debug_trace_v1', JSON.stringify(entries));
+  } catch {}
+}
+
 // ── buildLocalPayload() ──────────────────────────────────────────────────────
 // Lit les 5 clés Groupe A depuis localStorage via les accesseurs storage.js.
 // Exclut importedFingerprints de CE_operator_memory_v1 (D-LOT3-PAYLOAD-01).
@@ -89,18 +100,26 @@ function _normalizeCloud(raw) {
 //                   OFFLINE_LOCAL ≠ NO_OP : cloud inconnu, RISK-SYNC-01 actif
 
 export async function detectConflict(serverUUID) {
+  _trace('detectConflict ENTER');                                 // [TEMP DEBUG]
   const localPayload = buildLocalPayload();
+  _trace(`buildLocalPayload DONE local=${localPayload !== null}`); // [TEMP DEBUG]
 
   const controller = new AbortController();
-  const timeoutId  = setTimeout(() => controller.abort(), 15000);
+  const timeoutId  = setTimeout(() => {
+    _trace('AbortController FIRED (15s timeout)');                // [TEMP DEBUG]
+    controller.abort();
+  }, 15000);
+  _trace('AbortController ARMED');                               // [TEMP DEBUG]
 
   try {
+    _trace('SUPABASE QUERY START');                              // [TEMP DEBUG]
     const { data: rows, error } = await supabase
       .from('operator_data')
       .select('payload, updated_at')
       .eq('id', serverUUID)
       .abortSignal(controller.signal);
 
+    _trace(`SUPABASE QUERY DONE error=${!!error}`);              // [TEMP DEBUG]
     if (error) throw error;
 
     const cloudRow = rows?.[0] ?? null;
@@ -127,6 +146,7 @@ export async function detectConflict(serverUUID) {
       : { state: 'CONFLICT', localPayload, cloudPayload: cloudRow.payload };
 
   } catch (err) {
+    _trace(`detectConflict CATCH: ${err?.name} ${err?.message?.slice(0, 40)}`); // [TEMP DEBUG]
     // D-LOT3-OFFLINE-01 — erreur réseau : OFFLINE_LOCAL ≠ NO_OP
     // Cloud inconnu — ne pas assimiler à NO_OP (RISK-SYNC-01)
     return {
