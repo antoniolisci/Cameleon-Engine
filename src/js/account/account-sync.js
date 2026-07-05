@@ -47,11 +47,14 @@ async function _runDetection(serverUUID) {
   let result;
   try {
     _trace('detectConflict CALL →');                              // [TEMP DEBUG]
-    result = await detectConflict(serverUUID);
+    const _detectionTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('detection_timeout')), 20000)
+    );
+    result = await Promise.race([detectConflict(serverUUID), _detectionTimeout]);
     _trace(`detectConflict RETURNED state=${result?.state}`);    // [TEMP DEBUG]
   } catch (e) {
     _trace(`_runDetection CATCH: ${e?.message}`);                // [TEMP DEBUG]
-    result = { state: 'OFFLINE_LOCAL', localEmpty: true, error: 'unexpected_exception' };
+    result = { state: 'OFFLINE_LOCAL', localEmpty: true, error: e?.message ?? 'unexpected_exception' };
   }
 
   _trace(`EMIT SYNC_COMPLETE state=${result.state}`);            // [TEMP DEBUG]
