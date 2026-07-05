@@ -26,38 +26,21 @@ import { detectConflict, executeUpload,
          applyCloudRestore }             from './account-cloud.js';
 import { getServerUUID }                 from './account-storage.js';
 
-// ── [TEMP DEBUG] _trace — à supprimer après diagnostic ───────────────────────
-function _trace(msg) {
-  try {
-    const ts = new Date().toISOString().slice(11, 23);
-    const entries = JSON.parse(localStorage.getItem('CE_debug_trace_v1') || '[]');
-    entries.push(`${ts} ${msg}`);
-    if (entries.length > 40) entries.splice(0, entries.length - 40);
-    localStorage.setItem('CE_debug_trace_v1', JSON.stringify(entries));
-  } catch {}
-}
-
 // ── _runDetection(serverUUID) — privé ─────────────────────────────────────────
 // Cœur du FLUX B : détecte l'état de sync et émet le résultat.
 // Phase 1 stricte — lecture seule (D-LOT3-CONFLICT-04).
 // Appelé depuis la subscription CONNECTED et depuis le check au démarrage.
 
 async function _runDetection(serverUUID) {
-  _trace(`_runDetection START uuid=${serverUUID?.slice(0, 8)}…`); // [TEMP DEBUG]
   let result;
   try {
-    _trace('detectConflict CALL →');                              // [TEMP DEBUG]
     const _detectionTimeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('detection_timeout')), 20000)
     );
     result = await Promise.race([detectConflict(serverUUID), _detectionTimeout]);
-    _trace(`detectConflict RETURNED state=${result?.state}`);    // [TEMP DEBUG]
   } catch (e) {
-    _trace(`_runDetection CATCH: ${e?.message}`);                // [TEMP DEBUG]
     result = { state: 'OFFLINE_LOCAL', localEmpty: true, error: e?.message ?? 'unexpected_exception' };
   }
-
-  _trace(`EMIT SYNC_COMPLETE state=${result.state}`);            // [TEMP DEBUG]
 
   switch (result.state) {
 
@@ -107,7 +90,6 @@ async function _runDetection(serverUUID) {
 
 on(ACCOUNT_EVENTS.CONNECTED, async (e) => {
   const serverUUID = e.detail?.serverUUID;
-  _trace(`CONNECTED event serverUUID=${serverUUID ? serverUUID.slice(0,8)+'…' : 'null'}`); // [TEMP DEBUG]
   if (!serverUUID) return;
   await _runDetection(serverUUID);
 });
@@ -122,7 +104,6 @@ on(ACCOUNT_EVENTS.CONNECTED, async (e) => {
 // (y compris account-ui.js chargé après account-init.js) ont enregistré leurs listeners.
 
 const _startupUUID = getServerUUID();
-_trace(`startup check uuid=${_startupUUID ? _startupUUID.slice(0,8)+'…' : 'null'}`); // [TEMP DEBUG]
 if (_startupUUID) {
   setTimeout(() => _runDetection(_startupUUID), 0);
 }
