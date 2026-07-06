@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard, behaviorMemory, clearOperatorData, downloadOperatorData, exportOperatorData, getStorageLevel, importOperatorData, KEYS } from "./storage.js";
+import { backups, behaviorGuard, behaviorMemory, clearOperatorData, downloadOperatorData, exportOperatorData, getStorageLevel, importOperatorData, KEYS, onboarding } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -5236,6 +5236,12 @@ function bindControls() {
     _importDataInput.value = "";
     if (!file) return;
 
+    // Garde taille — évite un memory spike sur fichiers massifs (mobile)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Fichier trop volumineux.\nTaille maximale autorisée : 5 Mo.");
+      return;
+    }
+
     // Lecture et parse JSON
     let parsed;
     try {
@@ -5355,11 +5361,11 @@ function bindControls() {
   // ── Onboarding — affiché une seule fois ──────────────────────────────────
   const onboardingOverlay = $("onboardingOverlay");
   if (onboardingOverlay) {
-    if (localStorage.getItem(KEYS.onboarding)) {
+    if (onboarding.isDone()) {
       onboardingOverlay.classList.add("hidden");
     }
     $("onboardingBtn")?.addEventListener("click", () => {
-      localStorage.setItem(KEYS.onboarding, "1");
+      onboarding.markDone();
       onboardingOverlay.classList.add("hidden");
     });
   }

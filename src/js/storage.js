@@ -285,6 +285,20 @@ export const behaviorMemory = {
   },
 };
 
+// ── Onboarding — état première visite ────────────────────────
+// Clé globale appareil — format délibérément brut ("1").
+// onboarding-init.js (head script pré-modules) lit cette clé via localStorage direct —
+// contrainte architecturale immuable. Ne pas utiliser _write()/_read() :
+// ils sérialiseraient/déserialiseraient en JSON, brisant la compatibilité.
+export const onboarding = {
+  isDone() {
+    try { return localStorage.getItem(KEYS.onboarding) !== null; } catch { return false; }
+  },
+  markDone() {
+    try { localStorage.setItem(KEYS.onboarding, '1'); return true; } catch { return false; }
+  },
+};
+
 // ── Identité locale ───────────────────────────────────────────
 // Clé globale (pas de namespacing). Contient le UUID — ne le porte pas dans son nom.
 // Format : { uuid: string (RFC 4122), createdAt: number (ms) }

@@ -159,8 +159,7 @@ function _renderForm() {
     if (!emailInput || !checkbox || !submitBtn) return;
 
     const _updateState = () => {
-      const validEmail = emailInput.value.trim().includes('@') &&
-                         emailInput.value.trim().includes('.');
+      const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
       submitBtn.disabled = !(checkbox.checked && validEmail);
     };
 
