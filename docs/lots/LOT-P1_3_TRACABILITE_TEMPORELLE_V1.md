@@ -52,7 +52,6 @@ Familles dont la datation est directement disponible dans l'enveloppe standard a
 | Famille mémorielle | Famille dans le diagnostic |
 |---|---|
 | Sessions comportementales | F1 |
-| Paramètres d'ordres récents | F1 |
 | Mémoire opérateur | F2 |
 | Historique des analyses opérateur | F2 |
 | Journal des décisions moteur | F3 |
@@ -64,7 +63,7 @@ Familles dont la datation est directement disponible dans l'enveloppe standard a
 | État de navigation | F5 |
 | Instantané moteur | F5 |
 
-**Douze familles datables.** Toutes sont présentes dans le diagnostic LOT-P1.2.
+**Onze familles datables.** Toutes sont présentes dans le diagnostic LOT-P1.2.
 
 ### 2.2 — Familles non datables
 
@@ -83,8 +82,9 @@ Familles qui exposent une information temporelle, mais dans un format non confor
 | Famille mémorielle | Famille dans le diagnostic | Raison |
 |---|---|---|
 | Niveau de garde comportemental | F1 | Information temporelle disponible dans un format non standard, non conforme à l'enveloppe de datation |
+| Paramètres d'ordres récents | F1 | Information temporelle présente sous forme epoch millisecondes, non conforme à l'enveloppe ISO 8601 autorisée |
 
-**Une famille à datation non exploitable** dans le périmètre du diagnostic.
+**Deux familles à datation non exploitable** dans le périmètre du diagnostic.
 
 ### 2.4 — Familles hors périmètre du diagnostic
 
@@ -202,6 +202,20 @@ L'utiliser nécessiterait une transformation de format — ce qui viole la condi
 
 **Note architecturale :** la distinction entre R1 (absence structurelle de datation) et R3 (présence non conforme d'une information temporelle) est documentée pour précision. Elle ne change pas le comportement d'affichage prescrit, qui est identique dans les deux cas.
 
+### 6.4 — R4 — Paramètres d'ordres récents (datation non exploitable)
+
+La famille de paramètres d'ordres récents est stockée dans la couche de persistance sous forme d'un objet scalaire sans enveloppe de datation standard. Une information temporelle est présente dans la structure de l'entrée, mais exprimée en millisecondes epoch — format non conforme à l'enveloppe ISO 8601 autorisée par le §3.
+
+L'utiliser nécessiterait une conversion de format — ce qui viole la condition 3 de la source autorisée (§3) et le principe fondamental du §1.2.
+
+**Comportement prescrit :** afficher "datation non disponible".
+
+**Interdit :** convertir, transformer ou interpréter l'information temporelle en millisecondes pour en déduire une date affichable.
+
+**Impact sur le diagnostic :** la famille R4 apparaît dans le diagnostic (F1) avec son espace utilisé. Aucune date n'est affichée.
+
+**Note architecturale :** R3 et R4 partagent le même comportement prescrit et la même cause de classification (information temporelle en format non standard). Elles se distinguent par leur mécanisme de stockage respectif. Cette distinction est documentée pour exhaustivité — elle ne change pas le comportement d'affichage prescrit, qui est identique dans les deux cas.
+
 ---
 
 ## 7 — Neutralité doctrinale
@@ -212,7 +226,7 @@ L'utiliser nécessiterait une transformation de format — ce qui viole la condi
 |---|---|
 | I-02 (autorité humaine) | Aucune décision automatique. Le diagnostic lit et expose — l'interprétation appartient à l'opérateur. |
 | I-03 (Lecture ≠ Action) | La traçabilité temporelle lit des métadonnées existantes. Elle ne modifie aucune donnée, ne répare aucune absence, ne normalise aucun format. |
-| I-04 (Silence structurel) | L'absence de datation est un état normal. "Datation non disponible" est une description factuelle de l'état observé. Les familles R1 et R3 sont des états connus, non des défauts. |
+| I-04 (Silence structurel) | L'absence de datation est un état normal. "Datation non disponible" est une description factuelle de l'état observé. Les familles R1, R3 et R4 sont des états connus, non des défauts. |
 | I-08 (Provenance traçable) | Seules les métadonnées directement lisibles dans l'enveloppe standard sont autorisées. Toute date affichée est traçable jusqu'à sa source. Toute absence est explicitement signalée. Aucune date implicite, estimée ou déduite n'est présentée. |
 
 ### 7.2 — Conformité Language System V1
@@ -236,11 +250,11 @@ LOT-P1.3 est validé et LOT-P1.4 peut être ouvert si et seulement si :
 
 1. La définition des quatre cas de datation (§1.1) est approuvée par l'opérateur.
 2. Le principe fondamental (§1.2 — lecture sans calcul ni déduction) est approuvé sans réserve.
-3. La classification complète des familles (§2 — douze datables, une non datable, une à datation non exploitable) est approuvée.
+3. La classification complète des familles (§2 — onze datables, une non datable, deux à datation non exploitable) est approuvée.
 4. L'unicité de la source autorisée (§3) et ses quatre conditions cumulatives sont approuvées.
-5. La liste des sources interdites (§4) est approuvée sans réserve, y compris l'interdiction de transformer l'information temporelle de R3.
+5. La liste des sources interdites (§4) est approuvée sans réserve, y compris l'interdiction de transformer l'information temporelle de R3 et de R4.
 6. Les règles d'affichage (§5) sont jugées complètes et cohérentes avec LOT-P1.2.
-7. Les comportements prescrits pour R1, R2 et R3 (§6) sont approuvés.
+7. Les comportements prescrits pour R1, R2, R3 et R4 (§6) sont approuvés.
 8. Aucun élément de ce cadrage ne propose, n'implique ni n'anticipe de modification de la couche de persistance, de ses formats, de ses structures ou de ses mécanismes d'écriture.
 
 Ces critères sont vérifiables sans code. La validation est une décision de l'opérateur sur le cadrage, pas un test technique.
