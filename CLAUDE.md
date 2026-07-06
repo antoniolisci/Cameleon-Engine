@@ -91,21 +91,33 @@ A "Debug Brain" sidebar panel (toggled in UI) shows raw engine state, posture, c
 6. `src/js/render.js` (lines 1–200) — initialization and form binding
 7. `src/js/behavior/behavior-main.js` — isolation contract entry point
 
-## Document Quality Control — Mandatory Before Every Commit
+## Document Quality Control V2 — Mandatory Before Every Commit
 
-For every `.md` file created or modified, apply this protocol **before committing**:
+Applies to every `.md` file: LOT, doctrine, ADR, governance, roadmap, audit, report, specification, MEMORY.md, CLAUDE.md, etc.
+**A Git commit is strictly forbidden until every phase has been completed and the document reaches CAS A. No exception.**
 
-1. Write the file.
-2. Read it back from disk (Read tool — never trust the conversational display).
-3. Detect and fix automatically:
-   - exact or partial duplicates;
-   - repeated or truncated/resumed sentences;
-   - duplicated Markdown blocks;
-   - repeated `##` or `###` headings;
-   - broken tables (missing `|---|` separator row);
-   - conversational display artefacts.
-4. Re-read the corrected file a second time.
-5. Produce a **CAS A** (clean) or **CAS B** (issues found — fix before continuing) report.
-6. **Commit is forbidden until the document is CAS A.**
+**Phase 1 — Write**
+Write the document and save it to disk. Never validate from the conversational output.
 
-Applies to all `.md` files: LOT cadrage, governance documents, doctrine, ADR, fiches, validation reports.
+**Phase 2 — Read From Disk**
+Read the file back from the filesystem (Read tool). Conversational rendering is never authoritative.
+
+**Phase 3 — Structural Audit**
+Detect and correct automatically: duplicated paragraphs · duplicated sentences · partially duplicated or truncated+resumed sentences · duplicated Markdown blocks · duplicated lists · duplicated tables · duplicated code blocks · duplicated headings (`#`, `##`, `###`, etc.) · malformed tables · broken numbering · missing separators · formatting inconsistencies · conversational artefacts.
+
+**Phase 4 — Logical Consistency Audit**
+Verify: no contradiction between sections · objectives vs. exclusions · risks vs. mitigations · doctrine vs. implementation · success criteria fully cover the scope · failure criteria cover every exclusion · references point to existing sections · every subsection belongs to the correct parent · consistent terminology throughout · coherent version/dates/identifiers · no orphan section.
+
+**Phase 5 — Architectural Neutrality Audit**
+Reject or remove: implementation details · filenames · API names · storage technologies · CSS classes · framework-specific concepts · implementation shortcuts · temporary technical decisions. The document must remain valid if the implementation changes completely.
+
+**Phase 6 — Doctrine Audit**
+Verify compliance with every active doctrine: ACF V1 · Language System V1 · Memory Doctrine · Pattern Reflection Doctrine · OI V1 · Governance V1 · Roadmap V1 · Grand Plan Directeur V1.
+
+**Phase 7 — Second Read**
+Read the corrected file again from disk. Never assume previous corrections succeeded. Perform the entire verification a second time.
+
+**Phase 8 — Quality Report**
+Produce a final report with one of two verdicts only:
+- **CAS A** — Document clean. No duplicate. No inconsistency. No structural issue. No doctrinal issue. Ready for commit.
+- **CAS B** — List every issue. Correct them. Repeat Phases 2→8. Commit remains forbidden.
