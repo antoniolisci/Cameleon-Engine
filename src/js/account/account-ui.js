@@ -183,7 +183,7 @@ function _renderForm() {
         _errorMsg = 'Limite atteinte (3 envois / 15 min). Attendez avant de réessayer.';
         render();
       } else {
-        _errorMsg = `Erreur d'envoi : ${result.error}`;
+        _errorMsg = _mapSendError(result.error);
         render();
       }
     });
@@ -515,7 +515,23 @@ function _syncHeader() {
   }
 }
 
-// ── Utilitaire ─────────────────────────────────────────────────────────────────
+// ── Utilitaires ────────────────────────────────────────────────────────────────
+
+// _mapSendError — traduit les erreurs brutes sendMagicLink() en messages lisibles.
+// Appelé uniquement si result.error !== 'rate_limited' (déjà mappé à l'appel).
+function _mapSendError(error) {
+  if (!error
+      || error === 'network_error'
+      || error.toLowerCase().includes('fetch')
+      || error.toLowerCase().includes('network')) {
+    return 'Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.';
+  }
+  if (error.toLowerCase().includes('security purposes')
+      || error.toLowerCase().includes('seconds')) {
+    return 'Veuillez patienter quelques secondes avant de réessayer.';
+  }
+  return 'Une erreur est survenue lors de l\'envoi. Réessayez dans quelques instants.';
+}
 
 function _esc(str) {
   return String(str ?? '')

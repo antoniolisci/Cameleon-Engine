@@ -182,25 +182,36 @@ export function verifyMagicLink() {
   // et non SIGNED_IN — _syncAccount() n'est pas appelé par le listener ci-dessus.
   // Vérification explicite au chargement : si session active et CE_account_v1 absent,
   // on déclenche _syncAccount() directement.
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session && !getAccountState()) {
-      _syncAccount(session);
-    } else if (!session && getAccountState()) {    // P1-A : état local périmé
-      clearAccountState();
-      emit(ACCOUNT_EVENTS.DISCONNECTED, {});
-    }
-  });
+  supabase.auth.getSession()
+    .then(({ data: { session } }) => {
+      if (session && !getAccountState()) {
+        _syncAccount(session);
+      } else if (!session && getAccountState()) {    // P1-A : état local périmé
+        clearAccountState();
+        emit(ACCOUNT_EVENTS.DISCONNECTED, {});
+      }
+    })
+    .catch(() => {
+      // getSession() a échoué au chargement (réseau indisponible, Supabase Auth en panne).
+      // CE_account_v1 présent → état local conservé (comportement optimiste).
+      // CE_account_v1 absent  → utilisateur reste sur le formulaire (correct sans session valide).
+    });
 
   // P1-B — validation au focus navigateur
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
     if (!getAccountState()) return;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        clearAccountState();
-        emit(ACCOUNT_EVENTS.DISCONNECTED, {});
-      }
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (!session) {
+          clearAccountState();
+          emit(ACCOUNT_EVENTS.DISCONNECTED, {});
+        }
+      })
+      .catch(() => {
+        // Vérification au retour de focus échouée — réseau indisponible.
+        // Ne pas déconnecter sur erreur réseau : état local conservé (optimiste).
+      });
   });
 }
 
