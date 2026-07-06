@@ -121,3 +121,15 @@ Read the corrected file again from disk. Never assume previous corrections succe
 Produce a final report with one of two verdicts only:
 - **CAS A** — Document clean. No duplicate. No inconsistency. No structural issue. No doctrinal issue. Ready for commit.
 - **CAS B** — List every issue. Correct them. Repeat Phases 2→8. Commit remains forbidden.
+
+**Mandatory Double Independent Review**
+After the first audit reaches CAS A, do not trust that verdict. Perform a second independent review directly from disk, as if the first review never happened. The second review must not assume the document is correct. Search again for: duplicated sentences · partial duplicates · duplicated paragraphs · duplicated Markdown blocks · duplicated headings · duplicated tables · truncated or resumed sentences · formatting artefacts · numbering mistakes · broken references · inconsistent terminology · contradictory statements · copy/paste artefacts. Never rely on the conversational rendering.
+
+**Conflict Resolution**
+If the second review finds any issue missed by the first: immediately downgrade to CAS B · automatically correct every issue · save the file again · restart the complete verification protocol from Phase 2 (Read From Disk). Do not continue from the previous step.
+
+**CAS A Validation Rule**
+A document may be declared CAS A only if both the first review and the second independent review reach CAS A independently. If either review finds an issue: document remains CAS B · commit remains forbidden.
+
+**Golden Rule**
+Never assume that because the first review found nothing, nothing exists. Every review must behave as if auditing a document written by someone else. Assume hidden copy/paste artefacts, duplicated lines, or rendering issues may still exist until two independent reviews performed directly on the saved file both conclude CAS A.
