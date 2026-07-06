@@ -90,3 +90,22 @@ A "Debug Brain" sidebar panel (toggled in UI) shows raw engine state, posture, c
 5. `src/js/trading-policy.js` — action rules
 6. `src/js/render.js` (lines 1–200) — initialization and form binding
 7. `src/js/behavior/behavior-main.js` — isolation contract entry point
+
+## Document Quality Control — Mandatory Before Every Commit
+
+For every `.md` file created or modified, apply this protocol **before committing**:
+
+1. Write the file.
+2. Read it back from disk (Read tool — never trust the conversational display).
+3. Detect and fix automatically:
+   - exact or partial duplicates;
+   - repeated or truncated/resumed sentences;
+   - duplicated Markdown blocks;
+   - repeated `##` or `###` headings;
+   - broken tables (missing `|---|` separator row);
+   - conversational display artefacts.
+4. Re-read the corrected file a second time.
+5. Produce a **CAS A** (clean) or **CAS B** (issues found — fix before continuing) report.
+6. **Commit is forbidden until the document is CAS A.**
+
+Applies to all `.md` files: LOT cadrage, governance documents, doctrine, ADR, fiches, validation reports.
