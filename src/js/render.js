@@ -22,7 +22,7 @@ import {
 } from "./data.js";
 import { buildPayload, prefillConstellium } from "./engine.js";
 import { canUseStorage, loadState, saveState } from "./state.js";
-import { backups, behaviorGuard, behaviorMemory, clearOperatorData, downloadOperatorData, exportOperatorData, getStorageLevel, importOperatorData, KEYS, onboarding } from "./storage.js";
+import { backups, behaviorGuard, behaviorMemory, clearOperatorData, downloadOperatorData, exportOperatorData, getStorageLevel, importOperatorData, KEYS, onboarding, readMemoryDiagnostic } from "./storage.js";
 import { getTradingPolicy, canExecuteAction } from "./trading-policy.js";
 import { buildMarketContext } from "./confidence-score.js";
 import { computeExecutionConfidence } from "./execution-confidence.js";
@@ -3082,13 +3082,101 @@ function renderHistory() {
 }
 
 function renderDiagnostics() {
-  setText("storageStatus", canUseStorage() ? "Disponible" : "Mémoire locale");
-  const storage = getStorageLevel();
-  setText("storageSize", `${storage.kb} KB (${storage.percent}%)`);
-  const storageEl = document.getElementById("storageSize");
-  if (storageEl) storageEl.dataset.level = storage.level;
-  setText("lastSaved", appState.lastSaved ? new Date(appState.lastSaved).toLocaleString("fr-FR") : "Aucune");
-  setText("snapshotCount", String(appState.history.length));
+  renderMemoryDiagnostic();
+}
+
+function _renderDiagEntry(entry, provenance) {
+  const parts = [];
+  parts.push(`<div class="mem-diag-entry mem-diag-entry--${entry.state}">`);
+  // Ligne principale : nom + espace utilisé
+  parts.push('<div class="mem-diag-entry-row">');
+  parts.push(`<span class="mem-diag-entry-name">${entry.name}</span>`);
+  parts.push(`<span class="mem-diag-entry-size">${entry.sizeKo ?? '—'}</span>`);
+  parts.push('</div>');
+  // Message d'état (Vide / Absente uniquement)
+  if (entry.state === 'vide')    parts.push('<span class="mem-diag-entry-msg">Aucune donnée enregistrée</span>');
+  if (entry.state === 'absente') parts.push('<span class="mem-diag-entry-msg">Non enregistrée</span>');
+  // Datation (absente : aucun affichage)
+  if (entry.state !== 'absente') {
+    const dateStr = entry.date ? `Mis à jour le ${entry.date}` : '— datation non disponible';
+    parts.push(`<span class="mem-diag-entry-date">${dateStr}</span>`);
+  }
+  // Provenance (dans le DOM, non affichée visuellement)
+  parts.push(`<span class="mem-diag-entry-provenance">${provenance}</span>`);
+  parts.push('</div>');
+  return parts.join('');
+}
+
+function _renderDiagFamily(fam) {
+  const parts = [];
+  parts.push('<div class="mem-diag-family">');
+  parts.push('<div class="mem-diag-family-head">');
+  parts.push(`<span class="mem-diag-family-name">${fam.name}</span>`);
+  parts.push(`<span class="mem-diag-family-provenance">${fam.provenance}</span>`);
+  parts.push('</div>');
+  parts.push('<div class="mem-diag-family-entries">');
+  for (const entry of fam.entries) {
+    parts.push(_renderDiagEntry(entry, fam.provenance));
+  }
+  parts.push('</div>');
+  parts.push('</div>');
+  return parts.join('');
+}
+
+function renderMemoryDiagnostic() {
+  const panel = document.getElementById('memoryDiagnosticPanel');
+  if (!panel) return;
+
+  const diag = readMemoryDiagnostic();
+
+  const allEmpty = diag.families.every(f =>
+    f.entries.every(e => e.state === 'absente' || e.state === 'vide')
+  );
+
+  const parts = [];
+
+  // En-tête
+  parts.push('<div class="card-head"><div>');
+  parts.push('<h2 class="card-title">Diagnostic mémoriel</h2>');
+  parts.push('<p class="card-desc">État de la couche de persistance sur cet appareil.</p>');
+  parts.push('</div></div>');
+
+  // Introduction (LOT-P1.2 §1 / LOT-P1.4 §2.1)
+  parts.push('<p class="mem-diag-intro">Le diagnostic mémoriel lit l\'état actuel des données enregistrées sur cet appareil. Il ne modifie aucune donnée, ne produit aucune recommandation et ne déclenche aucune action. Une famille absente ou vide est un état normal.</p>');
+
+  // Total de la couche de persistance (LOT-P1.4 §2.2)
+  parts.push('<div class="mem-diag-total">');
+  parts.push(`<span class="mem-diag-total-size">${diag.total.sizeKo} utilisés</span>`);
+  parts.push(`<span class="mem-diag-total-sep">·</span>`);
+  parts.push(`<span class="mem-diag-total-pct">${diag.total.percent} %</span>`);
+  parts.push(`<span class="mem-diag-total-sep">·</span>`);
+  parts.push(`<span class="mem-diag-total-level">${diag.total.level}</span>`);
+  parts.push('</div>');
+
+  if (allEmpty) {
+    // Message vide global (LOT-P1.4 §3.4)
+    parts.push('<p class="mem-diag-global-empty">Aucune donnée opérateur n\'est enregistrée sur cet appareil.</p>');
+  } else {
+    // F1 → F4 — familles principales (LOT-P1.4 §1.3)
+    for (let i = 0; i < 4; i++) {
+      parts.push(_renderDiagFamily(diag.families[i]));
+    }
+    // F5 — zone secondaire repliable (LOT-P1.4 §3.3)
+    const f5 = diag.families[4];
+    parts.push('<details class="mem-diag-f5" open>');
+    parts.push('<summary class="mem-diag-family-head">');
+    parts.push(`<span class="mem-diag-family-name">${f5.name}</span>`);
+    parts.push(`<span class="mem-diag-family-provenance">${f5.provenance}</span>`);
+    parts.push('</summary>');
+    parts.push('<div class="mem-diag-family-entries">');
+    for (const entry of f5.entries) {
+      parts.push(_renderDiagEntry(entry, f5.provenance));
+    }
+    parts.push('</div>');
+    parts.push('</details>');
+  }
+
+  panel.innerHTML = parts.join('');
 }
 
 function sanitizeVisibleText(root = document.body) {
@@ -5031,6 +5119,7 @@ function activateTab(tab) {
   if (tab === 'memoire') {
     renderPatternReflection();
     renderChangeCertification();
+    renderMemoryDiagnostic();
   }
   focusPanel(TAB_FOCUS_TARGETS[tab] || TAB_FOCUS_TARGETS.moteur);
 }

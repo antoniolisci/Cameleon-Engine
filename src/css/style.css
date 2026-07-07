@@ -8229,3 +8229,175 @@ body[data-behavior-pattern="discipline"]::before {
   color: var(--text-soft);
   opacity: 0.85;
 }
+
+/* ── Diagnostic mémoriel V1 (LOT-P1) ───────────────────────── */
+
+.mem-diag-panel {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mem-diag-intro {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 10px 0 14px;
+}
+
+.mem-diag-total {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.mem-diag-total-size {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mem-diag-total-pct {
+  color: var(--text-soft);
+}
+
+.mem-diag-total-level {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mem-diag-total-sep {
+  color: var(--muted);
+  opacity: 0.4;
+  font-size: 10px;
+}
+
+.mem-diag-global-empty {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* Famille F1→F4 */
+.mem-diag-family {
+  margin-bottom: 20px;
+}
+
+.mem-diag-family-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mem-diag-family-name {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-soft);
+}
+
+.mem-diag-family-provenance {
+  font-size: 10px;
+  color: var(--muted);
+  opacity: 0.7;
+  letter-spacing: 0.04em;
+}
+
+.mem-diag-family-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 8px;
+}
+
+/* Entrée individuelle */
+.mem-diag-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.mem-diag-entry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.mem-diag-entry-name {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.mem-diag-entry-size {
+  font-size: 12px;
+  color: var(--text-soft);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mem-diag-entry-msg {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.mem-diag-entry-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.mem-diag-entry-provenance {
+  display: none; /* Présent dans le DOM, non affiché visuellement */
+}
+
+.mem-diag-entry--absente {
+  opacity: 0.55;
+}
+
+/* F5 — zone secondaire repliable */
+.mem-diag-f5 {
+  margin-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: 10px;
+  opacity: 0.75;
+}
+
+.mem-diag-f5 > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mem-diag-f5 > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mem-diag-f5 > summary .mem-diag-family-name::before {
+  content: '▾ ';
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.mem-diag-f5:not([open]) > summary .mem-diag-family-name::before {
+  content: '▸ ';
+}
+
+.mem-diag-f5 > .mem-diag-family-entries {
+  margin-top: 4px;
+}

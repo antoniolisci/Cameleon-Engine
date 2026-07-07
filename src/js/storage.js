@@ -417,6 +417,201 @@ export function estimateKeySize(key) {
   return `${(raw ? new Blob([raw]).size / 1024 : 0).toFixed(1)} KB`;
 }
 
+// ── Diagnostic mémoriel V1 — LOT-P1 ──────────────────────────
+// Lecture de l'état complet de la couche de persistance.
+// Lecture seule — aucune écriture, aucun effet de bord.
+// Retourne { total, families } — 5 familles F1→F5, 14 entrées.
+
+function _diagFormatKo(bytes) {
+  return (bytes / 1024).toFixed(1).replace('.', ',') + ' Ko';
+}
+
+function _diagIsoDate(updatedAt) {
+  // Retourne "JJ/MM/AAAA" si updatedAt est une chaîne ISO 8601 valide, null sinon.
+  if (typeof updatedAt !== 'string') return null;
+  try {
+    const d = new Date(updatedAt);
+    if (isNaN(d.getTime())) return null;
+    const dd   = String(d.getDate()).padStart(2, '0');
+    const mm   = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  } catch {
+    return null;
+  }
+}
+
+// Lit une entrée stockée via _wrap({ ...fields }).
+// dataCheck(parsed) → 'présente' | 'vide'
+function _diagWrapped(rawKey, dataCheck) {
+  try {
+    const raw = localStorage.getItem(rawKey);
+    if (raw === null) return { state: 'absente', sizeKo: null, date: null };
+    const bytes  = new Blob([raw]).size;
+    const parsed = JSON.parse(raw);
+    const state  = dataCheck(parsed);
+    const date   = _diagIsoDate(parsed?.updatedAt);
+    return { state, sizeKo: _diagFormatKo(bytes), date };
+  } catch {
+    return { state: 'absente', sizeKo: null, date: null };
+  }
+}
+
+// Lit une entrée scalaire brute (sans enveloppe _wrap).
+// Datation non exploitable (R3, R4) — date toujours null.
+function _diagRawScalar(rawKey) {
+  try {
+    const raw = localStorage.getItem(rawKey);
+    if (raw === null) return { state: 'absente', sizeKo: null, date: null };
+    const bytes  = new Blob([raw]).size;
+    const parsed = JSON.parse(raw);
+    const state  = (parsed === null || parsed === undefined) ? 'vide' : 'présente';
+    return { state, sizeKo: _diagFormatKo(bytes), date: null };
+  } catch {
+    return { state: 'absente', sizeKo: null, date: null };
+  }
+}
+
+// Lit une entrée tableau brut JSON (sans enveloppe _wrap).
+// Datation structurellement absente (R1) — date toujours null.
+function _diagRawArray(rawKey) {
+  try {
+    const raw = localStorage.getItem(rawKey);
+    if (raw === null) return { state: 'absente', sizeKo: null, date: null };
+    const bytes  = new Blob([raw]).size;
+    const parsed = JSON.parse(raw);
+    const state  = (Array.isArray(parsed) && parsed.length > 0) ? 'présente' : 'vide';
+    return { state, sizeKo: _diagFormatKo(bytes), date: null };
+  } catch {
+    return { state: 'absente', sizeKo: null, date: null };
+  }
+}
+
+export function readMemoryDiagnostic() {
+  const storage    = getStorageLevel();
+  const levelLabel = storage.level === 'critique'  ? 'Saturé'
+                   : storage.level === 'vigilance' ? 'Élevé'
+                   : 'Nominal';
+
+  // F1 — Mémoire comportementale (provenance : Analyse comportementale)
+  const f1 = [
+    {
+      name: 'Sessions comportementales',
+      ..._diagWrapped(
+        withUserKey(KEYS.behaviorSessions),
+        p => (Array.isArray(p?.sessions) && p.sessions.length > 0) ? 'présente' : 'vide'
+      ),
+    },
+    {
+      name: 'Mémoire comportementale',
+      ..._diagRawArray(withUserKey(KEYS.behaviorMemory)), // R1 — structure brute, pas d'enveloppe
+    },
+    {
+      name: 'Niveau de garde comportemental',
+      ..._diagRawScalar(withUserKey(_BHV_NS + 'guardLevel')), // R3 — timestamp ms, non ISO 8601
+    },
+    {
+      name: 'Paramètres d\'ordres récents',
+      ..._diagRawScalar(withUserKey(_BHV_NS + 'orderStrategyProfile')), // R4 — updatedAt ms, non ISO 8601
+    },
+  ];
+
+  // F2 — Mémoire opérateur (provenance : Mémoire opérateur)
+  const f2 = [
+    {
+      name: 'Mémoire opérateur',
+      ..._diagWrapped(
+        withUserKey(KEYS.operatorMemory),
+        p => p?.data != null ? 'présente' : 'vide'
+      ),
+    },
+    {
+      name: 'Historique des analyses opérateur',
+      ..._diagWrapped(
+        withUserKey(KEYS.oiHistory),
+        p => (Array.isArray(p?.entries) && p.entries.length > 0) ? 'présente' : 'vide'
+      ),
+    },
+  ];
+
+  // F3 — Mémoire décisionnelle (provenance : Moteur décisionnel)
+  const f3 = [
+    {
+      name: 'Journal des décisions moteur',
+      ..._diagWrapped(
+        withUserKey(KEYS.journalEntries),
+        p => (Array.isArray(p?.entries) && p.entries.length > 0) ? 'présente' : 'vide'
+      ),
+    },
+    {
+      name: 'Sauvegardes moteur',
+      ..._diagWrapped(
+        withUserKey(KEYS.backups),
+        p => (Array.isArray(p?.snapshots) && p.snapshots.length > 0) ? 'présente' : 'vide'
+      ),
+    },
+  ];
+
+  // F4 — Données opérateur (provenance : Données opérateur)
+  const f4 = [
+    {
+      name: 'Registre des importations',
+      ..._diagWrapped(
+        withUserKey(KEYS.importRegistry),
+        p => (Array.isArray(p?.imports) && p.imports.length > 0) ? 'présente' : 'vide'
+      ),
+    },
+    {
+      name: 'Portefeuille',
+      ..._diagWrapped(
+        withUserKey(KEYS.portfolio),
+        p => (Array.isArray(p?.snapshots) && p.snapshots.length > 0) ? 'présente' : 'vide'
+      ),
+    },
+    {
+      name: 'Paramètres',
+      ..._diagWrapped(
+        withUserKey(KEYS.settings),
+        p => {
+          const d = p?.data;
+          return (d != null && typeof d === 'object' && Object.keys(d).length > 0) ? 'présente' : 'vide';
+        }
+      ),
+    },
+  ];
+
+  // F5 — Système local (provenance : Système local)
+  const f5 = [
+    {
+      name: 'Identité locale',
+      ..._diagWrapped(KEYS.identity,       p => p?.data?.uuid ? 'présente' : 'vide'),
+    },
+    {
+      name: 'État de navigation',
+      ..._diagWrapped(KEYS.uiState,        p => p?.data != null ? 'présente' : 'vide'),
+    },
+    {
+      name: 'Instantané moteur',
+      ..._diagWrapped(KEYS.payloadCurrent, p => p?.data != null ? 'présente' : 'vide'),
+    },
+  ];
+
+  return {
+    total: {
+      sizeKo:  _diagFormatKo(storage.bytes),
+      percent: storage.percent,
+      level:   levelLabel,
+    },
+    families: [
+      { id: 'F1', name: 'F1 — Mémoire comportementale', provenance: 'Analyse comportementale', entries: f1 },
+      { id: 'F2', name: 'F2 — Mémoire opérateur',       provenance: 'Mémoire opérateur',       entries: f2 },
+      { id: 'F3', name: 'F3 — Mémoire décisionnelle',   provenance: 'Moteur décisionnel',       entries: f3 },
+      { id: 'F4', name: 'F4 — Données opérateur',       provenance: 'Données opérateur',        entries: f4 },
+      { id: 'F5', name: 'F5 — Système local',           provenance: 'Système local',            entries: f5 },
+    ],
+  };
+}
+
 // ── Portabilité — export données opérateur ───────────────────
 // Retourne un objet JSON structuré contenant toutes les données opérateur.
 // Ne crée jamais d'identité — retourne null si identity absente.
