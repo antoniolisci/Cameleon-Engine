@@ -8401,3 +8401,51 @@ body[data-behavior-pattern="discipline"]::before {
 .mem-diag-f5 > .mem-diag-family-entries {
   margin-top: 4px;
 }
+
+/* ── Gestion des données — affordance interactive ── */
+#exportDataBtn,
+#importDataBtn,
+#clearOperatorDataBtn {
+  position: relative;
+  padding-right: 36px;
+}
+
+#exportDataBtn:hover,
+#importDataBtn:hover,
+#clearOperatorDataBtn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--state-rgb), 0.30);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+#exportDataBtn:active,
+#importDataBtn:active,
+#clearOperatorDataBtn:active {
+  transform: translateY(0px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+#exportDataBtn::after,
+#importDataBtn::after,
+#clearOperatorDataBtn::after {
+  content: '›';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+  color: rgba(var(--state-rgb), 0.28);
+  transition: color 0.2s ease, right 0.2s ease;
+  pointer-events: none;
+}
+
+#exportDataBtn:hover::after,
+#importDataBtn:hover::after,
+#clearOperatorDataBtn:hover::after {
+  color: rgba(var(--state-rgb), 0.58);
+  right: 11px;
+}
