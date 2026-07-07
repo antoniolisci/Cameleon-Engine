@@ -103,11 +103,17 @@ Toute modification de la couche de persistance doit préserver les garanties de 
 
 ## 4 — Architecture cible
 
-### 4.1 — Principe fondateur
+### 4.1 — Principe fondateur et frontière architecturale
 
-La couche de persistance canonique repose sur un principe unique : **chaque donnée durable dans le système est une trace mémorielle, et toute trace mémorielle appartient à une famille définie par l'Architecture Conceptuelle Fondatrice V1.**
+La couche de persistance canonique repose sur un principe fondateur : **toute donnée appartenant à l'une des 13 familles définies par l'Architecture Conceptuelle Fondatrice V1 est une trace mémorielle, et doit être persistée via la couche canonique.**
 
-Ce principe rompt avec l'organisation actuelle qui distingue les données par leur type applicatif (état du formulaire, historique, sessions comportementales, paramètres OI…). La couche canonique les organise par famille mémorielle — ce qu'elles représentent pour la mémoire du décideur, pas ce qu'elles servent au niveau applicatif.
+Ce principe introduit une frontière architecturale explicite entre deux types de données durables :
+
+**Traces mémorielles** — données dont la valeur est historique et réflexive pour le décideur. Leur appartenance à une famille ACF V1 est leur critère de qualification. Elles entrent dans la couche canonique.
+
+**États applicatifs** — données dont la valeur est fonctionnelle et contextuelle pour l'application à un instant donné. Exemples : valeurs courantes des 16 champs du formulaire décisionnel, état des onglets de l'interface, paramètres d'affichage, état de l'onboarding. Ces données restent gérées par la couche d'infrastructure existante, hors de la couche canonique.
+
+**Critère de qualification** : une donnée est une trace mémorielle si et seulement si elle peut être assignée à l'une des 13 familles ACF V1 (S1 à S5, SY1 à SY4, L1 à L3, Référentiel). L'assignation est obligatoire et explicite — aucune donnée n'entre dans la couche canonique sans famille déclarée. Toute donnée sans famille est un état applicatif par défaut.
 
 ### 4.2 — Le modèle canonique de trace
 
@@ -122,6 +128,17 @@ Toute trace mémorielle persistée dans la couche canonique porte quatre champs 
 
 La trace porte également la **valeur** qu'elle stocke — mais la valeur seule n'est pas une trace : sans les quatre champs ci-dessus, elle est une donnée applicative, pas une trace mémorielle.
 
+**Note sur la date selon le mode d'écriture**
+
+Deux modes d'écriture dans la couche canonique produisent une sémantique différente pour le champ Date :
+
+| Mode | Sémantique du champ Date |
+|---|---|
+| Nouvelle écriture | Horodatage produit par la couche au moment de l'écriture — toujours ISO 8601 UTC |
+| Migration depuis l'ancienne couche | Date d'écriture originale si disponible dans les métadonnées existantes · état formalisé sinon (voir §4.3) |
+
+La date de migration elle-même n'est pas la date canonique de la trace. Elle peut être conservée comme métadonnée de migration distincte. Pour toute nouvelle écriture après la migration, la date est toujours produite par la couche au moment de l'écriture.
+
 ### 4.3 — Cas particuliers de datation
 
 LOT-P1 a identifié trois familles dont la date d'écriture ne peut être extraite des formats actuels. Le modèle canonique les formalise explicitement :
@@ -132,7 +149,9 @@ LOT-P1 a identifié trois familles dont la date d'écriture ne peut être extrai
 | R3 | Niveau de garde comportemental | Format non normalisé | Même traitement que R1 |
 | R4 | Paramètres d'ordres récents | Horodatage en millisecondes d'époque | Le champ Date est déclaré "non exploitable au format canonique" jusqu'à migration normalisée |
 
-Ces trois cas ne sont pas des erreurs — ils sont des états légitimes du modèle, formellement déclarés. La migration future de R4 vers un format ISO 8601 résoudra son cas sans modifier la structure du modèle.
+Ces trois cas ne sont pas des erreurs — ils sont des états légitimes du modèle, formellement déclarés.
+
+**Périmètre de R4 dans LOT-P1-2.2 :** R4 est migrée dans LOT-P1-2.2 en son état formalisé "non exploitable au format canonique". La migration ne reporte pas R4 à un LOT ultérieur — elle l'intègre dans la couche canonique avec son état de datation déclaré. Une normalisation future du format de datation de R4 vers ISO 8601 pourra être traitée indépendamment, dans un LOT ultérieur non encore défini, sans modifier la structure du modèle canonique ni nécessiter une nouvelle migration de la trace.
 
 ### 4.4 — Structure de la couche de persistance
 
@@ -146,6 +165,8 @@ Dans chaque famille, les traces sont stockées dans l'ordre chronologique de leu
 
 **Niveau 3 — Index**
 Un index transversal, maintenu par la couche elle-même, permet la retrouvabilité d'une trace selon trois axes : famille, date, session. L'index est mis à jour à chaque écriture. Il n'est jamais interrogé directement par les moteurs — ils passent par l'interface de la couche.
+
+**Limite assumée de l'index V1 :** L'index triple-axe est dimensionné pour la volumétrie de la Phase A — familles S1 et SY actives, ordre de grandeur de quelques milliers de traces. À partir du Programme P6 (Corrélateur cross-familles), les requêtes sur de grandes volumétries exigeront une révision de l'architecture de l'index. Cette limite est documentée et assumée. LOT-P1-2 pose la fondation minimale viable. L'évolution vers une architecture d'index plus performante est une décision architecturale à prendre avant l'ouverture de P6.
 
 ### 4.5 — Responsabilités de la couche
 
@@ -164,6 +185,49 @@ La couche de persistance canonique ne produit aucune corrélation, aucune synth�
 
 La couche ne décide pas de ce qu'une trace signifie — elle garantit seulement qu'elle est retrouvable.
 
+### 4.7 — Stratégie de coexistence avec l'ancienne couche
+
+La couche canonique n'est pas une couche parallèle qui coexisterait durablement avec l'ancienne infrastructure. Elle la remplace en tant que contrat d'écriture unique du système pour les traces mémorielles.
+
+**Modèle de remplacement transparent**
+
+Les moteurs applicatifs (décisionnel, comportemental, OI V1) ne sont pas modifiés dans leur logique. Ils continuent d'appeler les mêmes accesseurs de persistance. C'est la couche d'infrastructure qui reçoit ces appels qui est refactorisée pour router les traces mémorielles à travers l'interface canonique.
+
+Cette distinction est centrale : "aucune modification des moteurs" signifie que la logique décisionnelle, comportementale et OI V1 est inchangée — pas que les appels de persistance émis par ces moteurs peuvent contourner la couche canonique. La couche canonique est précisément ce que les moteurs appellent à travers l'interface de persistance refactorisée.
+
+**Périmètre de la refactorisation**
+
+Seule la couche d'infrastructure de persistance est modifiée. Les états applicatifs (formulaire décisionnel, onboarding, préférences UI) définis en §4.1 continuent d'être gérés par l'infrastructure existante — ils ne transitent pas par la couche canonique.
+
+**Coexistence pendant la migration**
+
+Pendant la durée de LOT-P1-2.2, les données d'origine sont préservées dans leur format actuel jusqu'à validation complète de la couche canonique. Cette préservation constitue le mécanisme de réversibilité mentionné en §7.1 R-REG-01 : si la validation de LOT-P1-2.5 échoue, les données d'origine permettent un retour à l'état précédent. À l'issue de la validation de LOT-P1-2.5, les données dans leur format antérieur sont considérées obsolètes et peuvent être supprimées.
+
+### 4.8 — Définition de l'axe session
+
+Le terme "session" désigne le troisième axe de l'index de la couche canonique. Sa définition dans ce contexte est distincte des autres usages du terme dans le système (session d'authentification, session moteur, session comportementale).
+
+**Définition canonique**
+
+Dans la couche canonique, une session est un **identifiant opaque fourni par le module écrivant** au moment de l'écriture d'une trace. La couche n'impose aucune sémantique à cet identifiant — elle indexe sur la valeur fournie.
+
+**Caractéristiques**
+
+- L'identifiant de session est un champ optionnel de la trace. Une trace sans identifiant de session est valide — elle n'est simplement pas retrouvable par l'axe session de l'index.
+- La définition de ce qui constitue une "session" pour chaque famille est de la responsabilité du module écrivant, documentée dans la doctrine de provenance (LOT-P1-2.4).
+- La couche ne valide pas la cohérence des identifiants de session entre familles — elle indexe sans interpréter.
+
+**Exemples d'unités de session par famille**
+
+Ces exemples sont indicatifs. La doctrine de provenance (LOT-P1-2.4) fixera les unités de session officielles pour chaque famille active.
+
+| Famille | Unité de session naturelle |
+|---|---|
+| S1 Transactionnelle | Une opération d'import de fichier source |
+| SY1 Comportementale | Une session d'analyse comportementale |
+| SY3 Décisionnelle | Une soumission du formulaire décisionnel |
+| L1 Chronologique | Non définie à ce stade — à traiter avant P6 |
+
 ---
 
 ## 5 — Flux de données
@@ -180,7 +244,9 @@ La couche vérifie la présence des champs obligatoires (famille, source) et la 
 
 ### Persistance
 
-La trace validée est écrite dans le compartiment de la famille correspondante. L'index est mis à jour simultanément : la trace est enregistrée sur les trois axes (famille, date, session). La persistance est atomique — soit la trace et l'index sont tous les deux mis à jour, soit aucun ne l'est.
+La trace validée est écrite dans le compartiment de la famille correspondante, puis l'index est mis à jour : la trace est enregistrée sur les trois axes (famille, date, session).
+
+La persistance vise une cohérence maximale entre la trace et l'index. En l'absence de mécanisme transactionnel natif dans le support de persistance cible, cet ordre est fixe et préservé : la trace précède toujours l'index. En cas d'interruption entre les deux opérations, l'index peut être en retard sur les données — mais les données ne sont jamais perdues. Un mécanisme de réconciliation de l'index peut être activé à l'initialisation de la couche pour détecter et corriger les divergences.
 
 ### Lecture
 
@@ -208,7 +274,7 @@ LOT-P1-2 est décomposé en cinq sous-phases. Les quatre premières corresponden
 
 **Mission :** Définir formellement le modèle de trace — ses quatre champs obligatoires, leurs contraintes, les cas particuliers de datation (R1, R3, R4) et les règles d'écriture.
 
-**Livrable :** Document de spécification du modèle canonique, validé par rapport aux 14 entrées de LOT-P1.
+**Livrable :** Document de spécification du modèle canonique. Ce document complète le cadrage présent sur les points qu'il laisse ouverts — il ne le redouble pas. Il produit spécifiquement : (1) la classification explicite de chacune des 14 entrées LOT-P1 — trace mémorielle ou état applicatif, avec famille d'appartenance si applicable ; (2) la validation de chaque champ du modèle canonique contre chacune des 14 entrées, y compris la confirmation de l'état formalisé de R1, R3 et R4 ; (3) la proposition d'unité de session pour chaque famille active, à valider dans LOT-P1-2.4.
 
 **Prérequis :** LOT-P1 clos.
 
@@ -294,7 +360,7 @@ La couche organise les données par famille mémorielle. Si un module applicatif
 Les trois entrées sans datation normalisée nécessitent un traitement particulier pendant la migration. Leur structure actuelle (tableau brut, format non normalisé, horodatage en millisecondes) ne correspond pas au modèle canonique. Une migration naïve produirait des traces avec des champs de datation incorrects. Mitigation : le modèle canonique formalise ces trois cas avant la migration (LOT-P1-2.1), de sorte que la migration sache comment les traiter.
 
 **R-TECH-02 — Performance de l'index**
-Un index maintenu à chaque écriture introduit un coût à chaque opération de persistance. Si l'index n'est pas conçu pour la volumétrie attendue, il peut dégrader les performances globales. Mitigation : l'architecture de l'index doit être validée pour la volumétrie des 14 familles actuelles et extrapolée aux familles S2-S5 futures.
+Un index maintenu à chaque écriture introduit un coût à chaque opération de persistance. Si l'index n'est pas conçu pour la volumétrie attendue, il peut dégrader les performances globales. Mitigation : l'architecture de l'index doit être validée pour la volumétrie des 14 entrées actuelles et extrapolée aux familles S2-S5 lorsqu'elles deviendront actives.
 
 ### 7.4 — Risques UX
 
@@ -325,13 +391,16 @@ La retrouvabilité par famille, par date et par session est vérifiée sur les 1
 Aucune écriture dans la couche ne peut aboutir sans que la source soit fournie. Le mécanisme de validation est actif et vérifiable — il n'est pas contournable par les modules applicatifs.
 
 **CV5 — Aucune perte de données**
-Les 14 entrées existantes sont présentes dans la couche canonique après migration. Leurs valeurs sont identiques à celles observées avant migration. Les trois entrées sans datation sont dans leur état formalisé (non nulle par défaut, mais déclarée non disponible).
+Les 14 entrées existantes sont présentes dans la couche canonique après migration. Leurs valeurs sont identiques à celles observées avant migration. Les trois entrées sans datation normalisée sont dans leur état formalisé : R1 et R3 avec date déclarée "non disponible", R4 avec date déclarée "non exploitable au format canonique" — dans chaque cas, le champ Date porte une valeur formalisée, non laissée nulle par défaut.
 
 **CV6 — Garanties Hardening préservées**
 Les gardes introduits par LOT-H01 et LOT-H02 sont présents et actifs dans la couche canonique.
 
 **CV7 — Diagnostic mémoriel non régressé**
 Le Diagnostic mémoriel (LOT-P1) affiche des données cohérentes après migration. Aucun des 19 scénarios de validation de LOT-P1 ne régresse.
+
+**CV8 — Compatibilité export/import préservée**
+Les fichiers d'export produits par le Compte Utilisateur V1 avant la migration restent importables après migration. Aucune perte de données n'est introduite par un import d'un export antérieur à LOT-P1-2. La procédure de conversion éventuelle est documentée et testée avant validation de LOT-P1-2.5.
 
 ---
 
@@ -359,7 +428,7 @@ LOT-P1-2 peut être officiellement clos si et seulement si :
 
 1. Les sous-phases LOT-P1-2.1, LOT-P1-2.2, LOT-P1-2.3 et LOT-P1-2.4 ont chacune reçu une validation documentée.
 2. La sous-phase LOT-P1-2.5 (validation terrain) a été exécutée par l'opérateur.
-3. Les sept critères de validation (CV1 à CV7) ont tous reçu le verdict PASS.
+3. Les huit critères de validation (CV1 à CV8) ont tous reçu le verdict PASS.
 4. Le rapport de validation terrain a été produit et consigné.
 5. Le Programme P1 satisfait ses quatre critères de clôture tels que définis dans la Roadmap V1 (§4).
 
