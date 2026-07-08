@@ -81,7 +81,7 @@ export function initCanonicalStore() {
  *   Une trace écrite ne peut pas être modifiée.
  *   Le corpus est en ajout uniquement — aucune mise à jour.
  *
- * @param {{ famille: string, source: string, contexte?: any, valeur: any }} entry
+ * @param {{ famille: string, source: string, session?: string|null, contexte?: any, valeur: any }} entry
  * @returns {{ written: boolean, errors: string[] }}
  */
 export function writeCanonicalTrace(entry) {
@@ -95,6 +95,7 @@ export function writeCanonicalTrace(entry) {
     famille:  entry.famille,
     source:   entry.source,
     date:     new Date().toISOString(),
+    session:  entry.session !== undefined ? entry.session : null,
     contexte: entry.contexte !== undefined ? entry.contexte : null,
     valeur:   entry.valeur,
   };
@@ -114,6 +115,60 @@ export function writeCanonicalTrace(entry) {
 
   // RE2 — Mise à jour de l'index après écriture de la trace
   // (indexation triple-axe complétée dans ML-3)
+  updateIndex(trace);
+
+  return { written: true, errors: [] };
+}
+
+// ─── Interface de migration ───────────────────────────────────────────────────
+
+/**
+ * Écrit une trace migrée dans la couche canonique.
+ * Réservée à canonical-migration.js — ne doit pas être utilisée pour les nouvelles écritures.
+ *
+ * Contrairement à writeCanonicalTrace, la date est fournie par le module appelant
+ * (état formalisé R1/R3/R4 ou horodatage ISO 8601 UTC d'origine).
+ * La couche valide RV3 sur la date fournie et rejette tout ce qui ne se conforme pas.
+ * Un champ migratedAt (ISO 8601 UTC) est ajouté pour traçabilité.
+ *
+ * RE1 — Atomicité de l'écriture : validation RV1-RV4 avant toute persistance.
+ * RE2 — Ordre d'écriture : corpus écrit avant mise à jour de l'index.
+ * RE3 — Immutabilité : ajout uniquement, aucune modification.
+ *
+ * @param {{ famille: string, source: string, session?: string|null, contexte?: any, valeur: any, date: string }} entry
+ * @returns {{ written: boolean, errors: string[] }}
+ */
+export function writeMigratedTrace(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    return { written: false, errors: ['writeMigratedTrace : entrée invalide'] };
+  }
+
+  // La date est fournie par le module appelant (état formalisé ou horodatage d'origine)
+  const trace = {
+    id:         _generateId(),
+    famille:    entry.famille,
+    source:     entry.source,
+    date:       entry.date,
+    session:    entry.session !== undefined ? entry.session : null,
+    contexte:   entry.contexte !== undefined ? entry.contexte : null,
+    valeur:     entry.valeur,
+    migratedAt: new Date().toISOString(),
+  };
+
+  // RE1 — Validation RV1-RV4 avant toute persistance (inclut RV3 sur date fournie)
+  const { valid, errors } = validateTrace(trace);
+  if (!valid) {
+    return { written: false, errors };
+  }
+
+  // RE2 — La trace est écrite dans le corpus avant la mise à jour de l'index
+  const corpus = _readCorpus();
+  const persisted = _writeCorpus([...corpus, trace]);
+  if (!persisted) {
+    return { written: false, errors: ['RE1 : écriture dans le corpus impossible (stockage)'] };
+  }
+
+  // RE2 — Mise à jour de l'index après écriture de la trace
   updateIndex(trace);
 
   return { written: true, errors: [] };
