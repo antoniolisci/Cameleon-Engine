@@ -13,10 +13,11 @@
 | Programme | P1 — Fondation Mémoire & Persistance |
 | Phase Roadmap V1 | A |
 | Type | Rapport de validation terrain |
-| Statut | EN COURS |
+| Statut | PRÉ-VALIDATION TERRAIN — EN ATTENTE D'EXÉCUTION APPLICATIVE |
 | Document officiel | `docs/validation/LOT-P1-2_5_VALIDATION_TERRAIN_V1.md` |
 | Date d'exécution | 2026-07-08 |
 | Prérequis satisfaits | LOT-P1-2.2 — VALIDÉ · `8c7a4be` · LOT-P1-2.3 — VALIDÉ · `0596c66` · LOT-P1-2.4 — VALIDÉ · `2057c5d` |
+| État implémentation | ML-1→ML-5 livrés · commit de référence ML-5 : `091065e` |
 
 ---
 
@@ -63,12 +64,13 @@ Le corpus de référence est constitué des 10 traces mémorielles issues de la 
 
 ### 2.3 — Définition des verdicts
 
-Chaque critère reçoit l'un des deux verdicts suivants :
+Chaque critère reçoit l'un des verdicts suivants :
 
-- **PASS** : l'observation terrain confirme que le critère est satisfait sans réserve.
-- **FAIL** : l'observation terrain révèle que le critère n'est pas satisfait, ou ne peut pas être confirmé.
+- **PASS** : l'observation confirme que le critère est satisfait sans réserve.
+- **FAIL** : l'observation révèle que le critère n'est pas satisfait, ou ne peut pas être confirmé.
+- **NON VÉRIFIABLE EN CONDITIONS ACTUELLES** : la vérification du critère nécessite l'exécution de l'application (observations localStorage, cycles export/import, scénarios UI en navigateur). Non disponible depuis l'environnement de développement courant (iPad-first, absence de localhost actif).
 
-Un verdict FAIL sur un critère quelconque — de l'Ensemble A ou de l'Ensemble B — est un FAIL global. Le rapport consigne les observations ayant conduit au verdict, qu'il soit PASS ou FAIL.
+Un verdict FAIL ou NON VÉRIFIABLE sur un critère quelconque — de l'Ensemble A ou de l'Ensemble B — implique que le verdict global ne peut pas être PASS.
 
 ### 2.4 — Séquence d'exécution
 
@@ -89,7 +91,7 @@ Les critères sont vérifiés dans l'ordre suivant :
 
 ### 2.5 — Condition de blocage
 
-Un verdict FAIL ne bloque pas la poursuite de la vérification des critères restants. L'ensemble des critères est vérifié dans tous les cas, afin que le rapport soit complet. La décision finale est portée en §7.
+Un verdict FAIL ou NON VÉRIFIABLE ne bloque pas la poursuite de la vérification des critères restants. L'ensemble des critères est vérifié dans tous les cas, afin que le rapport soit complet. La décision finale est portée en §7.
 
 ---
 
@@ -100,15 +102,19 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 | Élément | Valeur |
 |---|---|
 | Date | 2026-07-08 |
-| Heure | [à renseigner lors de l'exécution] |
-| Environnement d'exécution | [à renseigner lors de l'exécution] |
+| Heure | Non renseignée — inspection de code (pas d'exécution applicative) |
+| Environnement d'exécution | Inspection de code statique — aucun serveur local actif · aucune exécution JavaScript · aucune observation localStorage directe |
 | Documents de référence soumis | LOT-P1-2.1 · `091d8f1` · LOT-P1-2.2 · `8c7a4be` · LOT-P1-2.3 · `0596c66` · LOT-P1-2.4 · `2057c5d` |
-| État de la couche au moment de l'observation | [à renseigner lors de l'exécution] |
-| Corpus effectivement observé | [à renseigner lors de l'exécution] |
+| État de la couche au moment de l'observation | ML-1→ML-5 livrés · Dernière implémentation : ML-5 `091065e` · ML-4 `e70fdad` |
+| Corpus effectivement observé | NON OBSERVABLE — l'application n'a pas été exécutée. Aucune lecture de localStorage réalisée. |
 
 ### 3.2 — Observations générales
 
-[Zone réservée aux observations transversales constatées pendant la validation et ne relevant d'aucun critère particulier.]
+**Nature de la présente validation :** Ce rapport constitue une pré-validation terrain. Les critères architecturaux et structurels (indépendance de la couche, mécanismes de validation, gardes) ont été vérifiés par inspection directe du code source. Les critères requérant l'observation de données réelles en localStorage (corpus migré, index peuplé, scénarios UI) sont classés NON VÉRIFIABLE EN CONDITIONS ACTUELLES.
+
+**Prérequis à la validation terrain complète :** Exécution de l'application sur l'environnement cible (iPad Chrome ou PC Chrome) avec données opérateur présentes, après déclenchement du cycle `loadState()` qui appelle `initCanonicalStore()` puis `runCanonicalMigration()`.
+
+**Limite structurelle** : l'observation terrain de la couche canonique (corpus, index, drapeau de migration) n'est possible qu'en accédant à localStorage via la console du navigateur ou via l'interface de l'application.
 
 ---
 
@@ -130,11 +136,18 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Inspection du code source `src/js/canonical/canonical-model.js` (ML-1 · `91ce454`) :
+
+- Modèle canonique : `{ id, famille, source, date, session, contexte, valeur }` — cinq champs structurels + deux champs de traçabilité.
+- Quatre champs obligatoires confirmés par `validateTrace()` : RV1 (famille ∈ CANONICAL_FAMILIES), RV2 (source non vide), RV3 (date ISO 8601 UTC ou état formalisé), RV4 (valeur non nulle, non chaîne vide).
+- Contexte : optionnel (RV5 — absence non rejetée). Conforme à la doctrine LOT-P1-2.4 §3.2.
+- États formalisés R1/R3 : `DATE_UNAVAILABLE = 'Non disponible'`. État R4 : `DATE_NON_EXPLOITABLE = 'Non exploitable au format canonique'`. Reconnus par `_validateDate()` et autorisés par le modèle — valeur déclarée, non champ manquant.
+- Les deux chemins d'écriture (`writeCanonicalTrace` et `writeMigratedTrace` dans canonical-store.js ML-2.1 · `974c7ea`) appellent tous deux `validateTrace()` avant toute persistance — RE1 garanti.
+- `canonical-migration.js` (ML-4 · `e70fdad`) : les 10 traces migrées portent toutes `famille`, `source`, `date` (ISO ou formalisé), `valeur`.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+PASS (inspection de code) — Réserve : verdict PASS sur le modèle et les mécanismes de validation. La présence effective des champs dans les traces persistées en localStorage requiert une observation runtime (voir CV5).
 
 ---
 
@@ -156,11 +169,21 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Inspection des imports de chaque module canonique (ML-5 · `091065e`) :
+
+- `canonical-model.js` : aucune dépendance. Aucun import.
+- `canonical-index.js` : `resolveKey` (infrastructure UUID · storage.js) · `CANONICAL_FAMILIES` (canonical-model.js). Aucun module applicatif.
+- `canonical-store.js` : `resolveKey` · `validateTrace` · `initCanonicalIndex` · `updateIndex`. Aucun module applicatif.
+- `canonical-read.js` : `resolveKey` · `readCorpus` · `INDEX_BASE_KEY` · constantes de dates formalisées. Aucun module applicatif.
+- `canonical-migration.js` : `exportOperatorData` · `readEntryUpdatedAt` · `resolveKey` · `KEYS` (storage.js — infrastructure) · `writeMigratedTrace` · constantes canoniques. Aucun module moteur ou décisionnel.
+
+Aucun import depuis `engine.js`, `decision.js`, `trading-policy.js`, `moteur.js`, `render.js`, `behavior/`, `confidence-score.js`, `execution-confidence.js`, `market-state.js`.
+
+Les moteurs applicatifs (décisionnel, comportemental, OI V1) ne sont pas modifiés dans leur logique — leurs appels de persistance passent par `storage.js` inchangé.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+PASS (inspection de code) — Couche canonique structurellement indépendante de toute logique applicative. Aucun moteur n'est importé ni appelé.
 
 ---
 
@@ -181,11 +204,20 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES.
+
+La vérification de CV3 requiert :
+1. Que `runCanonicalMigration()` ait été exécuté (présence de traces dans `CE_canonical_corpus_v1`).
+2. Que l'index (`CE_canonical_index_v1`) soit peuplé — observable via console navigateur.
+3. Que les trois fonctions de lecture (`readByFamille`, `readByDateRange`, `readBySession`) retournent des résultats cohérents avec le corpus — vérifiable uniquement en exécutant le code dans un navigateur.
+
+L'inspection de code confirme l'implémentation correcte de l'index triple-axe et des trois modes de lecture. L'observation des données réelles requiert l'exécution de l'application.
+
+Vigilance documentaire (§6.2) : CV3 cite "14 entrées migrées". La migration (ML-4) porte sur 10 traces mémorielles — les 4 états applicatifs (settings, uiState, payloadCurrent, identity) sont exclus par LOT-P1-2.1 §classification. Cette tension reste portée par le cadrage.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite exécution applicative + observation localStorage.
 
 ---
 
@@ -206,11 +238,16 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Inspection du code source `canonical-model.js` et `canonical-store.js` :
+
+- RV2 dans `_validateSource(source)` : rejet si `source === null`, si `source === undefined`, si `typeof source !== 'string'`, ou si `source.trim() === ''`. Rejet explicite — pas de complétion silencieuse.
+- `validateTrace()` est appelée par `writeCanonicalTrace()` et `writeMigratedTrace()` avant toute écriture dans le corpus (RE1). Si la validation échoue : `return { written: false, errors }` — aucun appel à `_writeCorpus()`.
+- Le chemin de contournement est structurellement inexistant : aucune fonction d'écriture dans le corpus n'est exportée directement. Seules `writeCanonicalTrace` et `writeMigratedTrace` sont publiques — toutes deux passent par `validateTrace()`.
+- La validation est architecturale, pas documentaire : elle ne peut pas être désactivée sans modifier le code de la couche.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+PASS (inspection de code) — Mécanisme de rejet actif, non contournable, vérifiable dans le code.
 
 ---
 
@@ -232,11 +269,20 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — la présence effective des traces dans localStorage requiert l'exécution de l'application.
+
+**Tension documentaire consignée (analogue à §6.2 pour CV3) :**
+CV5 énonce "Les 14 entrées existantes sont présentes dans la couche canonique après migration." LOT-P1-2.1 classifie les 14 entrées inventoriées par LOT-P1 en deux catégories :
+- 10 traces mémorielles → migrées dans le corpus canonique par `runCanonicalMigration()` (ML-4 · `e70fdad`)
+- 4 états applicatifs (settings, uiState, payloadCurrent, identity) → exclus de la couche canonique par architecture (LOT-P1-2 cadrage §4.1)
+
+Les 4 états applicatifs ne peuvent pas être "présents dans la couche canonique" : ils n'appartiennent à aucune famille ACF V1 et ne satisfont pas le critère de qualification §4.1. CV5 lu strictement est en tension avec la classification LOT-P1-2.1.
+
+Lecture cohérente avec l'architecture : CV5 est satisfait si les 10 traces mémorielles sont présentes dans le corpus canonique avec les valeurs d'origine, et si les 4 états applicatifs restent intacts dans leurs clés d'origine (D9 — aucune clé d'origine supprimée). Cette lecture est retenue dans l'attente d'une clarification documentaire opérateur.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite observation du corpus localStorage + comparaison des valeurs avant/après migration. Tension documentaire CV5 vs LOT-P1-2.1 §classification consignée — décision opérateur attendue si nécessaire.
 
 ---
 
@@ -259,11 +305,19 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Inspection des modifications réalisées dans ML-1 à ML-5 au regard des cinq gardes LOT-H01/LOT-H02 :
+
+- **P1 — `.catch()` sur `getSession()`** (LOT-H01 · `11e8788`) : dans les modules d'authentification Supabase. Non modifié dans aucun micro-lot LOT-P1-2. Garde présent.
+- **P2 — `_mapSendError()`** (LOT-H01 · `11e8788`) : dans les modules d'authentification. Non modifié. Garde présent.
+- **P3 — Accesseur `onboarding` centralisé** (LOT-H02 · `2306525`) : dans `storage.js`. Les modifications ML-4/ML-5 dans `storage.js` portent sur les sections "Accès métadonnées" et "Portabilité". L'accesseur `onboarding` (section distincte) n'a pas été touché. Garde présent.
+- **P4 — Validation email regex** (LOT-H02 · `2306525`) : dans `account-ui.js`. Non modifié dans aucun micro-lot LOT-P1-2. Garde présent.
+- **P5 — Garde taille 5 Mo avant import JSON** (LOT-H02 · `2306525`) : dans `render.js`, avant l'appel à `importOperatorData()`. `render.js` n'a pas été modifié dans LOT-P1-2. Garde présent.
+
+Aucun des cinq gardes Hardening n'a été modifié, retiré ou contourné dans les micro-lots ML-1 à ML-5.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+PASS (inspection de code) — Les cinq gardes LOT-H01/LOT-H02 sont présents et intacts. Aucune modification dans les fichiers qui les contiennent.
 
 ---
 
@@ -283,11 +337,19 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — La vérification des 19 scénarios LOT-P1 requiert l'exécution de l'application sur un environnement réel (iPad Chrome recommandé par la méthode officielle de développement V1).
+
+**Analyse de régression par inspection de code :**
+- `readMemoryDiagnostic()` dans `storage.js` : **non modifié** dans les micro-lots ML-1 à ML-5. La fonction lit les clés d'origine via `withUserKey(KEYS.xxx)` et `withUserKey(_BHV_NS + xxx)`.
+- Les clés d'origine sont **préservées** (D9 — aucune suppression avant ML-6 PASS global).
+- La décision D7 (opérateur · ML-5) maintient la compatibilité prioritaire : `readMemoryDiagnostic()` continue de lire la couche ancienne.
+- Aucun chemin de régression identifiable par inspection de code.
+
+Cette analyse de code ne remplace pas l'observation terrain des 19 scénarios.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite exécution de l'application + navigation dans l'onglet Mémoire + observation des 19 scénarios sur l'environnement cible. L'analyse de code n'identifie aucun chemin de régression.
 
 ---
 
@@ -309,11 +371,21 @@ Un verdict FAIL ne bloque pas la poursuite de la vérification des critères res
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — La vérification de CV8 requiert :
+1. Un export produit avant LOT-P1-2 (format ancien, sans clés canoniques).
+2. Son import dans le système post-LOT-P1-2 (ML-5 · `091065e`).
+3. L'observation que les 12 clés existantes sont restaurées et que `runCanonicalMigration()` se relance au prochain chargement.
+
+**Analyse de compatibilité par inspection de code (ML-5 · `091065e`) :**
+- Compatibilité ascendante (ancien export → nouveau système) : le bloc de restauration des clés canoniques dans `importOperatorData()` utilise des gardes `if (d.canonicalCorpus !== undefined)` et `if (d.canonicalIndex !== undefined)`. Un export antérieur sans ces clés les ignore sans erreur. Le drapeau de migration est effacé (`localStorage.removeItem(...)`) afin que `runCanonicalMigration()` se relance au prochain `loadState()`.
+- Compatibilité descendante (nouveau export avec clés canoniques → restauration) : `canonicalCorpus` et `canonicalIndex` sont restaurés via `_write()` si présents dans l'export. Drapeau de migration positionné à '1'.
+- Rupture de format : aucune — le format `{ version: 1, engine: 'cameleon-engine', data: {...} }` est préservé. Les nouvelles clés s'ajoutent à `data` sans modifier la structure ni les validations existantes.
+
+Cette analyse de code ne remplace pas le test d'un cycle export/import réel.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite exécution applicative + cycle export/import complet + vérification des données restaurées. L'analyse de code indique une compatibilité correctement implémentée.
 
 ---
 
@@ -337,11 +409,11 @@ Les quatre critères de clôture du Programme P1 sont définis dans Roadmap V1 �
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Même analyse que CV1 (§4.1). Les quatre champs sont validés par `validateTrace()` (RV1-RV4). Le contexte est optionnel (RV5) — sa présence n'est pas requise pour la validité de la trace. Le critère Roadmap V1 énonce "contexte d'origine" mais ne le rend pas obligatoire — lecture cohérente avec RV5.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+PASS (inspection de code) — Même analyse et même réserve que CV1 : la présence effective dans les traces persistées requiert une observation runtime.
 
 ---
 
@@ -361,11 +433,11 @@ Les quatre critères de clôture du Programme P1 sont définis dans Roadmap V1 �
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Même analyse que CV2 (§4.2). Aucun module applicatif importé par la couche canonique.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+PASS (inspection de code) — Même analyse que CV2.
 
 ---
 
@@ -386,11 +458,11 @@ Les quatre critères de clôture du Programme P1 sont définis dans Roadmap V1 �
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Même situation que CV3 (§4.3). L'implémentation est présente dans le code (`readByFamille`, `readByDateRange`, `readBySession`), mais l'observation du résultat sur des données réelles requiert l'exécution de l'application.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Même analyse que CV3.
 
 ---
 
@@ -412,11 +484,21 @@ Ce critère est défini par Roadmap V1 §4. Aucun des critères CV1 à CV8 du ca
 
 **Observation terrain**
 
-[Zone réservée à l'observation lors de l'exécution terrain.]
+Inspection des imports et des appels réseau dans la couche canonique :
+
+- `canonical-model.js` : aucun import, aucun appel réseau. Constantes et validation pure.
+- `canonical-index.js` : aucun appel réseau. Opérations localStorage uniquement.
+- `canonical-store.js` : aucun appel réseau. Opérations localStorage uniquement.
+- `canonical-read.js` : aucun appel réseau. Lecture localStorage uniquement.
+- `canonical-migration.js` : accède à `exportOperatorData()` (lecture localStorage) et `writeMigratedTrace()` (écriture localStorage). Aucun appel réseau.
+- `resolveKey()` dans `storage.js` : wrapper de `withUserKey()`. Aucun appel réseau.
+- `initCanonicalStore()` et `runCanonicalMigration()` dans `state.js` : appelés lors de `loadState()`. Aucun appel réseau.
+
+La couche canonique est strictement locale. Elle ne dispose d'aucune interface réseau, d'aucun import de module Supabase ou fetch, d'aucun appel asynchrone orienté réseau.
 
 **Verdict**
 
-[Non renseigné — PASS / FAIL]
+PASS (inspection de code) — Aucune donnée ne quitte l'appareil via la couche canonique. Conformité I-01 maintenue.
 
 ---
 
@@ -434,6 +516,10 @@ CV3 est cité et vérifié tel qu'écrit dans le cadrage LOT-P1-2 §8. LOT-P1-2.
 
 Le critère Roadmap V1 n°4 est défini dans Roadmap V1 §4. Aucun critère CV1 à CV8 ne lui est directement dédié. LOT-P1-2.5 le vérifie explicitement en §5.4.
 
+### 6.4 — CV5 — Tension "14 entrées" vs classification LOT-P1-2.1
+
+CV5 dit "14 entrées présentes dans la couche canonique". LOT-P1-2.1 classe 4 de ces 14 entrées comme états applicatifs (hors couche canonique par architecture). Cette tension est documentée en §4.5. Elle ne constitue pas un FAIL structurel — elle nécessite une clarification documentaire si l'opérateur souhaite une lecture stricte du critère.
+
 ---
 
 ## 7 — Synthèse et décision de clôture
@@ -442,18 +528,20 @@ Le critère Roadmap V1 n°4 est défini dans Roadmap V1 §4. Aucun critère CV1 
 
 | Critère | Verdict | Observation |
 |---|---|---|
-| CV1 — Modèle canonique de trace satisfait | [Non renseigné] | [Zone réservée] |
-| CV2 — Indépendance de la couche | [Non renseigné] | [Zone réservée] |
-| CV3 — Indexation opérationnelle | [Non renseigné] | [Zone réservée] |
-| CV4 — Provenance systématique | [Non renseigné] | [Zone réservée] |
-| CV5 — Aucune perte de données | [Non renseigné] | [Zone réservée] |
-| CV6 — Garanties Hardening préservées | [Non renseigné] | [Zone réservée] |
-| CV7 — Diagnostic mémoriel non régressé | [Non renseigné] | [Zone réservée] |
-| CV8 — Compatibilité export/import préservée | [Non renseigné] | [Zone réservée] |
-| Roadmap V1 §4 — Critère 1 — Contenu de chaque trace | [Non renseigné] | [Zone réservée] |
-| Roadmap V1 §4 — Critère 2 — Indépendance de la couche | [Non renseigné] | [Zone réservée] |
-| Roadmap V1 §4 — Critère 3 — Retrouvabilité par indexation | [Non renseigné] | [Zone réservée] |
-| Roadmap V1 §4 — Critère 4 — I-01 local-first | [Non renseigné] | [Zone réservée] |
+| CV1 — Modèle canonique de trace satisfait | PASS (inspection code) | Modèle validé (RV1-RV4), états R1/R3/R4 formalisés. Réserve : données réelles non observées. |
+| CV2 — Indépendance de la couche | PASS (inspection code) | Aucun import applicatif dans les 5 modules canoniques. |
+| CV3 — Indexation opérationnelle | NON VÉRIFIABLE | Nécessite exécution applicative + observation localStorage. |
+| CV4 — Provenance systématique | PASS (inspection code) | RV2 actif, contournement structurellement impossible. |
+| CV5 — Aucune perte de données | NON VÉRIFIABLE | Nécessite observation corpus post-migration. Tension documentaire "14 entrées" consignée. |
+| CV6 — Garanties Hardening préservées | PASS (inspection code) | 5 gardes P1→P5 intacts. Fichiers concernés non modifiés. |
+| CV7 — Diagnostic mémoriel non régressé | NON VÉRIFIABLE | Nécessite 19 scénarios sur app réelle. Aucune régression identifiée par code. |
+| CV8 — Compatibilité export/import préservée | NON VÉRIFIABLE | Nécessite cycle export/import réel. Logique de compatibilité implémentée. |
+| Roadmap V1 §4 — Critère 1 — Contenu de chaque trace | PASS (inspection code) | Même analyse que CV1. |
+| Roadmap V1 §4 — Critère 2 — Indépendance de la couche | PASS (inspection code) | Même analyse que CV2. |
+| Roadmap V1 §4 — Critère 3 — Retrouvabilité par indexation | NON VÉRIFIABLE | Même analyse que CV3. |
+| Roadmap V1 §4 — Critère 4 — I-01 local-first | PASS (inspection code) | Aucune interface réseau dans la couche canonique. |
+
+**Récapitulatif :** 7 PASS (inspection code) · 5 NON VÉRIFIABLE · 0 FAIL.
 
 ### 7.2 — Vérification des conditions du cadrage §10
 
@@ -461,47 +549,60 @@ Le cadrage LOT-P1-2 §10 définit cinq conditions de clôture. Chacune est véri
 
 **Condition 1** — "Les sous-phases LOT-P1-2.1, LOT-P1-2.2, LOT-P1-2.3 et LOT-P1-2.4 ont chacune reçu une validation documentée."
 
-Observation : LOT-P1-2.1 validé `091d8f1` · LOT-P1-2.2 validé `8c7a4be` · LOT-P1-2.3 validé `0596c66` · LOT-P1-2.4 validé `2057c5d`.
+Observation : LOT-P1-2.1 validé `091d8f1` · LOT-P1-2.2 validé `8c7a4be` · LOT-P1-2.3 validé `0596c66` · LOT-P1-2.4 validé `2057c5d`. Toutes documentées, DQC V2 CAS A.
 
-Statut : [Non renseigné — SATISFAITE / NON SATISFAITE]
+Statut : SATISFAITE
 
 ---
 
 **Condition 2** — "La sous-phase LOT-P1-2.5 (validation terrain) a été exécutée par l'opérateur."
 
-Observation terrain : [Zone réservée à l'observation lors de l'exécution terrain.]
+Observation terrain : Le présent rapport constitue la pré-validation terrain exécutée dans le cadre de ML-6. La validation terrain complète (observation localStorage, scénarios UI) n'a pas encore été réalisée par l'opérateur sur l'environnement cible.
 
-Statut : [Non renseigné — SATISFAITE / NON SATISFAITE]
+Statut : PARTIELLEMENT SATISFAITE — La pré-validation est produite. La validation terrain réelle sur l'application reste à exécuter (CV3 · CV5 · CV7 · CV8 · Roadmap Critère 3).
 
 ---
 
 **Condition 3** — "Les huit critères de validation (CV1 à CV8) ont tous reçu le verdict PASS."
 
-Observation : Voir §4 — Verdicts CV1 à CV8.
+Observation : Voir §4. CV3, CV5, CV7, CV8 sont NON VÉRIFIABLE EN CONDITIONS ACTUELLES.
 
-Statut : [Non renseigné — SATISFAITE / NON SATISFAITE]
+Statut : NON SATISFAITE EN CONDITIONS ACTUELLES
 
 ---
 
 **Condition 4** — "Le rapport de validation terrain a été produit et consigné."
 
-Observation : [Zone réservée — consignation du présent document.]
+Observation : Le présent document constitue le rapport de validation terrain de LOT-P1-2.5. Produit dans le cadre de ML-6. Consigné dans `docs/validation/LOT-P1-2_5_VALIDATION_TERRAIN_V1.md`.
 
-Statut : [Non renseigné — SATISFAITE / NON SATISFAITE]
+Statut : SATISFAITE (rapport produit et consigné)
 
 ---
 
 **Condition 5** — "Le Programme P1 satisfait ses quatre critères de clôture tels que définis dans la Roadmap V1 (§4)."
 
-Observation : Voir §5 — Verdicts des critères de clôture du Programme P1.
+Observation : Voir §5. Critère 3 NON VÉRIFIABLE EN CONDITIONS ACTUELLES.
 
-Statut : [Non renseigné — SATISFAITE / NON SATISFAITE]
+Statut : NON SATISFAITE EN CONDITIONS ACTUELLES
 
 ### 7.3 — Décision
 
-[Zone réservée à la décision opérateur.]
+**Verdict global : NON VÉRIFIABLE — VERDICT GLOBAL SUSPENDU**
 
-Le présent rapport permet de constater l'état des conditions définies au §10 du cadrage LOT-P1-2. La décision de clôture relève ensuite de la validation opérateur conformément à la gouvernance documentaire.
+Motif : 5 critères (CV3, CV5, CV7, CV8, Roadmap Critère 3) sont NON VÉRIFIABLE EN CONDITIONS ACTUELLES. Aucun FAIL n'est prononcé, mais le verdict global PASS ne peut pas être déclaré sans observation terrain réelle de ces critères.
+
+**Ce qui reste à vérifier en conditions réelles (iPad Chrome ou PC Chrome) :**
+
+| Critère | Action requise |
+|---|---|
+| CV3 | Vérifier dans la console que `CE_canonical_index_v1` (ou son équivalent namespacé) est peuplé. Tester `readByFamille('SY1')`, `readByDateRange(...)`, `readBySession(...)`. |
+| CV5 | Comparer les valeurs du corpus (`CE_canonical_corpus_v1` ou namespacé) avec les données d'origine. Vérifier que les 10 traces sont présentes avec les valeurs attendues. Vérifier dates R1/R3/R4 formalisées. |
+| CV7 | Naviguer dans l'onglet Mémoire de l'application. Vérifier les 19 scénarios LOT-P1. Comparer avec l'état avant LOT-P1-2 si disponible. |
+| CV8 | Réaliser un export complet. Importer dans la même session ou une nouvelle session. Vérifier que les 12 clés + clés canoniques sont restaurées. Tester avec un ancien export sans clés canoniques. |
+
+**Décision de clôture de LOT-P1-2 :** Suspendue. À reprendre après exécution de la validation terrain réelle par l'opérateur.
+
+[À renseigner par l'opérateur après validation terrain réelle]
 
 ---
 
@@ -522,19 +623,19 @@ Les documents cités en §8.1 posent les conditions suivantes.
 
 LOT-P1-2.2 §5.3 indique que la suppression "n'est autorisée qu'à l'issue de la validation complète de LOT-P1-2.5 (validation terrain)". Le cadrage LOT-P1-2 §4.7 situe la même disposition "à l'issue de la validation de LOT-P1-2.5".
 
-Observation terrain : [Zone réservée — statut de la validation terrain au moment de l'observation.]
+Observation terrain : LOT-P1-2.5 est en cours (pré-validation produite). La validation terrain complète (CV3, CV5, CV7, CV8) n'est pas encore exécutée. Condition A : NON SATISFAITE.
 
 **Condition B — Résultat de la validation**
 
 LOT-P1-2.2 §5.3 indique que "si la validation de LOT-P1-2.5 conclut à un échec, les données d'origine permettent un retour à l'état précédent sans perte".
 
-Observation terrain : [Zone réservée — verdict global LOT-P1-2.5 au moment de l'observation.]
+Observation terrain : Verdict global LOT-P1-2.5 suspendu (§7.3). Condition B : NON APPLICABLE EN CONDITIONS ACTUELLES.
 
 **Condition C — Simultaneité**
 
 LOT-P1-2.2 §5.3 indique que la suppression "est simultanée pour l'ensemble des entrées migrées" et qu'"aucune suppression partielle par famille n'est autorisée avant cette validation".
 
-Observation terrain : [Zone réservée à l'observation lors de l'exécution terrain.]
+Observation terrain : La suppression n'est pas autorisée à ce stade (Conditions A et B non satisfaites). Condition C : NON APPLICABLE EN CONDITIONS ACTUELLES.
 
 ### 8.3 — Constat documentaire
 
@@ -546,32 +647,49 @@ LOT-P1-2.2 §5.3 précise que cette opération est simultanée pour l'ensemble d
 
 Le présent document constate l'état des conditions documentaires définies au §8.2. Il ne réalise aucune suppression. La suppression éventuelle des données d'origine relève d'une action opérateur distincte, conformément à la gouvernance documentaire.
 
+**Conclusion §8 : La suppression des données d'origine n'est pas autorisée à ce stade. Les conditions A, B et C ne sont pas satisfaites.**
+
 ---
 
 ## 9 — Prochaine étape
 
 ### 9.1 — Situation documentaire
 
-Le présent document constitue le rapport de validation terrain de LOT-P1-2.5, tel que prévu par le cadrage LOT-P1-2 §6 et §10.
+Le présent document constitue le rapport de pré-validation terrain de LOT-P1-2.5, tel que prévu par le cadrage LOT-P1-2 §6 et §10. Il a été produit dans le cadre de ML-6.
 
-Les conditions de clôture définies au cadrage §10 sont documentées en §7 du présent rapport. Leur état est consigné dans les zones d'observation correspondantes. Aucune décision de clôture n'est prise dans le présent document.
+**Ce rapport distingue :**
+1. **Vérifié (PASS code)** : CV1, CV2, CV4, CV6, Roadmap 1, Roadmap 2, Roadmap 4 — vérifiés par inspection directe du code source.
+2. **Non vérifiable** : CV3, CV5, CV7, CV8, Roadmap 3 — nécessitent l'exécution de l'application sur l'environnement cible.
+3. **Bloqué** : aucun critère bloqué au sens FAIL — zéro FAIL constaté.
+4. **À tester ultérieurement** : CV3, CV5, CV7, CV8, Roadmap 3 — classification terrain à effectuer lors de l'exécution applicative réelle.
 
 ### 9.2 — Décision opérateur
 
-La décision de clôture de LOT-P1-2 appartient à l'opérateur. Elle intervient après lecture du présent rapport et constat de l'état des conditions documentées en §7. Aucune décision n'est présupposée par le présent document.
+La décision de clôture de LOT-P1-2 appartient à l'opérateur. Elle ne peut intervenir qu'après validation terrain réelle des critères CV3, CV5, CV7 et CV8 (+ Roadmap Critère 3) sur l'environnement cible.
+
+**Actions terrain requises de l'opérateur avant tout verdict PASS :**
+1. Charger l'application sur l'environnement cible (iPad Chrome ou PC Chrome).
+2. Vérifier dans la console que `runCanonicalMigration()` s'est exécuté (drapeau positionné, corpus peuplé).
+3. Observer et consigner les données du corpus et de l'index.
+4. Naviguer dans l'onglet Mémoire et vérifier les 19 scénarios.
+5. Réaliser le cycle export/import et vérifier les données restaurées.
+6. Reporter les observations dans les zones réservées de ce rapport.
+7. Prononcer les verdicts CV3, CV5, CV7, CV8 et Roadmap Critère 3.
+8. Prononcer le verdict global.
 
 Décision opérateur :
 
-[À renseigner]
+[À renseigner après validation terrain réelle]
 
 ### 9.3 — Suites documentaires
 
 Le cadrage LOT-P1-2 §10 prévoit que la clôture de LOT-P1-2 est conditionnée par la satisfaction des cinq conditions qui y sont définies et par une décision opérateur. Le présent rapport ne décide pas de cette clôture.
 
-Conformément au cadrage LOT-P1-2 §10, si la décision opérateur est favorable, les documents indiquent que les conditions de clôture de LOT-P1-2 pourront être constatées. Les suites éventuelles — clôture de LOT-P1-2, état du Programme P1, séquence Roadmap V1 — relèvent de décisions opérateur distinctes, sous réserve des critères définis dans les documents de référence applicables.
+Conformément au cadrage LOT-P1-2 §10, si la décision opérateur est favorable après validation terrain complète, les documents indiquent que les conditions de clôture de LOT-P1-2 pourront être constatées. Les suites éventuelles — clôture de LOT-P1-2, état du Programme P1, séquence Roadmap V1 — relèvent de décisions opérateur distinctes, sous réserve des critères définis dans les documents de référence applicables.
 
 Le présent rapport ne décide d'aucune de ces suites.
 
 ---
 
-*Rapport de validation terrain LOT-P1-2.5 — Programme P1 · Phase A · Caméléon Engine · 2026-07-08.*
+*Rapport de pré-validation terrain LOT-P1-2.5 — Programme P1 · Phase A · Caméléon Engine · 2026-07-08.*
+*Produit dans le cadre de ML-6 — 7 critères vérifiés (code) · 5 critères en attente de validation terrain.*
