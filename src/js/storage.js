@@ -391,6 +391,18 @@ export function readEntryUpdatedAt(baseKey) {
   return _read(withUserKey(baseKey))?.updatedAt ?? null;
 }
 
+/**
+ * Retourne la clé de stockage résolue (avec namespacing UUID si actif).
+ * Utilisé par les modules canoniques pour nommer leurs clés localStorage — ML-5.
+ * Ne pas utiliser hors de la couche canonique.
+ *
+ * @param {string} baseKey — clé de base (sans préfixe UUID)
+ * @returns {string} — clé résolue
+ */
+export function resolveKey(baseKey) {
+  return withUserKey(baseKey);
+}
+
 // ── Storage health ────────────────────────────────────────────
 
 export function canUseStorage() {
@@ -659,6 +671,17 @@ export function exportOperatorData() {
         portfolio:            portfolio.getAll(),
         operatorMemory:       operatorMemory.get(),
         oiHistory:            oiHistory.getAll(),
+        // Couche canonique — ML-5 — LOT-P1-2
+        // Inclus uniquement si la migration a été exécutée (corpus non null).
+        // Un import sans ces clés = export antérieur à LOT-P1-2 → re-migration au prochain chargement.
+        ...(() => {
+          const corpus = _read(withUserKey('CE_canonical_corpus_v1'));
+          const index  = _read(withUserKey('CE_canonical_index_v1'));
+          const result = {};
+          if (corpus !== null) result.canonicalCorpus = corpus;
+          if (index  !== null) result.canonicalIndex  = index;
+          return result;
+        })(),
       },
     };
   } catch {
@@ -829,6 +852,29 @@ export function importOperatorData(data) {
       localStorage.setItem(withUserKey(_BHV_NS + 'orderStrategyProfile'), JSON.stringify(d.orderStrategyProfile))
     );
   }
+
+  // ── Couche canonique — ML-5 — LOT-P1-2 ──────────────────────
+  // Si canonicalCorpus est présent (export LOT-P1-2+) : restauration directe.
+  // Si canonicalCorpus est absent (export antérieur) : effacement du drapeau de migration
+  // pour que runCanonicalMigration() se relance automatiquement au prochain chargement.
+  if (d.canonicalCorpus !== undefined) {
+    _tryWrite('CE_canonical_corpus_v1', () =>
+      _write(withUserKey('CE_canonical_corpus_v1'), d.canonicalCorpus)
+    );
+  }
+  if (d.canonicalIndex !== undefined) {
+    _tryWrite('CE_canonical_index_v1', () =>
+      _write(withUserKey('CE_canonical_index_v1'), d.canonicalIndex)
+    );
+  }
+  // Drapeau de migration : synchronisé avec la présence du corpus dans l'export.
+  try {
+    if (d.canonicalCorpus !== undefined) {
+      localStorage.setItem(withUserKey('CE_canonical_migration_v1_done'), '1');
+    } else {
+      localStorage.removeItem(withUserKey('CE_canonical_migration_v1_done'));
+    }
+  } catch { /* non bloquant */ }
 
   return { ok: true, imported, errors };
 }

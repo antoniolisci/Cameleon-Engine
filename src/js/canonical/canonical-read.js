@@ -1,10 +1,11 @@
 // canonical-read.js — Interface de lecture de la couche canonique V1
 // Lecture par famille, par plage de dates et par session.
 // LOT-P1-2.3 §6 — LOT-P1-2.1 §9 (MI-7) — LOT-P1-2 §4.5 (I-09)
-// Dépendances : canonical-store.js · canonical-index.js · canonical-model.js
+// Dépendances : storage.js (resolveKey) · canonical-store.js · canonical-index.js · canonical-model.js
 
+import { resolveKey } from '../storage.js';
 import { readCorpus } from './canonical-store.js';
-import { INDEX_KEY } from './canonical-index.js';
+import { INDEX_BASE_KEY } from './canonical-index.js';
 import { DATE_UNAVAILABLE, DATE_NON_EXPLOITABLE } from './canonical-model.js';
 
 // ─── Constantes internes ──────────────────────────────────────────────────────
@@ -18,7 +19,7 @@ const _FORMALIZED_DATES = new Set([DATE_UNAVAILABLE, DATE_NON_EXPLOITABLE]);
 
 function _readIndex() {
   try {
-    const raw = localStorage.getItem(INDEX_KEY);
+    const raw = localStorage.getItem(resolveKey(INDEX_BASE_KEY));
     if (!raw) return { byFamille: {}, byDate: {}, bySession: {} };
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return { byFamille: {}, byDate: {}, bySession: {} };

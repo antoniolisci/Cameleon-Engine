@@ -4,18 +4,18 @@
 // LOT-P1-2.2 §5 — LOT-P1-2.4 §4 — LOT-P1-2.1 §6 (R1, R3, R4)
 // Dépendances : storage.js · canonical-store.js · canonical-model.js
 
-import { exportOperatorData, readEntryUpdatedAt, KEYS } from '../storage.js';
+import { exportOperatorData, readEntryUpdatedAt, resolveKey, KEYS } from '../storage.js';
 import { writeMigratedTrace } from './canonical-store.js';
 import { CANONICAL_FAMILIES, DATE_UNAVAILABLE, DATE_NON_EXPLOITABLE } from './canonical-model.js';
 
 // ─── Clé d'idempotence ────────────────────────────────────────────────────────
 
-// Clé de marquage de migration [PROP — namespacing UUID appliqué en ML-5]
-const _MIGRATION_FLAG = 'CE_canonical_migration_v1_done';
+// Clé de base du drapeau de migration (namespacing UUID via resolveKey — ML-5)
+const _MIGRATION_FLAG_BASE = 'CE_canonical_migration_v1_done';
 
 function _isMigrationDone() {
   try {
-    return localStorage.getItem(_MIGRATION_FLAG) === '1';
+    return localStorage.getItem(resolveKey(_MIGRATION_FLAG_BASE)) === '1';
   } catch {
     return false;
   }
@@ -23,7 +23,7 @@ function _isMigrationDone() {
 
 function _setMigrationDone() {
   try {
-    localStorage.setItem(_MIGRATION_FLAG, '1');
+    localStorage.setItem(resolveKey(_MIGRATION_FLAG_BASE), '1');
   } catch {
     // Non bloquant — la migration sera relancée à la prochaine initialisation.
   }

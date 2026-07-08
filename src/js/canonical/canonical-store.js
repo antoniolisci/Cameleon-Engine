@@ -2,13 +2,14 @@
 // Interface d'écriture unique de la couche canonique.
 // Toute trace mémorielle entre dans la couche exclusivement par cette interface.
 // LOT-P1-2.2 §4.2 — LOT-P1-2.1 §8.2 (RE1, RE2, RE3)
-// Dépendance : canonical-model.js · canonical-index.js
+// Dépendances : storage.js (resolveKey) · canonical-model.js · canonical-index.js
 
+import { resolveKey } from '../storage.js';
 import { validateTrace } from './canonical-model.js';
 import { initCanonicalIndex, updateIndex } from './canonical-index.js';
 
-// Clé de stockage du corpus canonique [PROP — namespacing UUID appliqué en ML-5]
-const _CORPUS_KEY = 'CE_canonical_corpus_v1';
+// Clé de base du corpus canonique (namespacing UUID via resolveKey — ML-5)
+const _CORPUS_BASE_KEY = 'CE_canonical_corpus_v1';
 
 // ─── Identifiant de trace ────────────────────────────────────────────────────
 // Identifiant opaque généré par la couche. Le module appelant ne le fournit pas.
@@ -29,7 +30,7 @@ function _generateId() {
 
 function _readCorpus() {
   try {
-    const raw = localStorage.getItem(_CORPUS_KEY);
+    const raw = localStorage.getItem(resolveKey(_CORPUS_BASE_KEY));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -40,7 +41,7 @@ function _readCorpus() {
 
 function _writeCorpus(corpus) {
   try {
-    localStorage.setItem(_CORPUS_KEY, JSON.stringify(corpus));
+    localStorage.setItem(resolveKey(_CORPUS_BASE_KEY), JSON.stringify(corpus));
     return true;
   } catch {
     return false;

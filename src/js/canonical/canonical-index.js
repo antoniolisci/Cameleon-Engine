@@ -2,12 +2,13 @@
 // Maintient l'index canonique par famille, date et session.
 // Fournit la réconciliation de l'index sur demande (non systématique — LOT-P1-2.3 §5.3).
 // LOT-P1-2.3 — LOT-P1-2.1 §9 (MI-7)
-// Dépendance : canonical-model.js (CANONICAL_FAMILIES)
+// Dépendances : storage.js (resolveKey) · canonical-model.js (CANONICAL_FAMILIES)
 
+import { resolveKey } from '../storage.js';
 import { CANONICAL_FAMILIES } from './canonical-model.js';
 
-// Clé de stockage de l'index [PROP — namespacing UUID appliqué en ML-5]
-export const INDEX_KEY = 'CE_canonical_index_v1';
+// Clé de base de l'index (namespacing UUID via resolveKey — ML-5)
+export const INDEX_BASE_KEY = 'CE_canonical_index_v1';
 
 // ─── Structure de l'index ─────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ function _buildEmptyIndex() {
 
 function _readIndex() {
   try {
-    const raw = localStorage.getItem(INDEX_KEY);
+    const raw = localStorage.getItem(resolveKey(INDEX_BASE_KEY));
     if (!raw) return _buildEmptyIndex();
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return _buildEmptyIndex();
@@ -37,7 +38,7 @@ function _readIndex() {
 
 function _writeIndex(index) {
   try {
-    localStorage.setItem(INDEX_KEY, JSON.stringify(index));
+    localStorage.setItem(resolveKey(INDEX_BASE_KEY), JSON.stringify(index));
     return true;
   } catch {
     return false;
@@ -55,7 +56,7 @@ function _writeIndex(index) {
  */
 export function initCanonicalIndex() {
   try {
-    const existing = localStorage.getItem(INDEX_KEY);
+    const existing = localStorage.getItem(resolveKey(INDEX_BASE_KEY));
     if (!existing) {
       _writeIndex(_buildEmptyIndex());
     }

@@ -1,5 +1,7 @@
 import { DEFAULT_FORM, DEFAULT_TAB, HISTORY_LIMIT } from "./data.js";
 import { uiState, journalEntries, payloadCurrent, canUseStorage, estimateTotalSize, runMigration, runUUIDMigration, runUUIDCleanup } from "./storage.js";
+import { initCanonicalStore } from "./canonical/canonical-store.js";
+import { runCanonicalMigration } from "./canonical/canonical-migration.js";
 
 export { canUseStorage };
 
@@ -20,6 +22,8 @@ export function loadState() {
     runMigration();                                    // migration legacy v1 (format ancien)
     const justMigrated = runUUIDMigration();           // copie des 9 clés vers __{uuid}
     if (!justMigrated) runUUIDCleanup();               // suppression legacy au lancement suivant
+    initCanonicalStore();                              // init index canonique si absent — LOT-P1-2 ML-5
+    runCanonicalMigration();                           // migration idempotente 10 traces — LOT-P1-2 ML-5
     const ui      = uiState.get();
     const entries = journalEntries.getAll();
     const payload = payloadCurrent.get();
