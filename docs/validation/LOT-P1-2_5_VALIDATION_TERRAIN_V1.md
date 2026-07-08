@@ -13,11 +13,11 @@
 | Programme | P1 — Fondation Mémoire & Persistance |
 | Phase Roadmap V1 | A |
 | Type | Rapport de validation terrain |
-| Statut | PRÉ-VALIDATION TERRAIN — EN ATTENTE D'EXÉCUTION APPLICATIVE |
+| Statut | VALIDATION TERRAIN PARTIELLE — ÉCART DE DÉPLOIEMENT IDENTIFIÉ · SUSPENSION MAINTENUE |
 | Document officiel | `docs/validation/LOT-P1-2_5_VALIDATION_TERRAIN_V1.md` |
 | Date d'exécution | 2026-07-08 |
 | Prérequis satisfaits | LOT-P1-2.2 — VALIDÉ · `8c7a4be` · LOT-P1-2.3 — VALIDÉ · `0596c66` · LOT-P1-2.4 — VALIDÉ · `2057c5d` |
-| État implémentation | ML-1→ML-5 livrés · commit de référence ML-5 : `091065e` |
+| État implémentation | ML-1→ML-6 livrés · ML-5 : `091065e` · ML-6 : `b46ab70` · cameleonengine.fr : version antérieure à ML-5 |
 
 ---
 
@@ -102,19 +102,22 @@ Un verdict FAIL ou NON VÉRIFIABLE ne bloque pas la poursuite de la vérificatio
 | Élément | Valeur |
 |---|---|
 | Date | 2026-07-08 |
-| Heure | Non renseignée — inspection de code (pas d'exécution applicative) |
-| Environnement d'exécution | Inspection de code statique — aucun serveur local actif · aucune exécution JavaScript · aucune observation localStorage directe |
+| Heure | 2026-07-08 — session console Chrome sur cameleonengine.fr |
+| Environnement d'exécution | cameleonengine.fr · PC Chrome · console DevTools F12 · pré-validation par inspection de code (ML-6 `b46ab70`) |
 | Documents de référence soumis | LOT-P1-2.1 · `091d8f1` · LOT-P1-2.2 · `8c7a4be` · LOT-P1-2.3 · `0596c66` · LOT-P1-2.4 · `2057c5d` |
-| État de la couche au moment de l'observation | ML-1→ML-5 livrés · Dernière implémentation : ML-5 `091065e` · ML-4 `e70fdad` |
-| Corpus effectivement observé | NON OBSERVABLE — l'application n'a pas été exécutée. Aucune lecture de localStorage réalisée. |
+| État de la couche au moment de l'observation | ML-1→ML-6 livrés localement · cameleonengine.fr : version antérieure à ML-5 (commit `091065e` non déployé) |
+| Corpus effectivement observé | Observation réelle — 21 clés localStorage présentes · aucune clé canonical trouvée (y compris avec suffixe UUID) |
+| Écart identifié | Commits ML-5 (`091065e`) et ML-6 (`b46ab70`) non déployés sur cameleonengine.fr |
 
 ### 3.2 — Observations générales
 
-**Nature de la présente validation :** Ce rapport constitue une pré-validation terrain. Les critères architecturaux et structurels (indépendance de la couche, mécanismes de validation, gardes) ont été vérifiés par inspection directe du code source. Les critères requérant l'observation de données réelles en localStorage (corpus migré, index peuplé, scénarios UI) sont classés NON VÉRIFIABLE EN CONDITIONS ACTUELLES.
+**Pré-validation (ML-6 · `b46ab70`) :** Les critères architecturaux et structurels (indépendance de la couche, mécanismes de validation, gardes) ont été vérifiés par inspection directe du code source. Les critères requérant l'observation de données réelles en localStorage ont été classés NON VÉRIFIABLE EN CONDITIONS ACTUELLES.
 
-**Prérequis à la validation terrain complète :** Exécution de l'application sur l'environnement cible (iPad Chrome ou PC Chrome) avec données opérateur présentes, après déclenchement du cycle `loadState()` qui appelle `initCanonicalStore()` puis `runCanonicalMigration()`.
+**Session terrain (2026-07-08 · cameleonengine.fr · PC Chrome) :** Validation terrain exécutée. Commandes console exécutées : `Object.keys(localStorage).filter(k => k.includes('canonical'))` → résultat `[]` · `Object.keys(localStorage).sort()` → 21 clés listées, aucune clé canonical. Aucune clé `CE_canonical_corpus_v1`, `CE_canonical_index_v1` ou `CE_canonical_migration_v1_done` n'est présente, y compris avec suffixe UUID.
 
-**Limite structurelle** : l'observation terrain de la couche canonique (corpus, index, drapeau de migration) n'est possible qu'en accédant à localStorage via la console du navigateur ou via l'interface de l'application.
+**Cause identifiée — écart de déploiement :** La version déployée sur cameleonengine.fr est antérieure aux commits ML-5 (`091065e`) et ML-6 (`b46ab70`). La couche canonique est implémentée dans le code local mais absente de l'environnement cible. Cette situation ne constitue pas un FAIL fonctionnel du code — les commits locaux sont corrects. Il s'agit d'un écart de version entre l'environnement de développement et l'environnement de production.
+
+**Prérequis à la validation terrain complète :** Déploiement des commits ML-5/ML-6 sur cameleonengine.fr, puis chargement de la page pour déclencher `runCanonicalMigration()`.
 
 ---
 
@@ -204,20 +207,15 @@ PASS (inspection de code) — Couche canonique structurellement indépendante de
 
 **Observation terrain**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES.
+Pré-validation (ML-6 `b46ab70`) : la vérification de CV3 requiert que `runCanonicalMigration()` ait été exécuté, que l'index soit peuplé et que les trois fonctions de lecture retournent des résultats cohérents avec le corpus. L'inspection de code confirme l'implémentation correcte de l'index triple-axe et des trois modes de lecture.
 
-La vérification de CV3 requiert :
-1. Que `runCanonicalMigration()` ait été exécuté (présence de traces dans `CE_canonical_corpus_v1`).
-2. Que l'index (`CE_canonical_index_v1`) soit peuplé — observable via console navigateur.
-3. Que les trois fonctions de lecture (`readByFamille`, `readByDateRange`, `readBySession`) retournent des résultats cohérents avec le corpus — vérifiable uniquement en exécutant le code dans un navigateur.
-
-L'inspection de code confirme l'implémentation correcte de l'index triple-axe et des trois modes de lecture. L'observation des données réelles requiert l'exécution de l'application.
+**Session terrain (2026-07-08 · cameleonengine.fr · PC Chrome) :** Commandes console exécutées. Aucune clé `CE_canonical_index_v1` (ni avec suffixe UUID) trouvée dans localStorage. 21 clés présentes — aucune clé canonical. Cause : écart de déploiement (§3.2) — la couche canonique n'est pas déployée sur l'environnement cible. L'index ne peut pas être observé.
 
 Vigilance documentaire (§6.2) : CV3 cite "14 entrées migrées". La migration (ML-4) porte sur 10 traces mémorielles — les 4 états applicatifs (settings, uiState, payloadCurrent, identity) sont exclus par LOT-P1-2.1 §classification. Cette tension reste portée par le cadrage.
 
 **Verdict**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite exécution applicative + observation localStorage.
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Couche canonique absente de cameleonengine.fr (écart de déploiement ML-5/ML-6). À reprendre après déploiement.
 
 ---
 
@@ -269,7 +267,9 @@ PASS (inspection de code) — Mécanisme de rejet actif, non contournable, véri
 
 **Observation terrain**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — la présence effective des traces dans localStorage requiert l'exécution de l'application.
+Pré-validation (ML-6 `b46ab70`) : la présence effective des traces dans localStorage requiert l'exécution de l'application.
+
+**Session terrain (2026-07-08 · cameleonengine.fr · PC Chrome) :** Aucune clé `CE_canonical_corpus_v1` (ni avec suffixe UUID) trouvée dans localStorage. 21 clés présentes — aucune clé canonical. Cause : écart de déploiement (§3.2) — la migration canonique ne s'est pas déclenchée sur l'environnement cible. Les données d'origine sont intactes dans leurs clés d'origine (absence de suppression confirmée — D9 respecté).
 
 **Tension documentaire consignée (analogue à §6.2 pour CV3) :**
 CV5 énonce "Les 14 entrées existantes sont présentes dans la couche canonique après migration." LOT-P1-2.1 classifie les 14 entrées inventoriées par LOT-P1 en deux catégories :
@@ -282,7 +282,7 @@ Lecture cohérente avec l'architecture : CV5 est satisfait si les 10 traces mém
 
 **Verdict**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite observation du corpus localStorage + comparaison des valeurs avant/après migration. Tension documentaire CV5 vs LOT-P1-2.1 §classification consignée — décision opérateur attendue si nécessaire.
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Couche canonique absente de cameleonengine.fr (écart de déploiement ML-5/ML-6). Données d'origine intactes (D9 confirmé). À reprendre après déploiement. Tension documentaire CV5 vs LOT-P1-2.1 §classification consignée — décision opérateur attendue si nécessaire.
 
 ---
 
@@ -337,19 +337,13 @@ PASS (inspection de code) — Les cinq gardes LOT-H01/LOT-H02 sont présents et 
 
 **Observation terrain**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — La vérification des 19 scénarios LOT-P1 requiert l'exécution de l'application sur un environnement réel (iPad Chrome recommandé par la méthode officielle de développement V1).
+Pré-validation (ML-6 `b46ab70`) : la vérification des 19 scénarios LOT-P1 requiert l'exécution de l'application. L'inspection de code n'identifie aucun chemin de régression — `readMemoryDiagnostic()` est non modifié, les clés d'origine sont préservées (D9), la décision D7 maintient la compatibilité prioritaire.
 
-**Analyse de régression par inspection de code :**
-- `readMemoryDiagnostic()` dans `storage.js` : **non modifié** dans les micro-lots ML-1 à ML-5. La fonction lit les clés d'origine via `withUserKey(KEYS.xxx)` et `withUserKey(_BHV_NS + xxx)`.
-- Les clés d'origine sont **préservées** (D9 — aucune suppression avant ML-6 PASS global).
-- La décision D7 (opérateur · ML-5) maintient la compatibilité prioritaire : `readMemoryDiagnostic()` continue de lire la couche ancienne.
-- Aucun chemin de régression identifiable par inspection de code.
-
-Cette analyse de code ne remplace pas l'observation terrain des 19 scénarios.
+**Session terrain (2026-07-08 · cameleonengine.fr · PC Chrome) :** Le diagnostic mémoriel (onglet Mémoire) n'a pas été navigué dans cette session. La session terrain a été interrompue à l'étape de vérification des clés canonical (résultat `[]`) — la cause étant un écart de déploiement (§3.2). Le test de non-régression de CV7 (19 scénarios LOT-P1 post-migration) requiert que la migration canonique ait été déclenchée sur l'environnement cible. Sans ML-5 déployé, l'état pré-migration et l'état post-migration sont identiques — le test de non-régression n'est pas applicable dans ces conditions.
 
 **Verdict**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite exécution de l'application + navigation dans l'onglet Mémoire + observation des 19 scénarios sur l'environnement cible. L'analyse de code n'identifie aucun chemin de régression.
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Onglet Mémoire non testé dans la session terrain du 2026-07-08. Test de non-régression post-migration applicable uniquement après déploiement ML-5/ML-6. L'analyse de code n'identifie aucun chemin de régression.
 
 ---
 
@@ -371,10 +365,9 @@ NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite exécution de l'applicati
 
 **Observation terrain**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — La vérification de CV8 requiert :
-1. Un export produit avant LOT-P1-2 (format ancien, sans clés canoniques).
-2. Son import dans le système post-LOT-P1-2 (ML-5 · `091065e`).
-3. L'observation que les 12 clés existantes sont restaurées et que `runCanonicalMigration()` se relance au prochain chargement.
+Pré-validation (ML-6 `b46ab70`) : la vérification de CV8 requiert un cycle export/import réel sur un système avec ML-5 déployé.
+
+**Session terrain (2026-07-08 · cameleonengine.fr · PC Chrome) :** La version déployée sur cameleonengine.fr est antérieure à ML-5. Le cycle export/import ne peut pas tester la partie canonique (clés `canonicalCorpus`, `canonicalIndex`) car elles sont absentes du système déployé. La compatibilité pour les 12 clés existantes n'a pas été testée dans cette session (focus sur l'identification de l'écart de déploiement). CV8 reste NON VÉRIFIABLE dans son intégralité.
 
 **Analyse de compatibilité par inspection de code (ML-5 · `091065e`) :**
 - Compatibilité ascendante (ancien export → nouveau système) : le bloc de restauration des clés canoniques dans `importOperatorData()` utilise des gardes `if (d.canonicalCorpus !== undefined)` et `if (d.canonicalIndex !== undefined)`. Un export antérieur sans ces clés les ignore sans erreur. Le drapeau de migration est effacé (`localStorage.removeItem(...)`) afin que `runCanonicalMigration()` se relance au prochain `loadState()`.
@@ -385,7 +378,7 @@ Cette analyse de code ne remplace pas le test d'un cycle export/import réel.
 
 **Verdict**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Nécessite exécution applicative + cycle export/import complet + vérification des données restaurées. L'analyse de code indique une compatibilité correctement implémentée.
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Couche canonique absente de cameleonengine.fr (écart de déploiement ML-5/ML-6). Cycle export/import non testé dans la session du 2026-07-08. L'analyse de code indique une compatibilité correctement implémentée. À reprendre après déploiement.
 
 ---
 
@@ -458,11 +451,11 @@ PASS (inspection de code) — Même analyse que CV2.
 
 **Observation terrain**
 
-Même situation que CV3 (§4.3). L'implémentation est présente dans le code (`readByFamille`, `readByDateRange`, `readBySession`), mais l'observation du résultat sur des données réelles requiert l'exécution de l'application.
+Même situation que CV3 (§4.3). L'implémentation est présente dans le code (`readByFamille`, `readByDateRange`, `readBySession`). Session terrain du 2026-07-08 : aucune clé canonical trouvée sur cameleonengine.fr — même cause et même constat que CV3.
 
 **Verdict**
 
-NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Même analyse que CV3.
+NON VÉRIFIABLE EN CONDITIONS ACTUELLES — Même observation et même cause que CV3 : couche canonique absente de cameleonengine.fr (écart de déploiement ML-5/ML-6). À reprendre après déploiement.
 
 ---
 
@@ -557,9 +550,9 @@ Statut : SATISFAITE
 
 **Condition 2** — "La sous-phase LOT-P1-2.5 (validation terrain) a été exécutée par l'opérateur."
 
-Observation terrain : Le présent rapport constitue la pré-validation terrain exécutée dans le cadre de ML-6. La validation terrain complète (observation localStorage, scénarios UI) n'a pas encore été réalisée par l'opérateur sur l'environnement cible.
+Observation terrain : La validation terrain a été exécutée le 2026-07-08 sur cameleonengine.fr (PC Chrome). Un écart de déploiement a été identifié : les commits ML-5 (`091065e`) et ML-6 (`b46ab70`) ne sont pas déployés sur l'environnement cible. La couche canonique est absente du localStorage observé (21 clés présentes, aucune clé canonical). La validation terrain des critères CV3, CV5, CV7, CV8 et Roadmap Critère 3 reste en attente du déploiement.
 
-Statut : PARTIELLEMENT SATISFAITE — La pré-validation est produite. La validation terrain réelle sur l'application reste à exécuter (CV3 · CV5 · CV7 · CV8 · Roadmap Critère 3).
+Statut : PARTIELLEMENT SATISFAITE — Exécution terrain réalisée · écart de déploiement identifié · CV3, CV5, CV7, CV8, Roadmap Critère 3 NON VÉRIFIABLE en attente de déploiement ML-5/ML-6.
 
 ---
 
@@ -589,20 +582,29 @@ Statut : NON SATISFAITE EN CONDITIONS ACTUELLES
 
 **Verdict global : NON VÉRIFIABLE — VERDICT GLOBAL SUSPENDU**
 
-Motif : 5 critères (CV3, CV5, CV7, CV8, Roadmap Critère 3) sont NON VÉRIFIABLE EN CONDITIONS ACTUELLES. Aucun FAIL n'est prononcé, mais le verdict global PASS ne peut pas être déclaré sans observation terrain réelle de ces critères.
+Motif : 5 critères (CV3, CV5, CV7, CV8, Roadmap Critère 3) sont NON VÉRIFIABLE EN CONDITIONS ACTUELLES. Aucun FAIL fonctionnel n'est prononcé sur le code local.
 
-**Ce qui reste à vérifier en conditions réelles (iPad Chrome ou PC Chrome) :**
+**Session terrain du 2026-07-08 (cameleonengine.fr · PC Chrome) :** Écart de déploiement identifié. Les commits ML-5 (`091065e`) et ML-6 (`b46ab70`) ne sont pas déployés sur cameleonengine.fr. 21 clés localStorage observées — aucune clé canonical. La suspension du verdict est maintenue. Cette observation ne remet pas en cause la correction du code local.
+
+**Prérequis au prochain cycle de validation :**
+
+1. Déployer les commits ML-5 (`091065e`) et ML-6 (`b46ab70`) sur cameleonengine.fr.
+2. Charger la page pour déclencher `runCanonicalMigration()`.
+3. Exécuter le guide opérateur `docs/validation/GUIDE_OPERATEUR_ML6_TERRAIN.md`.
+
+**Ce qui reste à vérifier après déploiement :**
 
 | Critère | Action requise |
 |---|---|
-| CV3 | Vérifier dans la console que `CE_canonical_index_v1` (ou son équivalent namespacé) est peuplé. Tester `readByFamille('SY1')`, `readByDateRange(...)`, `readBySession(...)`. |
-| CV5 | Comparer les valeurs du corpus (`CE_canonical_corpus_v1` ou namespacé) avec les données d'origine. Vérifier que les 10 traces sont présentes avec les valeurs attendues. Vérifier dates R1/R3/R4 formalisées. |
-| CV7 | Naviguer dans l'onglet Mémoire de l'application. Vérifier les 19 scénarios LOT-P1. Comparer avec l'état avant LOT-P1-2 si disponible. |
-| CV8 | Réaliser un export complet. Importer dans la même session ou une nouvelle session. Vérifier que les 12 clés + clés canoniques sont restaurées. Tester avec un ancien export sans clés canoniques. |
+| CV3 | Vérifier dans la console que `CE_canonical_index_v1` (namespacé) est peuplé. Tester les trois fonctions de lecture par famille, date et session. |
+| CV5 | Observer le corpus `CE_canonical_corpus_v1` (namespacé). Vérifier 10 traces · champs RV1-RV4 · dates R1/R3/R4 formalisées. |
+| CV7 | Naviguer dans l'onglet Mémoire. Vérifier les 19 scénarios LOT-P1. Confirmer absence de régression post-migration. |
+| CV8 | Cycle export/import complet. Tester compatibilité ancien format (sans canonicalCorpus). Vérifier restauration des 12 clés + clés canoniques. |
+| Roadmap Critère 3 | Même vérification que CV3 — retrouvabilité par famille, date, session confirmée sur données réelles. |
 
-**Décision de clôture de LOT-P1-2 :** Suspendue. À reprendre après exécution de la validation terrain réelle par l'opérateur.
+**Décision de clôture de LOT-P1-2 :** Suspendue. À reprendre après déploiement ML-5/ML-6 et validation terrain complète.
 
-[À renseigner par l'opérateur après validation terrain réelle]
+[À renseigner par l'opérateur après validation terrain complète]
 
 ---
 
@@ -655,7 +657,7 @@ Le présent document constate l'état des conditions documentaires définies au 
 
 ### 9.1 — Situation documentaire
 
-Le présent document constitue le rapport de pré-validation terrain de LOT-P1-2.5, tel que prévu par le cadrage LOT-P1-2 §6 et §10. Il a été produit dans le cadre de ML-6.
+Le présent document constitue le rapport de validation terrain de LOT-P1-2.5, tel que prévu par le cadrage LOT-P1-2 §6 et §10. Produit dans le cadre de ML-6 (`b46ab70`) et mis à jour suite à la session terrain du 2026-07-08 sur cameleonengine.fr (PC Chrome).
 
 **Ce rapport distingue :**
 1. **Vérifié (PASS code)** : CV1, CV2, CV4, CV6, Roadmap 1, Roadmap 2, Roadmap 4 — vérifiés par inspection directe du code source.
@@ -667,14 +669,14 @@ Le présent document constitue le rapport de pré-validation terrain de LOT-P1-2
 
 La décision de clôture de LOT-P1-2 appartient à l'opérateur. Elle ne peut intervenir qu'après validation terrain réelle des critères CV3, CV5, CV7 et CV8 (+ Roadmap Critère 3) sur l'environnement cible.
 
-**Actions terrain requises de l'opérateur avant tout verdict PASS :**
-1. Charger l'application sur l'environnement cible (iPad Chrome ou PC Chrome).
-2. Vérifier dans la console que `runCanonicalMigration()` s'est exécuté (drapeau positionné, corpus peuplé).
-3. Observer et consigner les données du corpus et de l'index.
-4. Naviguer dans l'onglet Mémoire et vérifier les 19 scénarios.
-5. Réaliser le cycle export/import et vérifier les données restaurées.
-6. Reporter les observations dans les zones réservées de ce rapport.
-7. Prononcer les verdicts CV3, CV5, CV7, CV8 et Roadmap Critère 3.
+**Actions requises avant tout verdict PASS :**
+1. Déployer les commits ML-5 (`091065e`) et ML-6 (`b46ab70`) sur cameleonengine.fr.
+2. Charger l'application sur l'environnement cible (PC Chrome ou iPad Chrome).
+3. Vérifier dans la console que `runCanonicalMigration()` s'est exécuté (drapeau `"1"` · corpus peuplé).
+4. Observer et consigner les données du corpus et de l'index.
+5. Naviguer dans l'onglet Mémoire et vérifier les 19 scénarios LOT-P1.
+6. Réaliser le cycle export/import et vérifier les données restaurées.
+7. Reporter les observations dans ce rapport et prononcer les 5 verdicts (CV3, CV5, CV7, CV8, Roadmap Critère 3).
 8. Prononcer le verdict global.
 
 Décision opérateur :
@@ -691,5 +693,5 @@ Le présent rapport ne décide d'aucune de ces suites.
 
 ---
 
-*Rapport de pré-validation terrain LOT-P1-2.5 — Programme P1 · Phase A · Caméléon Engine · 2026-07-08.*
-*Produit dans le cadre de ML-6 — 7 critères vérifiés (code) · 5 critères en attente de validation terrain.*
+*Rapport de validation terrain LOT-P1-2.5 — Programme P1 · Phase A · Caméléon Engine · 2026-07-08.*
+*7 critères vérifiés (code) · 5 critères NON VÉRIFIABLE · écart de déploiement ML-5/ML-6 identifié le 2026-07-08.*
