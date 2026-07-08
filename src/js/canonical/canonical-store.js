@@ -47,6 +47,19 @@ function _writeCorpus(corpus) {
   }
 }
 
+// ─── Corpus — lecture publique ────────────────────────────────────────────────
+
+/**
+ * Retourne le corpus canonique complet.
+ * Utilisé par canonical-read.js pour les opérations de lecture.
+ * Retourne un tableau vide si le corpus est absent ou invalide (I-09).
+ *
+ * @returns {object[]}
+ */
+export function readCorpus() {
+  return _readCorpus();
+}
+
 // ─── Initialisation ───────────────────────────────────────────────────────────
 
 /**
