@@ -377,6 +377,20 @@ export const behaviorGuard = {
   },
 };
 
+// ── Accès métadonnées — migration canonique (D-ML4-01 · LOT-P1-2) ──────────
+
+/**
+ * Retourne l'horodatage `updatedAt` de l'enveloppe d'une entrée opérateur enveloppée via _wrap.
+ * Utilisé exclusivement par canonical-migration.js — D-ML4-01 Option A — LOT-P1-2.2 §5.2.
+ * Retourne null si la clé est absente, l'enveloppe invalide ou updatedAt absent.
+ *
+ * @param {string} baseKey — valeur d'une entrée de KEYS (avant namespacing UUID)
+ * @returns {string|null} — ISO 8601 UTC ou null
+ */
+export function readEntryUpdatedAt(baseKey) {
+  return _read(withUserKey(baseKey))?.updatedAt ?? null;
+}
+
 // ── Storage health ────────────────────────────────────────────
 
 export function canUseStorage() {
