@@ -12,7 +12,7 @@
 | Programme Roadmap V1 | P1 — Fondation Mémoire & Persistance |
 | Phase Roadmap V1 | A |
 | Type | Architecture fondatrice |
-| Statut | CADRAGE EN COURS |
+| Statut | CLOS — 2026-07-08 · PASS global C0/C2/C3/C4 |
 | Ancrage GPD V1 | Partie II §2.5 (storage) · Partie VIII §8.1 (blancs) · Partie XIII §13.5 (nœuds multiplicateurs) |
 | Prérequis satisfaits | LOT-P1 — Diagnostic mémoriel V1 · CLOS · `2223e15` |
 | Date de cadrage | 2026-07-07 |
