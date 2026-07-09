@@ -13,7 +13,7 @@
 | Programme Roadmap V1 | P1 — Fondation Mémoire & Persistance |
 | Phase Roadmap V1 | A |
 | Type | Spécification |
-| Statut | EN COURS |
+| Statut | VALIDÉ · `0945e9e` · 2026-07-08 |
 | Prérequis satisfaits | LOT-P1-3 cadrage officiel · `a3054fe` |
 | Date de spécification | 2026-07-08 |
 
