@@ -80,19 +80,175 @@ Ces quatre composants sont produits dans ce lot. Ils constituent ensemble la doc
 
 ---
 
-## §5 Décisions à trancher
+## §5 Décisions à trancher (P2-1.B)
 
-Cinq décisions structurantes doivent être tranchées dans ce lot avant que la doctrine puisse être rédigée.
+**Statut :** TRANCHÉES — 2026-07-09
+**Base :** Recensement P2-1.A (§11) — 14 cas limites CL-A1→A7 · CL-B1→B2 · CL-C1→C4 · CL-D1→D4
 
-| Identifiant | Question | Options |
+Cinq décisions structurantes ont été tranchées avant la rédaction des composants RF · FB · EP · CL. Chaque décision est fondée exclusivement sur les cas limites du recensement.
+
+---
+
+### DI1 — Structure de la classification : Option A — Séquentielle
+
+**Question :** La classification est-elle séquentielle (hiérarchie de règles) ou parallèle (critères indépendants évalués simultanément) ?
+
+**Décision retenue : Option A — Séquentielle (ordre de priorité fixe)**
+
+La classification d'une donnée entrante suit une hiérarchie de cinq critères, évalués dans l'ordre suivant. Dès qu'un critère produit une famille valide, l'évaluation s'arrête.
+
+| Priorité | Critère | Famille produite |
 |---|---|---|
-| DI1 | La classification est-elle séquentielle (hiérarchie de règles) ou parallèle (critères indépendants évalués simultanément) ? | A — Séquentielle (ordre de priorité fixe) · B — Parallèle (ensemble de critères, résolution en cas de conflit) |
-| DI2 | Une donnée non classifiable est-elle rejetée à l'entrée ou mise en quarantaine pour traitement différé ? | A — Rejet immédiat (donnée ignorée) · B — Quarantaine (donnée préservée, traitement différé) |
-| DI3 | Les exigences de provenance sont-elles identiques pour toutes les familles ou différenciées par famille ? | A — Uniformes (même règle pour toutes les familles) · B — Différenciées (règles propres par famille ou groupe de familles) |
-| DI4 | Quels sont les critères de frontière entre la famille transactionnelle (S1) et la famille patrimoniale (S2) ? | À définir lors de la rédaction de la doctrine |
-| DI5 | Les données de sources annotées (S3 — annotation manuelle) et de sources synthétiques (S4 — synthèse externe) requièrent-elles un traitement de classification particulier ? | A — Traitement standard (mêmes règles que S1/S2) · B — Traitement spécifique (règles complémentaires pour S3/S4) |
+| 1 | La donnée est-elle un état applicatif ? (fonctionnelle, contextuelle, sans valeur historique, sans écrivain actif) | Exclusion de la couche canonique |
+| 2 | Un module écrivant interne identifié dispose-t-il d'une famille officielle pour cette donnée ? | Famille selon la table de provenance (LOT-P1-2.4 §4) |
+| 3 | La donnée provient-elle d'une source visuelle (capture d'écran, image analysée) ? | S3 — Visuelle |
+| 4 | La donnée provient-elle d'une annotation manuelle ou d'un journal de l'opérateur ? | S4 — Personnelle |
+| 5 | La donnée provient-elle d'un fichier de données structurées ? La nature de son contenu tranche entre famille S1 (événement transactionnel) et S2 (état patrimonial) selon DI4 | S1 ou S2 |
+| — | Aucun critère ne produit une famille valide | Rejet — DI2 |
 
-Les décisions DI1 à DI3 et DI5 sont tranchées par les options ci-dessus ou par la rédaction de la doctrine dans §12 à §15. La décision DI4 est résolue par le composant FB (frontières inter-familles).
+**Cas limites fondateurs :**
+- CL-A1 : R4 classé SY1 malgré contenu évocateur S1 → le module écrivant (priorité 2) prime sur le contenu. Sans hiérarchie séquentielle, l'ambiguïté serait indécidable.
+- CL-A5 : S3 vs S1 après extraction d'image → la forme de la source (image, priorité 3) prime sur le contenu extrait. Sans ordre, le contenu transactionnel aurait pu l'emporter.
+- CL-A6 : S4 vs SY1 → même logique que CL-A5 (priorité 4 prime sur contenu comportemental).
+- CL-A3 / CL-A4 : critère d'état applicatif (priorité 1) — sans ce premier filtre, des snapshots fonctionnels seraient classés comme traces mémorielles.
+
+**Option rejetée — Option B (Parallèle) :**
+L'évaluation parallèle de critères indépendants produit des conflits non déterministes dès que deux critères désignent des familles différentes pour la même donnée (cas CL-A1, CL-A5, CL-A6). Sa résolution nécessiterait une règle de priorité — qui serait elle-même séquentielle. La parallèle ajoute de la complexité sans lever l'ambiguïté. Rejetée.
+
+**Impact :**
+- RF : structure la hiérarchie des règles de classification selon les 5 priorités
+- FB : les frontières inter-familles s'inscrivent dans les nœuds de la hiérarchie (priorités 3→5)
+- EP : les exigences de provenance s'appliquent après classification — la famille doit être connue
+- CL : les cas limites sont localisés à chaque niveau de la hiérarchie (priorité 1 = CL-A3/A4, priorité 5 = CL-D4)
+
+---
+
+### DI2 — Traitement des données non classifiables : Option A — Rejet immédiat
+
+**Question :** Une donnée non classifiable est-elle rejetée à l'entrée ou mise en quarantaine pour traitement différé ?
+
+**Décision retenue : Option A — Rejet immédiat**
+
+Toute donnée pour laquelle aucun critère de la hiérarchie DI1 ne produit une famille valide dans le registre ACF V1 est rejetée à l'entrée. Le rejet est explicite et tracé — la donnée n'est pas ingérée.
+
+**Précision de périmètre — ce que DI2 ne couvre pas :**
+
+DI2 s'applique exclusivement aux données pour lesquelles aucune famille ACF V1 n'est identifiable. Les situations suivantes ne relèvent pas de DI2 et ne déclenchent pas de rejet :
+- Donnée avec date absente ou non conforme (CL-C1 / CL-C2 / CL-C3) : la donnée a une famille valide et est ingérée avec un état formalisé de date. Ce n'est pas un cas de non-classification.
+- Donnée dont la famille est dans le registre mais inactive en Phase A (CL-B1) : la donnée a une famille ACF V1 valide. Son traitement relève du protocole CL, pas de DI2.
+
+**Cas limites fondateurs :**
+- CL-B2 : toute donnée dont la famille n'existe pas dans le registre ACF V1 → RV1 impose le rejet. Le registre est fermé (MI-5) ; la quarantaine présupposerait une doctrine future qui n'est pas décidée.
+- CL-C1/C2/C3 (R1/R3/R4) : ces cas valident que la démarche de Caméléon Engine est d'ingérer avec dégradation contrôlée (état formalisé), pas de rejeter pour incomplétude de date. Ils ne contredisent pas DI2 car ils ont une famille.
+- IG-I6 : "Le silence (rejet ou quarantaine) est préférable à une classification incorrecte" — le silence retenu est le rejet, plus honnête qu'une quarantaine sans protocole de résolution.
+
+**Option rejetée — Option B (Quarantaine) :**
+La quarantaine crée un accumulateur de données "en attente de doctrine" sans protocole de résolution défini. Elle présuppose que la doctrine évoluera pour les intégrer — ce qui est une décision de niveau N2, pas opérationnel. Elle viole MI-5 (registre fermé) en maintenant des données dans le système sans famille valide. Rejetée.
+
+**Impact :**
+- RF : la hiérarchie DI1 se clôt explicitement par "rejet si aucun critère satisfait"
+- CL : le protocole cas limites distingue le rejet (DI2, famille inconnue) du traitement avec état formalisé (famille valide, date dégradée) et du traitement différé (famille inactive — CL-B1, hors DI2)
+- EP : aucun impact direct — DI2 intervient avant l'application des exigences de provenance
+
+---
+
+### DI3 — Exigences de provenance : Option B — Différenciées
+
+**Question :** Les exigences de provenance sont-elles identiques pour toutes les familles ou différenciées par famille ?
+
+**Décision retenue : Option B — Différenciées**
+
+La structure des exigences de provenance est uniforme pour toutes les familles (source obligatoire · date obligatoire sous forme ISO 8601 ou état formalisé · contexte optionnel). Le contenu acceptable, les états formalisés autorisés et les formats de contexte sont différenciés par famille ou groupe de familles.
+
+**Résolution de la tension O4/RV5 (CL-D1) :**
+La tension entre l'objectif O4 du cadrage LOT-P1-2 ("fournir source · date · contexte") et la règle formelle RV5 du modèle canonique ("contexte optionnel") est tranchée en faveur de RV5. La hiérarchie est : règle formelle du modèle > objectif de cadrage. Le contexte est optionnel pour toute famille et toute ingestion. La doctrine EP peut préciser pour quelles familles le contexte est fortement encouragé sans le rendre obligatoire.
+
+**Cas limites fondateurs :**
+- CL-A2 : SY1 regroupe deux modules sources distincts (comportemental et OI V1), avec des sessions différentes par module. Les exigences ne peuvent pas être uniformes au niveau intra-famille sans perdre la différenciation de session nécessaire.
+- CL-D1 : la tension O4/RV5 est tranchée par la hiérarchie des règles doctrinales — RV5 est une règle formelle, O4 un objectif. RV5 l'emporte.
+- CL-C1/C2/C3 : les états formalisés de date (R1/R3/R4) sont déjà spécifiques à chaque source — "Non disponible" pour R1 et R3, "Non exploitable au format canonique" pour R4. Cette différenciation préexistante confirme Option B.
+- LOT-P1-2.4 §7 : les formats de contexte sont déjà différenciés par famille (SY1-comportemental, SY1-OI, SY3, S1, S2). La doctrine EP s'inscrit dans cette continuité.
+
+**Option rejetée — Option A (Uniformes) :**
+Une exigence uniforme ne peut pas couvrir les états formalisés de date (différents par source), les formats de contexte différents par famille, ni la différenciation de session intra-famille SY1. Elle forcerait soit une sur-contrainte (règles trop strictes pour certaines familles) soit une sous-contrainte (règles trop lâches pour d'autres). Rejetée.
+
+**Impact :**
+- EP : produit une table d'exigences par famille ou groupe de familles (SY1-comportemental · SY1-OI · SY3 · S1 · S2 · familles futures)
+- RF : aucun impact direct sur les règles de classification
+- FB : aucun impact direct
+- CL : le protocole cas limites référence les exigences différenciées par famille pour les cas de date dégradée
+
+---
+
+### DI4 — Critères de frontière S1/S2 : Critère événement vs état
+
+**Question :** Quels sont les critères de frontière entre la famille transactionnelle (S1) et la famille patrimoniale (S2) ?
+
+**Décision retenue : Critère de nature de la donnée — événement vs état**
+
+| Famille | Critère | Nature de la donnée |
+|---|---|---|
+| S1 — Transactionnelle | Événement ponctuel d'échange | La donnée représente une opération d'échange survenue à un instant précis : achat, vente, transfert, dépôt, retrait, exécution d'ordre |
+| S2 — Patrimoniale | État de composition à un instant | La donnée représente l'état d'un patrimoine ou d'un portefeuille à un instant donné : composition, allocation, inventaire de positions, solde total |
+
+**Règle de coexistence :** Un même fichier source peut produire des traces dans les deux familles. Le critère s'applique donnée par donnée, pas fichier par fichier.
+
+**Cas limite fondateur :**
+- CL-D4 : un fichier Wallet History Binance contient des lignes de trade (événements d'échange → S1) et des snapshots de composition (états patrimoniaux → S2). Sans critère explicite, le classement serait impossible. Le critère événement/état résout ce cas sans ambiguïté : chaque ligne est traitée indépendamment.
+
+**Compléments doctrinaux issus du recensement :**
+- S1 existant en Phase A : Registre des importations (entrée 9 LOT-P1-2.1) — chaque import est un événement transactionnel.
+- S2 existant en Phase A : Portefeuille (entrée 10) — chaque mise à jour du portefeuille est un état patrimonial.
+Ces deux exemples confirment le critère et en illustrent l'application.
+
+**Impact :**
+- FB : le critère événement/état est le composant central de la frontière S1/S2
+- RF : la priorité 5 de la hiérarchie DI1 s'appuie sur ce critère pour trancher S1 vs S2
+- EP : les exigences de provenance peuvent différer entre S1 (contexte = paramètres de l'opération) et S2 (contexte = composition du patrimoine)
+- CL : CL-D4 (fichier mixte) est couvert par la règle de coexistence
+
+---
+
+### DI5 — Sources S3/S4 : Option B — Traitement spécifique
+
+**Question :** Les données de sources annotées (S3) et de sources synthétiques (S4) requièrent-elles un traitement de classification particulier ?
+
+**Décision retenue : Option B — Traitement spécifique**
+
+S3 et S4 sont classifiées par la **forme de leur source originale**, indépendamment du contenu qu'elles exposent. Cette règle est positionnée aux priorités 3 et 4 de la hiérarchie séquentielle DI1, avant toute classification par contenu.
+
+| Famille | Critère spécifique | Indépendant du contenu |
+|---|---|---|
+| S3 — Visuelle | Toute donnée issue de l'analyse d'une source visuelle (capture d'écran, image) | Même si le contenu extrait est transactionnel (S1) ou comportemental (SY1) |
+| S4 — Personnelle | Toute donnée issue d'une annotation manuelle ou d'un journal de l'opérateur | Même si le contenu est comportemental (SY1) ou décisionnel (SY3) |
+
+**Cas limites fondateurs :**
+- CL-A5 : une capture d'écran d'un relevé de trading analysée par un module de reconnaissance visuelle → contenu extrait = transactions (S1 possible). Sans règle spécifique, le contenu extrait prendrait le dessus → erreur de classification. Avec Option B : la forme de la source (capture) prime → S3.
+- CL-A6 : une note de journal de l'opérateur portant sur son propre comportement → contenu = réflexion comportementale (SY1 possible). Sans règle spécifique : risque de classification SY1. Avec Option B : la forme de la source (note manuelle) prime → S4.
+
+**Cohérence avec DI1 :**
+DI5 Option B est l'implémentation doctrinale des priorités 3 et 4 de la hiérarchie DI1. La règle "source > contenu" est appliquée avant la classification par contenu (priorité 5 = S1/S2 par DI4). La cohérence est totale.
+
+**Option rejetée — Option A (Traitement standard) :**
+Avec un traitement standard, S3 et S4 seraient classifiées uniquement par le contenu extrait. CL-A5 démontre qu'une image de relevé de trading serait classée S1 — famille incorrecte car la valeur mémorielle est la capture elle-même, pas les données extraites. CL-A6 démontre qu'une note comportementale serait classée SY1 — incorrect car c'est l'annotation de l'opérateur qui a une valeur, pas le module comportemental. Rejetée.
+
+**Impact :**
+- RF : S3 et S4 ont chacune une règle de classification spécifique basée sur la forme de la source
+- FB : les frontières S3/S1 et S4/SY1 sont résolues par DI5 (source > contenu) — elles n'ont pas besoin d'un critère de contenu supplémentaire
+- EP : les exigences de provenance pour S3 et S4 sont différenciées (DI3 Option B) — la source d'une trace S3 est le module de reconnaissance visuelle, pas le format de fichier
+- CL : CL-A5 et CL-A6 sont couverts par DI5
+
+---
+
+### §5.1 — Tableau récapitulatif des décisions
+
+| Décision | Question | Décision retenue | Base CL |
+|---|---|---|---|
+| DI1 | Structure de la classification | Option A — Séquentielle (5 priorités) | CL-A1 · CL-A3 · CL-A4 · CL-A5 · CL-A6 |
+| DI2 | Traitement des données non classifiables | Option A — Rejet immédiat | CL-B2 · IG-I6 · MI-5 |
+| DI3 | Exigences de provenance | Option B — Différenciées · RV5 > O4 | CL-A2 · CL-D1 · CL-C1/C2/C3 |
+| DI4 | Frontière S1/S2 | Événement (S1) vs État (S2) | CL-D4 |
+| DI5 | Sources S3/S4 | Option B — Traitement spécifique (forme source prime) | CL-A5 · CL-A6 |
 
 ---
 
@@ -105,7 +261,7 @@ Les invariants suivants sont actifs dès l'ouverture de ce lot. Aucune règle de
 | IG-I1 | **Conformité au modèle canonique** — toute donnée acceptée à l'ingestion doit être représentable comme une trace canonique conforme à LOT-P1-2.1 (6 champs : famille · source · date · valeur · contexte optionnel · session optionnelle) |
 | IG-I2 | **Appartenance exclusive** — toute donnée appartient à une et une seule famille ACF V1. L'appartenance multiple est interdite |
 | IG-I3 | **Classification par règle** — l'affectation à une famille résulte d'une règle déterministe, jamais d'une inférence probabiliste ou d'un jugement contextuel |
-| IG-I4 | **Provenance obligatoire** — toute donnée ingérée doit avoir une source identifiable conforme à la doctrine de provenance LOT-P1-2.4. L'absence de source est un motif de rejet ou de quarantaine selon DI2 |
+| IG-I4 | **Provenance obligatoire** — toute donnée ingérée doit avoir une source identifiable conforme à la doctrine de provenance LOT-P1-2.4. L'absence de source est un motif de rejet selon DI2 |
 | IG-I5 | **Aucune corrélation à l'ingestion** — la couche d'ingestion ne corrèle pas les données entre familles. La signification relative des données est produite par les couches de lecture, jamais à l'ingestion |
 | IG-I6 | **Silence structurel** — une donnée qui ne satisfait aucune règle de classification n'est pas ingérée de force. Le silence (rejet ou quarantaine) est préférable à une classification incorrecte |
 
@@ -382,7 +538,7 @@ Ces cas produisent une tension entre les champs du modèle canonique ou entre le
 | Décision | Signal dominant issu du recensement |
 |---|---|
 | DI1 — Séquentielle vs parallèle | CL-A1 · CL-A5 · CL-A6 plaident pour une hiérarchie de critères séquentielle : la source du module écrivant prime sur le contenu pour SY1 ; l'origine de la donnée prime sur le contenu extrait pour S3 vs S1 |
-| DI2 — Rejet vs quarantaine | CL-C1 à CL-C3 montrent que P1 a toujours préféré ingérer avec état formalisé plutôt que rejeter. CL-B1 suggère un traitement distinct pour famille inactive (quarantaine possible) vs famille inconnue (rejet RV1). Une politique mixte est probable |
+| DI2 — Rejet vs quarantaine | CL-C1 à CL-C3 montrent que P1 a toujours préféré ingérer avec état formalisé plutôt que rejeter — mais ces données ont une famille valide : DI2 ne s'applique pas à elles. CL-B1 suggère un traitement distinct pour famille inactive vs famille inconnue. **Tranchée dans §5/DI2 : Option A — Rejet immédiat.** |
 | DI3 — Uniforme vs différenciée | CL-A2 et CL-D1 montrent que la provenance est déjà différenciée par module au sein d'une même famille (SY1). DI3 Option B (différenciée) est cohérente avec l'existant. La tension O4/RV5 doit être tranchée |
 | DI4 — Frontière S1/S2 | CL-D4 fournit le critère concret : ligne de trade = S1 · snapshot de composition wallet = S2 |
 | DI5 — S3/S4 standard vs spécifique | CL-A5 et CL-A6 montrent que S3 et S4 ont des ambiguïtés de classification propres à leur nature (contenu vs origine). Un traitement spécifique (DI5 Option B) semble requis pour éviter les faux positifs S3→S1 et S4→SY1 |
