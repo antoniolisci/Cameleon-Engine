@@ -553,3 +553,601 @@ Ces cas produisent une tension entre les champs du modèle canonique ou entre le
 | FB — Frontières inter-familles | CL-A1 (SY1/S1) · CL-A5 (S3/S1) · CL-A6 (S4/SY1) · CL-A7 (SY3/SY4) · CL-D4 (S1/S2) |
 | EP — Exigences de provenance | CL-C1 · CL-C2 · CL-C3 · CL-D1 (tension O4/RV5) · CL-D2 (date externe) · CL-D3 |
 | CL — Protocole cas limites | CL-B1 · CL-B2 · CL-C1 · CL-C2 · CL-C3 · CL-D2 (sous-cas a→d) |
+
+---
+
+## §12 RF — Règles de classification
+
+**Statut :** RÉDIGÉ — 2026-07-09
+**Fondé sur :** DI1 (hiérarchie séquentielle) · DI5 (traitement spécifique S3/S4) · DI4 (frontière S1/S2) · DI2 (rejet) · recensement P2-1.A §11.1 et §11.2
+
+---
+
+### §12.1 Définition et portée
+
+Dans Caméléon Engine, **classer une donnée** consiste à lui affecter exactement une famille du registre ACF V1, de façon déterministe, avant toute écriture dans la couche canonique.
+
+Le composant RF établit les règles qui rendent ce classement possible. Une règle RF est valide si et seulement si elle est déterministe : pour toute donnée entrante, son application désigne une famille unique ou un rejet explicite, sans ambiguïté, sans jugement contextuel et sans inférence probabiliste (IG-I3).
+
+Le composant RF s'applique à toute donnée, quel que soit son format d'origine, son volume ou son module producteur.
+
+---
+
+### §12.2 Hiérarchie séquentielle de classification
+
+La classification d'une donnée suit une hiérarchie de cinq règles, évaluées dans l'ordre croissant de priorité. L'évaluation s'arrête dès qu'une règle produit une famille valide (DI1 — Option A).
+
+| Priorité | Règle | Résultat |
+|---|---|---|
+| 1 | RF-R1 — État applicatif | Exclusion de la couche canonique |
+| 2 | RF-R2 — Module écrivant interne | Famille officielle du module |
+| 3 | RF-R3 — Source visuelle | S3 — Visuelle |
+| 4 | RF-R4 — Source annotation manuelle | S4 — Personnelle |
+| 5 | RF-R5 — Fichier structuré | S1 ou S2 selon DI4 |
+| — | RF-R6 — Aucune règle satisfaite | Rejet |
+
+La hiérarchie garantit l'appartenance exclusive (IG-I2) : une donnée satisfaisant une règle de priorité supérieure ne peut pas être classifiée par une règle de priorité inférieure.
+
+---
+
+### §12.3 Règles détaillées
+
+#### RF-R1 — Priorité 1 : Exclusion des états applicatifs
+
+Une donnée est un **état applicatif** si elle satisfait au moins l'un des critères suivants :
+
+- Elle remplit une fonction technique de l'application (restauration de session, synchronisation, paramétrage d'interface) sans valeur historique pour le décideur
+- Aucun module écrivant actif ne lui est associé
+- Son contenu n'a pas de valeur réflexive, décisionnelle ou comportementale pour l'opérateur
+
+**Résultat :** exclusion de la couche canonique. La donnée n'est pas ingérée et ne déclenche pas de rejet au sens de RF-R6 — elle est hors périmètre mémoriel.
+
+**Cas limites couverts :** CL-A3 (slot "Paramètres" sans écrivain actif) · CL-A4 (instantané moteur pour restauration de session courante)
+
+---
+
+#### RF-R2 — Priorité 2 : Module écrivant interne identifié
+
+Un **module écrivant interne** est un composant de Caméléon Engine dont la famille officielle est inscrite dans la table de provenance (LOT-P1-2.4 §4). Lorsqu'un tel module est identifié comme producteur de la donnée, la famille est celle du module — indépendamment du contenu de la donnée.
+
+**Modules écrivants actifs en Phase A :**
+
+| Module | Famille produite |
+|---|---|
+| Module comportemental | SY1 — Comportementale |
+| Module OI V1 | SY1 — Comportementale |
+| Moteur décisionnel | SY3 — Décisionnelle |
+
+**Note :** plusieurs modules peuvent partager la même famille. Deux données issues de modules distincts peuvent appartenir à la même famille. Elles constituent deux traces distinctes avec des sources et des sessions différentes — jamais une fusion (IG-I2 par trace, non par événement).
+
+**Cas limites couverts :** CL-A1 (R4 module comportemental → SY1, malgré contenu évocateur S1) · CL-A2 (module comportemental et module OI V1, tous deux → SY1)
+
+---
+
+#### RF-R3 — Priorité 3 : Source visuelle (DI5 — Option B)
+
+Une donnée provient d'une **source visuelle** si son origine primaire est une image, une capture d'écran ou tout support graphique traité par un module d'analyse visuelle.
+
+**Résultat :** S3 — Visuelle, indépendamment du contenu extrait.
+
+**Principe (DI5) :** la valeur mémorielle est la donnée d'origine visuelle elle-même, non le contenu qui en est extrait. Un contenu transactionnel extrait d'une capture reste classifié S3.
+
+**Cas limite couvert :** CL-A5 (capture d'écran d'un relevé de trading analysée → S3, non S1 malgré contenu transactionnel extrait)
+
+---
+
+#### RF-R4 — Priorité 4 : Source annotation manuelle ou journal (DI5 — Option B)
+
+Une donnée provient d'une **source annotation manuelle** si son origine primaire est une saisie directe de l'opérateur : note, observation, entrée de journal, réflexion personnelle.
+
+**Résultat :** S4 — Personnelle, indépendamment du contenu rédigé.
+
+**Principe (DI5) :** la valeur mémorielle est la voix de l'opérateur elle-même, non le sujet traité dans la note. Un contenu comportemental rédigé par l'opérateur reste classifié S4 — la note n'est pas produite par le module comportemental.
+
+**Cas limite couvert :** CL-A6 (note de journal portant sur les patterns comportementaux de l'opérateur → S4, non SY1 — absence de module écrivant interne)
+
+---
+
+#### RF-R5 — Priorité 5 : Fichier structuré (DI4)
+
+Une donnée provient d'un **fichier structuré** si son origine est un fichier de données ne relevant pas des priorités 1 à 4. La famille est déterminée par la nature intrinsèque de la donnée selon le critère DI4 :
+
+| Nature de la donnée | Famille | Exemples |
+|---|---|---|
+| Événement ponctuel d'échange | S1 — Transactionnelle | Achat, vente, transfert, dépôt, retrait, exécution d'ordre |
+| État de composition à un instant | S2 — Patrimoniale | Composition de portefeuille, allocation, inventaire de positions, solde total |
+
+**Règle de coexistence :** un même fichier source peut produire des données classifiées S1 et des données classifiées S2. Le critère s'applique donnée par donnée, non fichier par fichier.
+
+**Cas limite couvert :** CL-D4 (fichier Wallet History — lignes de trade → S1, snapshots de composition → S2)
+
+---
+
+#### RF-R6 — Rejet : Aucune règle satisfaite (DI2 — Option A)
+
+Si l'application successive de RF-R1 à RF-R5 ne produit aucune famille valide dans le registre ACF V1, la donnée est rejetée à l'entrée.
+
+**Résultat :** rejet immédiat. La donnée n'est pas ingérée. Un motif de rejet est tracé.
+
+**Périmètre :** RF-R6 s'applique exclusivement aux données dont aucune des 13 familles ACF V1 ne décrit la nature. Les données à date absente ou non conforme (CL-C1/C2/C3) ont une famille valide — elles ne déclenchent pas RF-R6.
+
+**Cas limite couvert :** CL-B2 (donnée hors du registre des 13 familles ACF V1)
+
+---
+
+### §12.4 Règles structurelles complémentaires
+
+**RF-RC1 — Appartenance exclusive**
+Toute donnée appartient à une et une seule famille. La hiérarchie séquentielle garantit cette propriété : l'évaluation s'arrête au premier critère satisfait (IG-I2).
+
+**RF-RC2 — Déterminisme absolu**
+L'application de RF-R1 à RF-R6 dans l'ordre produit toujours un résultat unique pour toute donnée : une famille ou un rejet. Aucun résultat indéterminé n'est admis (IG-I3).
+
+**RF-RC3 — Priorité exclusive**
+Une donnée satisfaisant une règle de priorité supérieure est classifiée selon cette règle. Elle ne peut pas être reclassifiée par une règle de priorité inférieure, même si elle satisfait également cette règle inférieure.
+
+**RF-RC4 — Familles sans règle active en Phase A**
+Les familles S5 · SY2 · SY4 · L1 · L2 · L3 · Référentiel ne disposent d'aucune règle RF active en Phase A. Leur intégration dans RF nécessitera une mise à jour lors de leur activation. Cas particulier : toute donnée susceptible de relever de SY4 est classifiée SY3 par RF-R2 (module décisionnel) en Phase A — la frontière SY3/SY4 sera définie lors de l'activation de SY4 (CL-A7).
+
+---
+
+### §12.5 Couverture des cas limites par RF
+
+| Cas limite | Règle appliquée | Résolution |
+|---|---|---|
+| CL-A1 — R4 SY1 vs contenu S1 | RF-R2 (priorité 2 prime sur priorité 5) | SY1 — famille du module écrivant prime sur le contenu |
+| CL-A2 — SY1 comportemental et SY1 OI V1 | RF-R2 | SY1 pour les deux modules — deux traces distinctes, sessions différentes |
+| CL-A3 — Paramètres sans écrivain actif | RF-R1 | Exclusion état applicatif — hors périmètre mémoriel |
+| CL-A4 — Instantané moteur vs Sauvegarde moteur | RF-R1 / RF-R2 | Instantané → exclusion état applicatif (RF-R1) · Sauvegarde → SY3 par module décisionnel (RF-R2) |
+| CL-A5 — Capture d'écran vs S1 | RF-R3 (priorité 3 prime sur priorité 5) | S3 — source visuelle prime sur le contenu transactionnel extrait |
+| CL-A6 — Note comportementale vs SY1 | RF-R4 | S4 — source annotation manuelle (RF-R2 non applicable : absence de module écrivant interne) |
+| CL-A7 — SY3 vs SY4 future | RF-RC4 | SY3 en Phase A · frontière SY4 à documenter lors de l'activation |
+| CL-B2 — Famille inconnue | RF-R6 | Rejet immédiat |
+
+---
+
+## §13 FB — Frontières inter-familles
+
+**Statut :** RÉDIGÉ — 2026-07-09
+**Fondé sur :** DI1 (hiérarchie séquentielle) · DI4 (frontière S1/S2) · DI5 (source prime sur contenu) · RF validé (§12) · recensement P2-1.A §11.1 et §11.4
+
+---
+
+### §13.1 Définition et portée
+
+Une **frontière inter-familles** est le point où une donnée entrante pourrait être rattachée à deux familles distinctes en l'absence de règle de résolution explicite. Le composant FB documente chacun de ces points d'ambiguïté et le critère qui les résout.
+
+FB ne redéfinit pas les règles RF. Il explicite, pour chaque couple de familles à risque, le critère conceptuel que RF applique et la raison pour laquelle ce critère est déterministe.
+
+Cinq frontières sont documentées en Phase A. Quatre sont opérationnelles (FB-F1 · FB-F2 · FB-F3 · FB-F5). Une frontière (FB-F4 — SY3/SY4) est documentée par anticipation : SY4 étant inactive en Phase A, la frontière ne peut pas être atteinte. Elles correspondent aux cinq couples identifiés dans le recensement P2-1.A §11.1 et §11.4.
+
+---
+
+### §13.2 Tableau des frontières documentées
+
+| Identifiant | Couple de familles | Règle RF | Cas fondateur |
+|---|---|---|---|
+| FB-F1 | SY1 / S1 | RF-R2 (priorité 2) | CL-A1 |
+| FB-F2 | S3 / S1 | RF-R3 (priorité 3) | CL-A5 |
+| FB-F3 | S4 / SY1 | RF-R4 (priorité 4) | CL-A6 |
+| FB-F4 | SY3 / SY4 | RF-RC4 (Phase A) | CL-A7 |
+| FB-F5 | S1 / S2 | RF-R5 + DI4 | CL-D4 |
+
+---
+
+### §13.3 Frontières détaillées
+
+#### FB-F1 — Frontière SY1 / S1
+
+**Risque d'ambiguïté :** une donnée produite par le module comportemental peut contenir des paramètres d'ordres de trading (valeurs numériques, horodatages, prix d'exécution). Son contenu évoque la famille S1 (Transactionnelle). Sa source — le module comportemental — appartient à la famille SY1 (Comportementale).
+
+**Critère de résolution :** l'identité du module écrivant prime sur la nature du contenu.
+
+- Donnée produite par un module écrivant interne identifié → RF-R2 s'applique → famille officielle du module (SY1 pour le module comportemental)
+- Donnée provenant d'un fichier structuré sans module écrivant interne → RF-R5 s'applique → S1 si événement transactionnel
+
+**Principe :** la valeur mémorielle d'une donnée comportementale réside dans sa signification pour la lecture du comportement de l'opérateur, non dans la valeur transactionnelle qu'elle porte. Le module producteur détermine cette signification.
+
+**Règle RF :** RF-R2 (priorité 2) précède RF-R5 (priorité 5). La frontière est résolue par l'ordre hiérarchique.
+
+**Cas fondateur :** CL-A1 — paramètres d'ordres récents classés SY1 par le module comportemental, malgré un contenu de nature transactionnelle.
+
+---
+
+#### FB-F2 — Frontière S3 / S1
+
+**Risque d'ambiguïté :** une donnée extraite d'une source visuelle (capture d'écran d'un relevé de trading) peut contenir des informations transactionnelles (dates, montants, paires). Son contenu extrait évoque la famille S1. Son origine — une image analysée — appartient à la famille S3 (Visuelle).
+
+**Critère de résolution :** la nature de la source originale prime sur la nature du contenu extrait.
+
+- Donnée provenant d'une source visuelle → RF-R3 s'applique → S3
+- Donnée provenant d'un fichier structuré (export, CSV) → RF-R5 s'applique → S1 si événement transactionnel
+
+**Principe (DI5) :** la valeur mémorielle d'une capture d'écran est d'avoir observé la réalité visuelle à un instant donné. Le contenu extrait par analyse est un artefact de ce processus d'observation — il n'est pas l'objet mémoriel.
+
+**Règle RF :** RF-R3 (priorité 3) précède RF-R5 (priorité 5). La frontière est résolue par l'ordre hiérarchique.
+
+**Cas fondateur :** CL-A5 — capture d'écran d'un relevé de trading analysée → S3, non S1.
+
+---
+
+#### FB-F3 — Frontière S4 / SY1
+
+**Risque d'ambiguïté :** une note rédigée par l'opérateur sur ses propres patterns comportementaux porte un contenu comportemental. Ce contenu évoque la famille SY1 (Comportementale). Mais la donnée n'est pas produite par le module comportemental — elle est produite directement par l'opérateur.
+
+**Critère de résolution :** l'identité du producteur prime sur la nature du contenu.
+
+- Donnée produite par l'opérateur (note, journal, annotation manuelle) → RF-R4 s'applique → S4
+- Donnée produite par le module comportemental → RF-R2 s'applique → SY1
+
+**Précision sur l'ordre hiérarchique :** RF-R2 (priorité 2) est évalué avant RF-R4 (priorité 4). Pour une annotation manuelle, RF-R2 ne se déclenche pas — il n'existe pas de module écrivant interne associé à une saisie manuelle. L'évaluation descend naturellement à RF-R4 (priorité 4), qui capture la source annotation manuelle.
+
+**Principe (DI5) :** la valeur mémorielle d'une note de l'opérateur est d'avoir documenté sa propre réflexion. L'objet mémoriel est la voix de l'opérateur — non l'analyse comportementale que le module aurait produite sur les mêmes observations.
+
+**Règle RF :** RF-R4 (priorité 4), applicable après non-déclenchement de RF-R2 (absence de module écrivant interne).
+
+**Cas fondateur :** CL-A6 — note de journal portant sur les patterns comportementaux de l'opérateur → S4, non SY1.
+
+---
+
+#### FB-F4 — Frontière SY3 / SY4
+
+**Risque d'ambiguïté :** certaines données de retour sur décision peuvent porter sur une décision passée de l'opérateur. Elles pourraient appartenir à SY3 (Décisionnelle — la décision elle-même) ou à SY4 (apprentissage extrait de la décision — famille inactive en Phase A).
+
+**État en Phase A :** SY4 est inactive. La frontière SY3/SY4 n'est pas opérationnelle. Toute donnée susceptible de relever de SY4 est classifiée SY3 par RF-R2 (module décisionnel), conformément à RF-RC4.
+
+**Critère de résolution (futur — applicable à l'activation de SY4) :**
+
+| Famille | Critère | Nature de la donnée |
+|---|---|---|
+| SY3 — Décisionnelle | La décision prise | Trace de ce qui a été décidé à un instant précis — posture, action, niveau d'engagement |
+| SY4 — Apprentissage | L'apprentissage extrait | Synthèse de ce qu'une décision ou un ensemble de décisions enseigne sur le comportement futur |
+
+**Principe :** SY3 trace ce qui s'est passé. SY4 synthétise ce qu'il faut en retenir. La frontière devient opérationnelle lorsqu'un module d'apprentissage produit des synthèses distinctes des décisions brutes.
+
+**Règle RF en Phase A :** RF-RC4 — toute donnée susceptible de relever de SY4 est classifiée SY3 jusqu'à l'activation de SY4.
+
+**Action requise à l'activation de SY4 :** mise à jour de RF (RF-R2, RF-RC4) et de FB (FB-F4) avec le critère définitif et le module écrivant associé.
+
+**Cas fondateur :** CL-A7 — données de retour sur décision non encore actives en Phase A.
+
+---
+
+#### FB-F5 — Frontière S1 / S2
+
+**Risque d'ambiguïté :** un fichier de données source peut contenir à la fois des enregistrements de transactions (événements ponctuels d'échange) et des états du patrimoine (états de composition à un instant). Sans critère d'application par donnée, la classification serait celle du fichier entier — incorrecte pour les données qui n'appartiennent pas à la famille dominante.
+
+**Critère de résolution (DI4) :** la nature intrinsèque de chaque donnée — événement ponctuel d'échange vs état de composition à un instant.
+
+| Nature | Famille | Test |
+|---|---|---|
+| Événement ponctuel d'échange | S1 — Transactionnelle | La donnée décrit-elle une opération survenue à un instant précis ? |
+| État de composition à un instant | S2 — Patrimoniale | La donnée décrit-elle la situation d'un patrimoine à un instant donné ? |
+
+**Règle de coexistence :** le critère s'applique donnée par donnée, non fichier par fichier. Un même fichier source peut produire des traces S1 et des traces S2.
+
+**Règle RF :** RF-R5 (priorité 5), appliquant le critère DI4 à chaque donnée individuellement.
+
+**Cas fondateur :** CL-D4 — fichier Wallet History Binance contenant des lignes de trade (→ S1) et des snapshots de composition de portefeuille (→ S2).
+
+---
+
+### §13.4 Couverture des cas limites par FB
+
+| Cas limite | Frontière | Critère de résolution |
+|---|---|---|
+| CL-A1 — R4 SY1 vs S1 | FB-F1 | Module écrivant interne (SY1) prime sur le contenu transactionnel |
+| CL-A5 — S3 vs S1 après extraction | FB-F2 | Source visuelle (S3) prime sur le contenu extrait transactionnel |
+| CL-A6 — S4 vs SY1 | FB-F3 | Producteur opérateur (S4) — RF-R2 non déclenché, RF-R4 applicable |
+| CL-A7 — SY3 vs SY4 future | FB-F4 | SY3 en Phase A · critère SY4 à définir lors de l'activation |
+| CL-D4 — Fichier mixte S1/S2 | FB-F5 | Événement ponctuel (S1) vs état de composition (S2) — critère par donnée |
+
+---
+
+## §14 EP — Exigences de provenance
+
+**Statut :** RÉDIGÉ — 2026-07-09
+**Fondé sur :** DI3 (différenciées · RV5 > O4) · RF validé (§12) · FB validé (§13) · recensement P2-1.A §11.3 et §11.4
+
+---
+
+### §14.1 Définition et portée
+
+Dans Caméléon Engine, la **provenance** d'une trace canonique est l'ensemble des informations qui permettent d'identifier son origine : son producteur (source), son horodatage (date), son contexte et son identifiant de session.
+
+Le composant EP définit les exigences minimales de provenance à l'ingestion, par famille ou groupe de familles. EP s'appuie sur la décision DI3 (Option B — différenciées) : la structure des exigences est uniforme pour toutes les familles, mais le contenu acceptable, les états formalisés autorisés et les formats de contexte sont différenciés par famille ou groupe de familles.
+
+EP résout également la tension O4/RV5 (CL-D1) : conformément à DI3, la règle formelle RV5 prime sur l'objectif de cadrage O4. Le contexte est optionnel pour toute famille et toute ingestion.
+
+---
+
+### §14.2 Structure uniforme des exigences
+
+La structure suivante s'applique à toute donnée, quelle que soit sa famille.
+
+| Champ | Obligation | Valeur admise |
+|---|---|---|
+| Source | Obligatoire | Identifiant du producteur conforme à la table de provenance (LOT-P1-2.4 §4) |
+| Date | Obligatoire | ISO 8601 ou état formalisé (voir §14.3) |
+| Contexte | Optionnel | Format différencié par famille (voir §14.4) · RV5 > O4 |
+| Session | Optionnel | Identifiant de session du module écrivant (voir §14.4) |
+
+**Conséquences de l'absence de champ obligatoire :**
+- Source absente : motif de rejet selon IG-I4 · DI2
+- Date absente ou non conforme : état formalisé selon §14.3 — la trace est ingérée
+
+**Conséquences de l'absence de champ optionnel :**
+- Contexte absent : aucune conséquence · trace valide · RV5 > O4 (EP-RC3)
+- Session absente : aucune conséquence · trace valide
+
+---
+
+### §14.3 États formalisés de date
+
+Trois états formalisés couvrent les situations où la date ne peut pas être fournie en ISO 8601. Ces états ne déclenchent pas RF-R6 : les données concernées ont une famille valide.
+
+| État formalisé | Libellé | Situation | Cas limite |
+|---|---|---|---|
+| R1 | "Non disponible" | L'information temporelle est structurellement absente de la source — aucune donnée d'horodatage n'existe | CL-C1 |
+| R3 | "Non disponible" | L'information temporelle est présente dans un format non conforme à ISO 8601 et non convertible | CL-C2 |
+| R4 | "Non exploitable au format canonique" | L'information temporelle est présente dans un format non conforme mais techniquement convertible en ISO 8601 | CL-C3 |
+
+**Distinction R1 / R3 :** R1 = absence totale d'information temporelle · R3 = présence d'information temporelle dans un format inutilisable · les deux produisent le libellé "Non disponible" mais pour des raisons différentes — distinction documentée pour orienter les parsers futurs.
+
+**Distinction R4 / R1-R3 :** R4 est normalisable par conversion. La normalisation est réservée à un lot ultérieur — le parser peut anticiper la conversion si sa capacité le permet.
+
+---
+
+### §14.4 Exigences différenciées par famille
+
+#### EP-SY1 — Famille comportementale (deux sous-groupes)
+
+SY1 regroupe deux modules écrivants distincts aux rythmes d'activité et aux sessions indépendants. Les exigences sont différenciées au niveau du module écrivant, conformément à CL-A2.
+
+| Exigence | Module comportemental | Module OI V1 |
+|---|---|---|
+| Source | Module comportemental | Module OI V1 |
+| Date | État formalisé R1 — datation structurellement absente | ISO 8601 ou état formalisé selon disponibilité |
+| Contexte | Optionnel — peut inclure le label comportemental de la session | Optionnel — peut inclure les paramètres OI de la session |
+| Session | Identifiant de session comportementale | Identifiant de session OI V1 |
+
+**Règle de séparation :** deux données SY1 de modules distincts ne partagent jamais la même session. La session est définie par le module écrivant, non par la famille (LOT-P1-2.4 §4 · CL-A2).
+
+---
+
+#### EP-SY3 — Famille décisionnelle
+
+| Exigence | Valeur |
+|---|---|
+| Source | Moteur décisionnel |
+| Date | ISO 8601 — date de la décision produite |
+| Contexte | Optionnel — peut inclure la posture, le niveau d'engagement, l'état moteur au moment de la décision |
+| Session | Identifiant de session moteur |
+
+---
+
+#### EP-S1 — Famille transactionnelle (données de fichier structuré)
+
+| Exigence | Valeur |
+|---|---|
+| Source | Identifiant de la source externe — type de plateforme ou format d'export |
+| Date | Extraite du contenu du fichier source selon EP-RC2 — ISO 8601 ou état formalisé R1/R3/R4 |
+| Contexte | Optionnel — peut inclure les paramètres de l'opération (type d'ordre, quantité, paire) |
+| Session | Non défini — données historiques sans module écrivant interne · champ optionnel |
+
+---
+
+#### EP-S2 — Famille patrimoniale (données de fichier structuré)
+
+| Exigence | Valeur |
+|---|---|
+| Source | Identifiant de la source externe — type de plateforme ou format d'export |
+| Date | Extraite du contenu du fichier source selon EP-RC2 — ISO 8601 ou état formalisé R1/R3/R4 |
+| Contexte | Optionnel — peut inclure la composition du patrimoine ou l'inventaire de positions |
+| Session | Non défini — données historiques sans module écrivant interne · champ optionnel |
+
+---
+
+#### Familles sans exigences EP actives en Phase A
+
+Les familles S3 · S4 · S5 · SY2 · SY4 · L1 · L2 · L3 · Référentiel sont inactives en Phase A. Leurs exigences de provenance seront définies dans EP lors de l'activation de leur module écrivant ou de leur source d'ingestion respective.
+
+---
+
+### §14.5 Règles de provenance complémentaires
+
+**EP-RC1 — Unicité de la source par trace**
+Une trace canonique a exactement une source. Si deux modules produisent des données sur le même événement, ce sont deux traces distinctes avec des sources distinctes — jamais une fusion de sources (IG-I2 · CL-D3).
+
+**EP-RC2 — Date pour les données d'ingestion externe (CL-D2)**
+Pour les familles S1 et S2, la date est extraite du contenu du fichier source, non fournie comme métadonnée séparée. Quatre comportements selon le format trouvé dans le contenu :
+
+| Format trouvé | Comportement | Valeur du champ Date |
+|---|---|---|
+| Conforme ISO 8601 (YYYY-MM-DD ou YYYY-MM-DDTHH:MM:SSZ) | Extraction directe | ISO 8601 |
+| Epoch millisecondes | État formalisé R4 — conversion future possible | "Non exploitable au format canonique" |
+| Absent | État formalisé R1 | "Non disponible" |
+| Format propriétaire non convertible | État formalisé R3 | "Non disponible" |
+
+**EP-RC3 — Résolution O4/RV5 : contexte optionnel (CL-D1)**
+Le contexte est optionnel pour toute famille et toute ingestion. La hiérarchie est : règle formelle du modèle (RV5) > objectif de cadrage (O4). Un contexte absent ne déclenche ni rejet, ni état formalisé, ni avertissement. EP peut préciser pour quelles familles le contexte est fortement encouragé sans le rendre obligatoire.
+
+---
+
+### §14.6 Couverture des cas limites par EP
+
+| Cas limite | Règle EP | Résolution |
+|---|---|---|
+| CL-C1 — Date absente (R1) | §14.3 / R1 | État formalisé "Non disponible" — trace ingérée |
+| CL-C2 — Date format non conforme non convertible (R3) | §14.3 / R3 | État formalisé "Non disponible" — trace ingérée |
+| CL-C3 — Date epoch ms convertible (R4) | §14.3 / R4 | État formalisé "Non exploitable au format canonique" — conversion future réservée |
+| CL-D1 — Tension O4/RV5 | EP-RC3 | RV5 prime sur O4 — contexte optionnel pour toute famille et toute ingestion |
+| CL-D2 — Date imbriquée dans la valeur | EP-RC2 | Quatre comportements selon format extrait : ISO 8601 / R4 / R1 / R3 |
+| CL-D3 — Provenance conflictuelle | EP-RC1 | Une trace = une source · deux modules → deux traces distinctes |
+
+---
+
+## §15 CL — Protocole cas limites
+
+**Statut :** RÉDIGÉ — 2026-07-09
+**Fondé sur :** RF validé (§12) · EP validé (§14) · FB validé (§13) · DI2 · DI4 · recensement P2-1.A §11.2 §11.3 §11.4
+
+---
+
+### §15.1 Définition et portée
+
+Le composant CL établit les protocoles applicables aux situations où la classification ou l'ingestion d'une donnée ne suit pas le chemin nominal de RF. Il couvre quatre types de traitement distincts, selon la nature du cas limite rencontré.
+
+CL est l'unique composant de D1 qui spécifie ce qu'il faut faire (verbe d'action) plutôt que ce qui doit être établi (règle ou exigence). RF · FB · EP définissent des règles. CL définit des protocoles d'action.
+
+Les quatre protocoles sont mutuellement exclusifs : toute donnée en situation de cas limite relève d'exactement un protocole.
+
+---
+
+### §15.2 Tableau des quatre protocoles
+
+| Protocole | Type | Situation déclenchante | Résultat |
+|---|---|---|---|
+| CL-P1 | Exclusion hors périmètre mémoriel | Donnée satisfaisant RF-R1 (état applicatif) | Non ingérée · Non rejetée · Exclusion silencieuse |
+| CL-P2 | Rejet à l'entrée | Famille inconnue (RF-R6) ou source absente (IG-I4) | Non ingérée · Motif tracé |
+| CL-P3 | Ingestion avec état formalisé | Date dégradée (R1/R3/R4) ou contexte absent | Ingérée avec champ dégradé ou vide |
+| CL-P4 | Traitement différé | Famille inactive dans le registre ACF V1 (CL-B1) | Non ingérée · Documentée pour activation future |
+
+---
+
+### §15.3 Protocoles détaillés
+
+#### CL-P1 — Exclusion hors périmètre mémoriel
+
+**Déclencheur :** la donnée satisfait RF-R1 — elle remplit une fonction technique de l'application (restauration, synchronisation, paramétrage) sans valeur historique pour le décideur, ou sans module écrivant actif.
+
+**Procédure :**
+- La donnée n'est pas ingérée dans la couche canonique
+- Elle n'est pas rejetée au sens de CL-P2 — elle n'est pas invalide, elle est hors périmètre
+- L'exclusion est silencieuse : aucun motif n'est tracé dans la couche canonique
+- La donnée continue à remplir sa fonction applicative normale sans perturbation
+
+**Distinction CL-P1 / CL-P2 :** une exclusion (CL-P1) ne signifie pas un problème — la donnée n'avait pas vocation à être mémorielle. Un rejet (CL-P2) signifie un problème d'identité ou de provenance.
+
+**Cas couverts :** CL-A3 (slot "Paramètres" sans écrivain actif) · CL-A4 (instantané moteur pour restauration de session courante)
+
+---
+
+#### CL-P2 — Rejet à l'entrée
+
+**Déclencheur :** la donnée ne peut pas être ingérée car elle viole un prérequis fondamental de la couche canonique. Deux sous-cas distincts déclenchent CL-P2.
+
+**Sous-cas A — Famille inconnue (RF-R6 · CL-B2)**
+
+Situation : aucun critère de la hiérarchie RF-R1 à RF-R5 ne produit une famille valide dans le registre ACF V1.
+
+Procédure :
+- Rejet immédiat
+- Motif tracé : "Famille non identifiable dans le registre ACF V1"
+- La donnée n'est pas conservée
+
+**Sous-cas B — Source absente (IG-I4 · §14.2)**
+
+Situation : la donnée ne dispose d'aucun identifiant de producteur valide conforme à la table de provenance.
+
+Procédure :
+- Rejet immédiat
+- Motif tracé : "Source absente — exigence de provenance non satisfaite"
+- La donnée n'est pas conservée
+
+**Principe commun :** dans les deux sous-cas, la donnée n'est pas ingérée et aucune rétention en quarantaine n'est effectuée (DI2 — Option A). Le motif de rejet est explicitement tracé afin de permettre une correction à la source.
+
+**Distinction CL-P2 / CL-P4 :** CL-P2 s'applique quand la famille est hors registre (inconnue). CL-P4 s'applique quand la famille est dans le registre mais inactive. Ces deux situations ne produisent pas le même protocole.
+
+**Cas couverts :** CL-B2 (famille inconnue) · Source absente
+
+---
+
+#### CL-P3 — Ingestion avec état formalisé
+
+**Déclencheur :** la donnée a une famille valide et satisfait les exigences de provenance de source, mais un ou plusieurs champs optionnels ou dégradés ne sont pas fournis en format nominal. La donnée peut néanmoins être ingérée.
+
+CL-P3 comporte deux variantes.
+
+**Variante A — Date dégradée (CL-C1 · CL-C2 · CL-C3 · CL-D2)**
+
+La date ne peut pas être fournie en ISO 8601. Un état formalisé est substitué conformément à EP §14.3.
+
+| Situation | État formalisé | Libellé |
+|---|---|---|
+| Date structurellement absente (R1) | R1 | "Non disponible" |
+| Date présente en format non conforme non convertible (R3) | R3 | "Non disponible" |
+| Date présente en format non conforme convertible (R4) | R4 | "Non exploitable au format canonique" |
+
+Procédure commune :
+- La trace est ingérée avec le champ Date contenant l'état formalisé
+- Tous les autres champs (source, valeur, contexte, session) sont vérifiés et traités normalement
+- Aucune information n'est perdue — la raison de la dégradation est portée par le libellé
+
+Pour les données d'ingestion externe (S1/S2) dont la date est imbriquée dans le contenu du fichier (CL-D2), les quatre comportements selon le format extrait sont définis dans EP-RC2 et se traitent selon la même variante A.
+
+**Variante B — Contexte absent (CL-C4)**
+
+Le contexte est optionnel pour toute famille (RV5 > O4 · EP-RC3). Son absence n'est pas un cas limite bloquant.
+
+Procédure :
+- Le champ Contexte reste vide
+- La trace est ingérée sans conséquence
+- Aucun état formalisé n'est appliqué — le champ vide est le résultat nominal
+
+Cette variante est documentée ici pour confirmer explicitement l'absence de protocole spécifique pour un contexte absent.
+
+---
+
+#### CL-P4 — Traitement différé
+
+**Déclencheur :** la donnée appartient à une famille valide dans le registre ACF V1, mais cette famille est inactive en Phase A — aucun module écrivant ni source d'ingestion n'est défini pour elle (CL-B1).
+
+**Familles concernées en Phase A :** S3 · S4 · S5 · SY2 · SY4 · L1 · L2 · L3 · Référentiel (9 familles du registre sans module actif)
+
+**Procédure :**
+- La donnée n'est pas ingérée dans la couche canonique
+- Son existence est documentée pour traitement futur — la famille identifiée lui est associée sans ingestion formelle
+- L'ingestion effective sera déclenchée lors de l'activation du module écrivant ou de la source d'ingestion correspondante
+- La famille identifiée ne peut pas être modifiée rétroactivement sans décision doctrinale de niveau N2
+
+**Distinction CL-P4 / CL-P1 :** CL-P1 exclut silencieusement les données hors périmètre mémoriel. CL-P4 documente explicitement les données mémorielles dont l'ingestion est différée — elles ont une valeur mémorielle future reconnue.
+
+**Distinction CL-P4 / CL-P2 :** CL-P4 s'applique aux familles dans le registre ACF V1 (valides mais inactives). CL-P2 s'applique aux familles hors registre (inconnues). La présence dans le registre est le critère discriminant.
+
+**Cas couvert :** CL-B1 (données correspondant à une famille inactive en Phase A)
+
+---
+
+### §15.4 Protocole opérationnel pour fichiers mixtes
+
+Un fichier structuré peut contenir des données relevant de plusieurs familles dans la même séquence — notamment des enregistrements S1 (événements de trading) et des états S2 (composition de portefeuille) entremêlés. La règle de coexistence (RF-R5 · DI4 · FB-F5) impose un traitement donnée par donnée.
+
+**Procédure :**
+
+1. Chaque unité de donnée du fichier est traitée de façon indépendante — le fichier n'est pas une unité de classification
+2. Le critère DI4 est appliqué à chaque unité : événement ponctuel d'échange → S1 · état de composition à un instant → S2
+3. Chaque unité produit une trace canonique distincte avec sa propre famille
+4. Les traces S1 et les traces S2 issues du même fichier sont indépendantes entre elles — IG-I5 interdit toute corrélation à l'ingestion
+
+**Résultat :** un fichier mixte produit *n* traces dans S1 et *m* traces dans S2, traitées de façon identique à *n + m* fichiers mono-famille distincts.
+
+**Cas couvert :** CL-D4 (fichier Wallet History contenant lignes de trade et snapshots de composition)
+
+---
+
+### §15.5 Couverture complète des cas limites par CL
+
+| Cas limite | Protocole | Résultat |
+|---|---|---|
+| CL-A3 — Paramètres sans écrivain actif | CL-P1 | Exclusion silencieuse — hors périmètre mémoriel |
+| CL-A4 — Instantané moteur | CL-P1 | Exclusion silencieuse — restauration courante ≠ trace mémorielle |
+| CL-B1 — Famille inactive | CL-P4 | Traitement différé — documentée pour activation future |
+| CL-B2 — Famille inconnue | CL-P2 / Sous-cas A | Rejet · motif "Famille non identifiable" |
+| CL-C1 — Date absente (R1) | CL-P3 / Variante A | Ingérée · Date = "Non disponible" |
+| CL-C2 — Date format non conforme non convertible (R3) | CL-P3 / Variante A | Ingérée · Date = "Non disponible" |
+| CL-C3 — Date epoch ms convertible (R4) | CL-P3 / Variante A | Ingérée · Date = "Non exploitable au format canonique" |
+| CL-C4 — Contexte absent | CL-P3 / Variante B | Ingérée · Contexte vide — aucun état formalisé |
+| CL-D2 — Date imbriquée dans la valeur | CL-P3 / Variante A + EP-RC2 | 4 comportements selon format extrait — ISO 8601 / R4 / R1 / R3 |
+| CL-D4 — Fichier mixte S1/S2 | §15.4 | n traces S1 + m traces S2 — traitement donnée par donnée |
+| Source absente | CL-P2 / Sous-cas B | Rejet · motif "Source absente" |
