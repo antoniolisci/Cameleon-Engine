@@ -91,6 +91,46 @@ A "Debug Brain" sidebar panel (toggled in UI) shows raw engine state, posture, c
 6. `src/js/render.js` (lines 1–200) — initialization and form binding
 7. `src/js/behavior/behavior-main.js` — isolation contract entry point
 
+## Methodological ROI Analysis — Mandatory Before Any Method Evolution
+
+The method must remain alive. Every improvement to the method increases its cost. A new rule is therefore never automatically a good idea.
+
+Before proposing any new control, new rule, or new documentary step — whether during Control 11 or at any other moment — perform a methodological ROI analysis. Answer all seven questions explicitly.
+
+**Question 1 — Frequency**
+Is the problem encountered frequent enough to justify a permanent method evolution? Or is it simply an exceptional case?
+
+**Question 2 — Reach**
+Will the new rule produce a benefit across dozens or hundreds of future documents? Or only across a few specific cases?
+
+**Question 3 — Simplicity**
+Is there a simpler way to achieve the same result?
+
+**Question 4 — Absorption**
+Can the new rule be absorbed into an existing rule instead of creating a new control?
+
+**Question 5 — Net value**
+Does this evolution increase readability · robustness · coherence more than it increases complexity?
+
+**Question 6 — Durability**
+If this rule remains present for 5 years, will it still have value? Answer clearly.
+
+**Question 7 — Score**
+Assign explicit scores:
+- Value produced: 0–10
+- Complexity added: 0–10
+- Methodological ROI: Excellent · Good · Average · Low · Negative
+
+**Decision rule**
+A permanent new rule may only be added if: **Value ≥ 8/10 AND Complexity ≤ 3/10**
+
+If either threshold is not met: the rule is refused or integrated into an existing rule.
+
+**Fundamental principle**
+An extraordinary method is not one that always adds rules. It is one that becomes more intelligent while remaining simpler. Simplicity is an architectural constraint at the same level as robustness. Every new rule must prove it genuinely deserves to exist.
+
+---
+
 ## Document Quality Control V2 — Mandatory Before Every Commit
 
 Applies to every `.md` file: LOT, doctrine, ADR, governance, roadmap, audit, report, specification, MEMORY.md, CLAUDE.md, etc.
@@ -221,7 +261,7 @@ This control does not change the DQC V3 verdict. It only evolves the method prog
 
 1. During this DQC V3, was there a difficulty that a better method could have prevented? If yes: describe the problem precisely · explain why it appeared · propose a durable improvement.
 
-2. Is there a new methodological rule that should be added to CLAUDE.md to prevent this type of problem in all future lots? If yes: draft the proposed rule · explain its value · specify whether it is mandatory or recommended.
+2. Is there a new methodological rule that should be added to CLAUDE.md to prevent this type of problem in all future lots? If yes: apply the Methodological ROI Analysis first. Only if Value ≥ 8/10 AND Complexity ≤ 3/10: draft the proposed rule · explain its value · specify whether it is mandatory or recommended. If thresholds are not met: refuse or integrate into an existing rule.
 
 3. Does DQC V2 or DQC V3 currently have a weakness · blind spot · insufficient check · useless step · redundancy · or excessive complexity? Justify precisely.
 
