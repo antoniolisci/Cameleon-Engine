@@ -617,6 +617,8 @@ Un **module écrivant interne** est un composant de Caméléon Engine dont la fa
 | Module comportemental | SY1 — Comportementale |
 | Module OI V1 | SY1 — Comportementale |
 | Moteur décisionnel | SY3 — Décisionnelle |
+| Module d'import | S1 — Transactionnelle |
+| Module portefeuille | S2 — Patrimoniale |
 
 **Note :** plusieurs modules peuvent partager la même famille. Deux données issues de modules distincts peuvent appartenir à la même famille. Elles constituent deux traces distinctes avec des sources et des sessions différentes — jamais une fusion (IG-I2 par trace, non par événement).
 
@@ -1309,12 +1311,12 @@ La validation terrain de P2-1.D est documentaire, non logicielle. Elle vérifie 
 
 | Champ | Valeur |
 |---|---|
-| Famille RF | S1 — via RF-R5 (priorité 5) — ⚠ voir ÉCART E1 §16.5 |
+| Famille RF | S1 — via RF-R2 (Module d'import · priorité 2) |
 | Frontière FB | FB-F5 (S1/S2) — un événement d'import est un événement ponctuel · DI4 : S1, non S2 · aucune ambiguïté |
 | Exigences EP | Source : Module d'import · Date : ISO 8601 · Contexte : optionnel (type fichier importé, nombre d'enregistrements, résultat) · Session : une opération d'import |
 | Protocole CL | Aucun — chemin nominal |
 | Verdict | **PASS** |
-| Justification | Classification S1 correcte via RF-R5. DI4 : import = événement ponctuel → S1. ÉCART E1 documenté en §16.5 : Module d'import est dans LOT-P1-2.4 §4 (qualifie pour RF-R2) mais absent de la table RF-R2 §12.3. Résultat correct — chemin doctrinal à préciser. |
+| Justification | RF-R2 → S1 : Module d'import inscrit dans LOT-P1-2.4 §4 — module écrivant interne identifié. DI4 : import = événement ponctuel → S1, non S2. ÉCART E1 résolu en §16.5 : table RF-R2 §12.3 mise à jour. |
 
 ---
 
@@ -1322,12 +1324,12 @@ La validation terrain de P2-1.D est documentaire, non logicielle. Elle vérifie 
 
 | Champ | Valeur |
 |---|---|
-| Famille RF | S2 — via RF-R5 (priorité 5) — ⚠ voir ÉCART E1 §16.5 |
+| Famille RF | S2 — via RF-R2 (Module portefeuille · priorité 2) |
 | Frontière FB | FB-F5 (S1/S2) — la mise à jour du portefeuille est un état de composition à un instant · DI4 : S2, non S1 · aucune ambiguïté |
 | Exigences EP | Source : Module portefeuille · Date : ISO 8601 · Contexte : optionnel (composition, actifs, valeur totale) · Session : une mise à jour du portefeuille |
 | Protocole CL | Aucun — chemin nominal |
 | Verdict | **PASS** |
-| Justification | Classification S2 correcte via RF-R5. DI4 : portefeuille = état de composition à un instant → S2. ÉCART E1 (même que Entrée 9) : Module portefeuille est dans LOT-P1-2.4 §4 mais absent de la table RF-R2 §12.3. |
+| Justification | RF-R2 → S2 : Module portefeuille inscrit dans LOT-P1-2.4 §4 — module écrivant interne identifié. DI4 : portefeuille = état de composition à un instant → S2, non S1. ÉCART E1 résolu en §16.5. |
 
 ---
 
@@ -1389,18 +1391,18 @@ La validation terrain de P2-1.D est documentaire, non logicielle. Elle vérifie 
 
 ### §16.5 Écart détecté
 
-**ÉCART E1 — Table RF-R2 §12.3 incomplète**
+**ÉCART E1 — Table RF-R2 §12.3 incomplète — RÉSOLU**
 
 | Champ | Valeur |
 |---|---|
 | Identifiant | E1 |
 | Sévérité | Mineure — résultat de classification inchangé |
 | Entrées concernées | Entrée 9 (Registre des importations) · Entrée 10 (Portefeuille) |
-| Nature de l'écart | RF-R2 §12.3 définit un module écrivant interne comme "un composant de Caméléon Engine dont la famille officielle est inscrite dans la table de provenance (LOT-P1-2.4 §4)". LOT-P1-2.4 §4.3 inscrit Module d'import → S1. LOT-P1-2.4 §4.4 inscrit Module portefeuille → S2. Ces deux modules satisfont donc la définition de RF-R2. La table RF-R2 §12.3 ne les liste pas — elle ne couvre que Module comportemental · Module OI V1 · Moteur décisionnel. |
-| Impact résultat | Aucun : la classification S1 (Entrée 9) et S2 (Entrée 10) est correcte via RF-R5. RF-R2 aurait produit le même résultat en priorité 2. |
-| Impact doctrine | La table RF-R2 est incomplète. Un praticien appliquant la doctrine à la lettre ne détecte pas Module d'import et Module portefeuille comme modules RF-R2 et atteint RF-R5 par défaut. Le résultat reste déterministe et correct mais le niveau de priorité effectif (2 vs 5) diffère de ce que la doctrine devrait prescrire. |
-| Correction proposée | Ajout de deux lignes dans la table RF-R2 §12.3 : Module d'import → S1 — Transactionnelle · Module portefeuille → S2 — Patrimoniale. |
-| Statut | Documenté — correction soumise à validation opérateur · aucune modification sans décision explicite |
+| Nature de l'écart | RF-R2 §12.3 définit un module écrivant interne comme "un composant de Caméléon Engine dont la famille officielle est inscrite dans la table de provenance (LOT-P1-2.4 §4)". LOT-P1-2.4 §4.3 inscrit Module d'import → S1. LOT-P1-2.4 §4.4 inscrit Module portefeuille → S2. Ces deux modules satisfont donc la définition de RF-R2. La table RF-R2 §12.3 ne les listait pas — elle ne couvrait que Module comportemental · Module OI V1 · Moteur décisionnel. |
+| Impact résultat | Aucun : la classification S1 (Entrée 9) et S2 (Entrée 10) est correcte. L'alignement RF-R2 précise le chemin doctrinal sans modifier le résultat. |
+| Impact doctrine | La table RF-R2 est désormais alignée avec LOT-P1-2.4 §4. Les entrées 9 et 10 sont couvertes par RF-R2 (priorité 2) en plus d'être couvertes par RF-R5 (priorité 5). RF-R2 s'applique en priorité. |
+| Correction appliquée | Module d'import → S1 — Transactionnelle · Module portefeuille → S2 — Patrimoniale ajoutés dans la table RF-R2 §12.3. |
+| Statut | **RÉSOLU** — correction validée par décision opérateur explicite · table RF-R2 §12.3 mise à jour |
 
 ---
 
@@ -1416,14 +1418,14 @@ La validation terrain de P2-1.D est documentaire, non logicielle. Elle vérifie 
 | 6 — Historique des analyses opérateur | SY1 | PASS | Aucun |
 | 7 — Journal des décisions moteur | SY3 | PASS | Aucun |
 | 8 — Sauvegardes moteur | SY3 | PASS | Aucun |
-| 9 — Registre des importations | S1 | PASS ⚠E1 | Aucun |
-| 10 — Portefeuille | S2 | PASS ⚠E1 | Aucun |
+| 9 — Registre des importations | S1 | PASS | Aucun |
+| 10 — Portefeuille | S2 | PASS | Aucun |
 | 11 — Paramètres | État applicatif | PASS | CL-P1 |
 | 12 — Identité locale | État applicatif | PASS | CL-P1 |
 | 13 — État de navigation | État applicatif | PASS | CL-P1 |
 | 14 — Instantané moteur | État applicatif | PASS | CL-P1 |
 
-**Résultat :** 14/14 PASS · 1 écart mineur documenté (E1) · aucun FAIL.
+**Résultat :** 14/14 PASS · aucun FAIL · ÉCART E1 résolu (§16.5).
 
 **Couverture CV1→CV5 :**
 
@@ -1435,4 +1437,4 @@ La validation terrain de P2-1.D est documentaire, non logicielle. Elle vérifie 
 | CV4 — Exigences EP cohérentes | Sources officielles LOT-P1-2.4 §4 appliquées correctement · R1/R3/R4 traités selon §14.3 · RV5 > O4 respecté | ✓ |
 | CV5 — Protocole CL opérationnel | CL-P1 déclenché (4 entrées) · CL-P3/A déclenché (3 entrées) · CL-P2 et CL-P4 non sollicités sur ce corpus (aucune famille inconnue ni inactive parmi les 14 entrées) | ✓ |
 
-**Verdict P2-1.D :** VALIDÉ — doctrine D1 cohérente avec le corpus canonique réel · ÉCART E1 documenté pour décision opérateur · CV1→CV5 satisfaits.
+**Verdict P2-1.D :** VALIDÉ — doctrine D1 cohérente avec le corpus canonique réel · ÉCART E1 résolu · CV1→CV5 satisfaits.
