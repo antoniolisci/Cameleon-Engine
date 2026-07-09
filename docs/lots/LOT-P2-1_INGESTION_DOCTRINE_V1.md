@@ -1151,3 +1151,288 @@ Un fichier structuré peut contenir des données relevant de plusieurs familles 
 | CL-D2 — Date imbriquée dans la valeur | CL-P3 / Variante A + EP-RC2 | 4 comportements selon format extrait — ISO 8601 / R4 / R1 / R3 |
 | CL-D4 — Fichier mixte S1/S2 | §15.4 | n traces S1 + m traces S2 — traitement donnée par donnée |
 | Source absente | CL-P2 / Sous-cas B | Rejet · motif "Source absente" |
+
+---
+
+## §16 Validation terrain — P2-1.D
+
+**Statut :** RÉDIGÉ — 2026-07-09
+**Fondé sur :** Corpus LOT-P1-2.1 (14 entrées) · D1 complet §12→§15 · LOT-P1-2.4 §4 · LOT-P1-2.5 (corpus réel C0 = 16 traces)
+
+---
+
+### §16.1 Définition et portée
+
+La validation terrain de P2-1.D est documentaire, non logicielle. Elle vérifie que les règles de classification de la doctrine D1 (§12→§15) produisent les bonnes affectations sur le corpus canonique réel issu de LOT-P1-2.
+
+**Périmètre :** 14 types d'entrées documentés dans LOT-P1-2.1 — 10 traces mémorielles (entrées 1→10) et 4 états applicatifs (entrées 11→14). Le corpus canonique réel validé lors de LOT-P1-2.5 comptait 16 traces : les instances supplémentaires au-delà d'une instance par type suivent les mêmes règles de classification que leur type documenté.
+
+**Convention de lecture :**
+- **Famille RF** : famille attendue après application de la hiérarchie RF-R1→R6
+- **Frontière FB** : frontière active éventuelle — identifiant FB-Fx et couple de familles concerné
+- **Exigences EP** : source · date · contexte · session selon §14.4
+- **Protocole CL** : protocole déclenché si le chemin n'est pas nominal
+- **Verdict** : PASS (classification correcte · exigences EP satisfaites · CL cohérent) ou FAIL (écart bloquant)
+
+---
+
+### §16.2 Corpus de référence
+
+| Entrée | Intitulé | Type |
+|---|---|---|
+| 1 | Sessions comportementales | Trace mémorielle |
+| 2 | Mémoire comportementale (R1) | Trace mémorielle |
+| 3 | Niveau de garde comportemental (R3) | Trace mémorielle |
+| 4 | Paramètres d'ordres récents (R4) | Trace mémorielle |
+| 5 | Mémoire opérateur | Trace mémorielle |
+| 6 | Historique des analyses opérateur | Trace mémorielle |
+| 7 | Journal des décisions moteur | Trace mémorielle |
+| 8 | Sauvegardes moteur | Trace mémorielle |
+| 9 | Registre des importations | Trace mémorielle |
+| 10 | Portefeuille | Trace mémorielle |
+| 11 | Paramètres | État applicatif |
+| 12 | Identité locale | État applicatif |
+| 13 | État de navigation | État applicatif |
+| 14 | Instantané moteur | État applicatif |
+
+---
+
+### §16.3 Validation des traces mémorielles (entrées 1 à 10)
+
+---
+
+#### Entrée 1 — Sessions comportementales
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY1 — via RF-R2 (Module d'analyse comportementale · priorité 2) |
+| Frontière FB | FB-F1 (SY1/S1) — le module écrivant prime sur tout contenu transactionnel éventuel · RF-R2 > RF-R5 |
+| Exigences EP | Source : Module d'analyse comportementale · Date : ISO 8601 · Contexte : optionnel (label comportemental, score, fichier analysé) · Session : identifiant de session comportementale |
+| Protocole CL | Aucun — chemin nominal |
+| Verdict | **PASS** |
+| Justification | RF-R2 s'applique sans ambiguïté : module écrivant interne identifié → SY1. Date et source disponibles. Aucun cas limite. |
+
+---
+
+#### Entrée 2 — Mémoire comportementale (R1)
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY1 — via RF-R2 (Module d'analyse comportementale · priorité 2) |
+| Frontière FB | FB-F1 (SY1/S1) — résolue par RF-R2 |
+| Exigences EP | Source : Module d'analyse comportementale · Date : R1 "Non disponible" (absence totale d'information temporelle — §14.3) · Contexte : optionnel · Session : identifiant session comportementale |
+| Protocole CL | CL-P3 Variante A — date dégradée R1 · trace ingérée avec état formalisé |
+| Verdict | **PASS** |
+| Justification | RF-R2 → SY1. EP-SY1/Module comportemental prévoit R1 (§14.4). CL-P3/A conforme. Cohérence doctrine ↔ corpus confirmée. |
+
+---
+
+#### Entrée 3 — Niveau de garde comportemental (R3)
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY1 — via RF-R2 (Module d'analyse comportementale · priorité 2) |
+| Frontière FB | FB-F1 (SY1/S1) — résolue par RF-R2 |
+| Exigences EP | Source : Module d'analyse comportementale · Date : R3 "Non disponible" (information temporelle présente en format non conforme non convertible — §14.3) · Contexte : optionnel · Session : identifiant session comportementale |
+| Protocole CL | CL-P3 Variante A — date dégradée R3 · trace ingérée avec état formalisé |
+| Verdict | **PASS** |
+| Justification | Classification SY1 identique à Entrée 2. Distinction R3/R1 : information temporelle présente mais non conforme (R3) vs absence totale (R1). La doctrine distingue les deux cas dans §14.3 et §15.3. Cohérence confirmée. |
+
+---
+
+#### Entrée 4 — Paramètres d'ordres récents (R4)
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY1 — via RF-R2 (Module d'enregistrement des ordres récents · priorité 2) |
+| Frontière FB | FB-F1 (SY1/S1) active — CL-A1 est le cas fondateur : contenu transactionnel évident (paramètres d'ordres de trading) · RF-R2 prime sur RF-R5 · règle confirmée |
+| Exigences EP | Source : Module d'enregistrement des ordres récents · Date : R4 "Non exploitable au format canonique" (epoch millisecondes — §14.3) · Contexte : optionnel · Session : une mise à jour des paramètres d'ordres récents |
+| Protocole CL | CL-P3 Variante A — date dégradée R4 · trace ingérée · état "Non exploitable au format canonique" · conversion future réservée |
+| Verdict | **PASS** |
+| Justification | CL-A1 est le cas fondateur de RF-R2 et de FB-F1 — la doctrine le résout correctement : module écrivant SY1 prime sur contenu transactionnel S1. R4 géré par §14.3 et CL-P3/A. Cohérence parfaite. |
+
+---
+
+#### Entrée 5 — Mémoire opérateur
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY1 — via RF-R2 (Module OI V1 · priorité 2) |
+| Frontière FB | Aucune frontière active — Module OI V1 est un module écrivant interne identifié · SY1 sans ambiguïté |
+| Exigences EP | Source : Module OI V1 · Date : ISO 8601 ou état formalisé selon disponibilité (§14.4/EP-SY1) · Contexte : optionnel (indicateur OI évalué, période, score) · Session : identifiant session OI V1 |
+| Protocole CL | Aucun — chemin nominal |
+| Verdict | **PASS** |
+| Justification | RF-R2 → SY1. CL-A2 (deux modules distincts au sein de SY1) : sessions différentes, famille identique — doctrine §12.3 RF-R2 note correcte. EP-SY1 conforme. |
+
+---
+
+#### Entrée 6 — Historique des analyses opérateur
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY1 — via RF-R2 (Module OI V1 · priorité 2) |
+| Frontière FB | Aucune frontière active — identique à Entrée 5 |
+| Exigences EP | Source : Module OI V1 · Date : ISO 8601 ou état formalisé selon disponibilité · Contexte : optionnel · Session : identifiant session OI V1 |
+| Protocole CL | Aucun — chemin nominal |
+| Verdict | **PASS** |
+| Justification | Identique à Entrée 5 pour RF et EP. Entrées 5 et 6 partagent le Module OI V1 · sessions distinctes par analyse (LOT-P1-2.4 §6.1). |
+
+---
+
+#### Entrée 7 — Journal des décisions moteur
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY3 — via RF-R2 (Moteur décisionnel · priorité 2) |
+| Frontière FB | FB-F4 (SY3/SY4) — SY4 inactive Phase A · RF-RC4 maintient SY3 · frontière opérationnelle seulement à l'activation de SY4 |
+| Exigences EP | Source : Moteur décisionnel · Date : ISO 8601 · Contexte : optionnel (posture, état marché, niveau d'engagement) · Session : identifiant soumission formulaire décisionnel |
+| Protocole CL | Aucun — chemin nominal |
+| Verdict | **PASS** |
+| Justification | RF-R2 → SY3. EP-SY3 conforme. FB-F4 documentée par anticipation — correctement gérée par RF-RC4 en Phase A. |
+
+---
+
+#### Entrée 8 — Sauvegardes moteur
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | SY3 — via RF-R2 (Moteur décisionnel · priorité 2) |
+| Frontière FB | FB-F4 (SY3/SY4) — identique à Entrée 7 · RF-RC4 |
+| Exigences EP | Source : Moteur décisionnel · Date : ISO 8601 · Contexte : optionnel · Session : identifiant soumission formulaire décisionnel — commun avec Entrée 7 pour une même soumission (LOT-P1-2.4 §6.2) |
+| Protocole CL | Aucun — chemin nominal |
+| Verdict | **PASS** |
+| Justification | RF-R2 → SY3. Distinction critique avec Entrée 14 (Instantané moteur) : Entrée 8 = capture historique intentionnelle → SY3 · Entrée 14 = restauration session courante → RF-R1 état applicatif. Frontière CL-A4 correctement résolue. |
+
+---
+
+#### Entrée 9 — Registre des importations
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | S1 — via RF-R5 (priorité 5) — ⚠ voir ÉCART E1 §16.5 |
+| Frontière FB | FB-F5 (S1/S2) — un événement d'import est un événement ponctuel · DI4 : S1, non S2 · aucune ambiguïté |
+| Exigences EP | Source : Module d'import · Date : ISO 8601 · Contexte : optionnel (type fichier importé, nombre d'enregistrements, résultat) · Session : une opération d'import |
+| Protocole CL | Aucun — chemin nominal |
+| Verdict | **PASS** |
+| Justification | Classification S1 correcte via RF-R5. DI4 : import = événement ponctuel → S1. ÉCART E1 documenté en §16.5 : Module d'import est dans LOT-P1-2.4 §4 (qualifie pour RF-R2) mais absent de la table RF-R2 §12.3. Résultat correct — chemin doctrinal à préciser. |
+
+---
+
+#### Entrée 10 — Portefeuille
+
+| Champ | Valeur |
+|---|---|
+| Famille RF | S2 — via RF-R5 (priorité 5) — ⚠ voir ÉCART E1 §16.5 |
+| Frontière FB | FB-F5 (S1/S2) — la mise à jour du portefeuille est un état de composition à un instant · DI4 : S2, non S1 · aucune ambiguïté |
+| Exigences EP | Source : Module portefeuille · Date : ISO 8601 · Contexte : optionnel (composition, actifs, valeur totale) · Session : une mise à jour du portefeuille |
+| Protocole CL | Aucun — chemin nominal |
+| Verdict | **PASS** |
+| Justification | Classification S2 correcte via RF-R5. DI4 : portefeuille = état de composition à un instant → S2. ÉCART E1 (même que Entrée 9) : Module portefeuille est dans LOT-P1-2.4 §4 mais absent de la table RF-R2 §12.3. |
+
+---
+
+### §16.4 Validation des états applicatifs (entrées 11 à 14)
+
+---
+
+#### Entrée 11 — Paramètres
+
+| Champ | Valeur |
+|---|---|
+| RF appliqué | RF-R1 — état applicatif : slot préparé sans écrivain actif · sans valeur historique ou réflexive pour le décideur |
+| Frontière FB | Aucune |
+| Exigences EP | Non applicable — exclue de la couche canonique |
+| Protocole CL | CL-P1 — Exclusion silencieuse |
+| Verdict | **PASS** |
+| Justification | CL-A3 est le cas fondateur : slot structuré sans module écrivant actif → RF-R1 → CL-P1. Exclusion silencieuse conforme. |
+
+---
+
+#### Entrée 12 — Identité locale
+
+| Champ | Valeur |
+|---|---|
+| RF appliqué | RF-R1 — état applicatif : donnée d'authentification à valeur fonctionnelle uniquement · aucune valeur historique pour le décideur |
+| Frontière FB | Aucune |
+| Exigences EP | Non applicable |
+| Protocole CL | CL-P1 — Exclusion silencieuse |
+| Verdict | **PASS** |
+| Justification | RF-R1 : aucune valeur réflexive ou décisionnelle. Aucun module écrivant mémoriel associé. CL-P1 conforme. |
+
+---
+
+#### Entrée 13 — État de navigation
+
+| Champ | Valeur |
+|---|---|
+| RF appliqué | RF-R1 — état applicatif : état courant de l'interface (onglet actif, panneaux ouverts) · valeur contextuelle et transitoire |
+| Frontière FB | Aucune |
+| Exigences EP | Non applicable |
+| Protocole CL | CL-P1 — Exclusion silencieuse |
+| Verdict | **PASS** |
+| Justification | RF-R1 : valeur fonctionnelle à un instant donné · aucune valeur historique. CL-P1 conforme. |
+
+---
+
+#### Entrée 14 — Instantané moteur
+
+| Champ | Valeur |
+|---|---|
+| RF appliqué | RF-R1 — état applicatif : capture pour restauration de session courante · valeur contextuelle sans portée historique |
+| Frontière FB | Aucune |
+| Exigences EP | Non applicable |
+| Protocole CL | CL-P1 — Exclusion silencieuse |
+| Verdict | **PASS** |
+| Justification | CL-A4 est le cas fondateur : même contenu que Sauvegardes moteur (Entrée 8), intention opposée. Entrée 14 = restauration session courante → RF-R1 état applicatif. Entrée 8 = capture historique intentionnelle → RF-R2 → SY3. Le critère décisif est l'intention de la donnée, documenté dans RF-R1 §12.3. CL-P1 conforme. |
+
+---
+
+### §16.5 Écart détecté
+
+**ÉCART E1 — Table RF-R2 §12.3 incomplète**
+
+| Champ | Valeur |
+|---|---|
+| Identifiant | E1 |
+| Sévérité | Mineure — résultat de classification inchangé |
+| Entrées concernées | Entrée 9 (Registre des importations) · Entrée 10 (Portefeuille) |
+| Nature de l'écart | RF-R2 §12.3 définit un module écrivant interne comme "un composant de Caméléon Engine dont la famille officielle est inscrite dans la table de provenance (LOT-P1-2.4 §4)". LOT-P1-2.4 §4.3 inscrit Module d'import → S1. LOT-P1-2.4 §4.4 inscrit Module portefeuille → S2. Ces deux modules satisfont donc la définition de RF-R2. La table RF-R2 §12.3 ne les liste pas — elle ne couvre que Module comportemental · Module OI V1 · Moteur décisionnel. |
+| Impact résultat | Aucun : la classification S1 (Entrée 9) et S2 (Entrée 10) est correcte via RF-R5. RF-R2 aurait produit le même résultat en priorité 2. |
+| Impact doctrine | La table RF-R2 est incomplète. Un praticien appliquant la doctrine à la lettre ne détecte pas Module d'import et Module portefeuille comme modules RF-R2 et atteint RF-R5 par défaut. Le résultat reste déterministe et correct mais le niveau de priorité effectif (2 vs 5) diffère de ce que la doctrine devrait prescrire. |
+| Correction proposée | Ajout de deux lignes dans la table RF-R2 §12.3 : Module d'import → S1 — Transactionnelle · Module portefeuille → S2 — Patrimoniale. |
+| Statut | Documenté — correction soumise à validation opérateur · aucune modification sans décision explicite |
+
+---
+
+### §16.6 Synthèse globale
+
+| Entrée | Famille attendue | Verdict | CL déclenché |
+|---|---|---|---|
+| 1 — Sessions comportementales | SY1 | PASS | Aucun |
+| 2 — Mémoire comportementale (R1) | SY1 | PASS | CL-P3/A |
+| 3 — Niveau de garde comportemental (R3) | SY1 | PASS | CL-P3/A |
+| 4 — Paramètres d'ordres récents (R4) | SY1 | PASS | CL-P3/A |
+| 5 — Mémoire opérateur | SY1 | PASS | Aucun |
+| 6 — Historique des analyses opérateur | SY1 | PASS | Aucun |
+| 7 — Journal des décisions moteur | SY3 | PASS | Aucun |
+| 8 — Sauvegardes moteur | SY3 | PASS | Aucun |
+| 9 — Registre des importations | S1 | PASS ⚠E1 | Aucun |
+| 10 — Portefeuille | S2 | PASS ⚠E1 | Aucun |
+| 11 — Paramètres | État applicatif | PASS | CL-P1 |
+| 12 — Identité locale | État applicatif | PASS | CL-P1 |
+| 13 — État de navigation | État applicatif | PASS | CL-P1 |
+| 14 — Instantané moteur | État applicatif | PASS | CL-P1 |
+
+**Résultat :** 14/14 PASS · 1 écart mineur documenté (E1) · aucun FAIL.
+
+**Couverture CV1→CV5 :**
+
+| Critère | Couverture sur ce corpus | Verdict |
+|---|---|---|
+| CV1 — Familles actives Phase A | SY1 (6 entrées) · SY3 (2 entrées) · S1 (1 entrée) · S2 (1 entrée) — toutes couvertes | ✓ |
+| CV2 — Déterminisme | Aucune ambiguïté non résolue sur 14 entrées — un seul résultat par entrée | ✓ |
+| CV3 — Frontières documentées | FB-F1 (SY1/S1) active — Entrée 4 · FB-F4 (SY3/SY4) documentée — Entrées 7·8 · FB-F5 (S1/S2) confirmée — Entrées 9·10 · FB-F2 (S3/S1) et FB-F3 (S4/SY1) non sollicitées sur ce corpus (S3·S4 inactives Phase A — aucune entrée concernée) | ✓ |
+| CV4 — Exigences EP cohérentes | Sources officielles LOT-P1-2.4 §4 appliquées correctement · R1/R3/R4 traités selon §14.3 · RV5 > O4 respecté | ✓ |
+| CV5 — Protocole CL opérationnel | CL-P1 déclenché (4 entrées) · CL-P3/A déclenché (3 entrées) · CL-P2 et CL-P4 non sollicités sur ce corpus (aucune famille inconnue ni inactive parmi les 14 entrées) | ✓ |
+
+**Verdict P2-1.D :** VALIDÉ — doctrine D1 cohérente avec le corpus canonique réel · ÉCART E1 documenté pour décision opérateur · CV1→CV5 satisfaits.
