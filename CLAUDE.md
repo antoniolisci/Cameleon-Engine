@@ -133,3 +133,52 @@ A document may be declared CAS A only if both the first review and the second in
 
 **Golden Rule**
 Never assume that because the first review found nothing, nothing exists. Every review must behave as if auditing a document written by someone else. Assume hidden copy/paste artefacts, duplicated lines, or rendering issues may still exist until two independent reviews performed directly on the saved file both conclude CAS A.
+
+## Document Quality Control V3 — Mandatory After Every Commit (Before Next Micro-Lot)
+
+Applies after DQC V2 is complete and the document has been committed.
+**Opening the next micro-lot is strictly forbidden until DQC V3 returns PASS. No exception.**
+
+**Mission:** Guarantee that every new document integrates perfectly into the global documentary architecture of Caméléon Engine. DQC V3 does not verify the document itself — it verifies the document's integration across the entire ecosystem.
+
+**Control 1 — Documentary Duplicates**
+Verify no other document already holds the same responsibility. Identify: mission duplicates · functional duplicates · doctrine duplicates · responsibility duplicates. If a duplicate exists: explain why · propose resolution · suspend next micro-lot.
+
+**Control 2 — Single Source of Truth**
+For every major concept in the document: identify the master document · clarify this document's role · verify no document becomes a second source of truth.
+
+**Control 3 — Documentary Coherence Audit**
+Compare explicitly with: Roadmap V1 · GPD V1 · Gouvernance V1 · Language System V1 · Memory Doctrine · parent LOT · previous micro-lots · sibling documents · validation documents · MEMORY.md · project memory · Notion. Detect: contradictions · inconsistencies · implicit changes · obsolete rules · broken references · documents requiring update.
+
+**Control 4 — Responsibility Audit**
+Answer explicitly: What is the exact responsibility of the new document? Which documents remain responsible for other topics? Is there overlap? Is there ambiguity? Is the split still coherent?
+
+**Control 5 — Dependency Verification**
+Check: incoming dependencies · outgoing dependencies · LOT order · micro-lot order · prerequisites · validation criteria · closure conditions. Report any missing dependency.
+
+**Control 6 — Documentary Synchronization**
+Determine whether an update is required in: MEMORY.md · project memory · Notion · Roadmap · GPD · Gouvernance · other official documents. Never omit Notion when a structural decision is validated. Any desynchronization must be reported.
+
+**Control 7 — Architectural Impact**
+Evaluate the impact of the new document on the global architecture. Answer: Does it add a new responsibility? Does it modify an existing one? Does it change a doctrine? Does it require a documentary evolution elsewhere?
+
+**Control 8 — DQC V3 Report**
+Produce the following mandatory table:
+
+| Control | Verdict |
+|---------|---------|
+| Documentary duplicates | PASS / FAIL |
+| Single source of truth | PASS / FAIL |
+| Documentary coherence | PASS / FAIL |
+| Responsibilities | PASS / FAIL |
+| Dependencies | PASS / FAIL |
+| Architectural impact | PASS / FAIL |
+| MEMORY.md | OK / Needs update |
+| Project memory | OK / Needs update |
+| Notion | OK / Needs update |
+| Roadmap / GPD / Gouvernance | PASS / FAIL |
+
+**Control 9 — Final Verdict**
+Conclude with one of:
+- **DQC V3 — PASS** — next micro-lot may open.
+- **DQC V3 — CAS B** — next micro-lot is forbidden until all issues are resolved and PASS is obtained.
