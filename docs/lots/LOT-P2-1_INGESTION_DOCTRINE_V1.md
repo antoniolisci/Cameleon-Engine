@@ -10,7 +10,7 @@
 | Phase Roadmap V1 | A |
 | Type | Doctrine |
 | Document officiel | `docs/lots/LOT-P2-1_INGESTION_DOCTRINE_V1.md` |
-| Statut | EN COURS |
+| Statut | EN COURS — DQC V2 CAS A · P2-1.E complété · Condition 5 en attente |
 | Date d'ouverture | 2026-07-09 |
 | Prérequis | Programme P1 — Fondation Mémoire & Persistance · GELÉ · 2026-07-09 |
 
