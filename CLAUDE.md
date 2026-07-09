@@ -141,7 +141,7 @@ Applies after DQC V2 is complete and the document has been committed.
 
 **Mission:** Guarantee that every new document integrates perfectly into the global documentary architecture of Caméléon Engine. DQC V3 does not verify the document itself — it verifies the document's integration across the entire ecosystem, including its long-term impact on documentary architecture health.
 
-**Execution order: Controls 1 → 7, then Control 10, then Control 8 (report), then Control 9 (verdict).**
+**Execution order: Controls 1 → 7, then Control 10, then Control 8 (report), then Control 9 (verdict), then Control 11 (method review).**
 
 **Control 1 — Documentary Duplicates**
 Verify no other document already holds the same responsibility. Identify: mission duplicates · functional duplicates · doctrine duplicates · responsibility duplicates. If a duplicate exists: explain why · propose resolution · suspend next micro-lot.
@@ -213,3 +213,36 @@ Then conclude with one of:
 - **DQC V3 — CAS B** — next micro-lot is forbidden until all issues are resolved and PASS is obtained.
 
 If a refactoring is required before the next micro-lot, the verdict must be **DQC V3 — CAS B**. A recommended refactoring alone (not required) does not block the next micro-lot but must be documented.
+
+**Control 11 — Methodological Continuous Improvement**
+After completing Controls 1–10, step back and analyze the quality of the method itself — not the document, not the ecosystem, but the way documents are produced. Answer all six questions explicitly.
+
+This control does not change the DQC V3 verdict. It only evolves the method progressively. No rule should be added merely to increase complexity. The method must become more intelligent, not heavier. Simplicity remains a core architectural value of Caméléon Engine.
+
+1. During this DQC V3, was there a difficulty that a better method could have prevented? If yes: describe the problem precisely · explain why it appeared · propose a durable improvement.
+
+2. Is there a new methodological rule that should be added to CLAUDE.md to prevent this type of problem in all future lots? If yes: draft the proposed rule · explain its value · specify whether it is mandatory or recommended.
+
+3. Does DQC V2 or DQC V3 currently have a weakness · blind spot · insufficient check · useless step · redundancy · or excessive complexity? Justify precisely.
+
+4. Does the experience from this micro-lot change how Caméléon Engine should be developed? If yes: identify the lesson learned · propose its integration into the official method.
+
+5. Does the cost of the current method remain proportional to the benefit obtained? Is the method more secure · clearer · more robust without becoming unnecessarily heavy? If simplification is preferable, propose it.
+
+6. Looking at the entire development process, is an evolution of the general project method recommended? This may concern: documentation · audits · validations · commits · synchronization · governance · ADR · Roadmap · project memory · Notion · or any other part of the workflow. Think as a software architect responsible for a project that must live for several years.
+
+**Control 11 — Mandatory report:**
+
+| Control | Verdict |
+|---------|---------|
+| Current method is adapted | PASS / FAIL |
+| New rule proposed | Yes / No |
+| Simplification recommended | Yes / No |
+| CLAUDE.md evolution | Yes / No |
+| Governance evolution | Yes / No |
+| Methodological debt | None / Low / Moderate / High |
+
+Conclude with one of:
+- **Method: Stable** — no change needed.
+- **Method: Improving** — one or more improvements identified and documented.
+- **Method: Refactoring recommended** — a structural change to the method is warranted.
