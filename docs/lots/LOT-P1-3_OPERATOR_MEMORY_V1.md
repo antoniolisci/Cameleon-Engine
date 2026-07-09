@@ -12,10 +12,11 @@
 | Programme Roadmap V1 | P1 — Fondation Mémoire & Persistance |
 | Phase Roadmap V1 | A |
 | Type | Couche de lecture et de valorisation |
-| Statut | CADRAGE EN COURS |
+| Statut | CLOS |
 | Ancrage GPD V1 | Partie VIII §8.1 (blancs) · Partie XIII §13.5 (nœuds multiplicateurs) |
 | Prérequis satisfaits | LOT-P1-2 — Couche de persistance canonique V1 · CLOS · `9b16ee8` |
 | Date de cadrage | 2026-07-09 |
+| Date de clôture | 2026-07-09 |
 
 ---
 
