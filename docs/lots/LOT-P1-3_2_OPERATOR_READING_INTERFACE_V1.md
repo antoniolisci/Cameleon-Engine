@@ -13,7 +13,7 @@
 | Programme Roadmap V1 | P1 — Fondation Mémoire & Persistance |
 | Phase Roadmap V1 | A |
 | Type | Spécification + Implémentation |
-| Statut | EN COURS |
+| Statut | VALIDÉ · `b544818` · 2026-07-09 |
 | Prérequis satisfaits | LOT-P1-3.1 — Modèle de mémoire opérateur V1 · VALIDÉ · `0945e9e` |
 | Date de spécification | 2026-07-09 |
 
