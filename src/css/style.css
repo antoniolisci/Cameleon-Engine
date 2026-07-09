@@ -8402,6 +8402,100 @@ body[data-behavior-pattern="discipline"]::before {
   margin-top: 4px;
 }
 
+/* ── Mémoire Opérateur V1 (LOT-P1-3) ── */
+.mem-op-compartiment {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0;
+}
+
+.mem-op-compartiment:first-of-type {
+  border-top: none;
+}
+
+.mem-op-compartiment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.mem-op-compartiment-head::-webkit-details-marker {
+  display: none;
+}
+
+.mem-op-compartiment-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mem-op-compartiment-label::before {
+  content: '▸ ';
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.mem-op-compartiment[open] .mem-op-compartiment-label::before {
+  content: '▾ ';
+}
+
+.mem-op-compartiment-count {
+  font-size: 11px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+
+.mem-op-units {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 10px;
+}
+
+.mem-op-unit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mem-op-unit-source {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mem-op-unit-date {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.mem-op-unit-valeur {
+  font-size: 12px;
+  color: var(--text);
+  word-break: break-word;
+  white-space: pre-wrap;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+.mem-op-empty {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 6px 0 10px;
+  font-style: italic;
+}
+
 /* ── Gestion des données — affordance interactive ── */
 #exportDataBtn,
 #importDataBtn,

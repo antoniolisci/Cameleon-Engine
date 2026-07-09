@@ -39,6 +39,7 @@ import {
   computeWindowDistribution,
   formatCertificationDescriptions,
 } from "./memory-reader.js";
+import { getOperatorMemoryState } from "./canonical/operator-memory-service.js";
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -3179,6 +3180,88 @@ function renderMemoryDiagnostic() {
   panel.innerHTML = parts.join('');
 }
 
+// ── Mémoire Opérateur V1 (LOT-P1-3) ──────────────────────────────────────────
+// Construit la section à chaque activation de l'onglet Mémoire (OM-I6 — stateless).
+// Consomme O1 (getOperatorMemoryState) via operator-memory-service.js.
+// Aucune écriture — lecture pure (OM-I7).
+
+function _formatOperatorDate(dateStr) {
+  // Les libellés opérateur (formalisés) sont affichés tels quels.
+  // Les dates ISO 8601 sont converties en JJ/MM/AAAA HH:MM.
+  if (!dateStr) return '—';
+  if (dateStr === 'Date non disponible' || dateStr === 'Date non exploitable au format canonique') {
+    return dateStr;
+  }
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const dd   = String(d.getDate()).padStart(2, '0');
+  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh   = String(d.getHours()).padStart(2, '0');
+  const min  = String(d.getMinutes()).padStart(2, '0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+}
+
+function _renderOperatorUnit(unit) {
+  const parts = [];
+  parts.push('<div class="mem-op-unit">');
+  parts.push(`<span class="mem-op-unit-source">${unit.source}</span>`);
+  parts.push(`<span class="mem-op-unit-date">${_formatOperatorDate(unit.date)}</span>`);
+  const valeurStr = typeof unit.valeur === 'object'
+    ? JSON.stringify(unit.valeur)
+    : String(unit.valeur ?? '—');
+  parts.push(`<span class="mem-op-unit-valeur">${valeurStr}</span>`);
+  parts.push('</div>');
+  return parts.join('');
+}
+
+function _renderOperatorCompartiment(compartiment) {
+  const parts = [];
+  parts.push('<details class="mem-op-compartiment">');
+  parts.push('<summary class="mem-op-compartiment-head">');
+  parts.push(`<span class="mem-op-compartiment-label">${compartiment.label}</span>`);
+  if (!compartiment.vide) {
+    parts.push(`<span class="mem-op-compartiment-count">${compartiment.unites.length}</span>`);
+  }
+  parts.push('</summary>');
+  if (compartiment.vide) {
+    parts.push('<p class="mem-op-empty">Aucune trace enregistrée.</p>');
+  } else {
+    parts.push('<div class="mem-op-units">');
+    for (const unit of compartiment.unites) {
+      parts.push(_renderOperatorUnit(unit));
+    }
+    parts.push('</div>');
+  }
+  parts.push('</details>');
+  return parts.join('');
+}
+
+function renderOperatorMemory() {
+  const panel = document.getElementById('operatorMemoryPanel');
+  if (!panel) return;
+
+  const parts = [];
+  parts.push('<div class="card-head"><div>');
+  parts.push('<h2 class="card-title">Mémoire Opérateur V1</h2>');
+  parts.push('<p class="card-desc">Vue en lecture seule des quatre familles mémorielles actives. Ne modifie aucune donnée.</p>');
+  parts.push('</div></div>');
+
+  try {
+    const etat = getOperatorMemoryState();
+    for (const famille of ['SY1', 'SY3', 'S1', 'S2']) {
+      const compartiment = etat[famille];
+      if (compartiment) {
+        parts.push(_renderOperatorCompartiment(compartiment));
+      }
+    }
+  } catch {
+    parts.push('<p class="mem-op-empty">Lecture indisponible.</p>');
+  }
+
+  panel.innerHTML = parts.join('');
+}
+
 function sanitizeVisibleText(root = document.body) {
   if (!root) return;
 
@@ -5120,6 +5203,7 @@ function activateTab(tab) {
     renderPatternReflection();
     renderChangeCertification();
     renderMemoryDiagnostic();
+    renderOperatorMemory();
   }
   focusPanel(TAB_FOCUS_TARGETS[tab] || TAB_FOCUS_TARGETS.moteur);
 }

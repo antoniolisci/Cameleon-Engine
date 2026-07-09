@@ -13,9 +13,10 @@
 | Programme Roadmap V1 | P1 — Fondation Mémoire & Persistance |
 | Phase Roadmap V1 | A |
 | Type | Tests |
-| Statut | EN COURS |
+| Statut | VALIDÉ · 2026-07-09 |
 | Prérequis satisfaits | LOT-P1-3.3 — Intégration onglet Mémoire V1 · VALIDÉ · `fe17206` |
 | Date de spécification | 2026-07-09 |
+| Date de validation | 2026-07-09 |
 
 ---
 
@@ -260,3 +261,46 @@ Le document ne contient aucun nom de fichier, aucune propriété CSS, aucun sél
 
 **V6 — Conformité doctrinale**
 Language System V1 : les libellés opérateur ("Date non disponible" · "Date non exploitable au format canonique") sont conformes aux définitions de LOT-P1-3.1 §6.1. Gouvernance V1 : le niveau tests est respecté — aucune décision d'architecture non prévue.
+
+---
+
+## 10 — Campagne terrain V1 — Résultats officiels
+
+### 10.1 — Contexte d'exécution
+
+| Champ | Valeur |
+|---|---|
+| Date | 2026-07-09 |
+| Environnement | PC Chrome |
+| Corpus canonique | 1 trace (SY3 — Mémoire décisionnelle · 2026-07-08) |
+| Index canonique | Cohérent (C3 PASS avant et après) |
+
+### 10.2 — Résultats des pré-conditions
+
+| Pré-condition | Résultat | Observation |
+|---|---|---|
+| PC1 — Comptage initial (C0) | PASS | C0 = 1 — 1 trace présente en SY3 |
+| PC2 — Cohérence index (C3) | PASS | Aucun identifiant orphelin détecté |
+| PC3 — Disponibilité du service | PASS | Opérations O1–O4 invocables · quatre familles exposées (SY1 · SY3 · S1 · S2) |
+
+### 10.3 — Résultats des cas de test
+
+| Cas de test | Critère | Résultat | Observation |
+|---|---|---|---|
+| TC1 — Lecture par famille | CV1 | PASS | O1 : 4 compartiments présents · OM-I4 (id absent) · OM-I5 (dates) · O2/O1 cohérents pour toutes les familles |
+| TC2 — Lecture par plage de dates | CV2 | PASS | O3(SY3) retourne 1 unité dans la plage · 0 hors plage · 0 date formalisée · plage vide → séquence vide |
+| TC3 — Famille sans trace | CV3 | PASS · Cas A | SY1 identifiée sans trace · compartiment présent avec séquence vide · aucune erreur |
+| TC4 — Intégrité read-only | CV6 | PASS | C0 = 1 avant et après toutes consultations · C3 PASS après consultations |
+
+### 10.4 — Verdict
+
+| Cas de test | Verdict requis | Verdict obtenu |
+|---|---|---|
+| TC1 — CV1 | PASS | PASS |
+| TC2 — CV2 | PASS | PASS |
+| TC3 — CV3 | PASS (Cas A) | PASS (Cas A) |
+| TC4 — CV6 | PASS | PASS |
+
+**LOT-P1-3.4 — PASS.**
+
+Tous les critères CV1 · CV2 · CV3 · CV6 sont satisfaits sur corpus réel. L'ouverture de LOT-P1-3.5 est autorisée.
