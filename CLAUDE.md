@@ -139,7 +139,9 @@ Never assume that because the first review found nothing, nothing exists. Every 
 Applies after DQC V2 is complete and the document has been committed.
 **Opening the next micro-lot is strictly forbidden until DQC V3 returns PASS. No exception.**
 
-**Mission:** Guarantee that every new document integrates perfectly into the global documentary architecture of Caméléon Engine. DQC V3 does not verify the document itself — it verifies the document's integration across the entire ecosystem.
+**Mission:** Guarantee that every new document integrates perfectly into the global documentary architecture of Caméléon Engine. DQC V3 does not verify the document itself — it verifies the document's integration across the entire ecosystem, including its long-term impact on documentary architecture health.
+
+**Execution order: Controls 1 → 7, then Control 10, then Control 8 (report), then Control 9 (verdict).**
 
 **Control 1 — Documentary Duplicates**
 Verify no other document already holds the same responsibility. Identify: mission duplicates · functional duplicates · doctrine duplicates · responsibility duplicates. If a duplicate exists: explain why · propose resolution · suspend next micro-lot.
@@ -162,23 +164,52 @@ Determine whether an update is required in: MEMORY.md · project memory · Notio
 **Control 7 — Architectural Impact**
 Evaluate the impact of the new document on the global architecture. Answer: Does it add a new responsibility? Does it modify an existing one? Does it change a doctrine? Does it require a documentary evolution elsewhere?
 
+**Control 10 — Documentary Architecture Evolution**
+Analyze the long-term impact of the new document on the global documentary ecosystem. Answer all nine questions explicitly.
+
+1. Does the document create a new documentary responsibility? If yes: which one · why is it legitimate · why should it not have been absorbed by an existing document?
+
+2. Does the document shift a responsibility that previously belonged to another document? If yes: which document · is the shift correctly documented · does the previous document require modification?
+
+3. Does the document render an existing document obsolete · partially obsolete · incomplete · ambiguous · or unnecessary? If yes: identify the affected document precisely.
+
+4. Does the document create a documentary redundancy — even if not yet critical? Explain why.
+
+5. Should the document be merged with another · split into multiple documents · or remain independent? Justify the decision.
+
+6. Has the documentary ecosystem become more complex? Evaluate: readability · navigability · number of dependencies · depth of cross-references · future risk of confusion.
+
+7. Does the documentary architecture remain evolutive? Answer explicitly: Can 50 more documents be added without loss of coherence? 100? 300? If a limit appears, signal it immediately.
+
+8. Are documentary refactorings recommended? If yes, list them clearly: fusion · split · relocation · renaming · responsibility change · simplification.
+
+9. Evaluate the documentary debt. Classify: None · Low · Moderate · High · Critical. Justify.
+
 **Control 8 — DQC V3 Report**
-Produce the following mandatory table:
+Produce the following mandatory table (covers all 10 controls):
 
 | Control | Verdict |
 |---------|---------|
 | Documentary duplicates | PASS / FAIL |
-| Single source of truth | PASS / FAIL |
-| Documentary coherence | PASS / FAIL |
 | Responsibilities | PASS / FAIL |
+| Documentary coherence | PASS / FAIL |
+| Single source of truth | PASS / FAIL |
 | Dependencies | PASS / FAIL |
 | Architectural impact | PASS / FAIL |
+| Documentary evolution | PASS / FAIL |
+| Documentary debt | None / Low / Moderate / High / Critical |
 | MEMORY.md | OK / Needs update |
 | Project memory | OK / Needs update |
 | Notion | OK / Needs update |
 | Roadmap / GPD / Gouvernance | PASS / FAIL |
 
 **Control 9 — Final Verdict**
-Conclude with one of:
+Conclude with an explicit architecture assessment:
+
+**Documentary architecture:** Stable · Enriched · Refactoring recommended
+
+Then conclude with one of:
 - **DQC V3 — PASS** — next micro-lot may open.
 - **DQC V3 — CAS B** — next micro-lot is forbidden until all issues are resolved and PASS is obtained.
+
+If a refactoring is required before the next micro-lot, the verdict must be **DQC V3 — CAS B**. A recommended refactoring alone (not required) does not block the next micro-lot but must be documented.
