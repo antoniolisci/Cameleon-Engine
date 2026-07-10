@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ingestion-registry.js — Tests Composant 2 · LOT-P2-2.E</title>
+  <style>
+    * { box-sizing: border-box; }
+    body  { font-family: monospace; padding: 24px; background: #0e0e0e; color: #ccc; font-size: 13px; margin: 0; }
+    h1    { color: #fff; font-size: 16px; margin-bottom: 4px; }
+    .meta { color: #666; margin-bottom: 24px; font-size: 12px; }
+    h2    { color: #7cf; font-size: 14px; margin: 28px 0 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+
+    .summary { display: flex; gap: 24px; margin: 16px 0 28px; font-size: 14px; }
+    .s-pass   { color: #4f4; }
+    .s-fail   { color: #f44; }
+    .s-total  { color: #aaa; }
+
+    table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+    td, th { border: 1px solid #222; padding: 4px 10px; text-align: left; }
+    th     { background: #161616; color: #adf; font-weight: normal; }
+    .pass  { color: #4f4; }
+    .fail  { color: #f44; background: #1a0000; }
+
+    .suite-block { margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+
+<h1>ingestion-registry.js — Tests Composant 2</h1>
+<div class="meta">Composant 2 · LOT-P2-2.E · Contrat : LOT-P2-2.C §4</div>
+
+<div id="root"></div>
+
+<script type="module">
+import {
+  readRegistry,
+  findByFingerprint,
+  addEntry,
+} from '../js/ingestion/ingestion-registry.js';
+
+import { resolveKey } from '../js/storage.js';
+
+import {
+  initCanonicalStore,
+  readCorpus,
+  writeIngestedTrace,
+} from '../js/canonical/canonical-store.js';
+
+// ── Framework d'assertion ─────────────────────────────────────────────────────
+
+const results = [];
+
+function assert(id, description, condition, detail = '') {
+  results.push({ id, description, pass: !!condition, detail: detail || (condition ? 'OK' : 'FAIL') });
+}
+
+function assertEq(id, description, actual, expected) {
+  const pass = actual === expected;
+  results.push({ id, description, pass, detail: pass ? String(actual) : `obtenu "${actual}", attendu "${expected}"` });
+}
+
+function renderSuite(title, ids) {
+  const suite = results.filter(r => ids.includes(r.id));
+  const pass  = suite.filter(r => r.pass).length;
+  const fail  = suite.filter(r => !r.pass).length;
+  const rows  = suite.map(r => {
+    const cls  = r.pass ? 'pass' : 'fail';
+    const icon = r.pass ? '✓' : '✗';
+    return `<tr class="${cls}"><td>${icon}</td><td>${r.id}</td><td>${r.description}</td><td>${r.detail}</td></tr>`;
+  }).join('');
+  return `
+<div class="suite-block">
+  <h2>${title} — ${pass}/${suite.length} ${fail > 0 ? '<span style="color:#f44">FAIL</span>' : '<span style="color:#4f4">PASS</span>'}</h2>
+  <table>
+    <thead><tr><th></th><th>ID</th><th>Test</th><th>Détail</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+// ── Isolation — sauvegarde / restauration du registre ────────────────────────
+
+const REGISTRY_KEY = resolveKey('CE_ingestion_registry_v1');
+const CORPUS_KEY   = resolveKey('CE_canonical_corpus_v1');
+const INDEX_KEY    = resolveKey('CE_canonical_index_v1');
+
+const _savedRegistry = localStorage.getItem(REGISTRY_KEY);
+const _savedCorpus   = localStorage.getItem(CORPUS_KEY);
+const _savedIndex    = localStorage.getItem(INDEX_KEY);
+
+function resetRegistry() {
+  if (_savedRegistry !== null) {
+    localStorage.setItem(REGISTRY_KEY, _savedRegistry);
+  } else {
+    localStorage.removeItem(REGISTRY_KEY);
+  }
+}
+
+function resetCanonical() {
+  if (_savedCorpus !== null) {
+    localStorage.setItem(CORPUS_KEY, _savedCorpus);
+  } else {
+    localStorage.removeItem(CORPUS_KEY);
+  }
+  if (_savedIndex !== null) {
+    localStorage.setItem(INDEX_KEY, _savedIndex);
+  } else {
+    localStorage.removeItem(INDEX_KEY);
+  }
+  initCanonicalStore();
+}
+
+function resetAll() {
+  resetRegistry();
+  resetCanonical();
+}
+
+// Initialisation initiale
+resetAll();
+
+// ── Entrées de test ───────────────────────────────────────────────────────────
+
+const ENTRY_A = {
+  fingerprint: 'sha256-aabbccdd1122334455',
+  sessionId:   'session-test-reg-001',
+  sourceId:    'binance_trade_history_2024.csv',
+  traceCount:  42,
+};
+
+const ENTRY_B = {
+  fingerprint: 'sha256-eeff99887766554433',
+  sessionId:   'session-test-reg-002',
+  sourceId:    'binance_order_history_2024.csv',
+  traceCount:  7,
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 1 — readRegistry
+// ══════════════════════════════════════════════════════════════════════════════
+
+// R01 — Registre vide retourne []
+resetAll();
+{
+  const reg = readRegistry();
+  assert('R01-type',  'Registre vide — retourne un tableau', Array.isArray(reg));
+  assertEq('R01-empty', 'Registre vide — longueur 0', reg.length, 0);
+}
+
+// R02 — Registre avec entrées retourne les données correctes
+resetAll();
+{
+  addEntry(ENTRY_A);
+  addEntry(ENTRY_B);
+  const reg = readRegistry();
+  assert('R02-length',      'Registre après 2 ajouts — longueur 2', reg.length === 2);
+  assertEq('R02-fingerprint-0', 'Registre — entrée 0 fingerprint correct', reg[0].fingerprint, ENTRY_A.fingerprint);
+  assertEq('R02-fingerprint-1', 'Registre — entrée 1 fingerprint correct', reg[1].fingerprint, ENTRY_B.fingerprint);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 2 — findByFingerprint
+// ══════════════════════════════════════════════════════════════════════════════
+
+// R03 — Empreinte inconnue retourne null
+resetAll();
+{
+  const found = findByFingerprint('sha256-inexistant-0000');
+  assertEq('R03-null', 'Empreinte inconnue — retourne null', found, null);
+}
+
+// R04 — Empreinte connue retourne l'entrée exacte
+resetAll();
+{
+  addEntry(ENTRY_A);
+  const found = findByFingerprint(ENTRY_A.fingerprint);
+  assert('R04-found',       'Empreinte connue — entrée trouvée',          found !== null);
+  assertEq('R04-fingerprint', 'Empreinte connue — fingerprint correct',   found?.fingerprint, ENTRY_A.fingerprint);
+  assertEq('R04-sessionId',   'Empreinte connue — sessionId correct',     found?.sessionId, ENTRY_A.sessionId);
+  assertEq('R04-sourceId',    'Empreinte connue — sourceId correct',      found?.sourceId, ENTRY_A.sourceId);
+  assertEq('R04-traceCount',  'Empreinte connue — traceCount correct',    found?.traceCount, ENTRY_A.traceCount);
+}
+
+// R05 — Correspondance exacte uniquement (pas de partiel ou de sous-chaîne)
+resetAll();
+{
+  addEntry(ENTRY_A);
+  const partial = findByFingerprint('sha256-aabb'); // sous-chaîne du fingerprint réel
+  assertEq('R05-no-partial', 'Recherche partielle — retourne null', partial, null);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 3 — addEntry : cas valides
+// ══════════════════════════════════════════════════════════════════════════════
+
+// R06 — Ajout valide → added = true, errors vide
+resetAll();
+{
+  const r = addEntry(ENTRY_A);
+  assert('R06-added',    'Ajout valide — added = true',   r.added === true);
+  assert('R06-no-error', 'Ajout valide — errors vide',    r.errors.length === 0);
+}
+
+// R07 — Entrée retrouvable par findByFingerprint après ajout
+resetAll();
+{
+  addEntry(ENTRY_A);
+  const found = findByFingerprint(ENTRY_A.fingerprint);
+  assert('R07-found', 'Ajout valide — retrouvable par findByFingerprint', found !== null);
+}
+
+// R08 — importedAt généré automatiquement (ISO 8601 UTC)
+resetAll();
+{
+  const before = Date.now();
+  addEntry(ENTRY_A);
+  const found = findByFingerprint(ENTRY_A.fingerprint);
+  assert('R08-present', 'importedAt — présent dans l\'entrée', typeof found?.importedAt === 'string' && found.importedAt.length > 0);
+  const ts = new Date(found?.importedAt).getTime();
+  assert('R08-valid',   'importedAt — horodatage ISO valide et postérieur au test', !isNaN(ts) && ts >= before);
+  assert('R08-utc',     'importedAt — se termine par Z (UTC)', found?.importedAt?.endsWith('Z'));
+}
+
+// R09 — sourceId conservé exactement
+resetAll();
+{
+  addEntry(ENTRY_A);
+  const found = findByFingerprint(ENTRY_A.fingerprint);
+  assertEq('R09-sourceId', 'sourceId — conservé exactement', found?.sourceId, ENTRY_A.sourceId);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 4 — addEntry : rejets
+// ══════════════════════════════════════════════════════════════════════════════
+
+// R10 — Doublon fingerprint → added = false, erreur REG-DUPLICATE
+resetAll();
+{
+  addEntry(ENTRY_A);
+  const r = addEntry({ ...ENTRY_A, sessionId: 'session-doublon' });
+  assert('R10-not-added',  'Doublon fingerprint — added = false',          r.added === false);
+  assert('R10-has-error',  'Doublon fingerprint — errors non vide',        r.errors.length > 0);
+  assert('R10-duplicate',  'Doublon fingerprint — erreur REG-DUPLICATE',   r.errors.some(e => e.includes('REG-DUPLICATE')));
+  const reg = readRegistry();
+  assert('R10-registry-unchanged', 'Doublon fingerprint — registre inchangé (1 entrée)', reg.length === 1);
+}
+
+// R11 — fingerprint absent → added = false
+resetAll();
+{
+  const r = addEntry({ sessionId: 'sid', sourceId: 'src', traceCount: 1 });
+  assert('R11-not-added', 'fingerprint absent — added = false',  r.added === false);
+  assert('R11-has-error', 'fingerprint absent — errors non vide', r.errors.length > 0);
+}
+
+// R12 — sessionId absent → added = false
+resetAll();
+{
+  const r = addEntry({ fingerprint: 'fp-test', sourceId: 'src', traceCount: 1 });
+  assert('R12-not-added', 'sessionId absent — added = false',  r.added === false);
+  assert('R12-has-error', 'sessionId absent — errors non vide', r.errors.length > 0);
+}
+
+// R13 — sourceId absent → added = false
+resetAll();
+{
+  const r = addEntry({ fingerprint: 'fp-test', sessionId: 'sid', traceCount: 1 });
+  assert('R13-not-added', 'sourceId absent — added = false',  r.added === false);
+  assert('R13-has-error', 'sourceId absent — errors non vide', r.errors.length > 0);
+}
+
+// R14 — traceCount négatif → added = false
+resetAll();
+{
+  const r = addEntry({ ...ENTRY_A, traceCount: -1 });
+  assert('R14-not-added', 'traceCount négatif — added = false',  r.added === false);
+  assert('R14-has-error', 'traceCount négatif — errors non vide', r.errors.length > 0);
+}
+
+// R15 — traceCount non entier → added = false
+resetAll();
+{
+  const r = addEntry({ ...ENTRY_A, fingerprint: 'fp-float', traceCount: 3.7 });
+  assert('R15-not-added', 'traceCount non entier — added = false',  r.added === false);
+  assert('R15-has-error', 'traceCount non entier — errors non vide', r.errors.length > 0);
+}
+
+// R16 — entrée null → added = false
+resetAll();
+{
+  const r = addEntry(null);
+  assert('R16-not-added', 'entrée null — added = false',  r.added === false);
+  assert('R16-has-error', 'entrée null — errors non vide', r.errors.length > 0);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 5 — Zéro régression sur corpus / index / writeIngestedTrace
+// ══════════════════════════════════════════════════════════════════════════════
+
+// R17 — readRegistry ne modifie pas le corpus canonique
+resetAll();
+{
+  const corpusBefore = readCorpus().length;
+  readRegistry();
+  readRegistry();
+  assert('R17-corpus', 'readRegistry — corpus canonique inchangé', readCorpus().length === corpusBefore);
+}
+
+// R18 — findByFingerprint ne modifie pas le corpus canonique
+resetAll();
+{
+  addEntry(ENTRY_A);
+  const corpusBefore = readCorpus().length;
+  findByFingerprint(ENTRY_A.fingerprint);
+  findByFingerprint('inexistant');
+  assert('R18-corpus', 'findByFingerprint — corpus canonique inchangé', readCorpus().length === corpusBefore);
+}
+
+// R19 — addEntry ne modifie pas le corpus canonique ni l'index
+resetAll();
+{
+  const corpusBefore = readCorpus().length;
+  const indexBefore  = localStorage.getItem(INDEX_KEY);
+  addEntry(ENTRY_A);
+  assert('R19-corpus', 'addEntry — corpus canonique inchangé',    readCorpus().length === corpusBefore);
+  assertEq('R19-index', 'addEntry — index canonique inchangé',    localStorage.getItem(INDEX_KEY), indexBefore);
+}
+
+// R20 — writeIngestedTrace toujours fonctionnelle après opérations registre
+resetAll();
+{
+  addEntry(ENTRY_A);
+  addEntry(ENTRY_B);
+  const corpusBefore = readCorpus().length;
+  const r = writeIngestedTrace({
+    famille:  'S1',
+    source:   'regression-test-composant2',
+    date:     '2024-06-01T10:00:00.000Z',
+    session:  'session-regression-c2',
+    contexte: null,
+    valeur:   { paire: 'ETHUSDT', cote: 'BUY', prix: 3200, quantite: 0.5 },
+  });
+  assert('R20-written', 'writeIngestedTrace — written = true après opérations registre', r.written === true);
+  assert('R20-corpus',  'writeIngestedTrace — corpus +1',                                readCorpus().length === corpusBefore + 1);
+  assert('R20-registry-unchanged', 'writeIngestedTrace — registre inchangé (2 entrées)', readRegistry().length === 2);
+}
+
+// ── Restauration de l'état localStorage ──────────────────────────────────────
+
+resetAll();
+
+// ── Rendu ─────────────────────────────────────────────────────────────────────
+
+const total = results.length;
+const pass  = results.filter(r => r.pass).length;
+const fail  = total - pass;
+
+const html = `
+  <div class="summary">
+    <span class="s-pass">✓ ${pass} PASS</span>
+    <span class="s-fail">${fail > 0 ? '✗ ' + fail + ' FAIL' : ''}</span>
+    <span class="s-total">/ ${total} tests</span>
+  </div>
+  ${renderSuite('Suite 1 — readRegistry',
+    ['R01-type','R01-empty','R02-length','R02-fingerprint-0','R02-fingerprint-1'])}
+  ${renderSuite('Suite 2 — findByFingerprint',
+    ['R03-null','R04-found','R04-fingerprint','R04-sessionId','R04-sourceId','R04-traceCount','R05-no-partial'])}
+  ${renderSuite('Suite 3 — addEntry : cas valides',
+    ['R06-added','R06-no-error','R07-found','R08-present','R08-valid','R08-utc','R09-sourceId'])}
+  ${renderSuite('Suite 4 — addEntry : rejets',
+    ['R10-not-added','R10-has-error','R10-duplicate','R10-registry-unchanged',
+     'R11-not-added','R11-has-error','R12-not-added','R12-has-error',
+     'R13-not-added','R13-has-error','R14-not-added','R14-has-error',
+     'R15-not-added','R15-has-error','R16-not-added','R16-has-error'])}
+  ${renderSuite('Suite 5 — Zéro régression corpus / index / writeIngestedTrace',
+    ['R17-corpus','R18-corpus','R19-corpus','R19-index','R20-written','R20-corpus','R20-registry-unchanged'])}
+`;
+
+document.getElementById('root').innerHTML = html;
+</script>
+
+</body>
+</html>
