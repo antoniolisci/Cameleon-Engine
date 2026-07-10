@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ingestion-core.js — Tests Composant 4 · LOT-P2-2.E</title>
+  <style>
+    * { box-sizing: border-box; }
+    body  { font-family: monospace; padding: 24px; background: #0e0e0e; color: #ccc; font-size: 13px; margin: 0; }
+    h1    { color: #fff; font-size: 16px; margin-bottom: 4px; }
+    .meta { color: #666; margin-bottom: 24px; font-size: 12px; }
+    h2    { color: #7cf; font-size: 14px; margin: 28px 0 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+
+    .summary { display: flex; gap: 24px; margin: 16px 0 28px; font-size: 14px; }
+    .s-pass   { color: #4f4; }
+    .s-fail   { color: #f44; }
+    .s-total  { color: #aaa; }
+
+    table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+    td, th { border: 1px solid #222; padding: 4px 10px; text-align: left; }
+    th     { background: #161616; color: #adf; font-weight: normal; }
+    .pass  { color: #4f4; }
+    .fail  { color: #f44; background: #1a0000; }
+
+    .suite-block { margin-bottom: 32px; }
+    .notice { color: #fa0; font-size: 12px; margin: 8px 0; padding: 6px 10px; background: #1a1200; border-left: 3px solid #fa0; }
+  </style>
+</head>
+<body>
+
+<h1>ingestion-core.js — Tests Composant 4</h1>
+<div class="meta">Composant 4 · LOT-P2-2.E · Contrats : LOT-P2-2.C §4–§7 · LOT-P2-2.D §7–§8</div>
+<div class="notice">
+  PÉRIMÈTRE : Tests d'intégration Core + Adaptateur Binance S1 (CSV uniquement).<br>
+  Pipeline PDF réservé à P2-2.F (validation terrain).<br>
+  localStorage utilisé réellement — snapshot/restauration par suite.
+</div>
+
+<div id="root"></div>
+
+<script type="module">
+import { registerAdapter, ingest } from '../js/ingestion/ingestion-core.js';
+import * as BinanceAdapter from '../js/ingestion/adapters/binance-s1-adapter.js';
+import { readRegistry, findByFingerprint, addEntry } from '../js/ingestion/ingestion-registry.js';
+import { initCanonicalStore, readCorpus } from '../js/canonical/canonical-store.js';
+import { initCanonicalIndex } from '../js/canonical/canonical-index.js';
+import { resolveKey } from '../js/storage.js';
+
+// ── Framework ────────────────────────────────────────────────────────────────
+
+const results = [];
+
+function assert(id, description, condition, detail = '') {
+  results.push({ id, description, pass: !!condition, detail: detail || (condition ? 'OK' : 'FAIL') });
+}
+function assertEq(id, description, actual, expected) {
+  const pass = actual === expected;
+  results.push({ id, description, pass, detail: pass ? String(actual) : `obtenu "${String(actual)}", attendu "${String(expected)}"` });
+}
+
+function renderSuite(title, ids) {
+  const suite = results.filter(r => ids.includes(r.id));
+  const pass  = suite.filter(r => r.pass).length;
+  const fail  = suite.filter(r => !r.pass).length;
+  const rows  = suite.map(r => {
+    const cls  = r.pass ? 'pass' : 'fail';
+    const icon = r.pass ? '✓' : '✗';
+    return `<tr class="${cls}"><td>${icon}</td><td>${r.id}</td><td>${r.description}</td><td>${r.detail}</td></tr>`;
+  }).join('');
+  return `
+<div class="suite-block">
+  <h2>${title} — ${pass}/${suite.length} ${fail > 0 ? '<span style="color:#f44">FAIL</span>' : '<span style="color:#4f4">PASS</span>'}</h2>
+  <table>
+    <thead><tr><th></th><th>ID</th><th>Test</th><th>Détail</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+// ── Utilitaires localStorage ──────────────────────────────────────────────────
+
+function snapshotLS() {
+  const snap = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    snap[k] = localStorage.getItem(k);
+  }
+  return snap;
+}
+
+function restoreLS(snap) {
+  localStorage.clear();
+  for (const [k, v] of Object.entries(snap)) {
+    localStorage.setItem(k, v);
+  }
+}
+
+// ── Données CSV de test ───────────────────────────────────────────────────────
+
+const CSV_TRADE_VALID = [
+  'Date(UTC),Pair,Side,Price,Executed,Amount,Fee',
+  '1700000000000,BTCUSDT,BUY,50000,0.001,50,0.05',
+  '1700000001000,ETHUSDT,SELL,3000,0.5,1500,1.5',
+].join('\n');
+
+const CSV_TRADE_ONE_ROW = [
+  'Date(UTC),Pair,Side,Price,Executed,Amount,Fee',
+  '1700000000000,BTCUSDT,BUY,50000,0.001,50,0.05',
+].join('\n');
+
+const CSV_ORDER_VALID = [
+  'Date(UTC),Order ID,Pair,Side,Order Price,Order Amount,Executed Amount,Service Fee,Average Price,Status',
+  '1700000000000,ORD123,BTCUSDT,BUY,50000,0.001,0.001,0.05,50000,Filled',
+  '1700000001000,ORD124,ETHUSDT,SELL,3000,0.5,0,0,0,Canceled',
+].join('\n');
+
+const CSV_EMPTY_HEADERS_ONLY = 'Date(UTC),Pair,Side,Price,Executed,Amount,Fee';
+const CSV_NOT_BINANCE = 'col1,col2,col3\nval1,val2,val3';
+
+function makeDesc(csv, name = 'test_trade.csv') {
+  return { type: 'file', data: csv, meta: { name } };
+}
+
+// ── Initialisations ───────────────────────────────────────────────────────────
+
+initCanonicalStore();
+initCanonicalIndex();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// IMPORTANT : _adapters est module-level dans ingestion-core.js.
+// Il n'y a pas de resetAdapters(). Le test S1 (aucun adaptateur enregistré)
+// DOIT être exécuté AVANT le premier appel à registerAdapter().
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Suite 1 — Sans adaptateur (avant registerAdapter) ────────────────────────
+
+const snap0 = snapshotLS();
+
+let r_s1_01, r_s1_02;
+{
+  r_s1_01 = await ingest(makeDesc(CSV_TRADE_VALID));
+  r_s1_02 = await ingest(makeDesc(CSV_NOT_BINANCE));
+}
+
+assertEq('S1-01', 'Aucun adaptateur enregistré → type source-non-reconnue',
+  r_s1_01?.type, 'source-non-reconnue');
+assertEq('S1-02', 'Descripteur non Binance sans adaptateur → source-non-reconnue',
+  r_s1_02?.type, 'source-non-reconnue');
+
+restoreLS(snap0);
+
+// ── Enregistrement de l'adaptateur (une seule fois) ──────────────────────────
+// I-D4 : un seul appel. Aucune modification du Core.
+
+registerAdapter({
+  famille:      BinanceAdapter.famille,
+  canHandle:    BinanceAdapter.canHandle,
+  getSourceId:  BinanceAdapter.getSourceId,
+  fingerprint:  BinanceAdapter.fingerprint,
+  extractEvents:BinanceAdapter.extractEvents,
+  processEvent: BinanceAdapter.processEvent,
+});
+
+// ── Suite 2 — Source non reconnue (adaptateur enregistré, format inconnu) ─────
+
+const snap2 = snapshotLS();
+
+let r_s2_01, r_s2_02;
+{
+  r_s2_01 = await ingest(makeDesc(CSV_NOT_BINANCE, 'not_binance.csv'));
+  r_s2_02 = await ingest({ type: 'file', data: 'garbage', meta: { name: 'file.csv' } });
+}
+
+assertEq('S2-01', 'CSV non-Binance → type source-non-reconnue', r_s2_01?.type, 'source-non-reconnue');
+assertEq('S2-02', 'Données illisibles → type source-non-reconnue', r_s2_02?.type, 'source-non-reconnue');
+assert('S2-03', 'Source non reconnue : aucune session créée (registre inchangé)',
+  readRegistry().length === 0);
+assert('S2-04', 'Source non reconnue : aucune trace écrite',
+  readCorpus().filter(t => t.famille === 'S1').length === 0);
+
+restoreLS(snap2);
+
+// ── Suite 3 — Import valide TRADE_HISTORY ─────────────────────────────────────
+
+const snap3 = snapshotLS();
+
+let r_s3;
+{
+  r_s3 = await ingest(makeDesc(CSV_TRADE_VALID, 'trade_history.csv'));
+}
+
+assertEq('S3-01', 'Import valide → type rapport',          r_s3?.type, 'rapport');
+assertEq('S3-02', 'result = succès',                       r_s3?.result, 'succès');
+assertEq('S3-03', 'totalLines = 2',                        r_s3?.totalLines, 2);
+assertEq('S3-04', 'qualified = 2',                         r_s3?.qualified, 2);
+assertEq('S3-05', 'excluded = 0',                          r_s3?.excluded, 0);
+assertEq('S3-06', 'rejected = 0',                          r_s3?.rejected, 0);
+assertEq('S3-07', 'written = 2',                           r_s3?.written, 2);
+assertEq('S3-08', 'failed = 0',                            r_s3?.failed, 0);
+assert('S3-09', 'sessionId présent', typeof r_s3?.sessionId === 'string' && r_s3.sessionId.length > 0);
+assert('S3-10', 'sessionId format SID-uuid', /^SID-[0-9a-f-]{36}$/.test(r_s3?.sessionId ?? ''), r_s3?.sessionId);
+assert('S3-11', 'sourceId = nom du fichier', r_s3?.sourceId === 'trade_history.csv');
+assert('S3-12', 'dateStates présent (objet)', typeof r_s3?.dateStates === 'object');
+assert('S3-13', 'dateStates a 4 clés (standard·R1·R3·R4)',
+  r_s3?.dateStates && 'standard' in r_s3.dateStates && 'R1' in r_s3.dateStates
+  && 'R3' in r_s3.dateStates && 'R4' in r_s3.dateStates);
+assert('S3-14', 'dateStates.standard = 2 (epoch ms 13 chiffres)',
+  r_s3?.dateStates?.standard === 2, `standard=${r_s3?.dateStates?.standard}`);
+assert('S3-15', 'Corpus contient 2 traces S1',
+  readCorpus().filter(t => t.famille === 'S1').length === 2);
+assert('S3-16', 'Registre contient 1 entrée',
+  readRegistry().length === 1);
+assert('S3-17', 'Registre : sourceId correct',
+  readRegistry()[0]?.sourceId === 'trade_history.csv');
+assert('S3-18', 'Registre : traceCount = 2',
+  readRegistry()[0]?.traceCount === 2);
+assert('S3-19', 'Aucun indexEcarts dans le rapport (index cohérent)',
+  !('indexEcarts' in r_s3));
+
+restoreLS(snap3);
+
+// ── Suite 4 — Import valide ORDER_HISTORY (avec exclu) ────────────────────────
+
+const snap4 = snapshotLS();
+
+let r_s4;
+{
+  r_s4 = await ingest(makeDesc(CSV_ORDER_VALID, 'order_history.csv'));
+}
+
+assertEq('S4-01', 'Import ORDER_HISTORY → type rapport', r_s4?.type, 'rapport');
+assertEq('S4-02', 'totalLines = 2',   r_s4?.totalLines, 2);
+assertEq('S4-03', 'qualified = 1 (Filled)',  r_s4?.qualified, 1);
+assertEq('S4-04', 'excluded = 1 (Canceled)', r_s4?.excluded, 1);
+assertEq('S4-05', 'rejected = 0',    r_s4?.rejected, 0);
+assertEq('S4-06', 'written = 1',     r_s4?.written, 1);
+assertEq('S4-07', 'result = succès', r_s4?.result, 'succès');
+
+restoreLS(snap4);
+
+// ── Suite 5 — Déduplication DT-2 ─────────────────────────────────────────────
+
+const snap5 = snapshotLS();
+
+let r_s5_first, r_s5_second;
+{
+  r_s5_first  = await ingest(makeDesc(CSV_TRADE_ONE_ROW, 'trade_dup.csv'));
+  r_s5_second = await ingest(makeDesc(CSV_TRADE_ONE_ROW, 'trade_dup.csv'));
+}
+
+assertEq('S5-01', 'Premier import → rapport succès', r_s5_first?.result, 'succès');
+assertEq('S5-02', 'Deuxième import (même contenu) → type doublon', r_s5_second?.type, 'doublon');
+assert('S5-03', 'Doublon : sourceId présent', typeof r_s5_second?.sourceId === 'string');
+assert('S5-04', 'Doublon : importedAt présent', typeof r_s5_second?.importedAt === 'string');
+assert('S5-05', 'Doublon : traceCount présent', typeof r_s5_second?.traceCount === 'number');
+assertEq('S5-06', 'Doublon : traceCount = 1', r_s5_second?.traceCount, 1);
+assert('S5-07', 'Doublon : registre toujours 1 entrée (pas d\'ajout)',
+  readRegistry().length === 1);
+assert('S5-08', 'Doublon : corpus toujours 1 trace S1 (pas d\'ajout)',
+  readCorpus().filter(t => t.famille === 'S1').length === 1);
+
+restoreLS(snap5);
+
+// ── Suite 6 — Zéro événement / zéro qualifié ─────────────────────────────────
+
+const snap6 = snapshotLS();
+
+let r_s6_empty, r_s6_all_excluded;
+{
+  // Headers seuls, 0 lignes de données
+  r_s6_empty = await ingest(makeDesc(CSV_EMPTY_HEADERS_ONLY, 'empty.csv'));
+
+  // Toutes les lignes ORDER_HISTORY non-FILLED (exclues)
+  const csvAllExcluded = [
+    'Date(UTC),Order ID,Pair,Side,Order Price,Order Amount,Executed Amount,Service Fee,Average Price,Status',
+    '1700000000000,ORD1,BTCUSDT,BUY,50000,0.001,0,0,0,Canceled',
+    '1700000001000,ORD2,ETHUSDT,SELL,3000,0.5,0,0,0,Expired',
+  ].join('\n');
+  r_s6_all_excluded = await ingest(makeDesc(csvAllExcluded, 'all_excluded.csv'));
+}
+
+assertEq('S6-01', 'CSV headers seuls → type rapport', r_s6_empty?.type, 'rapport');
+assertEq('S6-02', 'CSV headers seuls → totalLines=0', r_s6_empty?.totalLines, 0);
+assertEq('S6-03', 'CSV headers seuls → written=0', r_s6_empty?.written, 0);
+assertEq('S6-04', 'CSV headers seuls → result=échec', r_s6_empty?.result, 'échec');
+assert('S6-05', 'CSV headers seuls → registre vide (written=0)',
+  readRegistry().length === 0);
+
+assertEq('S6-06', 'Tout exclu → type rapport', r_s6_all_excluded?.type, 'rapport');
+assertEq('S6-07', 'Tout exclu → qualified=0', r_s6_all_excluded?.qualified, 0);
+assertEq('S6-08', 'Tout exclu → excluded=2', r_s6_all_excluded?.excluded, 2);
+assertEq('S6-09', 'Tout exclu → written=0', r_s6_all_excluded?.written, 0);
+assertEq('S6-10', 'Tout exclu → result=échec', r_s6_all_excluded?.result, 'échec');
+
+restoreLS(snap6);
+
+// ── Suite 7 — Isolation architecturale ───────────────────────────────────────
+
+// Ces tests vérifient les invariants I-D1→I-D4 par inspection de la structure
+// du rapport et du comportement observable. Non-introspection du code source.
+
+const snap7 = snapshotLS();
+
+let r_s7;
+{
+  r_s7 = await ingest(makeDesc(CSV_TRADE_VALID, 'arch_test.csv'));
+}
+
+assert('S7-01', 'I-D1 : rapport sans mention Binance/CSV/PDF dans les champs structurés',
+  r_s7?.type === 'rapport'
+  && !JSON.stringify({ sessionId: r_s7.sessionId, sourceId: r_s7.sourceId, result: r_s7.result }).toLowerCase().includes('binance'));
+assert('S7-02', 'I-D3 : séquence identique — rapport complet pour TRADE_HISTORY',
+  r_s7 && 'sessionId' in r_s7 && 'totalLines' in r_s7 && 'dateStates' in r_s7);
+assert('S7-03', 'I-D4 : famille de la trace = adapter.famille (S1)',
+  readCorpus().filter(t => t.famille === 'S1').length === 2);
+assert('S7-04', 'Champ source = sourceId de l\'adaptateur (nom de fichier)',
+  readCorpus().filter(t => t.source === 'arch_test.csv').length === 2);
+assert('S7-05', 'Champ session = sessionId du rapport',
+  readCorpus().filter(t => t.session === r_s7?.sessionId).length === 2);
+assert('S7-06', 'Champ contexte injecté dans chaque trace (non nul)',
+  readCorpus().filter(t => t.famille === 'S1').every(t => t.contexte !== null && typeof t.contexte === 'object'));
+
+restoreLS(snap7);
+
+// ── Suite 8 — Rapport complet P2-2.C §5.3 ────────────────────────────────────
+
+const snap8 = snapshotLS();
+
+let r_s8;
+{
+  r_s8 = await ingest(makeDesc(CSV_TRADE_VALID, 'full_report.csv'));
+}
+
+const REQUIRED_FIELDS = ['sessionId','sourceId','totalLines','qualified','excluded','rejected','written','failed','dateStates','result'];
+for (const f of REQUIRED_FIELDS) {
+  assert(`S8-${String(REQUIRED_FIELDS.indexOf(f)+1).padStart(2,'0')}`, `Rapport contient champ "${f}"`,
+    f in r_s8, `r_s8.${f} = ${JSON.stringify(r_s8?.[f])}`);
+}
+assert('S8-11', 'dateStates.R3 = 0 (contrainte R1/R3 documentée)',
+  r_s8?.dateStates?.R3 === 0);
+assert('S8-12', 'sessionId format SID-uuid',
+  /^SID-[0-9a-f-]{36}$/.test(r_s8?.sessionId ?? ''));
+
+restoreLS(snap8);
+
+// ── Suite 9 — States de date EP-RC2 ──────────────────────────────────────────
+
+const snap9 = snapshotLS();
+
+let r_s9_r4, r_s9_r1;
+{
+  // R4 : epoch secondes 10 chiffres (hors plage ms)
+  const csvR4 = [
+    'Date(UTC),Pair,Side,Price,Executed,Amount,Fee',
+    '1700000000,BTCUSDT,BUY,50000,0.001,50,0.05',
+  ].join('\n');
+  r_s9_r4 = await ingest(makeDesc(csvR4, 'r4_test.csv'));
+}
+restoreLS(snap9);
+
+{
+  // R1 : sentinelle "--" ou vide
+  const csvR1 = [
+    'Date(UTC),Pair,Side,Price,Executed,Amount,Fee',
+    '--,BTCUSDT,BUY,50000,0.001,50,0.05',
+  ].join('\n');
+  r_s9_r1 = await ingest(makeDesc(csvR1, 'r1_test.csv'));
+}
+
+assertEq('S9-01', 'EP-RC2 R4 (epoch s) → dateStates.R4=1',
+  r_s9_r4?.dateStates?.R4, 1, `R4=${r_s9_r4?.dateStates?.R4}`);
+assertEq('S9-02', 'EP-RC2 R4 → result=succès (trace quand même écrite)',
+  r_s9_r4?.result, 'succès');
+assertEq('S9-03', 'EP-RC2 R1 (sentinelle) → dateStates.R1=1',
+  r_s9_r1?.dateStates?.R1, 1, `R1=${r_s9_r1?.dateStates?.R1}`);
+assertEq('S9-04', 'EP-RC2 R1 → result=succès (trace quand même écrite)',
+  r_s9_r1?.result, 'succès');
+
+restoreLS(snap9);
+
+// ── Suite 10 — Non-régression corpus existant ─────────────────────────────────
+
+const snap10 = snapshotLS();
+
+// Écrire une trace SY1 synthétique avant l'import S1
+const { writeCanonicalTrace } = await import('../js/canonical/canonical-store.js');
+const preWrite = writeCanonicalTrace({ famille: 'SY1', source: 'moteur', valeur: { test: true } });
+
+const corpusAvant = readCorpus().length;
+let r_s10;
+{
+  r_s10 = await ingest(makeDesc(CSV_TRADE_VALID, 'regrtest.csv'));
+}
+const corpusApres = readCorpus().length;
+const sy1Intact  = readCorpus().filter(t => t.famille === 'SY1').length;
+
+assert('S10-01', 'Trace SY1 existante intacte après import S1', sy1Intact === 1);
+assert('S10-02', 'Corpus a augmenté exactement de 2 (written S1)', corpusApres - corpusAvant === 2,
+  `delta=${corpusApres - corpusAvant}`);
+assert('S10-03', 'Import S1 réussi même avec trace SY1 préexistante',
+  r_s10?.result === 'succès');
+
+restoreLS(snap10);
+
+// ── Rapport final ─────────────────────────────────────────────────────────────
+
+const totalPass = results.filter(r => r.pass).length;
+const totalFail = results.filter(r => !r.pass).length;
+
+let html = `<div class="summary">
+  <span class="s-pass">PASS ${totalPass}</span>
+  <span class="s-fail">FAIL ${totalFail}</span>
+  <span class="s-total">TOTAL ${results.length}</span>
+</div>`;
+
+html += renderSuite('Suite 1 — Aucun adaptateur (avant enregistrement)',
+  results.filter(r => r.id.startsWith('S1-')).map(r => r.id));
+html += renderSuite('Suite 2 — Source non reconnue (avec adaptateur)',
+  results.filter(r => r.id.startsWith('S2-')).map(r => r.id));
+html += renderSuite('Suite 3 — Import valide TRADE_HISTORY',
+  results.filter(r => r.id.startsWith('S3-')).map(r => r.id));
+html += renderSuite('Suite 4 — Import valide ORDER_HISTORY (avec exclu)',
+  results.filter(r => r.id.startsWith('S4-')).map(r => r.id));
+html += renderSuite('Suite 5 — Déduplication DT-2',
+  results.filter(r => r.id.startsWith('S5-')).map(r => r.id));
+html += renderSuite('Suite 6 — Zéro événement / zéro qualifié',
+  results.filter(r => r.id.startsWith('S6-')).map(r => r.id));
+html += renderSuite('Suite 7 — Isolation architecturale I-D1→I-D4',
+  results.filter(r => r.id.startsWith('S7-')).map(r => r.id));
+html += renderSuite('Suite 8 — Rapport complet P2-2.C §5.3',
+  results.filter(r => r.id.startsWith('S8-')).map(r => r.id));
+html += renderSuite('Suite 9 — États de date EP-RC2 (R1/R4)',
+  results.filter(r => r.id.startsWith('S9-')).map(r => r.id));
+html += renderSuite('Suite 10 — Non-régression corpus existant',
+  results.filter(r => r.id.startsWith('S10-')).map(r => r.id));
+
+document.getElementById('root').innerHTML = html;
+</script>
+</body>
+</html>

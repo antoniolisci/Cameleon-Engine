@@ -180,7 +180,7 @@ function _splitLine(line, sep) {
 function _parseCSV(text) {
   const clean = text.replace(/^\ufeff/, '');  // BOM UTF-8 (\ufeff — exports Binance FR)
   const lines = clean.trim().split(/\r?\n/);
-  if (lines.length < 2) return { headers: [], rows: [] };
+  if (!lines[0]) return { headers: [], rows: [] };
 
   const sep     = _detectSeparator(lines[0]);
   const headers = _splitLine(lines[0], sep).map(h => h.trim().replace(/^"|"$/g, ''));
