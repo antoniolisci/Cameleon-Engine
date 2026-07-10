@@ -101,7 +101,7 @@ Ces règles sont non négociables. Elles découlent directement de la doctrine L
 | INV-6 | CL-P3 Variante A | Une trace dont la date est R1, R3 ou R4 est ingérée avec l'état formalisé — elle n'est pas rejetée pour cause de date manquante. |
 | INV-7 | RF-R2 · LOT-P1-2.4 §4.3 | Source de la trace = "Module d'import" (module écrivant officiel Phase A pour S1). |
 | INV-8 | LOT-P1-2.4 §7.4 | Contexte optionnel de la trace : type de fichier importé · nombre d'enregistrements · résultat de l'import. |
-| INV-9 | LOT-P1-2.4 §6.3 | Session = une opération d'import de fichier source. Deux imports du même fichier = deux sessions distinctes. |
+| INV-9 | LOT-P1-2.4 §6.3 · DT-2 | Chaque ingestion autorisée produit une session distincte. Une source déjà enregistrée dans le registre d'ingestion est bloquée avant création d'une nouvelle session. |
 
 ---
 
@@ -143,7 +143,7 @@ L'infrastructure du module comportemental (parser.js · binance_spot.js · forma
 | CV-5 | Extraction de date EP-RC2 | Les 4 cas de date (ISO 8601 / R4 / R1 / R3) produisent l'état formalisé correct dans la trace. |
 | CV-6 | Rejet RF-R6 | Toute ligne non classifiable S1 produit un rejet documenté, pas une ingestion silencieuse. |
 | CV-7 | Persistance canonique | Les traces S1 apparaissent dans le corpus canonique après import et sont consultables par famille · session. |
-| CV-8 | Session d'import | Deux imports successifs du même fichier produisent deux sessions distinctes dans l'index. |
+| CV-8 | Déduplication et session | Premier import : une session est créée · les traces S1 sont écrites · la source est enregistrée dans le registre. Second import du même fichier : l'import est bloqué par déduplication · aucune session créée · aucune trace écrite · registre inchangé. |
 
 ### §7.2 Critères de robustesse
 
@@ -162,6 +162,6 @@ L'infrastructure du module comportemental (parser.js · binance_spot.js · forma
 | Condition 1 | Tous les micro-lots P2-2.A à P2-2.F validés |
 | Condition 2 | CV-1 à CV-8 satisfaits en test terrain sur fichiers réels |
 | Condition 3 | CB-1 à CB-3 satisfaits |
-| Condition 4 | Décisions DT-2 à DT-5 tranchées et documentées |
+| Condition 4 | Toutes les décisions structurantes du lot tranchées et documentées : DT-2 · DT-3 · DT-4 · DT-5 · DT-C1 |
 | Condition 5 | DQC V2 CAS A sur le document de lot |
 | Condition 6 | Décision opérateur explicite de clôture |
