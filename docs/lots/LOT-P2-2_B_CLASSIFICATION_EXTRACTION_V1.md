@@ -208,10 +208,20 @@ Pour les fichiers CSV Binance, les alias sont normalisés (minuscules, sans diac
 
 L'adaptateur Binance insère un test supplémentaire entre Test 3 et Test 4 de l'algorithme générique (§4.2) :
 
-**Test Binance 3b — Format court PDF ("YY-MM-DD HH:MM:SS")**
-Si `v` correspond au pattern "YY-MM-DD HH:MM:SS" (longueur 17, séparateurs en positions fixes, année sur 2 chiffres) : préfixer l'année avec "20" → "YYYY-MM-DD HH:MM:SS", appliquer le décalage +02:00 → UTC ms. **État Standard**.
+**Test Binance 3b — Formats PDF Binance ("YY-MM-DD HH:MM:SS" · "YYYY-MM-DD HH:MM:SS")**
 
-Ce test est propre à l'export PDF Binance. Il ne modifie pas l'algorithme EP-RC2 générique.
+Ce test couvre deux variantes d'un même format propre aux exports PDF Binance, portant la même sémantique temporelle : heure locale Binance PDF en UTC+2.
+
+| Variante | Longueur | Condition | Traitement |
+|---|---|---|---|
+| Ancien export Binance PDF | 17 caractères | `v` correspond au pattern "YY-MM-DD HH:MM:SS" (séparateurs en positions fixes, année sur 2 chiffres) | Préfixer l'année avec "20" → former "YYYY-MM-DDTHH:MM:SS+02:00" → UTC ms |
+| Nouveau export Binance PDF (2026) | 19 caractères | `v` correspond au pattern "YYYY-MM-DD HH:MM:SS" (séparateurs en positions fixes, année sur 4 chiffres) | Conserver l'année telle quelle → former "YYYY-MM-DDTHH:MM:SS+02:00" → UTC ms |
+
+Dans les deux cas : appliquer le décalage +02:00 · convertir en ISO 8601 UTC se terminant par `Z`. **État Standard**.
+
+Ce test est placé entre Test 3 et Test 4 de l'algorithme EP-RC2 générique. Il empêche le Test 4 de traiter la variante 19 caractères comme une date UTC directe — ce qui produirait un horodatage décalé de 2 heures par rapport à l'heure réelle de l'événement.
+
+Ce test appartient exclusivement à l'Adaptateur Binance Phase A. Il ne modifie pas l'algorithme EP-RC2 générique du S1 Core (§3→§5).
 
 L'adaptateur Binance signale également la sentinelle "--" comme valeur absente pour les colonnes positionnelles PDF (ORDER_HISTORY PDF execution_time) → Test 1 → **état R1**.
 
@@ -260,7 +270,7 @@ Le module comportemental constitue une **référence documentaire** pour les for
 |---|---|---|
 | CV-B1 | Qualification TRADE_HISTORY | Toutes les lignes d'un fichier TRADE_HISTORY Binance valide passent les 3 conditions et sont qualifiées S1 |
 | CV-B2 | Qualification ORDER_HISTORY | Seules les lignes FILLED passent la Condition 2 · les autres sont exclues avec comptabilisation |
-| CV-B3 | EP-RC2 — état Standard | Lignes avec date ISO 8601 ou epoch ms valide → état Standard · date UTC ms renseignée |
+| CV-B3 | EP-RC2 — état Standard | Lignes avec date ISO 8601 ou epoch ms valide → état Standard · date UTC ms renseignée · formats PDF Binance (Test 3b : variante 17 et 19 caractères) → état Standard · décalage +02:00 appliqué · date UTC correcte |
 | CV-B4 | EP-RC2 — états R1/R3/R4 | Lignes avec date absente (R1) · non conforme (R3) · non exploitable (R4) → trace ingérée avec état formalisé |
 | CV-B5 | Rejet RF-R6 fichier | Fichier de format non reconnu → rejet total · aucune trace · retour explicite |
 | CV-B6 | Rejet RF-R6 ligne | Ligne avec champs minimaux absents → rejet ligne · comptabilisation · traitement des autres lignes non interrompu |
