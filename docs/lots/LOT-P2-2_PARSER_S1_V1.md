@@ -109,13 +109,14 @@ Ces règles sont non négociables. Elles découlent directement de la doctrine L
 
 ### §6.1 Séquençage des micro-lots
 
-| Micro-lot | Mission |
-|---|---|
-| **P2-2.A** — Modèle de trace S1 | Définir la structure exacte d'une trace S1 produite par import Binance Phase A : valeurs concrètes des 4 champs canoniques pour chaque format (TRADE_HISTORY CSV · ORDER_HISTORY CSV · TRADE_HISTORY PDF · ORDER_HISTORY PDF). Trancher DT-2 et DT-5. |
-| **P2-2.B** — Logique de classification et d'extraction | Implémenter RF-R5 + DI4 (critère S1 ligne par ligne) · extraction de date EP-RC2 (4 cas) · rejet RF-R6 des lignes hors périmètre. Trancher DT-3. Aucune persistance dans ce micro-lot. |
-| **P2-2.C** — Persistance dans la couche canonique | Brancher la sortie du parser sur la couche de persistance LOT-P1-2.2. Écrire les traces S1. Vérifier l'index LOT-P1-2.3 après ingestion. |
-| **P2-2.D** — Interface de déclenchement | Implémenter le point d'entrée opérateur. Trancher DT-4. Afficher le résultat d'import : nombre de traces créées · lignes rejetées · états de date produits. |
-| **P2-2.E** — Validation terrain | Protocole de validation complet sur fichiers réels Binance (CSV + PDF · TRADE_HISTORY + ORDER_HISTORY). Vérification des traces S1 dans le corpus · des rejets · des états de date. Tests de régression LOT-P1-2 et module comportemental. |
+| Micro-lot | Type | Mission |
+|---|---|---|
+| **P2-2.A** — Modèle de trace S1 | Contrat | Définir la structure exacte d'une trace S1 : 6 dimensions · valeurs concrètes par format (TRADE_HISTORY CSV · ORDER_HISTORY CSV · TRADE_HISTORY PDF · ORDER_HISTORY PDF). Trancher DT-2 et DT-5. |
+| **P2-2.B** — Logique de classification et d'extraction | Contrat | Définir les règles d'exécution selon l'architecture S1 Core / Adaptateur : qualification générique (3 conditions) · algorithme EP-RC2 (5 tests) · règle RF-R6 · mapping Binance Phase A. Trancher DT-3. |
+| **P2-2.C** — Persistance dans la couche canonique | Contrat | Définir le contrat de persistance entre le parser S1 et la couche canonique : `writeIngestedTrace` · registre `CE_ingestion_registry_v1` · séquence de session · rapport. Trancher DT-C1. |
+| **P2-2.D** — Interface de déclenchement | Contrat | Définir le pipeline d'ingestion et l'interface de déclenchement : `ingest(descriptor)` · registre des adaptateurs · contrat générique (6 capacités) · séquence d'orchestration 11 étapes. Trancher DT-4. |
+| **P2-2.E** — Implémentation technique des contrats A–D | Implémentation | Implémenter les contrats A–D dans le module d'ingestion : `writeIngestedTrace` dans la couche canonique · Core `ingest(descriptor)` · registre des adaptateurs · Adaptateur Binance Phase A · registre `CE_ingestion_registry_v1` · interface opérateur dans l'onglet Mémoire. |
+| **P2-2.F** — Validation terrain | Validation | Protocole de validation complet sur fichiers réels Binance (CSV + PDF · TRADE_HISTORY + ORDER_HISTORY). Vérification des traces S1 dans le corpus · des rejets · des états de date. Tests de régression LOT-P1-2 et module comportemental. |
 
 ### §6.2 Contrainte architecturale
 
@@ -158,7 +159,7 @@ L'infrastructure du module comportemental (parser.js · binance_spot.js · forma
 
 | Condition | Critère |
 |---|---|
-| Condition 1 | Tous les micro-lots P2-2.A à P2-2.E validés |
+| Condition 1 | Tous les micro-lots P2-2.A à P2-2.F validés |
 | Condition 2 | CV-1 à CV-8 satisfaits en test terrain sur fichiers réels |
 | Condition 3 | CB-1 à CB-3 satisfaits |
 | Condition 4 | Décisions DT-2 à DT-5 tranchées et documentées |
