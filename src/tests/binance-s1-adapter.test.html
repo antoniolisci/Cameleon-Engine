@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>binance-s1-adapter.js — Tests Composant 3 · LOT-P2-2.E</title>
+  <style>
+    * { box-sizing: border-box; }
+    body  { font-family: monospace; padding: 24px; background: #0e0e0e; color: #ccc; font-size: 13px; margin: 0; }
+    h1    { color: #fff; font-size: 16px; margin-bottom: 4px; }
+    .meta { color: #666; margin-bottom: 16px; font-size: 12px; }
+    .notice { color: #fa0; background: #1a1000; border: 1px solid #432; padding: 8px 12px; margin: 0 0 24px; font-size: 12px; line-height: 1.7; }
+    h2    { color: #7cf; font-size: 14px; margin: 28px 0 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+    .summary { display: flex; gap: 24px; margin: 16px 0 28px; font-size: 14px; }
+    .s-pass   { color: #4f4; }
+    .s-fail   { color: #f44; }
+    .s-total  { color: #aaa; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+    td, th { border: 1px solid #222; padding: 4px 10px; text-align: left; }
+    th     { background: #161616; color: #adf; font-weight: normal; }
+    .pass  { color: #4f4; }
+    .fail  { color: #f44; background: #1a0000; }
+    .suite-block { margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+
+<h1>binance-s1-adapter.js — Tests Composant 3</h1>
+<div class="meta">Composant 3 · LOT-P2-2.E · Contrats : LOT-P2-2.B §6 · LOT-P2-2.A §3 · LOT-P2-2.D §7.2</div>
+
+<div class="notice">
+  Périmètre · Logique unitaire testée : canHandle (CSV) · extractEvents (CSV) · processEvent
+  (CSV + PDF via événements préconstruits) · fingerprint · getSourceId · EP-RC2 · _parseNum.<br>
+  Non testé ici : pipeline PDF.js complet (extraction réelle de fichiers PDF Binance).
+  Réservé à P2-2.F — corpus réel sur terrain.
+</div>
+
+<div id="root"></div>
+
+<script type="module">
+
+import {
+  famille,
+  canHandle,
+  getSourceId,
+  fingerprint,
+  extractEvents,
+  processEvent,
+} from '../js/ingestion/adapters/binance-s1-adapter.js';
+
+// ── Framework d'assertion ─────────────────────────────────────────────────────
+
+const results = [];
+
+function assert(id, description, condition, detail = '') {
+  results.push({ id, description, pass: !!condition, detail: detail || (condition ? 'OK' : 'FAIL') });
+}
+
+function assertEq(id, description, actual, expected) {
+  const pass = actual === expected;
+  results.push({ id, description, pass, detail: pass ? String(actual) : `obtenu "${actual}", attendu "${expected}"` });
+}
+
+function renderSuite(title, ids) {
+  const suite = results.filter(r => ids.includes(r.id));
+  const pass  = suite.filter(r =>  r.pass).length;
+  const fail  = suite.filter(r => !r.pass).length;
+  const rows  = suite.map(r => {
+    const cls  = r.pass ? 'pass' : 'fail';
+    const icon = r.pass ? '✓' : '✗';
+    return `<tr class="${cls}"><td>${icon}</td><td>${r.id}</td><td>${r.description}</td><td>${r.detail}</td></tr>`;
+  }).join('');
+  return `
+<div class="suite-block">
+  <h2>${title} — ${pass}/${suite.length} ${fail > 0 ? '<span style="color:#f44">FAIL</span>' : '<span style="color:#4f4">PASS</span>'}</h2>
+  <table>
+    <thead><tr><th></th><th>ID</th><th>Test</th><th>Détail</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function csvDescriptor(csv, name = 'test.csv') {
+  return { type: 'file', data: csv, meta: { name } };
+}
+
+// Crée un événement TRADE_HISTORY CSV avec champs minimaux valides.
+// Le champ 'Date(UTC)' est normalisé → 'date(utc)' par _normalizeHeader.
+function makeTradeCsvEvent(dateVal, extra = {}) {
+  return {
+    type: 'TRADE_HISTORY CSV',
+    raw: {
+      'Date(UTC)': dateVal,
+      'Pair':      'BTCUSDT',
+      'Side':      'BUY',
+      'Price':     '50000',
+      'Executed':  '0.01',
+      'Amount':    '500',
+      'Fee':       '0.5',
+      ...extra,
+    },
+  };
+}
+
+// Crée un événement ORDER_HISTORY CSV avec champs minimaux valides.
+function makeOrderCsvEvent(status, extra = {}) {
+  return {
+    type: 'ORDER_HISTORY CSV',
+    raw: {
+      'Date(UTC)':   '1700000000000',
+      'Order ID':    'ORD123',
+      'Pair':        'BTCUSDT',
+      'Side':        'BUY',
+      'Status':      status,
+      'Avg Price':   '50000',
+      'Executed':    '0.01',
+      'Amount':      '500',
+      ...extra,
+    },
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Exécution des tests (async pour canHandle, fingerprint, extractEvents)
+// ─────────────────────────────────────────────────────────────────────────────
+
+(async () => {
+
+// Snapshot localStorage avant tous les tests (Suite 9)
+const _lsKeysBefore = Object.keys(localStorage);
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 1 — canHandle · CSV
+// ════════════════════════════════════════════════════════════════════════════
+
+const TRADE_CSV =
+  'Date(UTC),Pair,Side,Price,Executed,Amount,Fee\n' +
+  '1700000000000,BTCUSDT,BUY,50000,0.01,500,0.5';
+
+const ORDER_CSV =
+  'Date(UTC),Order ID,Pair,Side,Order Price,Order Amount,Executed,Avg Price,Total,Status\n' +
+  '1700000000000,ORD123,BTCUSDT,BUY,50000,0.01,0.01,50000,500,FILLED';
+
+// MIXED : contient à la fois Fee (signal TRADE) et Status + Order ID (signal ORDER)
+const MIXED_CSV =
+  'Date(UTC),Order ID,Pair,Side,Price,Fee,Status\n' +
+  '1700000000000,ORD456,ETHUSDT,SELL,3000,0.01,FILLED';
+
+const UNKNOWN_CSV =
+  'column1,column2,column3\n' +
+  'valA,valB,valC';
+
+const SEMI_CSV =
+  'Date(UTC);Order ID;Pair;Side;Status\n' +
+  '1700000000000;ORD789;BTCUSDT;BUY;FILLED';
+
+const BOM_TRADE_CSV = '\ufeff' + TRADE_CSV;
+
+assert('S1-01', 'TRADE_HISTORY CSV → canHandle = true',
+  await canHandle(csvDescriptor(TRADE_CSV)));
+
+assert('S1-02', 'ORDER_HISTORY CSV → canHandle = true',
+  await canHandle(csvDescriptor(ORDER_CSV)));
+
+assert('S1-03', 'Format sans en-têtes reconnus → canHandle = false',
+  !(await canHandle(csvDescriptor(UNKNOWN_CSV))));
+
+assert('S1-04', 'ORDER_HISTORY prioritaire quand Fee + Status + Order ID présents',
+  await canHandle(csvDescriptor(MIXED_CSV)));
+
+assert('S1-05', 'Séparateur point-virgule → canHandle = true',
+  await canHandle(csvDescriptor(SEMI_CSV)));
+
+assert('S1-06', 'BOM UTF-8 (\ufeff) → canHandle = true',
+  await canHandle(csvDescriptor(BOM_TRADE_CSV)));
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 2 — extractEvents · CSV
+// ════════════════════════════════════════════════════════════════════════════
+
+const TRADE_2L =
+  'Date(UTC),Pair,Side,Price,Executed,Amount,Fee\n' +
+  '1700000000000,BTCUSDT,BUY,50000,0.01,500,0.5\n' +
+  '1700001000000,ETHUSDT,SELL,3000,0.1,300,0.3';
+
+const QUOTED_CSV =
+  '"Date(UTC)","Pair","Side","Price","Executed","Amount","Fee"\n' +
+  '"1700000000000","BTC USDT","BUY","50,000","0,01","500","0,5"';
+
+const TAB_ORDER_CSV =
+  'Date(UTC)\tOrder ID\tPair\tSide\tStatus\n' +
+  '1700000000000\tORD789\tBTCUSDT\tBUY\tFILLED';
+
+const r_trade = await extractEvents(csvDescriptor(TRADE_2L));
+assertEq('S2-01', 'extractEvents TRADE_HISTORY CSV — sourceType correct',
+  r_trade.sourceType, 'TRADE_HISTORY CSV');
+assertEq('S2-02', 'extractEvents TRADE_HISTORY CSV — total = 2 lignes',
+  r_trade.total, 2);
+
+const r_order = await extractEvents(csvDescriptor(ORDER_CSV));
+assertEq('S2-03', 'extractEvents ORDER_HISTORY CSV — sourceType correct',
+  r_order.sourceType, 'ORDER_HISTORY CSV');
+
+const r_quoted = await extractEvents(csvDescriptor(QUOTED_CSV));
+assertEq('S2-04', 'Champs avec guillemets — total = 1 ligne',
+  r_quoted.total, 1);
+
+const r_tab = await extractEvents(csvDescriptor(TAB_ORDER_CSV, 'order.csv'));
+assertEq('S2-05', 'Séparateur tabulation — total = 1 ligne',
+  r_tab.total, 1);
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 3 — EP-RC2 · Algorithme de date
+// Tests indirects via processEvent TRADE_HISTORY CSV (champs paire/côté valides).
+// ════════════════════════════════════════════════════════════════════════════
+
+const DATE_UNAVAILABLE = 'Non disponible';
+const DATE_NON_EXPLOIT = 'Non exploitable au format canonique';
+
+// R1 — date absente ou vide (Tests 1)
+assertEq('S3-01', 'Date vide ("") → DATE_UNAVAILABLE (R1)',
+  processEvent(makeTradeCsvEvent('')).date, DATE_UNAVAILABLE);
+
+assertEq('S3-02', 'Date null → DATE_UNAVAILABLE (R1)',
+  processEvent(makeTradeCsvEvent(null)).date, DATE_UNAVAILABLE);
+
+// R4 — epoch secondes 10 chiffres (Test 3)
+assertEq('S3-03', 'Epoch 10 chiffres → DATE_NON_EXPLOIT (R4)',
+  processEvent(makeTradeCsvEvent('1700000000')).date, DATE_NON_EXPLOIT);
+
+// Test 2 — epoch ms 13 chiffres valide (2023-11-14)
+const r_ep13 = processEvent(makeTradeCsvEvent('1700000000000'));
+assert('S3-04', 'Epoch 13 chiffres valide → ISO UTC (Test 2)',
+  typeof r_ep13.date === 'string' && r_ep13.date.endsWith('Z') && r_ep13.date.startsWith('2023'),
+  r_ep13.date);
+
+// Test 2 — epoch ms hors plage calendaire (> 2100)
+assertEq('S3-05', 'Epoch ms hors plage (> 2100) → DATE_NON_EXPLOIT (R4)',
+  processEvent(makeTradeCsvEvent('9999999999999')).date, DATE_NON_EXPLOIT);
+
+// Test Binance 3b — variante 17 chars (YY-MM-DD HH:MM:SS · UTC+2)
+// "26-05-24 07:01:57" → préfixe "20" → "2026-05-24T07:01:57+02:00" → UTC = "2026-05-24T05:01:57.000Z"
+assertEq('S3-06', 'Test 3b 17 chars "26-05-24 07:01:57" → "2026-05-24T05:01:57.000Z"',
+  processEvent(makeTradeCsvEvent('26-05-24 07:01:57')).date, '2026-05-24T05:01:57.000Z');
+
+// Test Binance 3b — variante 19 chars (YYYY-MM-DD HH:MM:SS · UTC+2)
+// "2026-05-24 07:01:57" → "2026-05-24T07:01:57+02:00" → UTC = "2026-05-24T05:01:57.000Z"
+const r_3b19 = processEvent(makeTradeCsvEvent('2026-05-24 07:01:57'));
+assertEq('S3-07', 'Test 3b 19 chars "2026-05-24 07:01:57" → "2026-05-24T05:01:57.000Z"',
+  r_3b19.date, '2026-05-24T05:01:57.000Z');
+
+// Vérification architecturale : Test 4 ne doit pas capturer la variante 19 chars avant Test 3b.
+// Si Test 4 avait capturé "2026-05-24 07:01:57" en premier (via replace ' '→'T' + suffixe 'Z'),
+// il produirait "2026-05-24T07:01:57.000Z" (décalage +2h — horodatage incorrect).
+assert('S3-08', 'Test 4 ne capture pas 19 chars avant Test 3b (décalage +2h absent)',
+  r_3b19.date === '2026-05-24T05:01:57.000Z' && r_3b19.date !== '2026-05-24T07:01:57.000Z',
+  `date="${r_3b19.date}" — valeur incorrecte si Test 4 prioritaire : "2026-05-24T07:01:57.000Z"`);
+
+// Test 4 — ISO 8601 standard avec Z (ne doit pas être capturé par Test 3b)
+assertEq('S3-09', 'ISO 8601 + Z → Test 4 → ISO UTC (non intercepté par Test 3b)',
+  processEvent(makeTradeCsvEvent('2024-11-14T10:30:00Z')).date, '2024-11-14T10:30:00.000Z');
+
+// Test 5 — aucun pattern reconnu → DATE_UNAVAILABLE (R3)
+assertEq('S3-10', 'Valeur non reconnue → DATE_UNAVAILABLE (R3/Test 5)',
+  processEvent(makeTradeCsvEvent('not-a-date')).date, DATE_UNAVAILABLE);
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 4 — Parsing numérique · _parseNum
+// Tests indirects via .valeur.prix d'un événement TRADE_HISTORY CSV.
+// Amount vide → montant = prix × quantité (pas de surcharge du champ prix testé).
+// ════════════════════════════════════════════════════════════════════════════
+
+function mkPrix(p) {
+  return processEvent(makeTradeCsvEvent('1700000000000', { Price: p, Amount: '' }));
+}
+
+// Décimal FR : virgule comme séparateur décimal
+assertEq('S4-01', '"0,25" (FR décimal) → prix = 0.25',
+  mkPrix('0,25').valeur?.prix, 0.25);
+
+// Milliers + décimal FR : point milliers · virgule décimale
+assertEq('S4-02', '"1.234,56" (FR milliers + décimal) → prix = 1234.56',
+  mkPrix('1.234,56').valeur?.prix, 1234.56);
+
+// Milliers + décimal EN : virgule milliers · point décimal
+assertEq('S4-03', '"1,234.56" (EN milliers + décimal) → prix = 1234.56',
+  mkPrix('1,234.56').valeur?.prix, 1234.56);
+
+// Espace comme séparateur de milliers
+assertEq('S4-04', '"21 500" (espace milliers) → prix = 21500',
+  mkPrix('21 500').valeur?.prix, 21500);
+
+// Valeur avec suffixe alphabétique (symbole de coin collé)
+assertEq('S4-05', '"5.6583TAO" (suffixe coin) → prix = 5.6583',
+  mkPrix('5.6583TAO').valeur?.prix, 5.6583);
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 5 — processEvent · TRADE_HISTORY CSV
+// ════════════════════════════════════════════════════════════════════════════
+
+const r_trade_ok = processEvent(makeTradeCsvEvent('1700000000000'));
+assertEq('S5-01', 'Ligne TRADE standard → statut qualifié',
+  r_trade_ok.status, 'qualifié');
+assert('S5-02', 'Ligne TRADE standard → date ISO UTC',
+  typeof r_trade_ok.date === 'string' && r_trade_ok.date.endsWith('Z'), r_trade_ok.date);
+
+// Paire absente → RF-R6
+const r_noPair = processEvent(makeTradeCsvEvent('1700000000000', { Pair: '' }));
+assertEq('S5-03', 'Paire absente → statut rejeté (RF-R6)',
+  r_noPair.status, 'rejeté');
+assertEq('S5-04', 'Paire absente → code RF-R6',
+  r_noPair.code, 'RF-R6');
+
+// Montant calculé = prix × quantité quand Amount absent
+const r_montant = processEvent(makeTradeCsvEvent('1700000000000',
+  { Price: '200', Executed: '2', Amount: '' }));
+assertEq('S5-05', 'Montant calculé = prix × quantité quand Amount absent',
+  r_montant.valeur?.montant, 400);
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 6 — processEvent · ORDER_HISTORY CSV
+// ════════════════════════════════════════════════════════════════════════════
+
+assertEq('S6-01', 'Statut FILLED → qualifié',
+  processEvent(makeOrderCsvEvent('FILLED')).status, 'qualifié');
+
+// Statut FR : "Rempli" → qualifié (normalisation diacritics)
+assertEq('S6-02', 'Statut "Rempli" (FR) → qualifié',
+  processEvent(makeOrderCsvEvent('Rempli')).status, 'qualifié');
+
+assertEq('S6-03', 'Statut NEW → exclu',
+  processEvent(makeOrderCsvEvent('NEW')).status, 'exclu');
+
+assertEq('S6-04', 'Statut CANCELED → exclu',
+  processEvent(makeOrderCsvEvent('CANCELED')).status, 'exclu');
+
+assertEq('S6-05', 'Statut CANCELLED (variante EN) → exclu',
+  processEvent(makeOrderCsvEvent('CANCELLED')).status, 'exclu');
+
+// Statut non reconnu → exclu par précaution (non rejeté RF-R6)
+assertEq('S6-06', 'Statut inconnu ("PROCESSING") → exclu par précaution',
+  processEvent(makeOrderCsvEvent('PROCESSING')).status, 'exclu');
+
+// Statut absent → exclu
+assertEq('S6-07', 'Statut absent (vide) → exclu',
+  processEvent(makeOrderCsvEvent('')).status, 'exclu');
+
+// OrderId absent sur FILLED → RF-R6 (champ minimal requis)
+const r_noOid = processEvent(makeOrderCsvEvent('FILLED', { 'Order ID': '' }));
+assertEq('S6-08', 'OrderId absent sur FILLED → statut rejeté',
+  r_noOid.status, 'rejeté');
+assertEq('S6-09', 'OrderId absent sur FILLED → code RF-R6',
+  r_noOid.code, 'RF-R6');
+
+// tauxRemplissage = quantite / orderQty (0.005 / 0.01 = 0.5)
+const r_fill = processEvent(makeOrderCsvEvent('FILLED', {
+  'Avg Price':      '50000',
+  'Executed':       '0.005',
+  'Amount':         '500',
+  'Order Quantity': '0.01',   // alias AL_ORDER_QTY = 'order quantity'
+}));
+assert('S6-10', 'tauxRemplissage = quantite / orderQty (0.005/0.01 = 0.5)',
+  Math.abs((r_fill.valeur?.tauxRemplissage ?? 0) - 0.5) < 0.001,
+  String(r_fill.valeur?.tauxRemplissage));
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 7 — processEvent · PDF (logique unitaire — événements préconstruits)
+//
+// Note : ces tests vérifient processEvent() avec des tableaux de cellules
+// préconstruits, comme les produirait _extractPdfRows().
+// Ils NE valident PAS le pipeline PDF.js complet (lecture réelle du fichier).
+// La certification terrain PDF est réservée à P2-2.F.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Colonnes TRADE_HISTORY PDF : [0]date [1]paire [2]côté [3]prix [4]qté [5]montant [6]frais
+const r_trPdf = processEvent({
+  type: 'TRADE_HISTORY PDF',
+  raw: ['26-05-24 07:01:57', 'BTCUSDT', 'BUY', '50000', '0.01', '500', '0.5'],
+});
+assertEq('S7-01', 'TRADE_HISTORY PDF — statut qualifié',
+  r_trPdf.status, 'qualifié');
+// Test Binance 3b (17 chars) appliqué sur colonne [0]
+assertEq('S7-02', 'TRADE_HISTORY PDF — date Test 3b 17 chars → UTC correct',
+  r_trPdf.date, '2026-05-24T05:01:57.000Z');
+
+// Sentinelle "--" en position [0] → date = DATE_UNAVAILABLE (isSentinel = true)
+const r_trPdfSentinel = processEvent({
+  type: 'TRADE_HISTORY PDF',
+  raw: ['--', 'BTCUSDT', 'SELL', '50000', '0.01', '500', '0.5'],
+});
+assertEq('S7-03', 'TRADE_HISTORY PDF — sentinelle "--" → DATE_UNAVAILABLE',
+  r_trPdfSentinel.date, DATE_UNAVAILABLE);
+
+// Paire absente → RF-R6
+const r_trPdfRf6 = processEvent({
+  type: 'TRADE_HISTORY PDF',
+  raw: ['1700000000000', '', 'BUY', '50000', '0.01', '500', '0.5'],
+});
+assertEq('S7-04', 'TRADE_HISTORY PDF — paire absente → rejeté RF-R6',
+  r_trPdfRf6.status, 'rejeté');
+
+// Colonnes ORDER_HISTORY PDF : [0]created_at [1]orderId [2]symbol [3]type [4]side
+//   [5]price [6]amount [7]exec_time [8]exec_qty [9]avg_price [10]total [11]status
+const r_ohPdf = processEvent({
+  type: 'ORDER_HISTORY PDF',
+  raw: ['26-05-24 06:00:00', 'ORD123', 'BTCUSDT', 'LIMIT', 'BUY',
+        '50000', '0.01', '26-05-24 07:01:57', '0.01', '50000', '500', 'FILLED'],
+});
+assertEq('S7-05', 'ORDER_HISTORY PDF — statut FILLED → qualifié',
+  r_ohPdf.status, 'qualifié');
+// date d'exécution = row[7] via Test 3b 17 chars
+assertEq('S7-06', 'ORDER_HISTORY PDF — date d\'exécution Test 3b',
+  r_ohPdf.date, '2026-05-24T05:01:57.000Z');
+
+// Statut NEW → exclu
+const r_ohPdfNew = processEvent({
+  type: 'ORDER_HISTORY PDF',
+  raw: ['26-05-24 06:00:00', 'ORD124', 'BTCUSDT', 'LIMIT', 'BUY',
+        '50000', '0.01', '--', '0', '0', '0', 'NEW'],
+});
+assertEq('S7-07', 'ORDER_HISTORY PDF — statut NEW → exclu',
+  r_ohPdfNew.status, 'exclu');
+
+// Statut absent (PDF-ARCH-05 : row[11] = null, 11 cols au lieu de 12) → exclu
+const r_ohPdfArch05 = processEvent({
+  type: 'ORDER_HISTORY PDF',
+  raw: ['26-05-24 06:00:00', 'ORD125', 'BTCUSDT', 'LIMIT', 'BUY',
+        '50000', '0.01', '--', '0', '0', '0', null],
+});
+assertEq('S7-08', 'ORDER_HISTORY PDF — statut absent (PDF-ARCH-05, row[11]=null) → exclu',
+  r_ohPdfArch05.status, 'exclu');
+
+// Type d'événement inconnu → RF-R6
+const r_unknown = processEvent({ type: 'UNKNOWN_TYPE', raw: {} });
+assertEq('S7-09', 'Type d\'événement inconnu → statut rejeté',
+  r_unknown.status, 'rejeté');
+assertEq('S7-10', 'Type d\'événement inconnu → code RF-R6',
+  r_unknown.code, 'RF-R6');
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 8 — famille · getSourceId · fingerprint
+// ════════════════════════════════════════════════════════════════════════════
+
+assertEq('S8-01', 'famille === "S1"', famille, 'S1');
+
+const descA = csvDescriptor(TRADE_CSV, 'binance_trade.csv');
+assertEq('S8-02', 'getSourceId retourne meta.name',
+  getSourceId(descA), 'binance_trade.csv');
+
+const fp1 = await fingerprint(descA);
+assert('S8-03', 'fingerprint — chaîne hexadécimale 64 chars (SHA-256)',
+  typeof fp1 === 'string' && fp1.length === 64 && /^[0-9a-f]+$/.test(fp1),
+  fp1.slice(0, 16) + '…');
+
+// Même contenu, nom différent → même empreinte (fingerprint = contenu, pas nom)
+const fp2 = await fingerprint(csvDescriptor(TRADE_CSV, 'autre_nom.csv'));
+assertEq('S8-04', 'fingerprint stable — même contenu, nom différent → même empreinte',
+  fp1, fp2);
+
+// Contenu différent → empreinte différente
+const fpB = await fingerprint(csvDescriptor(ORDER_CSV, 'binance_trade.csv'));
+assert('S8-05', 'fingerprint — contenu différent → empreinte différente',
+  fp1 !== fpB, `fp1=${fp1.slice(0, 8)}… fpB=${fpB.slice(0, 8)}…`);
+
+// ════════════════════════════════════════════════════════════════════════════
+// Suite 9 — Isolation · Architecture Core first (I-D1→I-D4)
+// ════════════════════════════════════════════════════════════════════════════
+
+// Aucune écriture localStorage pendant toute l'exécution des tests
+const _lsKeysAfter = Object.keys(localStorage);
+const _newKeys     = _lsKeysAfter.filter(k => !_lsKeysBefore.includes(k));
+assert('S9-01', 'Aucune clé localStorage ajoutée par l\'adaptateur',
+  _newKeys.length === 0,
+  _newKeys.length === 0 ? 'OK — aucune clé ajoutée' : `Clés ajoutées : ${_newKeys.join(', ')}`);
+
+// processEvent doit être synchrone (P2-2.D §7.2 : retour immédiat)
+const syncResult = processEvent(makeTradeCsvEvent('1700000000000'));
+assert('S9-02', 'processEvent est synchrone (pas une Promise)',
+  !(syncResult instanceof Promise),
+  syncResult instanceof Promise ? 'FAIL — retourne une Promise' : 'OK — synchrone');
+
+// getSourceId doit être synchrone
+const syncSrcId = getSourceId(csvDescriptor(TRADE_CSV, 'mon_fichier.csv'));
+assert('S9-03', 'getSourceId est synchrone (pas une Promise)',
+  !(syncSrcId instanceof Promise) && typeof syncSrcId === 'string',
+  `"${syncSrcId}"`);
+
+// ── Rendu final ───────────────────────────────────────────────────────────────
+
+const allPass = results.filter(r =>  r.pass).length;
+const allFail = results.filter(r => !r.pass).length;
+
+const ids = (prefix) => results.filter(r => r.id.startsWith(prefix)).map(r => r.id);
+
+document.getElementById('root').innerHTML = `
+  <div class="summary">
+    <span class="s-pass">✓ ${allPass} PASS</span>
+    ${allFail > 0 ? `<span class="s-fail">✗ ${allFail} FAIL</span>` : ''}
+    <span class="s-total">Total : ${results.length}</span>
+  </div>
+  ${renderSuite('Suite 1 — canHandle · CSV', ids('S1-'))}
+  ${renderSuite('Suite 2 — extractEvents · CSV', ids('S2-'))}
+  ${renderSuite('Suite 3 — EP-RC2 · Algorithme de date (Test 3b inclus)', ids('S3-'))}
+  ${renderSuite('Suite 4 — Parsing numérique · _parseNum', ids('S4-'))}
+  ${renderSuite('Suite 5 — processEvent · TRADE_HISTORY CSV', ids('S5-'))}
+  ${renderSuite('Suite 6 — processEvent · ORDER_HISTORY CSV', ids('S6-'))}
+  ${renderSuite('Suite 7 — processEvent · PDF (logique unitaire — événements préconstruits)', ids('S7-'))}
+  ${renderSuite('Suite 8 — famille · getSourceId · fingerprint', ids('S8-'))}
+  ${renderSuite('Suite 9 — Isolation · Architecture Core first', ids('S9-'))}
+`;
+
+})();
+</script>
+</body>
+</html>
