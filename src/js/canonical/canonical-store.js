@@ -187,3 +187,59 @@ export function writeMigratedTrace(entry) {
 
   return { written: true, errors: [] };
 }
+
+// ─── Interface d'ingestion ────────────────────────────────────────────────────
+
+/**
+ * Écrit une trace ingérée dans la couche canonique.
+ * Réservée au module d'ingestion (src/js/ingestion/) — ne doit pas être utilisée
+ * pour les traces actives ni pour les migrations historiques.
+ *
+ * Contrairement à writeCanonicalTrace, la date est fournie par le module appelant
+ * (horodatage ISO 8601 UTC extrait de la source, ou état EP-RC2 formalisé :
+ * "Non disponible" pour R1/R3 · "Non exploitable au format canonique" pour R4).
+ * La couche valide RV3 sur la date fournie et rejette toute valeur non conforme.
+ * Un champ ingestedAt (ISO 8601 UTC) est ajouté pour traçabilité de l'import.
+ *
+ * RE1 — Atomicité de l'écriture : validation RV1-RV4 avant toute persistance.
+ * RE2 — Ordre d'écriture : corpus écrit avant mise à jour de l'index.
+ * RE3 — Immutabilité : ajout uniquement, aucune modification.
+ *
+ * @param {{ famille: string, source: string, session?: string|null, contexte?: any, valeur: any, date: string }} entry
+ * @returns {{ written: boolean, errors: string[] }}
+ */
+export function writeIngestedTrace(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    return { written: false, errors: ['writeIngestedTrace : entrée invalide'] };
+  }
+
+  // La date est fournie par le module appelant (horodatage extrait ou état EP-RC2 formalisé)
+  const trace = {
+    id:         _generateId(),
+    famille:    entry.famille,
+    source:     entry.source,
+    date:       entry.date,
+    session:    entry.session !== undefined ? entry.session : null,
+    contexte:   entry.contexte !== undefined ? entry.contexte : null,
+    valeur:     entry.valeur,
+    ingestedAt: new Date().toISOString(),
+  };
+
+  // RE1 — Validation RV1-RV4 avant toute persistance (inclut RV3 sur date fournie)
+  const { valid, errors } = validateTrace(trace);
+  if (!valid) {
+    return { written: false, errors };
+  }
+
+  // RE2 — La trace est écrite dans le corpus avant la mise à jour de l'index
+  const corpus = _readCorpus();
+  const persisted = _writeCorpus([...corpus, trace]);
+  if (!persisted) {
+    return { written: false, errors: ['RE1 : écriture dans le corpus impossible (stockage)'] };
+  }
+
+  // RE2 — Mise à jour de l'index après écriture de la trace
+  updateIndex(trace);
+
+  return { written: true, errors: [] };
+}

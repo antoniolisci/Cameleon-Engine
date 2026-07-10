@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>canonical-store.js — Tests writeIngestedTrace (Composant 1 · LOT-P2-2.E)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body  { font-family: monospace; padding: 24px; background: #0e0e0e; color: #ccc; font-size: 13px; margin: 0; }
+    h1    { color: #fff; font-size: 16px; margin-bottom: 4px; }
+    .meta { color: #666; margin-bottom: 24px; font-size: 12px; }
+    h2    { color: #7cf; font-size: 14px; margin: 28px 0 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+
+    .summary { display: flex; gap: 24px; margin: 16px 0 28px; font-size: 14px; }
+    .s-pass   { color: #4f4; }
+    .s-fail   { color: #f44; }
+    .s-total  { color: #aaa; }
+
+    table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+    td, th { border: 1px solid #222; padding: 4px 10px; text-align: left; }
+    th     { background: #161616; color: #adf; font-weight: normal; }
+    .pass  { color: #4f4; }
+    .fail  { color: #f44; background: #1a0000; }
+
+    .suite-block { margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+
+<h1>canonical-store.js — Tests writeIngestedTrace</h1>
+<div class="meta">Composant 1 · LOT-P2-2.E · Contrat : LOT-P2-2.C §6</div>
+
+<div id="root"></div>
+
+<script type="module">
+import {
+  initCanonicalStore,
+  readCorpus,
+  writeCanonicalTrace,
+  writeMigratedTrace,
+  writeIngestedTrace,
+} from '../js/canonical/canonical-store.js';
+
+import { resolveKey } from '../js/storage.js';
+
+// ── Framework d'assertion ─────────────────────────────────────────────────
+
+const results = [];
+
+function assert(id, description, condition, detail = '') {
+  results.push({ id, description, pass: !!condition, detail: detail || (condition ? 'OK' : 'FAIL') });
+}
+
+function assertEq(id, description, actual, expected) {
+  const pass = actual === expected;
+  results.push({ id, description, pass, detail: pass ? String(actual) : `obtenu "${actual}", attendu "${expected}"` });
+}
+
+function renderSuite(title, ids) {
+  const suite = results.filter(r => ids.includes(r.id));
+  const pass  = suite.filter(r => r.pass).length;
+  const fail  = suite.filter(r => !r.pass).length;
+  const rows  = suite.map(r => {
+    const cls  = r.pass ? 'pass' : 'fail';
+    const icon = r.pass ? '✓' : '✗';
+    return `<tr class="${cls}"><td>${icon}</td><td>${r.id}</td><td>${r.description}</td><td>${r.detail}</td></tr>`;
+  }).join('');
+  return `
+<div class="suite-block">
+  <h2>${title} — ${pass}/${suite.length} ${fail > 0 ? '<span style="color:#f44">FAIL</span>' : '<span style="color:#4f4">PASS</span>'}</h2>
+  <table>
+    <thead><tr><th></th><th>ID</th><th>Test</th><th>Détail</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+// ── Isolation — sauvegarde / restauration du corpus et de l'index ─────────
+
+const CORPUS_KEY = resolveKey('CE_canonical_corpus_v1');
+const INDEX_KEY  = resolveKey('CE_canonical_index_v1');
+
+const _savedCorpus = localStorage.getItem(CORPUS_KEY);
+const _savedIndex  = localStorage.getItem(INDEX_KEY);
+
+function resetStore() {
+  if (_savedCorpus !== null) {
+    localStorage.setItem(CORPUS_KEY, _savedCorpus);
+  } else {
+    localStorage.removeItem(CORPUS_KEY);
+  }
+  if (_savedIndex !== null) {
+    localStorage.setItem(INDEX_KEY, _savedIndex);
+  } else {
+    localStorage.removeItem(INDEX_KEY);
+  }
+  initCanonicalStore();
+}
+
+// Initialisation initiale
+initCanonicalStore();
+
+// ── Entrée canonique S1 de référence ─────────────────────────────────────
+
+const BASE_ENTRY = {
+  famille:  'S1',
+  source:   'binance_trade_history.csv',
+  date:     '2024-03-15T08:32:14.000Z',
+  session:  'session-test-001',
+  contexte: { type: 'TRADE_HISTORY CSV', total: 42 },
+  valeur:   { paire: 'BTCUSDT', cote: 'BUY', prix: 65000, quantite: 0.01 },
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 1 — writeIngestedTrace : cas de date valides (EP-RC2)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// T01 — Date ISO 8601 UTC valide (état Standard EP-RC2)
+resetStore();
+{
+  const before = readCorpus().length;
+  const r = writeIngestedTrace({ ...BASE_ENTRY, date: '2024-03-15T08:32:14.000Z' });
+  assert('T01-written',  'Date ISO 8601 — written = true', r.written === true);
+  assert('T01-no-error', 'Date ISO 8601 — errors vide',    r.errors.length === 0);
+  const corpus = readCorpus();
+  assert('T01-corpus',   'Date ISO 8601 — corpus +1',      corpus.length === before + 1);
+  const t = corpus[corpus.length - 1];
+  assertEq('T01-date',   'Date ISO 8601 — date dans la trace', t.date, '2024-03-15T08:32:14.000Z');
+}
+
+// T02 — État R1 "Non disponible"
+resetStore();
+{
+  const before = readCorpus().length;
+  const r = writeIngestedTrace({ ...BASE_ENTRY, date: 'Non disponible' });
+  assert('T02-written',  'R1 Non disponible — written = true', r.written === true);
+  assert('T02-no-error', 'R1 Non disponible — errors vide',    r.errors.length === 0);
+  const t = readCorpus().slice(-1)[0];
+  assertEq('T02-date',   'R1 Non disponible — date dans la trace', t.date, 'Non disponible');
+}
+
+// T03 — État R3 "Non disponible" (même valeur que R1 — CL-P3 Variante A)
+resetStore();
+{
+  const r = writeIngestedTrace({ ...BASE_ENTRY, date: 'Non disponible' });
+  assert('T03-written',  'R3 Non disponible — written = true', r.written === true);
+  assert('T03-no-error', 'R3 Non disponible — errors vide',    r.errors.length === 0);
+  const t = readCorpus().slice(-1)[0];
+  assertEq('T03-date',   'R3 Non disponible — date dans la trace', t.date, 'Non disponible');
+}
+
+// T04 — État R4 "Non exploitable au format canonique"
+resetStore();
+{
+  const r = writeIngestedTrace({ ...BASE_ENTRY, date: 'Non exploitable au format canonique' });
+  assert('T04-written',  'R4 Non exploitable — written = true', r.written === true);
+  assert('T04-no-error', 'R4 Non exploitable — errors vide',    r.errors.length === 0);
+  const t = readCorpus().slice(-1)[0];
+  assertEq('T04-date',   'R4 Non exploitable — date dans la trace', t.date, 'Non exploitable au format canonique');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 2 — writeIngestedTrace : rejet de date invalide
+// ══════════════════════════════════════════════════════════════════════════════
+
+// T05 — Date invalide (hors états EP-RC2 et hors ISO 8601)
+resetStore();
+{
+  const before = readCorpus().length;
+  const r = writeIngestedTrace({ ...BASE_ENTRY, date: '2024-03-15' }); // date sans heure ni Z
+  assert('T05-not-written', 'Date invalide — written = false', r.written === false);
+  assert('T05-has-error',   'Date invalide — errors non vide',  r.errors.length > 0);
+  assert('T05-rv3-error',   'Date invalide — erreur RV3',       r.errors.some(e => e.includes('RV3')));
+  assert('T05-corpus-unchanged', 'Date invalide — corpus non modifié', readCorpus().length === before);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 3 — writeIngestedTrace : métadonnées ingestedAt / migratedAt
+// ══════════════════════════════════════════════════════════════════════════════
+
+// T06 — Présence de ingestedAt
+resetStore();
+{
+  const before = Date.now();
+  writeIngestedTrace({ ...BASE_ENTRY });
+  const t = readCorpus().slice(-1)[0];
+  assert('T06-ingestedAt-present', 'ingestedAt présent dans la trace', typeof t.ingestedAt === 'string' && t.ingestedAt.length > 0);
+  const ts = new Date(t.ingestedAt).getTime();
+  assert('T06-ingestedAt-valid',   'ingestedAt est un horodatage ISO valide', !isNaN(ts) && ts >= before);
+}
+
+// T07 — Absence de migratedAt
+resetStore();
+{
+  writeIngestedTrace({ ...BASE_ENTRY });
+  const t = readCorpus().slice(-1)[0];
+  assert('T07-no-migratedAt', 'migratedAt absent de la trace ingérée', !('migratedAt' in t));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 4 — writeIngestedTrace : corpus et index
+// ══════════════════════════════════════════════════════════════════════════════
+
+// T08 — Écriture corpus (RE2)
+resetStore();
+{
+  const before = readCorpus().length;
+  writeIngestedTrace({ ...BASE_ENTRY, session: 'session-corpus-test' });
+  const corpus = readCorpus();
+  assert('T08-corpus-plus1', 'Corpus augmenté de 1', corpus.length === before + 1);
+  const t = corpus.slice(-1)[0];
+  assertEq('T08-famille',  'Trace : famille correcte', t.famille, 'S1');
+  assertEq('T08-source',   'Trace : source correcte',  t.source, 'binance_trade_history.csv');
+  assertEq('T08-session',  'Trace : session correcte', t.session, 'session-corpus-test');
+  assert(  'T08-id',       'Trace : id généré',        typeof t.id === 'string' && t.id.length > 0);
+}
+
+// T09 — Index mis à jour (byFamille + bySession)
+resetStore();
+{
+  const sessionId = 'session-index-test-' + Date.now();
+  writeIngestedTrace({ ...BASE_ENTRY, session: sessionId });
+  const t = readCorpus().slice(-1)[0];
+
+  // Vérification byFamille via réconciliation
+  const indexRaw = localStorage.getItem(INDEX_KEY);
+  const index = indexRaw ? JSON.parse(indexRaw) : null;
+  assert('T09-index-exists',     'Index présent en localStorage',              !!index);
+  assert('T09-byFamille-S1',     'byFamille["S1"] contient le nouvel id',      index?.byFamille?.S1?.includes(t.id));
+  assert('T09-bySession',        'bySession[sessionId] contient le nouvel id',  index?.bySession?.[sessionId]?.includes(t.id));
+  assert('T09-byDate',           'byDate[date] contient le nouvel id',          index?.byDate?.[t.date]?.includes(t.id));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUITE 5 — Zéro régression sur writeCanonicalTrace et writeMigratedTrace
+// ══════════════════════════════════════════════════════════════════════════════
+
+// T10 — writeCanonicalTrace : toujours fonctionnelle
+resetStore();
+{
+  const before = readCorpus().length;
+  const r = writeCanonicalTrace({
+    famille:  'S1',
+    source:   'module-test-regression',
+    session:  'session-regression-canonical',
+    contexte: null,
+    valeur:   { test: 'regression-writeCanonicalTrace' },
+  });
+  assert('T10-written',        'writeCanonicalTrace — written = true',    r.written === true);
+  assert('T10-corpus',         'writeCanonicalTrace — corpus +1',         readCorpus().length === before + 1);
+  const t = readCorpus().slice(-1)[0];
+  assert('T10-date-generated', 'writeCanonicalTrace — date générée (Z)',  typeof t.date === 'string' && t.date.endsWith('Z'));
+  assert('T10-no-ingestedAt',  'writeCanonicalTrace — pas de ingestedAt', !('ingestedAt' in t));
+  assert('T10-no-migratedAt',  'writeCanonicalTrace — pas de migratedAt', !('migratedAt' in t));
+}
+
+// T11 — writeMigratedTrace : toujours fonctionnelle
+resetStore();
+{
+  const before = readCorpus().length;
+  const r = writeMigratedTrace({
+    famille:  'S1',
+    source:   'module-test-regression',
+    date:     'Non disponible',
+    session:  'session-regression-migrated',
+    contexte: null,
+    valeur:   { test: 'regression-writeMigratedTrace' },
+  });
+  assert('T11-written',           'writeMigratedTrace — written = true',      r.written === true);
+  assert('T11-corpus',            'writeMigratedTrace — corpus +1',            readCorpus().length === before + 1);
+  const t = readCorpus().slice(-1)[0];
+  assert('T11-migratedAt',        'writeMigratedTrace — migratedAt présent',   typeof t.migratedAt === 'string' && t.migratedAt.length > 0);
+  assert('T11-no-ingestedAt',     'writeMigratedTrace — pas de ingestedAt',    !('ingestedAt' in t));
+  assertEq('T11-date',            'writeMigratedTrace — date fournie conservée', t.date, 'Non disponible');
+}
+
+// ── Restauration de l'état localStorage ──────────────────────────────────
+
+resetStore();
+
+// ── Rendu ─────────────────────────────────────────────────────────────────
+
+const total = results.length;
+const pass  = results.filter(r => r.pass).length;
+const fail  = total - pass;
+
+const html = `
+  <div class="summary">
+    <span class="s-pass">✓ ${pass} PASS</span>
+    <span class="s-fail">${fail > 0 ? '✗ ' + fail + ' FAIL' : ''}</span>
+    <span class="s-total">/ ${total} tests</span>
+  </div>
+  ${renderSuite('Suite 1 — Dates valides EP-RC2',         ['T01-written','T01-no-error','T01-corpus','T01-date','T02-written','T02-no-error','T02-date','T03-written','T03-no-error','T03-date','T04-written','T04-no-error','T04-date'])}
+  ${renderSuite('Suite 2 — Rejet date invalide',          ['T05-not-written','T05-has-error','T05-rv3-error','T05-corpus-unchanged'])}
+  ${renderSuite('Suite 3 — ingestedAt / migratedAt',      ['T06-ingestedAt-present','T06-ingestedAt-valid','T07-no-migratedAt'])}
+  ${renderSuite('Suite 4 — Corpus et index',              ['T08-corpus-plus1','T08-famille','T08-source','T08-session','T08-id','T09-index-exists','T09-byFamille-S1','T09-bySession','T09-byDate'])}
+  ${renderSuite('Suite 5 — Zéro régression',              ['T10-written','T10-corpus','T10-date-generated','T10-no-ingestedAt','T10-no-migratedAt','T11-written','T11-corpus','T11-migratedAt','T11-no-ingestedAt','T11-date'])}
+`;
+
+document.getElementById('root').innerHTML = html;
+</script>
+
+</body>
+</html>
