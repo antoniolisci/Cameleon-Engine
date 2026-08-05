@@ -11,8 +11,9 @@
 | Phase Roadmap V1 | A |
 | Type | Implémentation — Plan technique |
 | Document officiel | `docs/lots/LOT-P2-2_E_IMPLEMENTATION_V1.md` |
-| Statut | EN COURS |
+| Statut | VALIDÉ |
 | Date d'ouverture | 2026-07-10 |
+| Date de validation | 2026-08-05 |
 
 ---
 
