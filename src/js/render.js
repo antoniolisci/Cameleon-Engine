@@ -40,6 +40,8 @@ import {
   formatCertificationDescriptions,
 } from "./memory-reader.js";
 import { getOperatorMemoryState } from "./canonical/operator-memory-service.js";
+import { ingest, registerAdapter } from './ingestion/ingestion-core.js';
+import * as BinanceS1Adapter       from './ingestion/adapters/binance-s1-adapter.js';
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -5308,6 +5310,80 @@ function bindFieldEvents() {
   fieldEventsBound = true;
 }
 
+// ── Import transactionnel S1 (LOT-P2-2.E §9) ─────────────────────────────────
+// Rendu sécurisé du rapport d'ingestion dans #ingestionResultPanel.
+// Toutes les valeurs sont injectées via textContent — aucune valeur externe dans innerHTML.
+// Cas couverts : source-non-reconnue · doublon · rapport (succès / succès partiel / échec) · type inconnu.
+function _renderIngestionResult(result, panel) {
+  if (!panel) return;
+  panel.style.display = 'block';
+
+  // Ligne label / valeur réutilisable — style history-item existant
+  function _row(label, value) {
+    const wrap = document.createElement('div');
+    wrap.className = 'history-item';
+    const lbl = document.createElement('strong');
+    lbl.textContent = label;
+    const val = document.createElement('div');
+    val.className = 'muted';
+    val.textContent = (value === null || value === undefined) ? '—' : String(value);
+    wrap.appendChild(lbl);
+    wrap.appendChild(val);
+    return wrap;
+  }
+
+  const rows = [];
+
+  if (!result || typeof result.type !== 'string') {
+    rows.push(_row('Résultat', 'Résultat d\'import non reconnu.'));
+  } else if (result.type === 'source-non-reconnue') {
+    rows.push(_row('Résultat', 'Fichier non reconnu. Aucune trace écrite et aucune session créée.'));
+  } else if (result.type === 'doublon') {
+    // Affichage robuste de la date : ISO lisible si valide, valeur brute sinon
+    let importedAtDisplay;
+    try {
+      const d = new Date(result.importedAt);
+      importedAtDisplay = isNaN(d.getTime())
+        ? (result.importedAt ? String(result.importedAt) : 'Non disponible')
+        : d.toLocaleString('fr-FR');
+    } catch {
+      importedAtDisplay = result.importedAt ? String(result.importedAt) : 'Non disponible';
+    }
+    rows.push(_row('Résultat',          'Source déjà ingérée. Aucune nouvelle trace écrite.'));
+    rows.push(_row('Source',            result.sourceId));
+    rows.push(_row('Premier import',    importedAtDisplay));
+    rows.push(_row('Traces existantes', result.traceCount));
+  } else if (result.type === 'rapport') {
+    rows.push(_row('Résultat',        result.result));
+    rows.push(_row('Session',         result.sessionId));
+    rows.push(_row('Source',          result.sourceId));
+    rows.push(_row('Lignes totales',  result.totalLines));
+    rows.push(_row('Qualifiées',      result.qualified));
+    rows.push(_row('Exclues',         result.excluded));
+    rows.push(_row('Rejetées',        result.rejected));
+    rows.push(_row('Écrites',         result.written));
+    rows.push(_row('Échecs écriture', result.failed));
+    if (result.dateStates) {
+      rows.push(_row('Dates standard', result.dateStates.standard));
+      rows.push(_row('Dates R1',       result.dateStates.R1));
+      rows.push(_row('Dates R3',       result.dateStates.R3));
+      rows.push(_row('Dates R4',       result.dateStates.R4));
+    }
+    if (Array.isArray(result.indexEcarts) && result.indexEcarts.length > 0) {
+      result.indexEcarts.forEach((ecart, i) => {
+        rows.push(_row(`Écart index ${i + 1}`, ecart));
+      });
+    }
+  } else {
+    rows.push(_row('Résultat', 'Résultat d\'import non reconnu.'));
+  }
+
+  const container = document.createElement('div');
+  container.className = 'history';
+  rows.forEach(r => container.appendChild(r));
+  panel.replaceChildren(container);
+}
+
 function bindControls() {
   if (controlEventsBound) return;
 
@@ -5575,6 +5651,65 @@ function bindControls() {
     focusPanel("lectureDayMain");
   });
 
+  // ── Import transactionnel S1 (LOT-P2-2) ─────────────────────
+  const _ingestionImportBtn   = $('ingestionImportBtn');
+  const _ingestionFileInput   = $('ingestionFileInput');
+  const _ingestionResultPanel = $('ingestionResultPanel');
+
+  _ingestionImportBtn?.addEventListener('click', () => {
+    _ingestionFileInput?.click();
+  });
+
+  _ingestionFileInput?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    _ingestionFileInput.value = '';
+    if (!file) return;
+
+    // Garde taille — UI uniquement, non contractuelle (P2-2.E §9 ne définit pas de limite).
+    // Alignée sur le plafond 5 Mo déjà en place pour l'import JSON (importDataInput).
+    if (file.size > 5 * 1024 * 1024) {
+      if (_ingestionResultPanel) {
+        _ingestionResultPanel.style.display = 'block';
+        const p = document.createElement('p');
+        p.className = 'muted';
+        p.textContent = 'Fichier trop volumineux. Taille maximale acceptée par l\'interface : 5 Mo.';
+        _ingestionResultPanel.replaceChildren(p);
+      }
+      return;
+    }
+
+    // État intermédiaire visible pendant l'exécution du pipeline
+    if (_ingestionImportBtn) _ingestionImportBtn.disabled = true;
+    if (_ingestionResultPanel) {
+      _ingestionResultPanel.style.display = 'block';
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = 'Analyse du fichier en cours\u2026';
+      _ingestionResultPanel.replaceChildren(p);
+    }
+
+    try {
+      const descriptor = {
+        type: 'file',
+        data: await file.arrayBuffer(),
+        meta: { name: file.name },
+      };
+      const result = await ingest(descriptor);
+      _renderIngestionResult(result, _ingestionResultPanel);
+    } catch (err) {
+      console.error('[ingestion] Erreur technique :', err);
+      if (_ingestionResultPanel) {
+        _ingestionResultPanel.style.display = 'block';
+        const p = document.createElement('p');
+        p.className = 'muted';
+        p.textContent = 'L\'import n\'a pas pu être terminé.';
+        _ingestionResultPanel.replaceChildren(p);
+      }
+    } finally {
+      if (_ingestionImportBtn) _ingestionImportBtn.disabled = false;
+    }
+  });
+
   controlEventsBound = true;
 }
 
@@ -5593,6 +5728,7 @@ function init() {
   bindFieldEvents();
   mountPresetResetButton();
   bindControls();
+  registerAdapter(BinanceS1Adapter); // LOT-P2-2 — un seul enregistrement par init() (garde initialized)
 
   if (!clockTimer) {
     updateClock();

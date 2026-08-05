@@ -267,7 +267,7 @@ const AL_FEE = [
   'frais', 'cout transaction', 'frais de transaction',
 ];
 const AL_STATUS   = ['status', 'statut', 'order status', 'statut ordre', 'etat'];
-const AL_ORDER_ID = ['order id', 'orderid', 'order no', 'order number', 'id ordre'];
+const AL_ORDER_ID = ['order id', 'orderid', 'order no', 'order number', 'id ordre', 'numero de commande'];
 
 // ── Normalisation du côté (BUY/SELL) ─────────────────────────────────────────
 

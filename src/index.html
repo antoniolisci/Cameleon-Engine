@@ -825,6 +825,20 @@
                     <!-- MÉMOIRE OPÉRATEUR V1 (LOT-P1-3) -->
                     <section id="operatorMemoryPanel" class="side-card" aria-label="Mémoire Opérateur V1"></section>
 
+                    <!-- IMPORT TRANSACTIONNEL S1 (LOT-P2-2) -->
+                    <section class="side-card" aria-label="Import de source transactionnelle">
+                      <div class="card-head"><div>
+                        <h2 class="card-title">Import de source transactionnelle</h2>
+                        <p class="card-desc">Importe un fichier Binance (CSV ou PDF) dans la couche canonique S1.</p>
+                      </div></div>
+                      <button id="ingestionImportBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Sélectionner un fichier</div>
+                        <div class="mode-btn-desc">Formats acceptés : CSV ou PDF Binance TRADE_HISTORY / ORDER_HISTORY.</div>
+                      </button>
+                      <input id="ingestionFileInput" type="file" accept=".csv,.pdf,text/csv,application/pdf" style="display:none" aria-hidden="true">
+                      <div id="ingestionResultPanel" style="display:none"></div>
+                    </section>
+
                     <!-- GESTION DES DONNÉES -->
                     <section class="side-card">
                       <div class="card-head">
