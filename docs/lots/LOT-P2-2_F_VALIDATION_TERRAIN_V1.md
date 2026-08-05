@@ -104,14 +104,14 @@ L'état initial du registre CE_ingestion_registry_v1 est noté (nombre d'entrée
 **PC-4 — Comptage initial du corpus (C0)**
 Exécuter le diagnostic C0 de LOT-P1-2. Documenter le nombre de traces présentes dans le corpus par famille (S1 · SY1 · SY3 · S2) avant tout import. Ces valeurs servent de référence pour RC1.
 
-**PC-5 — Cohérence initiale de l'index (C3)**
-Exécuter le diagnostic C3 de LOT-P1-2. Vérifier l'absence d'identifiant orphelin dans l'index avant les tests.
+**PC-5 — Cohérence initiale de l'index (C4)**
+Exécuter le diagnostic C4 de LOT-P1-2. Vérifier l'absence d'identifiant orphelin dans l'index avant les tests.
 
 **Hiérarchie des blocages**
 
 | Pré-condition | Portée du blocage |
 |---|---|
-| PC-5 — Cohérence initiale index (C3) | Bloque immédiatement l'intégralité de LOT-P2-2.F — aucun cas de test ne peut être exécuté tant que PC-5 n'est pas satisfaite |
+| PC-5 — Cohérence initiale index (C4) | Bloque immédiatement l'intégralité de LOT-P2-2.F — aucun cas de test ne peut être exécuté tant que PC-5 n'est pas satisfaite |
 | PC-1 — Pipeline PDF opérationnel | Bloque TC3 et TC4 uniquement — TC1, TC2, TC5, TC6, TC7, TC8, RC1, RC2 et RC3 peuvent être exécutés normalement |
 | PC-2 — Fichiers de test disponibles | Bloque les cas de test dépendant des fichiers non disponibles — les autres cas peuvent être exécutés normalement |
 | PC-3 — État initial du registre | Bloque TC8 si les empreintes des fichiers de test sont déjà enregistrées dans le registre — les autres cas ne sont pas affectés |
@@ -131,11 +131,11 @@ Exécuter le diagnostic C3 de LOT-P1-2. Vérifier l'absence d'identifiant orphel
 2. Déclencher l'import. Attendre l'affichage du rapport.
 3. Vérifier que le rapport indique `result = "succès"`.
 4. Vérifier que `totalLines` correspond au nombre de lignes de données du fichier (hors en-tête).
-5. Vérifier que `qualified = totalLines` — toutes les lignes d'un TRADE_HISTORY sont présupposées exécutées (P2-2.B §6.2).
+5. Vérifier que `qualified = totalLines` — toutes les lignes d'un TRADE_HISTORY sont présupposées exécutées (P2-2.B §6.3).
 6. Vérifier que `excluded = 0` et `rejected = 0`.
 7. Vérifier que `written = qualified`.
 8. Inspecter le corpus canonique : vérifier que `written` nouvelles traces de famille S1 sont présentes.
-9. Vérifier que chaque trace S1 porte les 6 champs : `famille = "S1"` · `source` = nom du fichier · `date` (état EP-RC2) · `valeur` (per P2-2.A §3.3) · `session` · `contexte`.
+9. Vérifier que chaque trace S1 porte les 6 champs : `famille = "S1"` · `source` = nom du fichier · `date` (état EP-RC2) · `valeur` (per P2-2.A §3.5) · `session` · `contexte`.
 10. Vérifier que `index.bySession[sessionId]` contient exactement `written` identifiants.
 
 **PASS :** result = "succès" · qualified = totalLines · written = qualified · traces S1 présentes dans le corpus · champs conformes au modèle P2-2.A · index cohérent.
@@ -157,7 +157,7 @@ Exécuter le diagnostic C3 de LOT-P1-2. Vérifier l'absence d'identifiant orphel
 5. Vérifier que `totalLines = qualified + excluded + rejected`.
 6. Vérifier que `rejected = 0` — sur un fichier ORDER_HISTORY valide, aucun rejet n'est attendu.
 7. Vérifier que `written = qualified`.
-8. Inspecter le corpus : vérifier que `written` traces S1 sont présentes avec un champ valeur conforme au modèle ORDER_HISTORY FILLED (P2-2.A §3.4).
+8. Inspecter le corpus : vérifier que `written` traces S1 sont présentes avec un champ valeur conforme au modèle ORDER_HISTORY FILLED (P2-2.A §3.5).
 
 **PASS :** qualified = lignes FILLED · excluded = lignes NEW + CANCELED · rejected = 0 · written = qualified · traces ORDER_HISTORY FILLED conformes.
 
@@ -178,7 +178,7 @@ Exécuter le diagnostic C3 de LOT-P1-2. Vérifier l'absence d'identifiant orphel
 3. Vérifier que `qualified > 0`.
 4. Vérifier que `written = qualified`.
 5. Inspecter le corpus : vérifier que les traces portent `contexte.sourceType = "TRADE_HISTORY PDF"`.
-6. Vérifier que les champs valeur sont conformes au modèle TRADE_HISTORY (P2-2.A §3.3).
+6. Vérifier que les champs valeur sont conformes au modèle TRADE_HISTORY (P2-2.A §3.5).
 7. Si un fichier CSV TRADE_HISTORY de contenu équivalent est disponible : comparer `qualified` PDF avec `qualified` CSV — les deux doivent être égaux pour un contenu identique.
 
 **PASS :** result ∈ {"succès", "succès partiel"} · qualified > 0 · written = qualified · sourceType correct · cohérence CSV/PDF si applicable.
@@ -200,9 +200,9 @@ Exécuter le diagnostic C3 de LOT-P1-2. Vérifier l'absence d'identifiant orphel
 3. Si le fichier contient des lignes non FILLED : vérifier que `excluded > 0`.
 4. Vérifier que `written = qualified`.
 5. Inspecter le corpus : vérifier que les traces portent `contexte.sourceType = "ORDER_HISTORY PDF"`.
-6. Vérifier que les champs valeur sont conformes au modèle ORDER_HISTORY FILLED (P2-2.A §3.4).
+6. Vérifier que les champs valeur sont conformes au modèle ORDER_HISTORY FILLED (P2-2.A §3.5).
 
-**PASS :** result correct · lignes non FILLED exclues · written = qualified · sourceType correct · champs valeur conformes.
+**PASS :** result ∈ {"succès", "succès partiel"} · lignes non FILLED exclues · written = qualified · sourceType correct · champs valeur conformes.
 
 **FAIL :** result = "source non reconnue" · lignes non FILLED produisant une trace · sourceType incorrect · champs valeur non conformes.
 
@@ -217,7 +217,7 @@ Exécuter le diagnostic C3 de LOT-P1-2. Vérifier l'absence d'identifiant orphel
 **Procédure :**
 
 1. Vérifier dans le rapport de TC1 que `dateStates.standard > 0` pour le fichier CSV TRADE_HISTORY.
-2. Si le fichier CSV TRADE_HISTORY contient des dates au format Test 3b (YY-MM-DD HH:MM:SS, longueur 17 caractères) : inspecter les traces correspondantes dans le corpus et vérifier que la date est convertie en ISO 8601 UTC (décalage +02:00 → UTC appliqué).
+2. Si les fichiers de test contiennent des dates au format Test 3b (P2-2.B §6.6) : inspecter les traces correspondantes dans le corpus et vérifier que la date est convertie en ISO 8601 UTC (décalage +02:00 → UTC appliqué). Deux variantes à couvrir : longueur 17 caractères (YY-MM-DD HH:MM:SS — exports PDF anciens) · longueur 19 caractères (YYYY-MM-DD HH:MM:SS — exports PDF Binance 2026, décalage +02:00 identique).
 3. Pour vérifier l'état R1 : utiliser un fichier ou une ligne dont la colonne date est vide ou contient "--". Vérifier que la trace produite porte `date = "Non disponible"` et que `dateStates.R1` est incrémenté.
 4. Pour vérifier l'état R4 : utiliser une ligne dont la valeur date est un timestamp epoch hors plage 2000–2100 ou un timestamp epoch en secondes (10 chiffres). Vérifier que la trace produite porte `date = "Non exploitable au format canonique"` et que `dateStates.R4` est incrémenté.
 
@@ -383,7 +383,7 @@ Un FAIL sur l'un de ces éléments rend LOT-P2-2.F FAIL. La clôture officielle 
 | PC-4 — C0 initial · SY1 | — |
 | PC-4 — C0 initial · SY3 | — |
 | PC-4 — C0 initial · S2 | — |
-| PC-5 — Cohérence initiale index (C3) | — |
+| PC-5 — Cohérence initiale index (C4) | — |
 
 ### §8.2 Résultats des cas de test
 
