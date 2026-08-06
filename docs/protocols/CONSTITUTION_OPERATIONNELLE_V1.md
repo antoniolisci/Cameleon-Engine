@@ -7,9 +7,9 @@
 | Document | `CONSTITUTION_OPERATIONNELLE_V1.md` |
 | Projet | Caméléon Engine |
 | Identifiant | PROT-001 |
-| Chapitre | 1 |
-| Version | V0.1 |
-| Statut | VALIDÉ — Baseline Chapitre 1 |
+| Chapitres | 1 · 2 · 3 |
+| Version | V1.0 |
+| Statut | VALIDÉ — Constitution V1.0 complète |
 | Auteur | Projet Caméléon Engine |
 
 ---
@@ -21,6 +21,7 @@
 | V0.1 | 2026-08-06 | Projet Caméléon Engine | Création du Chapitre 1 |
 | V0.1 | 2026-08-06 | Projet Caméléon Engine | Validation Chapitre 1 — Baseline — AMB-02 hiérarchie 8 niveaux |
 | V0.1 | 2026-08-06 | Projet Caméléon Engine | Validation Chapitre 2 — Gouvernance documentaire — DQC V2 CAS A · DQC V3 PASS |
+| V1.0 | 2026-08-06 | Projet Caméléon Engine | Validation Chapitre 3 — Gouvernance de la mémoire projet — DQC V2 CAS A · Constitution V1.0 complète |
 
 ---
 
@@ -302,3 +303,117 @@ L'ajout d'un chapitre enrichit la Constitution sans modifier les chapitres exist
 La Constitution atteint sa version majeure lorsque l'ensemble de ses chapitres ont été rédigés et validés.
 
 Cette décision appartient exclusivement à l'humain.
+
+---
+
+# 3. Gouvernance de la mémoire projet
+
+## 3.1 Objet
+
+Le présent chapitre définit les principes constitutionnels qui encadrent la mémoire projet de Caméléon Engine.
+
+La mémoire projet est l'ensemble des supports opérationnels utilisés pour construire, maintenir, synchroniser, documenter et faire évoluer le projet Caméléon Engine. Elle assure la continuité opérationnelle du projet entre ses décisions, ses évolutions et ses chantiers.
+
+La mémoire projet n'est pas un document officiel. Elle n'est pas soumise à la gouvernance documentaire définie au Chapitre 2. Le présent chapitre gouverne ce que le Chapitre 2 reconnaît mais exclut explicitement de son périmètre.
+
+La mémoire projet ne gouverne pas la mémoire fonctionnelle du logiciel, la mémoire des utilisateurs ni la mémoire intellectuelle du moteur. Ces domaines relèvent des Doctrines et de l'Architecture, non de la présente Constitution.
+
+Cette séparation est volontaire. Elle préserve la distinction fondamentale entre la gouvernance du projet, qui appartient à la Constitution, et la conception du produit, qui appartient aux Doctrines.
+
+La gouvernance de la mémoire projet s'exerce sous l'autorité de la Constitution. Sa mise en œuvre appartient aux protocoles et aux procédures qui en découlent.
+
+---
+
+## 3.2 Principes fondamentaux
+
+### 3.2.1 Intégrité
+
+La mémoire projet reflète fidèlement l'état réel du projet.
+
+Aucune entrée mémoire ne peut contenir une information contraire à l'état réel du projet.
+
+L'intégrité de la mémoire projet est une exigence constitutionnelle. Les mécanismes qui la garantissent relèvent des protocoles.
+
+### 3.2.2 Autorité humaine
+
+La mémoire projet est placée en permanence sous autorité humaine.
+
+Aucun automatisme, aucun processus autonome et aucune délégation implicite ne peuvent se substituer à l'humain pour enregistrer, mettre à jour ou invalider une entrée mémoire.
+
+### 3.2.3 Traçabilité
+
+Toute modification de la mémoire projet doit être traçable.
+
+Aucun acte sur la mémoire — enregistrement, mise à jour ou invalidation — ne peut intervenir sans laisser une trace vérifiable.
+
+La traçabilité de la mémoire projet est une exigence constitutionnelle. Les mécanismes qui la mettent en œuvre relèvent des protocoles.
+
+### 3.2.4 Non-substitution
+
+La mémoire projet n'est pas un document officiel et ne peut s'y substituer.
+
+Elle ne constitue pas une source d'autorité documentaire.
+
+La mémoire projet est un support opérationnel de cohérence. Elle ne crée aucune règle, aucun droit et aucune obligation qui ne trouvent leur source dans un document officiel.
+
+### 3.2.5 Subordination
+
+En cas de contradiction entre la mémoire projet et un document officiel, le document officiel fait toujours autorité.
+
+Ce principe est absolu. Il ne peut faire l'objet d'aucune dérogation.
+
+---
+
+## 3.3 Gouvernance de la mémoire projet
+
+### 3.3.1 Enregistrement
+
+L'enregistrement d'une entrée mémoire est un acte de gouvernance opérationnelle.
+
+Toute nouvelle entrée doit porter sur un objet réel et vérifiable du projet.
+
+Aucune entrée ne peut être enregistrée sans décision humaine explicite.
+
+### 3.3.2 Mise à jour
+
+Toute entrée mémoire peut évoluer.
+
+Toute mise à jour doit être délimitée, motivée et traçable.
+
+Une mise à jour ne peut pas produire un contenu contraire à l'état réel du projet.
+
+### 3.3.3 Invalidation
+
+Une entrée mémoire ne peut être invalidée que par décision humaine explicite.
+
+Toute invalidation doit être tracée.
+
+L'invalidation d'une entrée mémoire ne supprime pas sa traçabilité historique.
+
+---
+
+## 3.4 Relation avec les documents officiels
+
+### 3.4.1 Non-autorité de la mémoire
+
+La mémoire projet n'est pas une source d'autorité documentaire.
+
+Elle ne peut pas valider un document officiel, modifier son statut ni se substituer à un acte de gouvernance documentaire.
+
+La mémoire projet accompagne la gouvernance documentaire. Elle ne l'exerce pas.
+
+### 3.4.2 Primauté des documents officiels
+
+La hiérarchie documentaire officielle, établie au Chapitre 1, gouverne les documents officiels.
+
+La mémoire projet n'appartient pas à cette hiérarchie.
+
+Elle lui est subordonnée. En toute circonstance, les documents officiels ont autorité sur la mémoire projet.
+
+### 3.4.3 Exigence de cohérence
+
+Une divergence entre la mémoire projet et un document officiel constitue une incohérence qui doit être résolue.
+
+Jusqu'à sa résolution, le document officiel conserve toujours son autorité.
+
+La résolution d'une divergence est un acte humain explicite.
