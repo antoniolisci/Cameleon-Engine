@@ -20,6 +20,7 @@
 |---|---|---|---|
 | V0.1 | 2026-08-06 | Projet Caméléon Engine | Création du Chapitre 1 |
 | V0.1 | 2026-08-06 | Projet Caméléon Engine | Validation Chapitre 1 — Baseline — AMB-02 hiérarchie 8 niveaux |
+| V0.1 | 2026-08-06 | Projet Caméléon Engine | Validation Chapitre 2 — Gouvernance documentaire — DQC V2 CAS A · DQC V3 PASS |
 
 ---
 
@@ -133,3 +134,171 @@ Documenter.
 Versionner.
 Puis seulement évoluer.
 ```
+
+---
+
+# 2. Gouvernance documentaire
+
+## 2.1 Objet
+
+Le présent chapitre définit les principes constitutionnels qui encadrent la gouvernance documentaire de Caméléon Engine.
+
+Il établit les règles fondamentales selon lesquelles les documents officiels du projet sont créés, administrés, validés et maintenus sous autorité humaine.
+
+Un document officiel est tout document reconnu par la gouvernance documentaire du projet et intégré à la hiérarchie documentaire officielle, quel que soit son format ou son support.
+
+Les supports de synchronisation, les mémoires de travail et les espaces de communication ne constituent pas des sources d'autorité documentaire. Ils relèvent des protocoles d'exploitation, non de la présente Constitution.
+
+La gouvernance documentaire s'exerce sous l'autorité de la Constitution. Sa mise en œuvre appartient aux protocoles et aux procédures qui en découlent.
+
+---
+
+## 2.2 Principes fondamentaux
+
+### 2.2.1 Responsabilité unique
+
+Chaque document officiel possède une responsabilité unique.
+
+Aucun document ne peut assumer plusieurs responsabilités distinctes.
+
+Une responsabilité documentaire ne peut appartenir qu'à un seul document officiel.
+
+Aucune responsabilité ne peut être partagée entre plusieurs documents.
+
+Ces deux principes forment un invariant architectural. Le premier protège l'intégrité de chaque document. Le second protège la cohérence de l'ensemble de l'écosystème documentaire.
+
+### 2.2.2 Autorité documentaire
+
+L'autorité documentaire est définie par la Constitution.
+
+Elle s'exerce conformément à la hiérarchie documentaire officielle établie au Chapitre 1.
+
+La hiérarchie organise l'exercice de l'autorité. Elle n'en est pas la source.
+
+### 2.2.3 Traçabilité
+
+Toute évolution documentaire doit être traçable.
+
+Aucune décision documentaire — création, modification, validation, gel ou retrait — ne peut intervenir sans laisser une trace vérifiable.
+
+La traçabilité est une exigence constitutionnelle. Les mécanismes qui la mettent en œuvre relèvent des protocoles.
+
+### 2.2.4 Non-duplication
+
+Aucun document officiel ne peut détenir une responsabilité déjà attribuée à un autre document.
+
+La non-duplication des responsabilités doit être établie avant toute création d'un document officiel.
+
+Ce principe protège l'intégrité de l'architecture documentaire.
+
+### 2.2.5 Hiérarchie documentaire
+
+La hiérarchie documentaire officielle, établie au Chapitre 1, constitue le référentiel d'arbitrage en cas de contradiction entre deux documents officiels.
+
+Ce principe est le fondement de la cohérence de l'ensemble du système documentaire.
+
+---
+
+## 2.3 Exercice de l'autorité documentaire
+
+### 2.3.1 Création
+
+La création d'un document officiel est un acte de gouvernance.
+
+Tout nouveau document officiel doit s'inscrire dans la hiérarchie documentaire, posséder une responsabilité unique et satisfaire aux principes du présent chapitre.
+
+Aucun document ne peut être reconnu comme officiel sans décision humaine explicite.
+
+### 2.3.2 Évolution
+
+Tout document officiel peut évoluer.
+
+Toute évolution doit être délimitée, justifiée et traçable.
+
+Une évolution ne peut modifier la responsabilité fondamentale d'un document sans décision humaine explicite.
+
+### 2.3.3 Validation
+
+Un document officiel n'est validé que par acte humain explicite.
+
+Aucun processus automatisé ne peut se substituer à la validation humaine.
+
+La validation reconnaît officiellement qu'un document satisfait aux exigences constitutionnelles lui permettant d'exercer sa responsabilité au sein de l'architecture documentaire du projet.
+
+### 2.3.4 Retrait
+
+Un document officiel ne peut être retiré que par décision humaine explicite.
+
+Tout retrait doit être tracé et motivé.
+
+Le retrait d'un document officiel ne supprime pas sa traçabilité historique.
+
+---
+
+## 2.4 Gouvernance du cycle documentaire
+
+### 2.4.1 Existence d'un cycle officiel
+
+Tout document officiel traverse un cycle documentaire officiel, de sa création à son gel ou son retrait.
+
+La Constitution reconnaît l'existence de ce cycle et en garantit les principes de gouvernance.
+
+La définition des étapes et des états du cycle appartient aux protocoles, non à la Constitution.
+
+### 2.4.2 Principes de gouvernance du cycle
+
+Le cycle documentaire est placé en permanence sous autorité humaine.
+
+Aucune progression majeure du cycle ne peut résulter d'un automatisme, d'un processus autonome ou d'une délégation implicite.
+
+Chaque progression constitutive du cycle résulte d'une décision explicite.
+
+### 2.4.3 Validation humaine obligatoire
+
+Tout changement de statut majeur d'un document officiel requiert une validation humaine explicite.
+
+Ce principe est absolu. Aucun mécanisme, aucun processus et aucun protocole ne peut y déroger.
+
+La validation humaine est la garantie fondamentale de la gouvernance documentaire de Caméléon Engine.
+
+### 2.4.4 Traçabilité du cycle
+
+Toute progression dans le cycle documentaire doit être traçable.
+
+La traçabilité du cycle permet la reconstruction de l'historique décisionnel de chaque document officiel.
+
+Elle est une condition nécessaire à la confiance dans la gouvernance documentaire.
+
+---
+
+## 2.5 Gouvernance de la Constitution
+
+### 2.5.1 Versionnage de la Constitution
+
+La Constitution suit un versionnage unique sur l'ensemble de ses chapitres.
+
+Les versions intermédiaires reflètent l'état d'avancement de sa construction.
+
+La Constitution atteint sa version majeure lorsque l'ensemble de ses chapitres ont été rédigés et validés.
+
+### 2.5.2 Conditions de modification d'un chapitre validé
+
+Un chapitre validé constitue une baseline documentaire.
+
+Il ne peut être modifié qu'à la suite d'une réouverture explicitement décidée et tracée.
+
+Toute réouverture doit être motivée et documentée.
+
+### 2.5.3 Ajout de chapitres
+
+Tout nouveau chapitre doit faire l'objet d'un cadrage validé avant toute rédaction.
+
+Aucun chapitre ne peut être ouvert sans autorisation humaine préalable.
+
+L'ajout d'un chapitre enrichit la Constitution sans modifier les chapitres existants validés.
+
+### 2.5.4 Conditions de passage à la version majeure
+
+La Constitution atteint sa version majeure lorsque l'ensemble de ses chapitres ont été rédigés et validés.
+
+Cette décision appartient exclusivement à l'humain.
