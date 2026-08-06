@@ -43,7 +43,7 @@ LOT-P2-2 est la première implémentation technique du Programme P2. Son livrabl
 
 ### §3.1 Définition S1 applicable
 
-Selon DI4 (LOT-P2-1 §12) : **S1 = événement ponctuel d'échange**. Une trace S1 représente un fait transactionnel discret : un trade exécuté, un ordre rempli à une date précise. Elle n'exprime pas un état composé ni une vue agrégée du patrimoine.
+Selon DI4 (LOT-P2-1 §5) : **S1 = événement ponctuel d'échange**. Une trace S1 représente un fait transactionnel discret : un trade exécuté, un ordre rempli à une date précise. Elle n'exprime pas un état composé ni une vue agrégée du patrimoine.
 
 ### §3.2 Sources incluses
 
@@ -83,7 +83,8 @@ Un fichier TRADE_HISTORY produit uniquement des traces S1 — chaque ligne est u
 | DT-2 | Déduplication : comment éviter qu'un même fichier importé deux fois produise deux fois les mêmes traces S1 ? | A — Empreinte par ligne (hash des champs clés) / B — Empreinte par fichier (hash du contenu total) / C — Aucune déduplication en Phase A | Intégrité du corpus S1 |
 | DT-3 | Relation avec l'infrastructure comportementale existante (parser.js, binance_spot.js, format-detector.js, pdf-normalizer.js) : le parser S1 la réutilise-t-il ou est-il indépendant ? | A — Réutilisation directe des fonctions existantes / B — Couche d'adaptateur au-dessus / C — Implémentation indépendante dans le module d'ingestion | Couplage architectural · isolation du module d'ingestion |
 | DT-4 | Interface de déclenchement : le parser S1 est-il accessible depuis une interface dédiée ou déclenché depuis l'UI existante d'import Binance ? | A — Réutilise l'UI existante (onglet Comportement) / B — Nouvelle interface dans l'onglet Mémoire / C — Déclenchement automatique après import comportemental | UX · séparation des responsabilités |
-| DT-5 | Date de la trace d'import S1 (champ Date de la trace — Entrée 9) : date d'exécution de l'opération d'import ou valeur extraite des données du fichier ? | A — Date d'import (now — datation standard LOT-P1.3 §2.1) / B — Plage min/max des dates du fichier / C — Date du dernier enregistrement importé | Cohérence EP-S1 · alignement LOT-P1-2.1 Entrée 9 |
+| DT-5 | Date de la trace d'import S1 (champ Date de la trace — Entrée 9) : date d'exécution de l'opération d'import ou valeur extraite des données du fichier ? | A — Date d'import (now) / B — Plage min/max des dates du fichier / C — Date du dernier enregistrement importé | Cohérence EP-S1 · alignement LOT-P1-2.1 Entrée 9 |
+| DT-C1 | Point d'entrée de persistance pour les traces S1 : `writeCanonicalTrace` ne permet pas de fournir la date extraite per EP-RC2 (DT-5) · `writeMigratedTrace` l'autorise mais est restreinte à la migration — quelle solution retenir ? | A — Utiliser `writeMigratedTrace` en levant la restriction documentaire / B — Créer une nouvelle fonction `writeIngestedTrace(entry)` dans `canonical-store.js` / C — Modifier `writeCanonicalTrace` pour accepter une date optionnelle | Cohérence DT-5 · clarté sémantique migration / ingestion · stabilité du contrat de la couche canonique |
 
 ---
 
@@ -141,7 +142,7 @@ L'infrastructure du module comportemental (parser.js · binance_spot.js · forma
 | CV-3 | Import PDF TRADE_HISTORY | Comportement identique au CSV — même nombre de traces S1 produites pour un fichier équivalent. |
 | CV-4 | Import PDF ORDER_HISTORY | Comportement identique au CSV — FILLED uniquement. |
 | CV-5 | Extraction de date EP-RC2 | Les 4 cas de date (ISO 8601 / R4 / R1 / R3) produisent l'état formalisé correct dans la trace. |
-| CV-6 | Rejet RF-R6 | Toute ligne non classifiable S1 produit un rejet documenté, pas une ingestion silencieuse. |
+| CV-6 | Rejet RF-R6 | Tout fichier de format non reconnu est rejeté sans écriture canonique (niveau fichier). Toute ligne ne satisfaisant pas les conditions minimales produit un rejet documenté, pas une ingestion silencieuse (niveau ligne). |
 | CV-7 | Persistance canonique | Les traces S1 apparaissent dans le corpus canonique après import et sont consultables par famille · session. |
 | CV-8 | Déduplication et session | Premier import : une session est créée · les traces S1 sont écrites · la source est enregistrée dans le registre. Second import du même fichier : l'import est bloqué par déduplication · aucune session créée · aucune trace écrite · registre inchangé. |
 
