@@ -10,8 +10,9 @@
 | Phase Roadmap V1 | A |
 | Type | Technique — Parser d'ingestion |
 | Document officiel | `docs/lots/LOT-P2-2_PARSER_S1_V1.md` |
-| Statut | EN COURS — Cadrage V1 |
+| Statut | CLOS |
 | Date d'ouverture | 2026-07-09 |
+| Date de clôture | 2026-08-09 |
 | Prérequis | LOT-P2-1 CLOS · LOT-P1-2 CLOS |
 
 ---
@@ -142,7 +143,7 @@ L'infrastructure du module comportemental (parser.js · binance_spot.js · forma
 | CV-3 | Import PDF TRADE_HISTORY | Comportement identique au CSV — même nombre de traces S1 produites pour un fichier équivalent. |
 | CV-4 | Import PDF ORDER_HISTORY | Comportement identique au CSV — FILLED uniquement. |
 | CV-5 | Extraction de date EP-RC2 | Les 4 cas de date (ISO 8601 / R4 / R1 / R3) produisent l'état formalisé correct dans la trace. |
-| CV-6 | Rejet RF-R6 | Tout fichier de format non reconnu est rejeté sans écriture canonique (niveau fichier). Toute ligne ne satisfaisant pas les conditions minimales produit un rejet documenté, pas une ingestion silencieuse (niveau ligne). |
+| CV-6 | Rejet RF-R6 | Tout fichier de format non reconnu est rejeté sans écriture canonique (niveau fichier). Toute ligne non classifiable S1 (champs requis absents) produit un rejet RF-R6 documenté, pas une ingestion silencieuse (niveau ligne). |
 | CV-7 | Persistance canonique | Les traces S1 apparaissent dans le corpus canonique après import et sont consultables par famille · session. |
 | CV-8 | Déduplication et session | Premier import : une session est créée · les traces S1 sont écrites · la source est enregistrée dans le registre. Second import du même fichier : l'import est bloqué par déduplication · aucune session créée · aucune trace écrite · registre inchangé. |
 
@@ -160,9 +161,9 @@ L'infrastructure du module comportemental (parser.js · binance_spot.js · forma
 
 | Condition | Critère |
 |---|---|
-| Condition 1 | Tous les micro-lots P2-2.A à P2-2.F validés |
-| Condition 2 | CV-1 à CV-8 satisfaits en test terrain sur fichiers réels |
-| Condition 3 | CB-1 à CB-3 satisfaits |
-| Condition 4 | Toutes les décisions structurantes du lot tranchées et documentées : DT-2 · DT-3 · DT-4 · DT-5 · DT-C1 |
-| Condition 5 | DQC V2 CAS A sur le document de lot |
-| Condition 6 | Décision opérateur explicite de clôture |
+| Condition 1 | Tous les micro-lots P2-2.A à P2-2.F validés | **SATISFAITE** — P2-2.A→P2-2.F tous validés |
+| Condition 2 | CV-1 à CV-8 satisfaits en test terrain sur fichiers réels | **SATISFAITE** — LOT-P2-2.F PASS 2026-08-09 |
+| Condition 3 | CB-1 à CB-3 satisfaits | **SATISFAITE** — RC1→RC3 VALIDÉ |
+| Condition 4 | Toutes les décisions structurantes du lot tranchées et documentées : DT-2 · DT-3 · DT-4 · DT-5 · DT-C1 | **SATISFAITE** — tranchées en P2-2.A→P2-2.D |
+| Condition 5 | DQC V2 CAS A sur le document de lot | **SATISFAITE** — DQC V2 CAS A · 2026-08-09 |
+| Condition 6 | Décision opérateur explicite de clôture | **SATISFAITE** — décision opérateur prononcée · 2026-08-09 |

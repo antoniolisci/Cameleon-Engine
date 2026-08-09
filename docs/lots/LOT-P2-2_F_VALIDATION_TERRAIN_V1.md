@@ -11,8 +11,9 @@
 | Phase Roadmap V1 | A |
 | Type | Validation |
 | Document officiel | `docs/lots/LOT-P2-2_F_VALIDATION_TERRAIN_V1.md` |
-| Statut | EN COURS |
+| Statut | VALIDÉ |
 | Date d'ouverture | 2026-08-05 |
+| Date de clôture | 2026-08-09 |
 | Prérequis satisfaits | LOT-P2-2.E — Implémentation technique V1 · VALIDÉ · `ec543b4` |
 
 ---
@@ -299,7 +300,7 @@ Exécuter le diagnostic C4 de LOT-P1-2. Vérifier l'absence d'identifiant orphel
 3. Vérifier que C0 final = C0 initial (PC-4) + nombre de traces S1 effectivement écrites lors de §5.
 4. Exécuter le diagnostic C2 (structure index) : vérifier la présence des trois axes famille · date · session.
 5. Exécuter le diagnostic C3 (structure corpus) : vérifier l'absence de trace malformée.
-6. Exécuter le diagnostic C4 (cohérence index↔corpus) : vérifier l'absence d'identifiant orphelin.
+6. Exécuter le diagnostic C4 (cohérence index↔corpus) : vérifier l'absence d'identifiant orphelin. **Note structurelle (INC-03) :** `CE_canonical_corpus_v1` est un tableau — `Object.keys(corpus)` retourne des indices numériques (`"0"`, `"1"`…), pas des identifiants canoniques. L'identifiant canonique de chaque trace est `trace.id`. Pour C4, utiliser `Object.values(corpus).map(t => t.id)` comme source d'identifiants côté corpus.
 
 **PASS :** C0 delta = traces S1 écrites uniquement · SY1/SY3/S2 inchangés · C2 PASS · C3 PASS · C4 PASS.
 
@@ -368,62 +369,131 @@ Un FAIL sur l'un de ces éléments rend LOT-P2-2.F FAIL. La clôture officielle 
 
 ## §8 Rapport d'exécution
 
-*Cette section est remplie lors de l'exécution terrain. Le document n'est pas validé tant que cette section est incomplète.*
+*Campagne terminée le 2026-08-09. 12/12 conditions satisfaites. LOT-P2-2.F = PASS.*
 
 ### §8.1 Contexte d'exécution
 
 | Champ | Valeur |
 |---|---|
-| Date | — |
-| Environnement | — |
-| PC-1 — Pipeline PDF opérationnel | — |
-| PC-2 — Fichiers de test disponibles | — |
-| PC-3 — État initial du registre (nombre d'entrées) | — |
-| PC-4 — C0 initial · S1 | — |
-| PC-4 — C0 initial · SY1 | — |
-| PC-4 — C0 initial · SY3 | — |
-| PC-4 — C0 initial · S2 | — |
-| PC-5 — Cohérence initiale index (C4) | — |
+| Date | 2026-08-06 |
+| Environnement | localhost:8000 · Chrome |
+| PC-1 — Pipeline PDF opérationnel | PASS — pipeline PDF implémenté et validé (TC3/TC4) |
+| PC-2 — Fichiers de test disponibles | PASS — CSV TH · CSV OH · PDF TH · PDF OH disponibles |
+| PC-3 — État initial du registre (nombre d'entrées) | 0 au démarrage · 4 après TC1–TC4 |
+| PC-4 — C0 initial · S1 | 0 au démarrage · 1 240 après TC1–TC4 |
+| PC-4 — C0 initial · SY1 | non mesuré (hors périmètre S1) |
+| PC-4 — C0 initial · SY3 | non mesuré (hors périmètre S1) |
+| PC-4 — C0 initial · S2 | non mesuré (hors périmètre S1) |
+| PC-5 — Cohérence initiale index (C4) | PASS — index cohérent avant démarrage |
 
 ### §8.2 Résultats des cas de test
 
 | Cas de test | Critère | Résultat | Observation |
 |---|---|---|---|
-| TC1 — CSV TRADE_HISTORY | CV-1 | — | — |
-| TC2 — CSV ORDER_HISTORY | CV-2 | — | — |
-| TC3 — PDF TRADE_HISTORY | CV-3 | — | — |
-| TC4 — PDF ORDER_HISTORY | CV-4 | — | — |
-| TC5 — États EP-RC2 | CV-5 | — | — |
-| TC6 — Rejet RF-R6 | CV-6 | — | — |
-| TC7 — Persistance canonique | CV-7 | — | — |
-| TC8 — Déduplication et session | CV-8 | — | — |
+| TC1 — CSV TRADE_HISTORY | CV-1 | VALIDÉ | qualified=342 · written=342 · result=succès |
+| TC2 — CSV ORDER_HISTORY | CV-2 | VALIDÉ | qualified=281 · excluded=433 · rejected=0 · written=281 |
+| TC3 — PDF TRADE_HISTORY | CV-3 | VALIDÉ | qualified=342 · written=342 · sourceType=TRADE_HISTORY PDF |
+| TC4 — PDF ORDER_HISTORY | CV-4 | VALIDÉ | qualified=275 · written=275 · sourceType=ORDER_HISTORY PDF · correctif buf.slice(0) appliqué |
+| TC5 — États EP-RC2 | CV-5 | VALIDÉ | Standard=1240/1240 · R1 démontré · R4 démontré · R3=0 contractuel · corpus restauré |
+| TC6 — Rejet RF-R6 | CV-6 | VALIDÉ | b2.xlsx · rapport "Fichier non reconnu" · zéro trace · registre inchangé (4 entrées) · zéro exception console |
+| TC7 — Persistance canonique | CV-7 | VALIDÉ | S1=1240 après rechargement forcé · byFamille[S1]=1240 · 4 sessions inchangées (342/281/342/275) · familles intactes |
+| TC8 — Déduplication et session | CV-8 | VALIDÉ | tc5_r1_date_absente.csv · 1er import succès written=1 · 2e import bloqué "Source déjà ingérée" · S1=1241 · registre=5 inchangé · bySession=5 inchangé |
 
 ### §8.3 Résultats des vérifications de robustesse
 
 | Vérification | Critère | Résultat | Observation |
 |---|---|---|---|
-| RC1 — Régression LOT-P1-2 | CB-1 | — | — |
-| RC2 — Régression module comportemental | CB-2 | — | — |
-| RC3 — Fichier vide / format inconnu | CB-3 | — | — |
+| RC1 — Régression LOT-P1-2 | CB-1 | VALIDÉ | S1=1241 · familles SY1/SY3/S2 absentes (corpus S1 pur) · C2 PASS (3 axes présents) · C3 PASS (0 malformée) · C4 PASS (0 orphelin — après correction INC-03) |
+| RC2 — Régression module comportemental | CB-2 | VALIDÉ | Import Binance Spot Trade History CSV · 342 lignes lues/retenues · scoring 15/100 Agressif · 3 patterns · session comportementale enregistrée · corpus canonique S1 inchangé 1241→1241 · delta=0 · isolation comportemental/corpus confirmée |
+| RC3 — Fichier vide / format inconnu | CB-3 | VALIDÉ | rc3_headers_only.csv · en-têtes TRADE_HISTORY reconnus · 0 ligne de données · message UI "headers détectés mais aucune ligne présente" · registre 5→5 · corpus S1 1241→1241 · aucune exception · re-soumission libre (pas de doublon fantôme) |
 
 ### §8.4 Verdict global
 
 | Condition | Verdict obtenu |
 |---|---|
-| PC-5 | — |
-| TC1 | — |
-| TC2 | — |
-| TC3 | — |
-| TC4 | — |
-| TC5 | — |
-| TC6 | — |
-| TC7 | — |
-| TC8 | — |
-| RC1 | — |
-| RC2 | — |
-| RC3 | — |
+| PC-5 | PASS |
+| TC1 | VALIDÉ |
+| TC2 | VALIDÉ |
+| TC3 | VALIDÉ |
+| TC4 | VALIDÉ |
+| TC5 | VALIDÉ |
+| TC6 | VALIDÉ |
+| TC7 | VALIDÉ |
+| TC8 | VALIDÉ |
+| RC1 | VALIDÉ |
+| RC2 | VALIDÉ |
+| RC3 | VALIDÉ |
 
-**LOT-P2-2.F — [EN ATTENTE D'EXÉCUTION]**
+**LOT-P2-2.F — PASS · 12/12 · Campagne terminée le 2026-08-09**
+
+*Note sur le compteur historique : le numérateur courant (qui affichait 10/12 après RC2) ne comptabilisait pas PC-5, satisfait avant le démarrage de la campagne et jamais incrémenté dans le suivi courant. Le dénominateur /12 incluait pourtant PC-5 parmi les 12 conditions du §7. Les 12 conditions étant désormais intégralement satisfaites (PC-5 PASS + TC1→TC8 VALIDÉ + RC1→RC3 VALIDÉ), le compteur est corrigé à 12/12 à la clôture de la campagne.*
+
+---
+
+## §8.5 Incidents de procédure — Campagne LOT-P2-2.F
+
+Les incidents ci-dessous sont des **erreurs de procédure ou de diagnostic**. Aucun ne constitue un FAIL produit. Aucune donnée n'a été corrompue. Ils sont documentés pour capitalisation méthodologique.
+
+---
+
+### INC-01 — TC8 · Redéclaration de variables console DevTools
+
+| Champ | Valeur |
+|---|---|
+| Phase | TC8 — Étape 0 |
+| Symptôme | `Uncaught SyntaxError: Identifier '_id' has already been declared` · forEach affichant zéro entrée |
+| Cause | Variables `const` déclarées dans les commandes TC7 (post-rechargement forcé) toujours présentes dans la session DevTools · redéclaration bloquée par Chrome |
+| Interprétation erronée possible | Registre vide · fausse corruption |
+| Réalité confirmée | Registre intact · 4 entrées · UUID correct · données inchangées |
+| Type | Erreur de procédure opérateur — faux positif de diagnostic |
+| Correction appliquée | Utilisation de `var` au lieu de `const` dans tous les scripts console · noms de variables non conflictuels · blocs IIFE si nécessaire |
+| Règle permanente | Tout script console de validation doit être autonome et réexécutable sans dépendre de l'état lexical d'une session DevTools précédente. Un `SyntaxError` de redéclaration ne peut pas être interprété comme une anomalie produit. |
+
+---
+
+### INC-02 — TC8 · Mauvais fichier de test (b4.csv)
+
+| Champ | Valeur |
+|---|---|
+| Phase | TC8 — Premier import |
+| Symptôme | Rapport "Fichier non reconnu" sur b4.csv |
+| Cause | b4.csv n'est pas un fichier Binance S1 — il ne porte pas les en-têtes attendus par l'adaptateur |
+| Interprétation erronée possible | Échec du mécanisme d'ingestion pour TC8 |
+| Réalité | Comportement correct du moteur (rejet RF-R6) · mauvais choix de fixture |
+| Type | Erreur de procédure — mauvais fichier de test pour le scénario positif TC8 |
+| Effet de bord | Aucun · registre=4 inchangé · corpus=1240 inchangé |
+| Correction appliquée | Utilisation de `tc5_r1_date_absente.csv` (en-têtes Binance · 1 ligne · écrit 1 trace · non encore ingéré) |
+| Règle permanente | Tout fichier utilisé dans un scénario d'ingestion positive doit être préqualifié comme reconnu par l'adaptateur avant d'être désigné comme fixture TC8. |
+
+---
+
+### INC-03 — RC1 C4 · Mauvaise interprétation de la structure du corpus
+
+| Champ | Valeur |
+|---|---|
+| Phase | RC1 — Étape 4 (C4) |
+| Symptôme | 1241 orphelins index→corpus ET 1241 orphelins corpus→index sur un corpus de 1241 traces |
+| Cause | `CE_canonical_corpus_v1` est un **tableau** · `Object.keys(corpus)` retourne les indices numériques `"0"`, `"1"`… et non les `trace.id` UUID · la comparaison portait sur deux espaces d'identifiants incompatibles |
+| Interprétation erronée possible | Désynchronisation totale entre corpus et index — fausse corruption |
+| Réalité confirmée | 0 orphelin réel · index et corpus parfaitement cohérents |
+| Type | Erreur de script de diagnostic — faux positif structurel |
+| Correction appliquée | Utiliser `Object.values(corpus).map(t => t.id)` pour extraire les identifiants canoniques côté corpus · la procédure §6 RC1 a été mise à jour en conséquence |
+| Règle permanente | Avant tout `Object.keys()` / `Object.values()` sur une structure persistée, vérifier explicitement `Array.isArray(...)` et la forme réelle des données. Pour `CE_canonical_corpus_v1`, l'identifiant canonique est `trace.id` — jamais l'indice du tableau. Un résultat de C4 symétrique (N orphelins dans les deux sens avec N = cardinalité totale) indique une incompatibilité de types d'identifiants, pas une corruption. |
+
+---
+
+### Synthèse des enseignements — Doctrine de validation terrain
+
+| # | Règle |
+|---|---|
+| R1 | Les scripts console doivent être autonomes · réexécutables · indépendants de l'état lexical de la session DevTools |
+| R2 | Utiliser `var` (ou IIFE) dans les scripts console de validation — jamais `const` ni `let` au niveau du bloc |
+| R3 | Un `SyntaxError: already declared` en console n'est pas une anomalie produit |
+| R4 | Tout fichier de fixture pour un scénario d'ingestion positive doit être préqualifié (import test préalable confirmant `result = "succès"`) |
+| R5 | Vérifier `Array.isArray(structure)` avant tout diagnostic d'identifiants sur une structure persistée |
+| R6 | Pour `CE_canonical_corpus_v1` : identifiant canonique = `trace.id` · jamais `Object.keys(corpus)` |
+| R7 | Un résultat C4 symétrique (N orphelins dans les deux sens = N total) est un signal d'incompatibilité de types, pas de corruption |
+| R8 | Distinguer explicitement : FAIL produit · FAIL scénario de test · erreur de procédure · erreur de script de diagnostic · faux positif |
 
 ---
 
@@ -433,9 +503,9 @@ Conformément au cadrage LOT-P2-2 §8, la clôture officielle de LOT-P2-2 requie
 
 | Condition | Critère | État après LOT-P2-2.F PASS |
 |---|---|---|
-| Condition 1 | Tous les micro-lots P2-2.A à P2-2.F validés | Satisfaite si LOT-P2-2.F PASS |
-| Condition 2 | CV-1 à CV-8 satisfaits sur fichiers réels | Satisfaite — TC1→TC8 PASS |
-| Condition 3 | CB-1 à CB-3 satisfaits | Satisfaite — RC1→RC3 PASS |
-| Condition 4 | DT-2 · DT-3 · DT-4 · DT-5 · DT-C1 tranchées et documentées | Satisfaite depuis P2-2.A→P2-2.D |
-| Condition 5 | DQC V2 CAS A sur le document de lot | À réaliser sur LOT-P2-2_PARSER_S1_V1.md avant clôture |
-| Condition 6 | Décision opérateur explicite de clôture | À prononcer après LOT-P2-2.F PASS |
+| Condition 1 | Tous les micro-lots P2-2.A à P2-2.F validés | **SATISFAITE** — LOT-P2-2.F PASS · 2026-08-09 |
+| Condition 2 | CV-1 à CV-8 satisfaits sur fichiers réels | **SATISFAITE** — TC1→TC8 VALIDÉ |
+| Condition 3 | CB-1 à CB-3 satisfaits | **SATISFAITE** — RC1→RC3 VALIDÉ |
+| Condition 4 | DT-2 · DT-3 · DT-4 · DT-5 · DT-C1 tranchées et documentées | **SATISFAITE** — depuis P2-2.A→P2-2.D |
+| Condition 5 | DQC V2 CAS A sur le document de lot | **SATISFAITE** — DQC V2 CAS A · 2026-08-09 |
+| Condition 6 | Décision opérateur explicite de clôture | **SATISFAITE** — décision opérateur prononcée · 2026-08-09 |

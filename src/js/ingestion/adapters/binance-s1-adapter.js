@@ -32,8 +32,7 @@ function _normalizeHeader(str) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/²/g, '2')
-    .replace(/³/g, '3')
+    .replace(/[²³¹⁰⁴⁵⁶⁷⁸⁹]/g, '')
     .replace(/[\u2019\s_./\\\-]+/g, ' ')
     .trim();
 }
@@ -267,7 +266,7 @@ const AL_FEE = [
   'frais', 'cout transaction', 'frais de transaction',
 ];
 const AL_STATUS   = ['status', 'statut', 'order status', 'statut ordre', 'etat'];
-const AL_ORDER_ID = ['order id', 'orderid', 'order no', 'order number', 'id ordre', 'numero de commande'];
+const AL_ORDER_ID = ['order id', 'orderid', 'order no', 'orderno', 'order number', 'id ordre', 'numero de commande'];
 
 // ── Normalisation du côté (BUY/SELL) ─────────────────────────────────────────
 
@@ -411,8 +410,8 @@ let _pdfjsLib = null;
 
 async function _getPdfjsLib() {
   if (_pdfjsLib) return _pdfjsLib;
-  const mod = await import(new URL('../../../vendor/pdf.min.mjs', import.meta.url).href);
-  mod.GlobalWorkerOptions.workerSrc = new URL('../../../vendor/pdf.worker.min.mjs', import.meta.url).href;
+  const mod = await import(new URL('../../vendor/pdf.min.mjs', import.meta.url).href);
+  mod.GlobalWorkerOptions.workerSrc = new URL('../../vendor/pdf.worker.min.mjs', import.meta.url).href;
   _pdfjsLib = mod;
   return _pdfjsLib;
 }
@@ -421,7 +420,7 @@ async function _getPdfjsLib() {
 async function _loadPdfItems(data) {
   const pdfjsLib = await _getPdfjsLib();
   const buf = (data instanceof ArrayBuffer) ? data : await data.arrayBuffer();
-  const pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+  const pdfDoc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
   const items  = [];
   for (let p = 1; p <= pdfDoc.numPages; p++) {
     const page    = await pdfDoc.getPage(p);
