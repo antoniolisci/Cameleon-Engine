@@ -489,29 +489,67 @@ Un événement source et un état patrimonial sont deux réalités distinctes. L
 
 Cette règle est source-agnostique. Elle s'applique à un fichier Wallet History, à une réponse API blockchain, à une saisie manuelle, ou à toute source future.
 
+**Note sur la classification dans le pipeline** : la classification mentionnée ci-dessus désigne la nature sémantique de l'événement source (achat, dépôt, frais, reward...) — responsabilité de l'adaptateur, documentée en §7.5. Elle est distincte de la règle RF-S2 (§7.3) qui qualifie l'appartenance à la famille mémorielle S2.
+
 ### §7.2 Algorithme de dérivation générique
 
 ```
-ENTRÉE  : flux d'événements E₁, E₂, ..., Eₙ classifiés par l'adaptateur
-SORTIE  : ensemble de POSITIONS { (assetId, location, holdingForm, quantityNet) }
+ENTRÉE  : flux d'événements E₁, E₂, ..., Eₙ classifiés par l'adaptateur (§7.5)
+           — ordre chronologique obligatoire
+SORTIE  : ensemble de POSITIONS { (assetId, location, holdingForm, quantityNet,
+                                    derivationStatus) }
+          + liste d'anomalies transmise au rapport de session S2 (§8.4)
 
-POUR CHAQUE événement Eᵢ :
-  1. identifier_actif(Eᵢ)    → assetId canonique (§5)
-  2. extraire_lieu(Eᵢ)        → location { custodyType, source, network, identifier }
-  3. classifier_forme(Eᵢ)     → holdingForm
-  4. accumuler :
-       positions[(assetId, location, holdingForm)].net += Eᵢ.montant_signé
+INITIALISATION :
+  positions = {}    — accumulateur indexé par (assetId, location, holdingForm)
+  anomalies = []    — événements non classifiables, incohérences détectées
 
-POUR CHAQUE position accumulée :
-  5. Construire la trace POSITION S2 (§6.3) avec positionMeta
-  6. Résoudre l'état de date per EP-RC2 (LOT-P2-1)
+POUR CHAQUE événement Eᵢ dans l'ordre chronologique :
+
+  1. SI Eᵢ n'est pas classifiable par l'adaptateur selon §7.5 :
+       Ajouter Eᵢ à anomalies
+       CONTINUER — Eᵢ ne contribue pas à l'accumulation
+
+  2. Décomposer Eᵢ en N sous-opérations { s₁, ..., sₙ } — N ≥ 1
+       Chaque sⱼ = (assetId, location, holdingForm, Δqty)
+       N = 1 pour : dépôt · retrait · reward · fee · burn · mint · airdrop
+       N = 2 pour : swap (deux actifs distincts)
+                  · staking natif (même actif · même lieu · deux holdingForm distincts)
+                  · lock/unlock (même actif · même lieu · deux holdingForm distincts)
+                  · transfert interne (même actif · deux locations distinctes observées)
+
+  3. POUR CHAQUE sous-opération sⱼ :
+       clé = (sⱼ.assetId, sⱼ.location, sⱼ.holdingForm)
+       positions[clé].qty += sⱼ.Δqty
+
+APRÈS ACCUMULATION :
+
+  4. Résoudre l'état de date global per EP-RC2 (LOT-P2-1)
+
+  5. POUR CHAQUE position p :
+       SI anomalies associées à p.assetId contiennent AN-06 ou AN-07 :
+         p.derivationStatus = "error_detected"
+         — position écrite mais marquée non exploitable
+       SINON SI p.qty < 0 :
+         p.derivationStatus = "incomplete_history"
+       SINON SI anomalies contient au moins un événement associé à p.assetId :
+         p.derivationStatus = "partial"
+       SINON :
+         p.derivationStatus = "complete"
+       — Note : le statut "direct_snapshot" est attribué par le chemin §7.8 uniquement,
+         jamais par cet algorithme (modes mutuellement exclusifs — I-B-07)
+
+  6. Construire chaque trace POSITION S2 (§6.3) avec positionMeta et derivationStatus
 
 CONSTRUIRE la trace SNAPSHOT S2 (§6.2) :
   snapshotSummary.assetCount    = nombre d'assetId distincts
   snapshotSummary.positionCount = nombre de paires (assetId, location) distinctes
+  Inclure résumé des anomalies dans le rapport de session (§8.4)
 ```
 
-Cet algorithme est indépendant de la source. L'adaptateur (Programme P3) est responsable des étapes 1, 2 et 3 — la classification, l'identification de l'actif et l'extraction du lieu.
+Cet algorithme est indépendant de la source. L'adaptateur (Programme P3) est responsable de la classification des événements selon §7.5 (étape 1) et de la décomposition en sous-opérations (étape 2). Le Core S2 est responsable de l'accumulation (étape 3) et de la qualification du statut de dérivation (étape 5).
+
+**Invariant d'ordre** : l'accumulation doit respecter l'ordre chronologique des événements sources. Un ordre non déterminé entre deux événements de même horodatage doit être signalé comme anomalie.
 
 ### §7.3 Règle RF-S2 : classification S2
 
@@ -534,6 +572,173 @@ Certaines sources contiennent des données relevant à la fois de S1 et de S2. L
 **Règle pour les sources de type Wallet History** :
 
 Les lignes d'opérations (dépôts, retraits, frais, revenus de staking) sont les **événements sources** qui alimentent la dérivation S2. Elles ne constituent pas des traces S2 individuelles. L'**état dérivé** (quantité nette par actif par lieu de détention) constitue les traces S2. Si certaines lignes représentent des événements d'échange classifiables S1, l'adaptateur les traite séparément — hors périmètre Phase A de LOT-P2-3.
+
+### §7.5 Classification des types d'événements sources
+
+La classification des événements sources est une responsabilité de l'adaptateur. Elle est opérée avant l'accumulation et conditionne la décomposition en sous-opérations (§7.2 étape 2).
+
+**Tableau canonique des types d'événements S2** :
+
+| Code | Nom canonique | N sous-op. | Δqty actif principal | Impact secondaire |
+|---|---|---|---|---|
+| EV-01 | deposit | 1 | + (réception) | — |
+| EV-02 | withdrawal | 1 | − (sortie) | — |
+| EV-03 | fee | 1 | − (coût de transaction) | — |
+| EV-04 | reward_staking | 1 | + (revenu de staking) | — |
+| EV-05 | reward_lending | 1 | + (intérêt reçu) | — |
+| EV-06 | reward_cashback | 1 | + (remise reçue) | — |
+| EV-07 | reward_airdrop | 1 | + (token reçu gratuitement) | — |
+| EV-08 | mint | 1 | + (création d'actif) | — |
+| EV-09 | burn | 1 | − (destruction d'actif) | — |
+| EV-10 | swap_out | 2 | − (actif vendu) | + actif reçu (EV-11) |
+| EV-11 | swap_in | 2 | + (actif reçu) | − actif vendu (EV-10) |
+| EV-12 | stake_lock | 2 | − (spot → staked, même lieu) | + holdingForm staked |
+| EV-13 | stake_unlock | 2 | − (staked → spot, même lieu) | + holdingForm spot |
+| EV-14 | lock | 2 | − (spot → locked, même lieu) | + holdingForm locked |
+| EV-15 | unlock | 2 | − (locked → spot, même lieu) | + holdingForm spot |
+| EV-16 | transfer_out | 1 ou 2 | − (départ d'un lieu) | + si leg entrant observé |
+| EV-17 | transfer_in | 1 ou 2 | + (arrivée dans un lieu) | − si leg sortant observé |
+| EV-18 | distribution | 1 | + (distribution reçue) | — |
+| EV-19 | correction_positive | 1 | + (ajustement correctif) | — |
+| EV-20 | correction_negative | 1 | − (ajustement correctif) | — |
+| EV-21 | balance_snapshot | direct | état direct (§7.8) | aucune accumulation |
+| EV-22 | unclassified | 0 | → anomalie (§7.2 étape 1) | — |
+
+**Règles de classification** :
+
+- Un événement source peut se mapper sur un seul code EV-xx. En cas d'ambiguïté, l'adaptateur choisit le code le plus spécifique.
+- EV-10 et EV-11 apparaissent toujours en paire pour un même événement source. Un swap avec un seul leg observé est traité comme EV-01 ou EV-02 avec anomalie.
+- EV-16 et EV-17 : si les deux legs du transfert sont observés dans les données sources, ils génèrent chacun une sous-opération compensée (N=2). Si un seul leg est visible, N=1 et le leg manquant est absent (doctrine transfert — §7.7).
+- EV-21 (balance_snapshot) déclenche le chemin de dérivation directe (§7.8), non l'accumulation.
+- EV-22 déclenche l'enregistrement en anomalie sans contribution à l'accumulation.
+
+**Périmètre Phase A** : les types actifs en Phase A (source Binance Wallet History) sont EV-01, EV-02, EV-03, EV-04, EV-07, EV-08, EV-09, EV-10, EV-11, EV-12, EV-13, EV-16, EV-17, EV-18. Les types EV-05, EV-06, EV-14, EV-15, EV-19, EV-20, EV-21 sont réservés aux adaptateurs futurs (Phase B+).
+
+---
+
+### §7.6 Algèbre des variations de POSITION
+
+Une POSITION est caractérisée par le triplet `(assetId, location, holdingForm)`. Trois classes de variation sont possibles :
+
+| Classe | Définition | Exemple |
+|---|---|---|
+| Δqty | Variation de quantité sur un triplet stable | Dépôt, retrait, reward, fee |
+| ΔholdingForm | Même actif, même lieu, holdingForm différent | Staking natif : spot → staked (EV-12) |
+| Δlocation | Même actif, location différente | Transfert inter-exchanges (EV-16/EV-17) |
+
+**Règles de l'algèbre** :
+
+- Δqty : accumulation directe sur le triplet. Pas de création de nouvelle POSITION si le triplet existe déjà.
+- ΔholdingForm : génère deux sous-opérations sur le même `(assetId, location)` — une décrémentation sur l'ancien holdingForm, une incrémentation sur le nouveau.
+- Δlocation : génère deux sous-opérations sur le même `(assetId, holdingForm)` — une décrémentation sur l'ancienne location, une incrémentation sur la nouvelle. Soumis à la doctrine de transfert (§7.7).
+- Une variation peut combiner Δqty et ΔholdingForm (ex. : staking avec frais intégrés), mais jamais Δlocation et ΔholdingForm simultanément dans le schéma courant Phase A.
+
+---
+
+### §7.7 Doctrine du transfert — prévention du double comptage
+
+Un transfert d'actif entre deux lieux de détention génère un risque de double comptage si les deux legs (sortie + entrée) sont visibles dans les données sources.
+
+**Cinq situations de transfert** :
+
+| Situation | Legs observés | Traitement |
+|---|---|---|
+| T-1 : transfert interne complet | EV-16 + EV-17 pour le même événement | N=2 : Δqty(−) sur location_source + Δqty(+) sur location_dest — conservation nette |
+| T-2 : leg sortant seul | EV-16 uniquement | N=1 : Δqty(−) sur location_source — leg entrant absent |
+| T-3 : leg entrant seul | EV-17 uniquement | N=1 : Δqty(+) sur location_dest — leg sortant absent |
+| T-4 : transfert vers wallet externe non suivi | EV-16, destination inconnue | N=1 : Δqty(−) — la destination n'est pas dans le périmètre |
+| T-5 : transfert depuis source non suivie | EV-17, origine inconnue | N=1 : Δqty(+) — l'origine n'est pas dans le périmètre |
+
+**Règle de prévention du double comptage** : si EV-16 et EV-17 correspondent au même événement source (même montant, même actif, même horodatage ou référence partagée), ils forment un transfert T-1. Les deux sous-opérations compensées garantissent que la quantité totale de l'actif est conservée. Un adaptateur ne doit jamais compter un transfert interne comme deux événements indépendants.
+
+**Règle d'asymétrie conservatrice** : en cas de doute sur l'appariement (deux événements potentiellement liés mais sans preuve), traiter chacun comme N=1 indépendant (situations T-2 + T-3). L'état résultant sera surestimé, ce qui est préférable à une perte silencieuse. Le `derivationStatus` des positions concernées sera `partial`.
+
+---
+
+### §7.8 État patrimonial direct vs état reconstruit
+
+Deux modes de dérivation de l'état patrimonial S2 sont possibles :
+
+| Mode | Déclencheur | Mécanisme |
+|---|---|---|
+| Reconstruction par accumulation | Flux d'événements classifiés (EV-01→EV-20) | Algorithme §7.2 — accumulation chronologique des Δqty |
+| Snapshot direct | Source contenant un bilan explicite (EV-21) | Lecture directe des soldes déclarés — aucune accumulation |
+
+**Doctrine de préférence** :
+
+- Si la source contient un bilan explicite (soldes déclarés à un instant T), le mode snapshot direct est préféré.
+- Si la source contient uniquement un flux d'opérations, la reconstruction par accumulation est obligatoire.
+- Les deux modes ne se mélangent pas dans une même session S2. Une session utilise l'un ou l'autre.
+
+**Statut de dérivation associé** :
+
+- Snapshot direct → `derivationStatus = "direct_snapshot"` — la quantité est déclarée, non calculée.
+- Accumulation complète → `derivationStatus = "complete"` ou `"partial"` selon les anomalies (§7.12).
+
+---
+
+### §7.9 Doctrine de temporalité
+
+La temporalité de la dérivation S2 obéit aux règles suivantes :
+
+| Règle | Énoncé |
+|---|---|
+| TB-1 | L'accumulation suit l'ordre chronologique des événements sources. Un ordre non déterminé est une anomalie. |
+| TB-2 | La date retenue pour chaque trace POSITION est la date de l'événement source le plus récent contribuant à la position, résolue per EP-RC2 (LOT-P2-1). |
+| TB-3 | La date du SNAPSHOT est la date de l'événement source le plus récent de toute la session. |
+| TB-4 | Deux événements de même horodatage sont traités dans l'ordre de leur apparition dans la source. L'adaptateur doit garantir un ordre stable (non arbitraire). |
+| TB-5 | L'historique partiel (données disponibles seulement à partir de T₀) ne constitue pas une erreur. Il est documenté par le `derivationStatus` de la position (§7.12). |
+| TB-6 | Aucune interpolation temporelle n'est autorisée. Une quantité inconnue à un instant reste inconnue. |
+
+---
+
+### §7.10 Historique partiel et état d'ouverture inconnu
+
+Quand les données disponibles ne couvrent pas l'intégralité de l'historique d'un actif, quatre situations sont possibles :
+
+| Situation | Caractéristique | Traitement |
+|---|---|---|
+| H-1 : historique complet | Tous les événements depuis la création du compte sont disponibles | Accumulation normale — `derivationStatus = "complete"` si aucune anomalie |
+| H-2 : historique partiel connu | Les données débutent à T₀ > T_création, et T₀ est connu et déclaré | Accumulation depuis T₀ — `derivationStatus = "partial"` — état d'ouverture inconnu explicitement déclaré |
+| H-3 : historique partiel non borné | Les données débutent à T₀ inconnu (premier événement disponible) | Accumulation depuis le premier événement — `derivationStatus = "incomplete_history"` |
+| H-4 : solde négatif après accumulation | qty < 0 pour une POSITION après accumulation complète | Signal d'historique incomplet ou d'anomalie source — `derivationStatus = "incomplete_history"` |
+
+**Règle fondamentale** : l'état d'ouverture d'une POSITION n'est JAMAIS supposé être zéro en l'absence d'information. L'absence de données = état inconnu, non état nul. Un `derivationStatus = "incomplete_history"` est préférable à une hypothèse silencieuse.
+
+---
+
+### §7.11 Quantités impossibles et taxonomie des anomalies de dérivation
+
+Une anomalie de dérivation est tout résultat qui ne peut pas représenter un état patrimonial réel. La liste suivante est exhaustive pour Phase A :
+
+| Code | Type | Déclencheur | Traitement |
+|---|---|---|---|
+| AN-01 | Quantité négative | qty < 0 après accumulation | `derivationStatus = "incomplete_history"` · position conservée avec qty signée |
+| AN-02 | Événement non classifiable | L'adaptateur ne reconnaît pas le type d'opération | Enregistré en anomalies · ignoré dans l'accumulation |
+| AN-03 | Ordre temporel indéterminé | Deux événements de même horodatage sans ordre stable | Signal dans le rapport · ordre arbitraire appliqué |
+| AN-04 | Swap asymétrique | EV-10 sans EV-11 correspondant (ou inverse) | Traité comme EV-01 ou EV-02 selon sens · anomalie signalée |
+| AN-05 | Transfert non apparié | EV-16 et EV-17 potentiellement liés mais non confirmés | Traités indépendamment (doctrine conservatrice §7.7) · anomalie signalée |
+| AN-06 | assetId non résolvable | L'adaptateur ne peut pas déterminer `symbol_canonique`, `instrumentType` ou `definingProtocol` | Événement enregistré en anomalie · ignoré dans l'accumulation |
+| AN-07 | Valeur source illisible | Quantité absente, mal formée ou non parseable | Événement enregistré en anomalie · ignoré dans l'accumulation |
+| AN-08 | Date non résolvable | EP-RC2 retourne état R1 (absent) ou R3 (non-conformant) sans fallback | Date signalée comme inconnue · position marquée `partial` |
+
+Toutes les anomalies sont transmises au rapport de session S2 (§8.4) pour traçabilité opérateur.
+
+---
+
+### §7.12 Statut de dérivation — `derivationStatus`
+
+Le champ `derivationStatus` est un qualificatif ordinal de la confiance dans la valeur de la POSITION dérivée. Il est calculé après accumulation selon les règles de §7.2.
+
+| Valeur | Signification | Condition de déclenchement |
+|---|---|---|
+| `complete` | Dérivation complète sans anomalie | Aucune anomalie · qty ≥ 0 · historique supposé complet |
+| `partial` | Dérivation effectuée avec anomalies non bloquantes | Au moins une anomalie AN-02, AN-03, AN-04, AN-05 ou AN-08 associée à l'actif · qty ≥ 0 |
+| `incomplete_history` | Historique insuffisant pour garantir l'état | qty < 0 (AN-01) · ou H-3 déclaré · ou solde d'ouverture inconnu significatif |
+| `direct_snapshot` | État déclaré directement par la source | Source EV-21 (bilan explicite) — aucune accumulation |
+| `error_detected` | Anomalie bloquante détectée | AN-06 ou AN-07 rend la position non fiable — position écrite mais marquée non exploitable |
+
+**Règle de propagation** : le `derivationStatus` le plus défavorable parmi toutes les POSITION d'une session est inclus dans le résumé du SNAPSHOT (`snapshotSummary`). L'ordre de sévérité croissant est : `complete` < `direct_snapshot` < `partial` < `incomplete_history` < `error_detected`.
 
 ---
 
@@ -718,6 +923,16 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 | I-A-04 | `definingProtocol` désigne la plus petite entité (protocole, entreprise ou DAO) qui crée et contrôle l'instrument. Pour les instruments multi-réseau d'un même émetteur, `definingProtocol` reste l'émetteur — le réseau de déploiement appartient à la POSITION (`location.network`). |
 | I-A-05 | Un actif aux propriétés insuffisamment connues reçoit un `assetId` provisoire stable et déterministe. Les traces portant un `assetId` provisoire ne sont jamais modifiées rétroactivement, même après résolution ultérieure de l'identité canonique. |
 | I-A-06 | Le minimum sémantique de résolution canonique retenu par le schéma courant est (`symbol_canonique` · `instrumentType` · `definingProtocol`). Ce tuple détermine l'`assetId` dans le référentiel canonique courant. Les futurs types d'instruments peuvent nécessiter des discriminants identitaires supplémentaires, formalisés par leurs lots d'ingestion, sans introduire de dépendance au lieu de détention. |
+| I-B-01 | L'accumulation S2 suit l'ordre chronologique des événements sources. Un ordre non déterminé entre deux événements de même horodatage est une anomalie signalée — jamais une hypothèse silencieuse. |
+| I-B-02 | Chaque événement source est décomposé en N ≥ 1 sous-opérations avant accumulation. Un événement qui génère N=1 sous-opération et un événement qui génère N=2 sont traités par le même algorithme d'accumulation — aucun cas spécial. |
+| I-B-03 | L'état d'ouverture d'une POSITION n'est jamais supposé être zéro en l'absence de données. L'absence de données = état inconnu. Une quantité négative après accumulation signale un historique incomplet, non une erreur du schéma. |
+| I-B-04 | Tout événement source non classifiable par l'adaptateur est enregistré comme anomalie et ignoré dans l'accumulation. Il ne bloque jamais la session — il dégrade le `derivationStatus` des positions associées. |
+| I-B-05 | Un transfert interne avec les deux legs visibles (EV-16 + EV-17 appariés) génère deux sous-opérations compensées. La quantité totale de l'actif est conservée. Un transfert avec un seul leg visible génère une seule sous-opération — le leg manquant reste inconnu. |
+| I-B-06 | Le `derivationStatus` de chaque POSITION est calculé après accumulation complète. Il ne peut pas être modifié rétroactivement par une session ultérieure. Une nouvelle session produit ses propres traces avec son propre statut. |
+| I-B-07 | Les deux modes de dérivation (accumulation par événements / snapshot direct) ne se mélangent jamais dans une même session S2. Une session utilise l'un ou l'autre exclusivement. |
+| I-B-08 | Aucune interpolation temporelle n'est autorisée. Une quantité inconnue à un instant reste inconnue et ne peut pas être estimée par interpolation entre deux états connus. |
+| I-B-09 | Toutes les anomalies de dérivation (AN-01 à AN-08) sont transmises au rapport de session S2. Aucune anomalie n'est silencieuse. Le rapport de session est le seul canal de communication des anomalies vers l'opérateur. |
+| I-B-10 | La classification des types d'événements (§7.5) est une responsabilité exclusive de l'adaptateur. Le Core S2 (Programme P3) ne contient aucune règle source-spécifique de classification. |
 
 ---
 
@@ -735,6 +950,9 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 | DT-8 | Multi-localisation du même actif | Deux positions du même actif dans deux lieux de détention distincts = deux traces POSITION avec le même `assetId` | LOT-P2-3 §4.3 (DS-Q1) |
 | DT-9 | Granularité S2 | Deux niveaux : 1 trace SNAPSHOT + N traces POSITION par opération d'ingestion · toutes liées par `snapshotId` | LOT-P2-3 §6.1 |
 | DT-10 | Périmètre Phase A | Source unique : Binance Wallet History CSV · local-first · aucune API externe | LOT-P2-3 §9.1 |
+| DT-11 | Algorithme de dérivation — sous-opérations | Chaque événement source est décomposé en N ≥ 1 sous-opérations avant accumulation · un événement swap produit N=2, un dépôt produit N=1 · l'accumulateur traite toujours des sous-opérations, jamais des événements bruts | LOT-P2-3 §7.2 (P2-3.B) |
+| DT-12 | Gestion du double comptage des transferts | Un transfert interne avec deux legs observés génère deux sous-opérations compensées (conservation nette) · un transfert avec un leg seul génère une seule sous-opération · en cas de doute d'appariement, traitement conservateur indépendant | LOT-P2-3 §7.7 (P2-3.B) |
+| DT-13 | État d'ouverture inconnu | Jamais supposé zéro · une quantité négative après accumulation = `derivationStatus = "incomplete_history"` · le schéma courant n'interpole jamais et n'estime jamais un état manquant | LOT-P2-3 §7.10 (P2-3.B) |
 
 ---
 
@@ -746,7 +964,7 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 | CV-2 | Identité canonique d'actif définie | `assetId` · `symbol` · `instrumentType` · `definingProtocol` définis · règles de génération §5.3 documentées · limites Phase A §5.4 couvertes |
 | CV-3 | Modèle canonique de trace S2 complet | Structures SNAPSHOT et POSITION définies · champs obligatoires et optionnels spécifiés · contenu de `contexte` documenté |
 | CV-4 | Session S2 et liaison SNAPSHOT / POSITION | `snapshotId` défini · règle d'ordre d'écriture · distinction par `contexte.traceType` |
-| CV-5 | Règles de dérivation S2 documentées | Frontière événement / état formalisée · algorithme générique §7.2 · RF-S2 · frontière S1/S2 sources hybrides |
+| CV-5 | Règles de dérivation S2 documentées | Frontière événement / état formalisée · algorithme générique §7.2 · classification §7.5 · algèbre §7.6 · doctrine transfert §7.7 · snapshot direct §7.8 · temporalité §7.9 · historique partiel §7.10 · anomalies §7.11 · derivationStatus §7.12 · RF-S2 · frontière S1/S2 sources hybrides |
 | CV-6 | Contrat de persistance défini | Séquence §8.2 · registre `CE_ingestion_registry_v1` · rapport de session §8.4 · statut `CE_portfolio_v1__{uuid}` |
 | CV-7 | Périmètre Phase A borné | Source Binance Wallet History délimitée · contrat adaptateur 6 capacités · exclusions §9.3 exhaustives |
 | CV-8 | Relation portfolio-v1 documentée | Tableau §10 : valide / absorbé / historique / contradictoire — rempli et justifié |
@@ -760,7 +978,7 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 |---|---|
 | Condition 1 | Micro-lots P2-3.A à P2-3.D validés (§4→§9 du présent document complets et cohérents) |
 | Condition 2 | CV-1 à CV-9 satisfaits |
-| Condition 3 | Décisions DT-1 à DT-10 toutes documentées et non contradictoires |
+| Condition 3 | Décisions DT-1 à DT-13 toutes documentées et non contradictoires |
 | Condition 4 | Test de généralité PASS sur l'ensemble du canon S2 |
 | Condition 5 | DQC V2 CAS A |
 | Condition 6 | DQC V3 PASS |
