@@ -134,6 +134,11 @@ Le lieu de détention décrit la custodie, le réseau et l'identifiant spécifiq
 | BTC + WBTC | ACTIFS DISTINCTS — instruments différents (natif vs encapsulé) |
 | ETH + stETH | ACTIFS DISTINCTS — instruments différents (natif vs reçu de staking Lido) |
 | TAO liquide + exposition alpha subnet Bittensor | Décision différée Phase B+ — ontologie Bittensor à formaliser lors du cadrage Bittensor |
+| ETH liquide + ETH verrouillé en tant que validateur natif | MÊME ACTIF (ETH natif · `native-coin` · protocole ethereum) · deux positions · `holdingForm` distinct (`liquid` vs `staked`) |
+| BTC sur Binance + BTC sur Kraken + BTC wallet personnel | MÊME ACTIF · trois positions · lieux de détention distincts (deux custodials · un non-custodial) |
+| ETH wallet A + ETH wallet B (même réseau, adresses distinctes) | MÊME ACTIF · deux positions · même réseau (`ethereum`) · identifiants wallet distincts |
+| USDC émis par Circle sur Ethereum + USDC émis par Circle sur Solana | MÊME ACTIF (même émetteur Circle) · deux positions · réseaux distincts |
+| Token LP ETH/USDT Uniswap + ETH séparément | ACTIFS DISTINCTS — instrument composite (`lp-token`) distinct des actifs sous-jacents |
 
 ### §4.4 Frontières d'actifs — règles de distinction
 
@@ -151,6 +156,15 @@ Le lieu de détention décrit la custodie, le réseau et l'identifiant spécifiq
 |---|---|
 | Seul le lieu de détention diffère (custodie, réseau, wallet) | BTC Binance = BTC on-chain |
 | Seul le réseau de détention diffère, l'émetteur restant identique | USDT Ethereum = USDT BSC (même émetteur Tether) |
+
+**Note sur le staking — distinction ontologique essentielle :**
+
+Le staking via protocole tiers et le staking natif produisent deux résultats ontologiques distincts :
+
+| Type de staking | Résultat ontologique |
+|---|---|
+| Staking via protocole tiers (ex. ETH via Lido → stETH) | L'actif original est transformé en un reçu de staking — instrument canoniquement distinct (`staked-receipt` · `definingProtocol` = `lido`). L'opérateur ne détient plus d'ETH, mais du stETH. Deux actifs distincts. |
+| Staking natif (ex. ETH verrouillé comme validateur Ethereum) | L'actif reste ETH natif. La POSITION change de `holdingForm = "liquid"` à `holdingForm = "staked"`. Aucun nouvel actif canonique n'est créé. |
 
 **Règle de prudence** : lorsque la distinction actif / lieu de détention est ambiguë pour un type d'instrument non encore formalisé (positions DeFi complexes, subnets Bittensor), la décision est différée au lot d'ingestion concerné. La Phase A ne couvre que des cas non-ambigus.
 
@@ -182,7 +196,7 @@ CHAMPS OBLIGATOIRES
   assetId           string   — identifiant canonique (§5.3)
   symbol            string   — ticker canonique de l'instrument ("BTC", "ETH", "stETH", ...)
   instrumentType    enum     — catégorie de l'instrument (tableau ci-dessous)
-  definingProtocol  string   — protocole ou entité qui définit l'instrument
+  definingProtocol  string   — protocole, entreprise ou DAO qui crée et contrôle l'instrument
 
 CHAMPS OPTIONNELS (null en Phase A — peuplés en Phase B+)
   name              string | null   — nom lisible ("Bitcoin", "Lido Staked Ether", ...)
@@ -196,11 +210,11 @@ CHAMPS OPTIONNELS (null en Phase A — peuplés en Phase B+)
 |---|---|---|
 | `native-coin` | Token natif d'un protocole blockchain | BTC, ETH, SOL, TAO |
 | `fungible-token` | Token fongible défini par un contrat émetteur | USDT, LINK, BNB |
-| `staked-receipt` | Reçu de staking émis par un protocole tiers | stETH, rETH |
+| `staked-receipt` | Reçu de staking émis par un protocole tiers. Ne couvre pas le staking natif — l'opérateur qui stake nativement conserve l'actif d'origine avec `holdingForm = "staked"`. | stETH, rETH |
 | `wrapped-asset` | Version encapsulée cross-chain d'un autre actif | WBTC, WETH |
 | `lp-token` | Part de pool de liquidité | ETH/USDT LP Uniswap |
-| `subnet-token` | Token spécifique à un subnet (Bittensor et équivalents) | Alpha tokens Bittensor |
-| `other` | Tout instrument non classifiable ci-dessus | — |
+| `subnet-token` | Token représentant une exposition économique spécifique à un sous-réseau ou une sous-couche de protocole. Sémantique formelle différée Phase B+. | Alpha tokens Bittensor |
+| `other` | Instrument non classifiable dans les catégories ci-dessus. Classification temporaire — à affiner lors d'une ingestion ultérieure ou du lot d'ingestion concerné. | — |
 
 **Exemples de `attributes`** (Phase B+) :
 
@@ -224,6 +238,8 @@ assetId = hash_déterministe(symbol_canonique, instrumentType, definingProtocol)
 
 La fonction `hash_déterministe` est stable (ex. UUID v5 ou SHA-256 tronqué). Son implémentation est définie par LOT-P3 S2.
 
+**Note sur `symbol_canonique`** : le symbole entrant dans la formule est le symbole normalisé par le mapping curé de l'adaptateur, non le symbole brut de la source. Les variantes de marché sont résolues en symbole canonique avant génération de l'`assetId` (exemples : XBT → BTC · MIOTA → IOTA). La responsabilité de normalisation appartient à l'adaptateur.
+
 **Actifs canoniques de référence** :
 
 Pour les actifs dont l'identité est non-ambiguë, l'adaptateur maintient une liste de correspondance curated qui garantit la stabilité des `assetId` inter-sessions. La forme recommandée est :
@@ -245,6 +261,26 @@ assetId = "provisional:" + hash_déterministe(symbol_source, "unknown", "unknown
 
 L'identifiant provisoire est stable par session. Il peut être résolu vers un identifiant canonique lors d'une ingestion ultérieure disposant de plus d'information.
 
+**Doctrine de l'identifiant provisoire** :
+
+Trois règles gouvernent l'usage et la résolution des identifiants provisoires :
+
+1. **Immutabilité** : les traces déjà écrites dans `CE_canonical_corpus_v1` avec un `assetId` provisoire ne sont jamais modifiées rétroactivement. L'historique reflète ce qui était connu au moment de l'ingestion.
+
+2. **Résolution future** : lorsque l'identité canonique d'un actif provisoire est établie ultérieurement, un registre de résolution optionnel peut associer `assetId_provisoire → assetId_canonique`. La couche de lecture utilise ce registre pour afficher l'information canonique sans modifier la trace originale.
+
+3. **Risque de collision** : deux actifs distincts partageant le même symbole source (mais des protocoles différents non encore identifiés) reçoivent le même `assetId` provisoire. Ce risque est inhérent à l'information incomplète. Il doit être signalé dans le rapport de session sous forme d'avertissement lorsque plusieurs actifs inconnus partagent le même symbole.
+
+La conception du registre de résolution et la gestion du cycle de vie des identifiants provisoires sont une responsabilité du Programme P3 S2, pas du schéma S2.
+
+**Rôle de `contractRef` dans la génération de `assetId`** :
+
+- `location.network` est une propriété de la POSITION, jamais de l'ACTIF.
+- Les attributs de custodie (custodial, non-custodial), wallet et compte sont des propriétés de la POSITION.
+- `contractRef` décrit une représentation technique de l'instrument — il est un champ optionnel de l'ACTIF, pas un discriminant d'identité dans le schéma courant.
+- Son rôle identitaire éventuel pour certains types d'instruments futurs reste différé aux lots Phase B+ concernés.
+- `contractRef` ne participe pas à la formule de génération de `assetId` en Phase A.
+
 ### §5.4 Limites Phase A
 
 En Phase A, la source Binance Wallet History ne fournit que le symbole de l'actif. Les champs `definingProtocol`, `contractRef` et `name` ne sont pas disponibles directement.
@@ -256,6 +292,43 @@ En Phase A, la source Binance Wallet History ne fournit que le symbole de l'acti
 | Champs optionnels | `null` |
 
 Cette limitation est une dette Phase A documentée. Elle n'affecte pas la stabilité du canon — le modèle est conçu pour Phase B+ dès maintenant.
+
+### §5.5 Test sémantique minimal d'identité canonique
+
+Le test suivant permet de déterminer si deux holdings représentent le même actif canonique, indépendamment de toute considération de localisation.
+
+**Minimum sémantique de résolution canonique** :
+
+Le tuple (`symbol_canonique` · `instrumentType` · `definingProtocol`) constitue le **minimum sémantique retenu par le schéma courant** pour résoudre l'identité canonique d'un actif.
+
+| Propriété | Rôle dans l'identité |
+|---|---|
+| `symbol` | Symbole canonique de l'instrument |
+| `instrumentType` | Catégorie économique de l'instrument |
+| `definingProtocol` | Entité qui crée et contrôle l'instrument |
+
+Une différence sémantiquement significative sur l'une de ces propriétés peut imposer des `assetId` distincts.
+
+L'égalité du tuple permet la résolution vers un même `assetId` selon le référentiel canonique courant. Elle ne constitue pas une preuve ontologique universelle que toutes les représentations futures possibles correspondent nécessairement au même instrument économique.
+
+Les futurs lots d'ingestion peuvent identifier des discriminants supplémentaires sans remettre en cause l'ontologie ACTIF / POSITION / LIEU.
+
+Le test s'applique indépendamment de :
+- la localisation (réseau, custodien, adresse) — propriété de la POSITION
+- la forme de détention (`holdingForm`) — propriété de la POSITION
+- la quantité détenue — propriété de la POSITION
+- la source ou la plateforme ayant rapporté l'actif — métadonnée d'ingestion
+
+**Exemples :**
+
+| Holding A | Holding B | Verdict | Raison |
+|---|---|---|---|
+| ETH (Binance) | ETH (Ledger) | MÊME ACTIF | `symbol` · `instrumentType` · `definingProtocol` identiques |
+| USDT (Ethereum) | USDT (BSC) | MÊME ACTIF | `symbol` · `instrumentType` · `definingProtocol` identiques (émetteur Tether) |
+| ETH liquide | ETH verrouillé (validator natif) | MÊME ACTIF | `symbol` · `instrumentType` · `definingProtocol` identiques — seul `holdingForm` diffère |
+| ETH | stETH | ACTIFS DISTINCTS | `instrumentType` et `definingProtocol` différents |
+| BTC | WBTC | ACTIFS DISTINCTS | `symbol` · `instrumentType` · `definingProtocol` différents |
+| USDT | USDC | ACTIFS DISTINCTS | `symbol` et `definingProtocol` différents |
 
 ---
 
@@ -348,7 +421,7 @@ contexte: {
     assetId:          string,         // identifiant canonique (§5)
     symbol:           string,         // ticker canonique
     instrumentType:   string,         // enum (§5.2)
-    definingProtocol: string | null,  // protocole définissant l'instrument
+    definingProtocol: string | null,  // protocole, entreprise ou DAO définissant l'instrument (§5.2)
     name:             string | null,  // nom lisible (Phase B+)
     contractRef:      string | null,  // référence au contrat (Phase B+)
     attributes:       object | null   // propriétés type-spécifiques (Phase B+)
@@ -639,6 +712,12 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 | I-S2-8 | Deux instruments définis par des protocoles différents sont des actifs canoniques distincts, même s'ils partagent le même symbole. |
 | I-S2-9 | Le réseau de détention est une propriété de la POSITION (`location.network`), pas de l'ACTIF. BTC custodial et BTC on-chain sont le même actif canonique. |
 | I-S2-10 | Le Core S2 (Programme P3) ne contient aucune règle spécifique à une source particulière. |
+| I-A-01 | Un changement de lieu de détention (réseau, custodien, adresse wallet) ne modifie jamais l'identité canonique de l'actif (`assetId`). |
+| I-A-02 | Un reçu de staking émis par un protocole tiers (ex. stETH, rETH) est un actif canoniquement distinct de l'actif sous-jacent. Il n'est jamais représenté comme une POSITION de l'actif sous-jacent avec `holdingForm = "staked"`. |
+| I-A-03 | La `holdingForm` d'une POSITION décrit l'état de la quantité détenue (liquid · staked · locked · in-pool). Elle ne modifie jamais l'identité canonique de l'actif (`assetId`). |
+| I-A-04 | `definingProtocol` désigne la plus petite entité (protocole, entreprise ou DAO) qui crée et contrôle l'instrument. Pour les instruments multi-réseau d'un même émetteur, `definingProtocol` reste l'émetteur — le réseau de déploiement appartient à la POSITION (`location.network`). |
+| I-A-05 | Un actif aux propriétés insuffisamment connues reçoit un `assetId` provisoire stable et déterministe. Les traces portant un `assetId` provisoire ne sont jamais modifiées rétroactivement, même après résolution ultérieure de l'identité canonique. |
+| I-A-06 | Le minimum sémantique de résolution canonique retenu par le schéma courant est (`symbol_canonique` · `instrumentType` · `definingProtocol`). Ce tuple détermine l'`assetId` dans le référentiel canonique courant. Les futurs types d'instruments peuvent nécessiter des discriminants identitaires supplémentaires, formalisés par leurs lots d'ingestion, sans introduire de dépendance au lieu de détention. |
 
 ---
 
