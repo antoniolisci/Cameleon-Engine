@@ -10,9 +10,9 @@
 | Phase Roadmap V1 | A |
 | Type | Doctrine — Schéma canonique |
 | Document officiel | `docs/lots/LOT-P2-3_SCHEMA_S2_V1.md` |
-| Statut | EN COURS |
+| Statut | CLOS |
 | Date d'ouverture | 2026-08-10 |
-| Date de clôture | — |
+| Date de clôture | 2026-08-11 |
 | Prérequis | LOT-P2-1 CLOS · LOT-P2-2 CLOS |
 
 ---
@@ -1030,14 +1030,50 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 
 ## §15 Conditions de clôture
 
-| Condition | Critère |
-|---|---|
-| Condition 1 | Micro-lots P2-3.A à P2-3.D validés (§4→§9 du présent document complets et cohérents) |
-| Condition 2 | CV-1 à CV-9 satisfaits |
-| Condition 3 | Décisions DT-1 à DT-13 toutes documentées et non contradictoires |
-| Condition 4 | Test de généralité PASS sur l'ensemble du canon S2 |
-| Condition 5 | DQC V2 CAS A |
-| Condition 6 | DQC V3 PASS |
-| Condition 7 | Décision opérateur explicite de clôture |
+| Condition | Critère | Statut |
+|---|---|---|
+| Condition 1 | Micro-lots P2-3.A à P2-3.D validés (§4→§9 du présent document complets et cohérents) | SATISFAITE |
+| Condition 2 | CV-1 à CV-9 satisfaits | SATISFAITE |
+| Condition 3 | Décisions DT-1 à DT-13 toutes documentées et non contradictoires | SATISFAITE |
+| Condition 4 | Test de généralité PASS sur l'ensemble du canon S2 | SATISFAITE |
+| Condition 5 | DQC V2 CAS A | SATISFAITE |
+| Condition 6 | DQC V3 PASS | SATISFAITE · `2fe0ffe` |
+| Condition 7 | Décision opérateur explicite de clôture | SATISFAITE · 2026-08-11 |
 
 **Obligation résiduelle §6.2 ↔ §7.12 — RÉSOLUE** : `snapshotSummary` dans §6.2 a été complété par le champ `derivationStatus` (arbitrage opérateur 2026-08-11 · Option 1 · F-2). §6.3 a été complété par le même champ au niveau POSITION. §7.12 reste inchangé et constitue l'autorité normative pour les valeurs et la règle de propagation. Condition 5 débloquée.
+
+---
+
+## §16 Rapport de clôture officielle
+
+**LOT-P2-3 — CLOS — 2026-08-11**
+
+Toutes les conditions de clôture (Conditions 1 à 7) sont satisfaites.
+
+### Historique des commits
+
+| Hash | Contenu |
+|---|---|
+| `baff98b` | P2-3.A — Ontologie patrimoniale : ACTIF / POSITION / LIEU · assetId · I-A-01→I-A-06 |
+| `97bfe0a` | P2-3.B — Règles de dérivation : algorithme §7.2 · EV-01→EV-22 · AN-01→AN-08 · derivationStatus |
+| `8bad1a3` | P2-3.C — Contrat de persistance : séquence 6 étapes · registre · rapport · doctrine relance |
+| `b7d2b3e` | P2-3.D — Périmètre Phase A : Binance CSV · contrat 5 capacités · extractCanonicalInput · K-1 Phase B+ |
+| `1e5da37` | E-2 — Hash `b7d2b3e` ajouté dans §11.1 (protocole E-1) |
+| `0a0483b` | E-3a — Arbitrage §6.2↔§7.12 : `derivationStatus` ajouté §6.2 + §6.3 · §15 obligation RÉSOLUE |
+| `2fe0ffe` | E-3b — Énumération `snapshotSummary` complétée dans §8.2 · DQC V3 PASS effectif |
+
+### Décisions architecturales figées
+
+| Décision | Règle | Section |
+|---|---|---|
+| DT-7 | ACTIF ≠ POSITION ≠ LIEU DE DÉTENTION — trois entités distinctes | §4 |
+| DS-ID1 | `assetId` = `hash_déterministe(symbol_canonique, instrumentType, definingProtocol)` | §5 |
+| Architecture C | Adaptateur classifie/décompose · Core accumule/dérive/persiste | §7.2 |
+| F-2 | Nom canonique `derivationStatus` (non `worstDerivationStatus`) | §6.2 · §7.12 |
+| I-B-03 | État d'ouverture JAMAIS supposé zéro | §7.2 |
+| I-B-07 | Modes `accumulation` / `direct_snapshot` mutuellement exclusifs | §9.2 |
+| I-B-10 | Classification §7.5 = responsabilité exclusive de l'adaptateur | §9.2 |
+
+### Déverrouillage
+
+LOT-P2-3 CLOS déverrouille les lots P2 dépendants du schéma S2 canonique, conformément aux arêtes DAG de la Roadmap V1 Programme P2.
