@@ -793,7 +793,7 @@ Aucune autre structure de stockage ne peut constituer une source de vérité pat
 - **Écriture ciblée** : seules les traces POSITION manquantes sont ajoutées lors de la reprise.
 - **Finalisation conditionnelle** : l'enregistrement dans `CE_ingestion_registry_v1` n'est effectué qu'à l'issue d'une tentative dont `result = "success"`.
 
-Le `snapshotSummary` de la trace SNAPSHOT (`assetCount`, `positionCount`) est issu du résultat de dérivation (§7.2) — il ne dépend pas du nombre de tentatives d'écriture. La trace SNAPSHOT existante n'est pas modifiée par une tentative de reprise.
+Le `snapshotSummary` de la trace SNAPSHOT (`assetCount`, `positionCount`, `derivationStatus`) est issu du résultat de dérivation (§7.2) — il ne dépend pas du nombre de tentatives d'écriture. La trace SNAPSHOT existante n'est pas modifiée par une tentative de reprise.
 
 Le mécanisme technique permettant à Programme P3 de détecter une opération partielle, de retrouver son snapshotId et d'identifier les traces déjà persistées est une responsabilité d'implémentation hors périmètre de LOT-P2-3.
 
