@@ -857,7 +857,7 @@ Cette délimitation borne la Phase A sans contaminer le canon S2 de règles Bina
 
 ### §9.2 Contrat générique de l'adaptateur S2
 
-Tout adaptateur S2 (Phase A ou suivantes) doit implémenter les **6 capacités** suivantes :
+Tout adaptateur S2 (Phase A ou suivantes) doit exposer les **5 capacités** suivantes :
 
 | Capacité | Description |
 |---|---|
@@ -865,12 +865,26 @@ Tout adaptateur S2 (Phase A ou suivantes) doit implémenter les **6 capacités**
 | `canHandle(descriptor)` | Retourner `true` si la source est traitable par cet adaptateur |
 | `getSourceId(descriptor)` | Retourner l'identifiant unique et stable de la source (pour le registre) |
 | `fingerprint(descriptor)` | Calculer l'empreinte de la source (pour la déduplication) |
-| `extractEvents(descriptor)` | Extraire les événements bruts depuis la source |
-| `deriveState(events)` | Dériver l'état patrimonial depuis les événements — retourner `{ snapshot, positions }` conforme aux modèles §6.2 et §6.3 |
+| `extractCanonicalInput(descriptor)` | Extraire les données de la source · les classifier selon §7.5 · les décomposer en sous-opérations canoniques (§7.2 étape 2) · résoudre les identités canoniques (§5.3) · normaliser les locations — retourner `{ mode, payload, anomalies }` |
 
-**Invariant** : le Core S2 (Programme P3) ne connaît aucun format, aucune plateforme, aucun schéma de champ. Il invoque les 6 capacités de l'adaptateur et orchestre l'écriture canonique. L'adaptateur ne contrôle jamais la séquence d'ingestion.
+**Contrat de `extractCanonicalInput`** :
 
-La capacité `deriveState(events)` remplace la capacité `processEvent` de LOT-P2-2 : S2 dérive un état global depuis l'ensemble des événements, pas un traitement événement par événement.
+- `mode` : `"accumulation"` si la source contient un flux d'opérations · `"direct_snapshot"` si la source contient un bilan explicite (EV-21 · §7.8). La détection du mode est une responsabilité de l'adaptateur.
+- `payload` :
+  - mode `"accumulation"` → sous-opérations canoniques : `{ assetId, location, holdingForm, Δqty, timestamp, eventType }` par sous-opération · ordre chronologique garanti (I-B-01)
+  - mode `"direct_snapshot"` → balances canoniques déclarées : `{ assetId, location, holdingForm, quantity, timestamp }` par actif détenu
+- `anomalies` : anomalies détectées avant la frontière Core — événement non classifiable (EV-22 · I-B-04 · AN-02) · identité non résolvable (AN-06) · valeur illisible (AN-07) · date non résolvable (AN-08) · conformément à §7.11 et I-B-09.
+
+**Partition de responsabilité (§7.2 · P2-3.B VALIDÉ)** :
+
+- **Adaptateur** : étapes 1 (classification §7.5) et 2 (décomposition §7.2) — exécutées en batch dans `extractCanonicalInput`. Les méthodes internes de l'adaptateur (extraction brute, classification unitaire, décomposition, résolution d'identité canonique) sont des détails d'implémentation hors contrat.
+- **Core S2** : accumulation générique §7.2 étape 3 · résolution de date §7.2 étape 4 · qualification `derivationStatus` §7.2 étape 5 · construction des traces SNAPSHOT §6.2 et POSITION §6.3 · orchestration de la persistance §8.
+
+Le Core choisit la branche de dérivation selon `mode` — valeur doctrinale (§7.8), jamais selon un identifiant de source, un format, une plateforme ou un schéma de champ.
+
+**Invariant** : le Core S2 (Programme P3) ne connaît aucun format, aucune plateforme, aucun schéma de champ. Il invoque les 5 capacités de l'adaptateur et orchestre la dérivation et l'écriture canonique. L'adaptateur ne contrôle jamais la séquence d'ingestion.
+
+**Mode `direct_snapshot` — Phase B+** : prévu architecturalement dans le contrat. Non actif en Phase A : EV-21 (`balance_snapshot`) est réservé aux adaptateurs Phase B+ (§7.5). Un adaptateur Phase A retourne toujours `mode : "accumulation"`.
 
 ### §9.3 Exclusions Phase A
 
@@ -888,10 +902,16 @@ La capacité `deriveState(events)` remplace la capacité `processEvent` de LOT-P
 
 ### §9.4 Ce que le Programme P3 S2 devra implémenter
 
-1. Le **Core S2** : orchestrateur générique invoquant les 6 capacités adaptateur, séquençant l'ingestion (vérification registre → dérivation → écriture → rapport).
-2. L'**adaptateur Binance Wallet History Phase A** : implémente les 6 capacités pour le CSV Wallet History Binance · mapping curé des actifs bien connus · gestion des colonnes (UTC_Time, Operation, Coin, Change).
-3. L'**interface de déclenchement S2** : point d'entrée opérateur distinct de l'interface S1 (onglet Mémoire — analogue à LOT-P2-2 DT-4).
+1. Le **Core S2** : orchestrateur générique invoquant les 5 capacités adaptateur, séquençant l'ingestion (vérification registre → extraction canonique → accumulation ou lecture directe selon `mode` → qualification du statut → construction des traces → écriture → rapport).
+2. L'**adaptateur Binance Wallet History Phase A** : implémente les 5 capacités pour le CSV Wallet History Binance · mapping curé des actifs bien connus.
+3. L'**interface de déclenchement S2** : point d'entrée opérateur distinct de l'interface S1, conforme au principe d'isolation établi par LOT-P2-2 DT-4.
 4. La **validation terrain** : protocole de validation sur fichiers Binance Wallet History réels, conformément à la méthodologie de validation terrain V1.
+
+### §9.5 Décisions différées — Phase B+
+
+| Référence | Sujet | Description | Statut |
+|---|---|---|---|
+| K-1 | Sources mixtes EV-21 | Politique applicable lorsqu'une source contient simultanément un bilan explicite (EV-21) et des événements transactionnels (EV-01→EV-20). §7.8 établit la préférence pour le mode `direct_snapshot` en présence d'un bilan explicite, mais ne définit pas le traitement des données transactionnelles coexistantes. Le contrat `{ mode, payload, anomalies }` est compatible avec tout arbitrage futur. | Différé Phase B+ |
 
 ---
 
@@ -927,7 +947,7 @@ LOT-P2-3 est un lot de doctrine pure. Ses quatre micro-lots correspondent aux gr
 | **P2-3.A** — Ontologie patrimoniale | §4 · §5 | Définir les trois entités ACTIF / POSITION / LIEU · résoudre DT-7 · définir l'identité canonique d'actif (assetId · propriétés · génération) | VALIDÉ · `baff98b` |
 | **P2-3.B** — Règles de dérivation et classification | §7 | Formaliser la frontière événement / état · algorithme générique de dérivation · RF-S2 · frontière S1/S2 pour sources hybrides | VALIDÉ · `97bfe0a` |
 | **P2-3.C** — Contrat de persistance | §8 | Définir la séquence d'écriture S2 · registre d'ingestion · rapport de session · statut CE_portfolio_v1__{uuid} | VALIDÉ · `8bad1a3` |
-| **P2-3.D** — Périmètre Phase A et contrat adaptateur | §9 | Délimiter Phase A · formaliser le contrat adaptateur 6 capacités · exclusions · mission Programme P3 S2 | Non ouvert |
+| **P2-3.D** — Périmètre Phase A et contrat adaptateur | §9 | Délimiter Phase A · formaliser le contrat adaptateur 5 capacités · exclusions · mission Programme P3 S2 | VALIDÉ |
 
 ### §11.2 Validation du lot
 
@@ -1000,7 +1020,7 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 | CV-4 | Session S2 et liaison SNAPSHOT / POSITION | `snapshotId` défini · règle d'ordre d'écriture · distinction par `contexte.traceType` |
 | CV-5 | Règles de dérivation S2 documentées | Frontière événement / état formalisée · algorithme générique §7.2 · classification §7.5 · algèbre §7.6 · doctrine transfert §7.7 · snapshot direct §7.8 · temporalité §7.9 · historique partiel §7.10 · anomalies §7.11 · derivationStatus §7.12 · RF-S2 · frontière S1/S2 sources hybrides |
 | CV-6 | Contrat de persistance défini | Séquence §8.2 · registre `CE_ingestion_registry_v1` · rapport de session §8.4 · statut `CE_portfolio_v1__{uuid}` |
-| CV-7 | Périmètre Phase A borné | Source Binance Wallet History délimitée · contrat adaptateur 6 capacités · exclusions §9.3 exhaustives |
+| CV-7 | Périmètre Phase A borné | Source Binance Wallet History délimitée · contrat adaptateur 5 capacités · exclusions §9.3 exhaustives |
 | CV-8 | Relation portfolio-v1 documentée | Tableau §10 : valide / absorbé / historique / contradictoire — rempli et justifié |
 | CV-9 | Test de généralité PASS | Chaque règle du canon reste valide si Binance, Bittensor ou Ethereum disparaît |
 
