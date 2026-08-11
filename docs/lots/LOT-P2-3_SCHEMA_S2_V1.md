@@ -947,7 +947,7 @@ LOT-P2-3 est un lot de doctrine pure. Ses quatre micro-lots correspondent aux gr
 | **P2-3.A** — Ontologie patrimoniale | §4 · §5 | Définir les trois entités ACTIF / POSITION / LIEU · résoudre DT-7 · définir l'identité canonique d'actif (assetId · propriétés · génération) | VALIDÉ · `baff98b` |
 | **P2-3.B** — Règles de dérivation et classification | §7 | Formaliser la frontière événement / état · algorithme générique de dérivation · RF-S2 · frontière S1/S2 pour sources hybrides | VALIDÉ · `97bfe0a` |
 | **P2-3.C** — Contrat de persistance | §8 | Définir la séquence d'écriture S2 · registre d'ingestion · rapport de session · statut CE_portfolio_v1__{uuid} | VALIDÉ · `8bad1a3` |
-| **P2-3.D** — Périmètre Phase A et contrat adaptateur | §9 | Délimiter Phase A · formaliser le contrat adaptateur 5 capacités · exclusions · mission Programme P3 S2 | VALIDÉ |
+| **P2-3.D** — Périmètre Phase A et contrat adaptateur | §9 | Délimiter Phase A · formaliser le contrat adaptateur 5 capacités · exclusions · mission Programme P3 S2 | VALIDÉ · `b7d2b3e` |
 
 ### §11.2 Validation du lot
 
