@@ -382,8 +382,9 @@ ingestedAt: ISO 8601 — horodatage d'écriture dans CE_canonical_corpus_v1
 contexte: {
   traceType: "snapshot",
   snapshotSummary: {
-    assetCount:    number,    // actifs distincts dans ce snapshot
-    positionCount: number     // positions distinctes (>= assetCount si multi-localisation)
+    assetCount:       number,   // actifs distincts dans ce snapshot
+    positionCount:    number,   // positions distinctes (>= assetCount si multi-localisation)
+    derivationStatus: string    // statut le plus défavorable parmi les POSITION de la session — §7.12
   },
   sourceRef: {
     label:      string,       // nom lisible de la source
@@ -442,7 +443,8 @@ contexte: {
     firstObservedAt: ISO 8601 | null, // première observation dans la source
     lastObservedAt:  ISO 8601 | null, // dernière observation dans la source
     operationCount:  number | null    // nombre d'opérations impliquant cet actif
-  }
+  },
+  derivationStatus: string            // qualificatif ordinal de confiance dans la quantité de cette POSITION — §7.12
 }
 ```
 
@@ -1038,4 +1040,4 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 | Condition 6 | DQC V3 PASS |
 | Condition 7 | Décision opérateur explicite de clôture |
 
-**Obligation résiduelle — §6.2 ↔ §7.12** : avant clôture du lot, résoudre l'incohérence suivante : §6.2 définit `snapshotSummary` comme `{ assetCount, positionCount }` uniquement, tandis que §7.12 stipule que le pire `derivationStatus` de la session doit être inclus dans `snapshotSummary`. Ces deux définitions sont incompatibles. Cette anomalie est non bloquante pour P2-3.C mais doit être résolue de manière contrôlée avant validation de la Condition 5. La modalité de correction reste soumise à arbitrage opérateur.
+**Obligation résiduelle §6.2 ↔ §7.12 — RÉSOLUE** : `snapshotSummary` dans §6.2 a été complété par le champ `derivationStatus` (arbitrage opérateur 2026-08-11 · Option 1 · F-2). §6.3 a été complété par le même champ au niveau POSITION. §7.12 reste inchangé et constitue l'autorité normative pour les valeurs et la règle de propagation. Condition 5 débloquée.
