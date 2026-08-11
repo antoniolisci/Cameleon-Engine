@@ -772,7 +772,28 @@ Aucune autre structure de stockage ne peut constituer une source de vérité pat
 6. Génération du rapport de session S2
 ```
 
-**Règle d'atomicité** : si l'écriture du SNAPSHOT échoue, aucune POSITION n'est écrite. Si l'écriture d'une POSITION échoue après que le SNAPSHOT est écrit, le rapport de session documente les positions écrites et celles ayant échoué. L'état partiel est signalé mais pas automatiquement résolu — la relance est possible si la déduplication le permet.
+**Distinctions contractuelles** :
+
+- **Opération d'ingestion S2** : unité logique de persistance associée à une source et à un snapshotId. Elle s'ouvre lors de la première tentative et reste ouverte jusqu'à réussite complète de la persistance attendue (`result = "success"`) ou abandon explicite.
+- **Tentative de persistance** : exécution technique — initiale ou de reprise — effectuée à l'intérieur d'une même opération d'ingestion S2.
+
+**Relation** : 1 opération d'ingestion S2 → 1 snapshotId → 1..n tentatives de persistance.
+
+**Règle d'atomicité** : si l'écriture du SNAPSHOT échoue lors d'une tentative, aucune POSITION n'est écrite et la source n'est pas enregistrée dans `CE_ingestion_registry_v1`. Si l'écriture d'une ou plusieurs POSITION échoue après que le SNAPSHOT est écrit, la session est en état `partial` — la source n'est pas enregistrée dans le registre.
+
+**Enregistrement conditionnel** : l'étape 5 (enregistrement dans `CE_ingestion_registry_v1`) ne s'exécute que lorsque `result = "success"`. Une tentative en état `partial` ou `failed` ne finalise pas l'enregistrement dans le registre.
+
+**Doctrine de relance** : une opération d'ingestion dont la source n'est pas enregistrée dans `CE_ingestion_registry_v1` peut faire l'objet d'une tentative de reprise. Cette reprise obéit aux comportements observables suivants :
+
+- **Même opération, même snapshotId** : la reprise poursuit l'opération existante. Si un SNAPSHOT canonique existe déjà pour cette opération, aucun nouveau SNAPSHOT n'est créé — le snapshotId de la tentative initiale est réutilisé.
+- **Aucune duplication canonique** : les traces S2 déjà présentes dans `CE_canonical_corpus_v1` pour cette opération ne sont pas écrites une seconde fois.
+- **Conservation des écritures** : les traces POSITION déjà persistées lors d'une tentative précédente sont conservées sans modification.
+- **Écriture ciblée** : seules les traces POSITION manquantes sont ajoutées lors de la reprise.
+- **Finalisation conditionnelle** : l'enregistrement dans `CE_ingestion_registry_v1` n'est effectué qu'à l'issue d'une tentative dont `result = "success"`.
+
+Le `snapshotSummary` de la trace SNAPSHOT (`assetCount`, `positionCount`) est issu du résultat de dérivation (§7.2) — il ne dépend pas du nombre de tentatives d'écriture. La trace SNAPSHOT existante n'est pas modifiée par une tentative de reprise.
+
+Le mécanisme technique permettant à Programme P3 de détecter une opération partielle, de retrouver son snapshotId et d'identifier les traces déjà persistées est une responsabilité d'implémentation hors périmètre de LOT-P2-3.
 
 ### §8.3 Registre d'ingestion S2
 
@@ -794,13 +815,26 @@ Le `sourceId` pour S2 Phase A = empreinte du fichier source (analogue à LOT-P2-
 | `positionsFailed` | Nombre de traces POSITION en échec |
 | `assetsDistinct` | Nombre d'actifs canoniques distincts (assetId uniques) |
 | `dateState` | État de la date per EP-RC2 (ISO 8601 / R1 / R3 / R4) |
+| `anomalies` | Anomalies de dérivation détectées lors de la session · liste des occurrences AN-01→AN-08 rencontrées · liste vide si aucune anomalie · canal contractuel I-B-09 |
 | `result` | `"success"` · `"partial"` · `"blocked"` · `"failed"` |
+
+**Contrat I-B-09** : le champ `anomalies` est le canal opérateur contractuel unique pour les anomalies de dérivation AN-01→AN-08. Aucune anomalie détectée lors de la dérivation (§7.11) ne peut être absente de ce champ.
+
+**Sémantique de `result`** :
+
+| État de la séquence de persistance | `result` |
+|---|---|
+| Source déjà enregistrée dans `CE_ingestion_registry_v1` (étape 1 → OUI) | `"blocked"` |
+| Écriture du SNAPSHOT échouée (étape 3 → échec) | `"failed"` |
+| SNAPSHOT écrit · au moins une POSITION attendue non écrite (étape 4 → échec partiel) | `"partial"` |
+| SNAPSHOT écrit · zéro POSITION dérivée conformément aux règles de §7 (positionsTotal = 0) | `"success"` |
+| SNAPSHOT + toutes les POSITION attendues écrites avec succès | `"success"` |
 
 ### §8.5 Statut de CE_portfolio_v1__{uuid} (DT-6)
 
 La structure `CE_portfolio_v1__{uuid}` définie dans `portfolio-v1-impl.md` ne constitue pas une source de vérité S2.
 
-Elle peut subsister comme cache de présentation UI, projection ou vue matérialisée dérivée du corpus canonique. Elle ne peut jamais devenir une source canonique concurrente si les mêmes données existent dans `CE_canonical_corpus_v1`. La décision de maintenir ou supprimer cette structure appartient au futur Programme P3 S2.
+Elle peut subsister comme cache de présentation UI, projection ou vue matérialisée dérivée du corpus canonique. Elle ne peut jamais devenir une source de vérité canonique concurrente — sans exception. La décision de maintenir ou supprimer cette structure appartient au futur Programme P3 S2.
 
 ---
 
@@ -888,12 +922,12 @@ LOT-P2-3 devient la source canonique pour le contrat S2. Le futur Programme P3 S
 
 LOT-P2-3 est un lot de doctrine pure. Ses quatre micro-lots correspondent aux grandes sections du présent document. Aucune implémentation, aucune validation terrain.
 
-| Micro-lot | Sections correspondantes | Mission |
-|---|---|---|
-| **P2-3.A** — Ontologie patrimoniale | §4 · §5 | Définir les trois entités ACTIF / POSITION / LIEU · résoudre DT-7 · définir l'identité canonique d'actif (assetId · propriétés · génération) |
-| **P2-3.B** — Règles de dérivation et classification | §7 | Formaliser la frontière événement / état · algorithme générique de dérivation · RF-S2 · frontière S1/S2 pour sources hybrides |
-| **P2-3.C** — Contrat de persistance | §8 | Définir la séquence d'écriture S2 · registre d'ingestion · rapport de session · statut CE_portfolio_v1__{uuid} |
-| **P2-3.D** — Périmètre Phase A et contrat adaptateur | §9 | Délimiter Phase A · formaliser le contrat adaptateur 6 capacités · exclusions · mission Programme P3 S2 |
+| Micro-lot | Sections correspondantes | Mission | Statut |
+|---|---|---|---|
+| **P2-3.A** — Ontologie patrimoniale | §4 · §5 | Définir les trois entités ACTIF / POSITION / LIEU · résoudre DT-7 · définir l'identité canonique d'actif (assetId · propriétés · génération) | VALIDÉ · `baff98b` |
+| **P2-3.B** — Règles de dérivation et classification | §7 | Formaliser la frontière événement / état · algorithme générique de dérivation · RF-S2 · frontière S1/S2 pour sources hybrides | VALIDÉ · `97bfe0a` |
+| **P2-3.C** — Contrat de persistance | §8 | Définir la séquence d'écriture S2 · registre d'ingestion · rapport de session · statut CE_portfolio_v1__{uuid} | VALIDÉ |
+| **P2-3.D** — Périmètre Phase A et contrat adaptateur | §9 | Délimiter Phase A · formaliser le contrat adaptateur 6 capacités · exclusions · mission Programme P3 S2 | Non ouvert |
 
 ### §11.2 Validation du lot
 
@@ -983,3 +1017,5 @@ Il n'existe pas de micro-lot de validation terrain pour un lot de doctrine pure.
 | Condition 5 | DQC V2 CAS A |
 | Condition 6 | DQC V3 PASS |
 | Condition 7 | Décision opérateur explicite de clôture |
+
+**Obligation résiduelle — §6.2 ↔ §7.12** : avant clôture du lot, résoudre l'incohérence suivante : §6.2 définit `snapshotSummary` comme `{ assetCount, positionCount }` uniquement, tandis que §7.12 stipule que le pire `derivationStatus` de la session doit être inclus dans `snapshotSummary`. Ces deux définitions sont incompatibles. Cette anomalie est non bloquante pour P2-3.C mais doit être résolue de manière contrôlée avant validation de la Condition 5. La modalité de correction reste soumise à arbitrage opérateur.
