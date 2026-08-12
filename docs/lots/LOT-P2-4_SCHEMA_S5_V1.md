@@ -25,7 +25,7 @@ Ce lot produit un document de doctrine pure — aucun code, aucune implémentati
 
 1. **Qu'est-ce qu'une donnée S5 ?** — définition ontologique de la famille Contextuelle, distincte de S4 (Personnelle) selon les invariants figés de LOT-P2-1.
 2. **Comment une trace S5 est-elle structurée ?** — schéma canonique : champs obligatoires, types, valeurs, contraintes.
-3. **Comment S5 s'intègre-t-elle dans la doctrine d'ingestion V1 ?** — règle RF-S5 dans la hiérarchie DI1, exigences de provenance EP-S5, mise à jour de RF-RC4.
+3. **Comment S5 s'intègre-t-elle dans la doctrine d'ingestion V1 ?** — règle RF-S5 dans la hiérarchie DI1, exigences de provenance EP-S5, constat documentaire de l'évolution de RF-RC4 lors de l'activation de S5.
 
 LOT-P2-4 constitue le troisième schéma source du Programme P2, après S1 (LOT-P2-2) et S2 (LOT-P2-3). Il débloque, avec les futurs LOT-P2-5 (S4) et LOT-P2-6 (S3), la définition de la normalisation inter-familles (L6) et de la Doctrine des Corrélations (L7).
 
@@ -100,7 +100,7 @@ Ces règles sont figées par les lots P2 antérieurs. LOT-P2-4 ne peut pas les m
 |---|---|---|
 | DT-7 | LOT-P2-3 §4 | ACTIF ≠ POSITION ≠ LIEU — non pertinent pour S5 (S5 ne décrit pas un patrimoine) |
 | Architecture C | LOT-P2-3 §7.2 | Adaptateur classifie/décompose · Core accumule — patron applicable à S5 Phase A+ |
-| S2 ≠ S5 | LOT-P2-3 §6 | Une trace S5 décrit un état de marché, jamais un état patrimonial |
+| S2 ≠ S5 | LOT-P2-3 §6 | Une trace S5 décrit un état ou événement contextuel externe, jamais un état patrimonial |
 
 ---
 
@@ -222,7 +222,7 @@ La qualification préalable d'un module S5 relève de la gouvernance documentair
 
 #### Position doctrinale future dans DI1
 
-RF-S5 est une nouvelle règle nommée destinée à être insérée entre RF-R3 (source visuelle → S3) et RF-R4 (annotation manuelle → S4) dans la hiérarchie DI1. RF-R1 à RF-R6 conservent leurs libellés, leurs textes et leurs positions relatives entre elles. L'intégration opérationnelle de RF-S5 dans DI1 fait l'objet de DT-S5-2 (P2-4.A — non encore exécutée).
+RF-S5 est une nouvelle règle nommée destinée à être insérée entre RF-R3 (source visuelle → S3) et RF-R4 (annotation manuelle → S4) dans la hiérarchie DI1. RF-R1 à RF-R6 conservent leurs libellés, leurs textes et leurs positions relatives entre elles. L'intégration opérationnelle de RF-S5 dans DI1 a été tranchée par DT-S5-2 (P2-4.A — adoptée · §5.5 · 2026-08-12).
 
 **Décisions débloquées par DT-S5-1 :** DT-S5-2 · DT-S5-3 · DT-S5-6 (et par chaîne : DT-S5-4 · DT-S5-5).
 
@@ -314,7 +314,7 @@ RF-R4 conserve son texte figé. DT-S5-2 ne réécrit pas RF-R4.
 
 Texte original figé de RF-RC4 dans LOT-P2-1 §12.4 : *« Les familles S5 · SY2 · SY4 · L1 · L2 · L3 · Référentiel ne disposent d'aucune règle RF active en Phase A. Leur intégration dans RF nécessitera une mise à jour lors de leur activation. »*
 
-**Constat post-DT-S5-2 :** LOT-P2-4 définit RF-S5 comme règle d'activation de S5, conformément à l'autorisation de RF-RC4 (« mise à jour lors de leur activation »). Après adoption de DT-S5-2, S5 dispose d'une règle RF nommée dans l'architecture enrichie documentée par LOT-P2-4. Les familles restant sans règle RF active en Phase A, dans l'architecture post-DT-S5-2, sont : SY2 · SY4 · L1 · L2 · L3 · Référentiel.
+**Constat post-DT-S5-2 :** LOT-P2-4 définit désormais RF-S5 comme règle RF nommée et l'intègre architecturalement à DI1. Cette évolution matérialise l'activation doctrinale de S5 prévue par RF-RC4 (« mise à jour lors de leur activation »), sans signifier que RF-S5 est déjà pleinement applicable en Phase A : son exécution déterministe dépend encore de l'existence d'un référentiel canonique S5 suffisamment défini pour permettre l'évaluation de Condition B.
 
 La manière de matérialiser ultérieurement cette évolution dans la documentation canonique historique de RF-RC4 n'est pas tranchée par DT-S5-2. LOT-P2-1 reste inchangé.
 
@@ -368,7 +368,7 @@ LOT-P2-4 est un lot de doctrine pure. Ses micro-lots correspondent aux étapes d
 
 Ce lot produit un schéma doctrinal pur. Il ne génère aucun code, aucun module, aucune interface.
 
-La règle RF-S5 produite dans P2-4.A devra s'insérer dans la hiérarchie DI1 de LOT-P2-1 **sans modifier** les règles RF-R1 à RF-R6 existantes. Toute modification de ces règles constituerait une violation des invariants de LOT-P2-1 et est interdite.
+La règle RF-S5 produite dans P2-4.A s'insère dans la hiérarchie DI1 de LOT-P2-1 après RF-R3 et avant RF-R4, sans modifier les règles RF-R1 à RF-R6 existantes (DT-S5-2 — §5.5). Toute modification de ces règles constituerait une violation des invariants de LOT-P2-1 et est interdite.
 
 ---
 
