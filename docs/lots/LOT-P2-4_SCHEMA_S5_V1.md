@@ -228,12 +228,122 @@ RF-S5 est une nouvelle règle nommée destinée à être insérée entre RF-R3 (
 
 ---
 
+### §5.5 DT-S5-2 — Décision adoptée (2026-08-12)
+
+**Décision opérateur :** DT-S5-2 est adoptée définitivement selon la formulation normative ci-dessous, issue de l'audit contradictoire de P2-4.A (2026-08-12).
+
+---
+
+#### Position canonique de RF-S5 dans DI1
+
+RF-S5 s'insère dans la hiérarchie séquentielle DI1 **après RF-R3 (source visuelle → S3) et avant RF-R4 (annotation manuelle → S4)**.
+
+Cette position est la seule compatible avec les invariants de LOT-P2-1 : elle garantit que les sources visuelles sont capturées par RF-R3 avant d'atteindre RF-S5, et que les saisies libres non instanciées dans le référentiel canonique S5 continuent vers RF-R4.
+
+---
+
+#### Hiérarchie DI1 enrichie — Architecture post-DT-S5-2
+
+| Position | Règle | Résultat |
+|---|---|---|
+| 1 | RF-R1 — État applicatif | Exclusion de la couche canonique |
+| 2 | RF-R2 — Module écrivant interne | Famille officielle du module |
+| 3 | RF-R3 — Source visuelle | S3 — Visuelle |
+| après RF-R3 | **RF-S5 — Instance du référentiel canonique S5** | **S5 — Contextuelle** |
+| 4 | RF-R4 — Source annotation manuelle | S4 — Personnelle |
+| 5 | RF-R5 — Fichier structuré | S1 ou S2 selon DI4 |
+| — | RF-R6 — Aucune règle satisfaite | Rejet |
+
+**Absence de renumérotation :** RF-R1 à RF-R6 conservent leurs libellés, leurs textes, leurs positions relatives et leurs numéros de priorité 1→5 tels que documentés dans LOT-P2-1. RF-S5 ne reçoit pas de numéro entier concurrent. Sa position est désignée textuellement : « après RF-R3, avant RF-R4 ».
+
+---
+
+#### Règle RF-S5
+
+**RF-S5 — Position : après RF-R3, avant RF-R4**
+
+Une donnée est classifiée S5 — Contextuelle si elle satisfait **Condition B** (DT-S5-1 §5.4) : elle est une instance d'un champ ou objet admis dans le référentiel canonique S5, tel que gouverné par Condition A.
+
+La conformité à Condition A est héritée de la gouvernance du référentiel — elle n'est pas recalculée trace par trace.
+
+**Résultat :** S5 — Contextuelle · évaluation s'arrête.
+
+Si Condition B n'est pas satisfaite, l'évaluation continue vers RF-R4.
+
+---
+
+#### Architecture deux routes — RF-R2 et RF-S5
+
+La classification S5 suit deux routes exclusives et ordonnées :
+
+**Route A — Module écrivant S5 officiellement inscrit**
+
+Un module interne dont la famille officielle S5 est inscrite dans la table de provenance (LOT-P1-2.4 §4) est capturé par RF-R2 (priorité 2). La donnée est classifiée S5 directement. RF-S5 et Condition B ne sont pas évalués. RF-RC3 interdit toute reclassification descendante.
+
+**Route B — Donnée non capturée par RF-R1, RF-R2, RF-R3**
+
+La donnée atteint RF-S5. Condition B est évaluée. Si l'instance appartient au référentiel canonique S5 → S5 — évaluation s'arrête. Sinon → continuation vers RF-R4, RF-R5, RF-R6.
+
+Les deux routes sont structurellement disjointes. RF-R2 (priorité 2) intercepte toujours les modules inscrits avant que RF-S5 ne soit atteint. Aucune double classification n'est possible.
+
+---
+
+#### Précédence absolue de RF-R3 sur RF-S5
+
+RF-R3 (priorité 3) s'applique avant RF-S5. Une donnée d'origine visuelle est classifiée S3 indépendamment de son contenu, même si ce contenu représente une information de marché compatible avec le référentiel canonique S5 (DI5 figé : « la valeur mémorielle est la donnée d'origine visuelle elle-même »).
+
+Cas distinct relevant de RF-R2 : si un module interne officiellement inscrit avec famille S5 produit la trace, RF-R2 la capture en priorité 2 avant l'évaluation de RF-R3. Il ne s'agit pas d'une exception à RF-R3, mais de l'application normale de la hiérarchie DI1.
+
+---
+
+#### Relation RF-S5 / RF-R4
+
+RF-S5 est évaluée avant RF-R4. Cette position matérialise opérationnellement la précision de périmètre de DT-S5-1 (§5.4) :
+
+- Saisie de l'opérateur instanciée dans un champ du référentiel canonique S5 → Condition B satisfaite → RF-S5 → S5. RF-R4 n'est pas atteint.
+- Saisie libre, annotation personnelle, note non instanciée dans le référentiel → Condition B non satisfaite → RF-R4 → S4.
+- Note mixte contenant à la fois un contenu S5 potentiel et un état opérateur, rédigée en forme libre → prise dans sa globalité comme saisie libre → Condition B non satisfaite → RF-R4 → S4. Aucune sous-trace S5 n'est extraite automatiquement d'une saisie libre.
+
+RF-R4 conserve son texte figé. DT-S5-2 ne réécrit pas RF-R4.
+
+---
+
+#### État enrichi de RF-RC4 — Constat post-DT-S5-2
+
+**Note documentaire :** LOT-P2-1 est figé. LOT-P2-4 ne peut pas modifier son texte. Le constat ci-dessous est la lecture de RF-RC4 dans l'architecture enrichie issue de DT-S5-2 — il ne constitue pas une modification rétroactive de LOT-P2-1.
+
+Texte original figé de RF-RC4 dans LOT-P2-1 §12.4 : *« Les familles S5 · SY2 · SY4 · L1 · L2 · L3 · Référentiel ne disposent d'aucune règle RF active en Phase A. Leur intégration dans RF nécessitera une mise à jour lors de leur activation. »*
+
+**Constat post-DT-S5-2 :** LOT-P2-4 définit RF-S5 comme règle d'activation de S5, conformément à l'autorisation de RF-RC4 (« mise à jour lors de leur activation »). Après adoption de DT-S5-2, S5 dispose d'une règle RF nommée dans l'architecture enrichie documentée par LOT-P2-4. Les familles restant sans règle RF active en Phase A, dans l'architecture post-DT-S5-2, sont : SY2 · SY4 · L1 · L2 · L3 · Référentiel.
+
+La manière de matérialiser ultérieurement cette évolution dans la documentation canonique historique de RF-RC4 n'est pas tranchée par DT-S5-2. LOT-P2-1 reste inchangé.
+
+---
+
+#### Dépendance au référentiel canonique S5
+
+RF-S5 est architecturalement intégrée à DI1 par DT-S5-2. L'application effective de RF-S5 dépend de l'existence d'un référentiel canonique S5 suffisamment défini pour permettre l'évaluation déterministe de Condition B. Les décisions encore ouvertes de LOT-P2-4, notamment DT-S5-3 et DT-S5-6, contribueront à préciser les éléments nécessaires à ce référentiel sans que DT-S5-2 n'anticipe leur résultat.
+
+---
+
+#### Gap Phase B+ — Fichiers structurés S5 externes
+
+L'ingestion de fichiers structurés S5 issus de sources externes (données macro historiques, feeds de marché) non portés par un module S5 officiellement inscrit constitue un cas non résolu en Phase A. Sans inscription d'un module dans la table de provenance (route RF-R2), ces données peuvent atteindre RF-R5 et être classifiées S1 ou S2 si RF-S5 ne peut pas évaluer Condition B de manière déterministe sur leur format.
+
+La résolution en Phase B+ requiert selon le cas :
+- un module S5 officiellement inscrit dans la table de provenance → route RF-R2 ;
+- un adaptateur garantissant la production d'instances conformes au référentiel canonique S5 avant évaluation par RF-S5.
+
+Ce gap est documenté sans résolution dans DT-S5-2. Sa résolution ne sera pas anticipée dans ce lot.
+
+---
+
 ## §6 Décisions à trancher
 
 | ID | Question | Options | Dépend de |
 |---|---|---|---|
 | DT-S5-1 | **Frontière S4/S5** : critère de distinction entre donnée personnelle (S4) et donnée contextuelle de marché (S5) lorsque les deux peuvent être saisies par l'opérateur | **TRANCHÉE** — Conditions A+B · §5.4 · 2026-08-12 | Aucune — décision fondatrice |
-| DT-S5-2 | **Intégration dans DI1** : comment RF-S5 s'insère-t-elle dans la hiérarchie RF-R1→RF-R6 sans modifier les règles figées ? Nouvelle priorité après RF-R5 ? RF-R2 via module écrivant ? | Selon DT-S5-1 | DT-S5-1 |
+| DT-S5-2 | **Intégration dans DI1** : comment RF-S5 s'insère-t-elle dans la hiérarchie RF-R1→RF-R6 sans modifier les règles figées ? | **TRANCHÉE** — RF-S5 après RF-R3, avant RF-R4 · §5.5 · 2026-08-12 | DT-S5-1 |
 | DT-S5-3 | **Grain de la trace S5** : une trace S5 représente-t-elle (A) un état de marché à un instant (session moteur), (B) un événement macro ponctuel, ou (C) les deux dans deux sous-types distincts ? | A · B · C | DT-S5-1 |
 | DT-S5-4 | **Périmètre Phase A** : quelles données S5 sont activables sans source externe ? Les champs du formulaire moteur ? Un sous-ensemble ? Un protocole de saisie structurée à définir ? | À définir | DT-S5-1 · DT-S5-3 |
 | DT-S5-5 | **Statut des sessions moteur existantes** : les sessions capturées en localStorage constituent-elles des données S5 rétroactivement, ou S5 ne concerne que les ingestions futures ? | A (rétroactif) · B (prospectif) | DT-S5-3 · DT-S5-4 |
