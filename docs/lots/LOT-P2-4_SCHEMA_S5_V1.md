@@ -156,7 +156,75 @@ Le moteur Caméléon Engine capture actuellement des données de contexte march�
 - Si le module moteur devient le module écrivant S5 (priorité 2) → les saisies moteur sont S5 par RF-R2, pas par RF-S5
 - Conséquence : S5 via module écrivant n'exige pas de modifier RF-R4 · la hiérarchie DI1 est préservée intacte
 
-**Cette décision est le premier arbitrage architectural de LOT-P2-4 (DT-S5-1). Elle est soumise à décision opérateur avant toute rédaction du schéma §6.**
+DT-S5-1 est adoptée définitivement — décision opérateur 2026-08-12. La formulation normative est documentée en §5.4.
+
+---
+
+### §5.4 DT-S5-1 — Décision adoptée (2026-08-12)
+
+**Décision opérateur :** DT-S5-1 est adoptée définitivement selon la formulation normative ci-dessous, issue de l'audit contradictoire de P2-4.A (2026-08-12).
+
+---
+
+#### Niveau 1 — Gouvernance du référentiel canonique S5
+
+**Condition A — Sujet canonique contextuel externe**
+*(Règle sémantique de gouvernance — appliquée lors de la définition et de la maintenance du référentiel, non trace par trace)*
+
+Un type de donnée, champ ou objet est admissible dans le référentiel canonique S5 si son sujet canonique est un fait ou état appartenant à l'environnement externe dans lequel l'opérateur agit — marché, régime de prix, structure de liquidité, indicateur structurel, événement macro-économique —, dont l'existence est indépendante de l'opérateur qui l'observe ou le saisit.
+
+Le sujet n'est pas l'opérateur lui-même, ni ses perceptions rédigées librement, ni ses états internes, ni ses réflexions, ni ses jugements librement exprimés.
+
+Le **référentiel canonique S5** est une liste opérationnelle dérivée de Condition A. Condition A gouverne son admission. Le référentiel ne participe pas à la définition de Condition A et ne constitue pas une source autonome de vérité doctrinale.
+
+---
+
+#### Niveau 2A — Exécution RF-S5
+
+À l'exécution, RF-S5 vérifie uniquement :
+
+**Condition B — Instance du référentiel canonique S5**
+
+La trace est-elle une instance d'un champ ou objet admis dans le référentiel canonique S5 ?
+
+La conformité à Condition A est héritée de la gouvernance du référentiel — elle n'est pas recalculée trace par trace.
+
+**Résultat :** S5 — Contextuelle
+
+**Sources couvertes par cette route :**
+- Saisie manuelle de l'opérateur instanciée dans un champ du référentiel S5
+- Donnée externe ou API normalisée vers une instance du référentiel S5
+- Toute source future non déjà capturée par RF-R1, RF-R2 ou RF-R3
+
+**Valeur mémorielle S5 :** une représentation structurée d'un état contextuel externe, et non la voix libre de l'opérateur. La famille S5 qualifie la nature de la trace, non son exactitude factuelle.
+
+---
+
+#### Précision de périmètre RF-R4
+
+Les traces satisfaisant Condition B n'atteignent pas RF-R4.
+
+RF-R4 continue de couvrir les saisies directes de l'opérateur sous forme libre — notes, annotations, entrées de journal, réflexions personnelles rédigées — qui ne sont pas des instances du référentiel canonique S5.
+
+Le terme « observation » dans RF-R4 vise les remarques observationnelles rédigées librement, et non les saisies d'instances du référentiel canonique S5.
+
+Il s'agit d'une précision du périmètre pratique de RF-R4 résultant de la priorité de RF-S5, et non d'une modification du texte figé de RF-R4.
+
+---
+
+#### Niveau 2B — Route RF-R2
+
+Les sorties d'un module interne officiellement qualifié et inscrit dans la table de provenance avec famille officielle S5 sont classifiées directement S5 par RF-R2 (priorité 2). RF-S5 et Condition B ne sont alors pas évalués.
+
+La qualification préalable d'un module S5 relève de la gouvernance documentaire. Elle doit vérifier que le périmètre de production prévu pour ce module est conforme aux principes de DT-S5-1. Une fois le module officiellement inscrit, RF-R2 reste absolu pour ses sorties conformément à RF-RC3.
+
+---
+
+#### Position doctrinale future dans DI1
+
+RF-S5 est une nouvelle règle nommée destinée à être insérée entre RF-R3 (source visuelle → S3) et RF-R4 (annotation manuelle → S4) dans la hiérarchie DI1. RF-R1 à RF-R6 conservent leurs libellés, leurs textes et leurs positions relatives entre elles. L'intégration opérationnelle de RF-S5 dans DI1 fait l'objet de DT-S5-2 (P2-4.A — non encore exécutée).
+
+**Décisions débloquées par DT-S5-1 :** DT-S5-2 · DT-S5-3 · DT-S5-6 (et par chaîne : DT-S5-4 · DT-S5-5).
 
 ---
 
@@ -164,7 +232,7 @@ Le moteur Caméléon Engine capture actuellement des données de contexte march�
 
 | ID | Question | Options | Dépend de |
 |---|---|---|---|
-| DT-S5-1 | **Frontière S4/S5** : critère de distinction entre donnée personnelle (S4) et donnée contextuelle de marché (S5) lorsque les deux peuvent être saisies par l'opérateur | A (sujet) · B (forme) · C (référent) · D (module écrivant) · combinaison | Aucune — décision fondatrice |
+| DT-S5-1 | **Frontière S4/S5** : critère de distinction entre donnée personnelle (S4) et donnée contextuelle de marché (S5) lorsque les deux peuvent être saisies par l'opérateur | **TRANCHÉE** — Conditions A+B · §5.4 · 2026-08-12 | Aucune — décision fondatrice |
 | DT-S5-2 | **Intégration dans DI1** : comment RF-S5 s'insère-t-elle dans la hiérarchie RF-R1→RF-R6 sans modifier les règles figées ? Nouvelle priorité après RF-R5 ? RF-R2 via module écrivant ? | Selon DT-S5-1 | DT-S5-1 |
 | DT-S5-3 | **Grain de la trace S5** : une trace S5 représente-t-elle (A) un état de marché à un instant (session moteur), (B) un événement macro ponctuel, ou (C) les deux dans deux sous-types distincts ? | A · B · C | DT-S5-1 |
 | DT-S5-4 | **Périmètre Phase A** : quelles données S5 sont activables sans source externe ? Les champs du formulaire moteur ? Un sous-ensemble ? Un protocole de saisie structurée à définir ? | À définir | DT-S5-1 · DT-S5-3 |
