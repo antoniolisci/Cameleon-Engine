@@ -338,13 +338,59 @@ Ce gap est documenté sans résolution dans DT-S5-2. Sa résolution ne sera pas 
 
 ---
 
+### §5.6 DT-S5-3 — Décision adoptée (2026-08-14)
+
+**Décision opérateur :** DT-S5-3 est adoptée définitivement selon la formulation normative ci-dessous, issue du rapport contradictoire et de la passe normative finale de P2-4.B (2026-08-14).
+
+---
+
+#### Option C — Deux natures canoniques S5
+
+Une trace S5 relève de l'une des deux natures contextuelles suivantes :
+
+**S5-État**
+
+Condition contextuelle observable caractérisant une période ou un instant. Un S5-État décrit une condition qui peut être vraie pendant une durée.
+
+Exemples illustratifs non constitutifs du référentiel : régime de marché · niveau de dominance · état d'une session de marché · niveau de volatilité.
+
+**S5-Événement**
+
+Fait contextuel discret dont l'occurrence est identifiable. Un S5-Événement décrit quelque chose qui se produit, distingué d'un état par sa nature discrète et non continue.
+
+Exemples illustratifs non constitutifs du référentiel : décision macroéconomique · publication d'indicateur · liquidation en cascade · rupture structurelle.
+
+Ces deux natures présentent des sémantiques distinctes et non substituables. Leur coexistence dans le corpus S5 est architecturalement nécessaire — ni l'une ni l'autre ne peut représenter l'ensemble des données contextuelles utiles.
+
+---
+
+#### Règle de grain S5 *(règle nouvelle, propre à LOT-P2-4)*
+
+Une trace S5 porte une et une seule observation relevant d'une entrée du référentiel canonique S5. Cette entrée relève d'une seule nature : État ou Événement.
+
+Un événement et l'état contextuel qui lui succède constituent deux traces S5 distinctes.
+
+La nature d'une entrée — État ou Événement — est déterminée lors de la construction et de la gouvernance du référentiel canonique S5. Elle n'est pas recalculée trace par trace.
+
+---
+
+#### Renvois ouverts
+
+Le mécanisme permettant de représenter la nature (État / Événement) dans le modèle canonique à 6 champs n'est pas décidé par DT-S5-3. Il relève de DT-S5-6.
+
+L'admissibilité des événements dont l'occurrence est future ou planifiée en Phase A relève de DT-S5-4.
+
+**Décisions débloquées par DT-S5-3 :** DT-S5-6 · et par chaîne : DT-S5-4 · DT-S5-5.
+
+---
+
 ## §6 Décisions à trancher
 
 | ID | Question | Options | Dépend de |
 |---|---|---|---|
 | DT-S5-1 | **Frontière S4/S5** : critère de distinction entre donnée personnelle (S4) et donnée contextuelle de marché (S5) lorsque les deux peuvent être saisies par l'opérateur | **TRANCHÉE** — Conditions A+B · §5.4 · 2026-08-12 | Aucune — décision fondatrice |
 | DT-S5-2 | **Intégration dans DI1** : comment RF-S5 s'insère-t-elle dans la hiérarchie RF-R1→RF-R6 sans modifier les règles figées ? | **TRANCHÉE** — RF-S5 après RF-R3, avant RF-R4 · §5.5 · 2026-08-12 | DT-S5-1 |
-| DT-S5-3 | **Grain de la trace S5** : une trace S5 représente-t-elle (A) un état de marché à un instant (session moteur), (B) un événement macro ponctuel, ou (C) les deux dans deux sous-types distincts ? | A · B · C | DT-S5-1 |
+| DT-S5-3 | **Grain de la trace S5** : une trace S5 représente-t-elle (A) un état de marché à un instant (session moteur), (B) un événement macro ponctuel, ou (C) les deux dans deux sous-types distincts ? | **TRANCHÉE** — Option C · §5.6 · 2026-08-14 | DT-S5-1 |
 | DT-S5-4 | **Périmètre Phase A** : quelles données S5 sont activables sans source externe ? Les champs du formulaire moteur ? Un sous-ensemble ? Un protocole de saisie structurée à définir ? | À définir | DT-S5-1 · DT-S5-3 |
 | DT-S5-5 | **Statut des sessions moteur existantes** : les sessions capturées en localStorage constituent-elles des données S5 rétroactivement, ou S5 ne concerne que les ingestions futures ? | A (rétroactif) · B (prospectif) | DT-S5-3 · DT-S5-4 |
 | DT-S5-6 | **Valeur canonique d'une trace S5** : structure exacte du champ `valeur` — objet structuré avec champs bornés ? texte libre enrichi de métadonnées ? valeur de référence + descripteurs libres ? | À définir | DT-S5-1 · DT-S5-3 |
