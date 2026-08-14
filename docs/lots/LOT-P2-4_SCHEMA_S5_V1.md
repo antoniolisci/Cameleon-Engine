@@ -380,7 +380,7 @@ Le mécanisme permettant de représenter la nature (État / Événement) dans le
 
 L'admissibilité des événements dont l'occurrence est future ou planifiée en Phase A relève de DT-S5-4.
 
-**Décisions débloquées par DT-S5-3 :** DT-S5-6 · et par chaîne : DT-S5-4 · DT-S5-5.
+**Décisions directement débloquées par DT-S5-3 :** DT-S5-4 · DT-S5-6. Décision débloquée par chaîne après DT-S5-4 : DT-S5-5.
 
 ---
 
