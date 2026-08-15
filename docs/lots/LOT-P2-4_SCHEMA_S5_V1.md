@@ -384,6 +384,97 @@ L'admissibilité des événements dont l'occurrence est future ou planifiée en 
 
 ---
 
+### §5.7 DT-S5-6 — Décision adoptée (2026-08-15)
+
+**Décision opérateur :** DT-S5-6 est adoptée définitivement selon la formulation normative ci-dessous, issue de la décision opérateur du 2026-08-15.
+
+---
+
+#### Option C — Valeur canonique et description facultative strictement séparées
+
+Le champ `valeur` d'une trace S5 est un objet structuré composé de quatre éléments :
+
+```
+{
+  nature: "État" | "Événement",
+  type: <entrée_référentiel_S5>,
+  ref: <valeur_canonique_bornée>,
+  description?: <texte_libre>
+}
+```
+
+---
+
+#### Champs obligatoires
+
+**`nature`**
+
+Obligatoire. Valeur bornée parmi deux valeurs exactes : `"État"` ou `"Événement"`, au sens de DT-S5-3 (§5.6).
+
+**`type`**
+
+Obligatoire. Identifie l'entrée du référentiel canonique S5 dont `ref` est une instance. Doit appartenir au référentiel canonique S5 correspondant à la nature de la trace.
+
+**`ref`**
+
+Obligatoire. Constitue la seule valeur canonique de la trace. Doit être une valeur bornée par le référentiel associé au `type`. Permet l'évaluation déterministe de RF-S5 et de Condition B (DT-S5-1 §5.4).
+
+---
+
+#### Champ facultatif
+
+**`description`**
+
+Facultatif. Texte libre. Purement descriptif. Sans autorité canonique.
+
+`description` ne participe jamais :
+- à l'évaluation de RF-S5 ;
+- à l'évaluation de Condition B ;
+- à la classification canonique ;
+- à un score, une décision, ou une règle moteur ;
+- à la détermination de `nature`, `type` ou `ref`.
+
+Une trace S5 sans `description` est valide, classifiable, comparable et exploitable mécaniquement.
+
+---
+
+#### Principe de séparation canonique / descriptif
+
+**CANONIQUE :** `nature` + `type` + `ref`
+
+**DESCRIPTIF :** `description` (facultatif)
+
+Le descriptif ne peut jamais acquérir silencieusement une autorité canonique. Si une information nécessite une valeur canonique pour le fonctionnement de S5, elle doit être modélisée explicitement dans le référentiel — elle ne peut pas être portée par `description`.
+
+---
+
+#### Règle de gestion des contradictions
+
+En cas de contradiction entre `ref` et `description` :
+- la valeur canonique `ref` prévaut sans exception ;
+- aucune correction silencieuse de `ref` à partir de `description` n'est admise ;
+- la contradiction doit être visible et signalable.
+
+---
+
+#### Compatibilité S5-État / S5-Événement
+
+La structure {`nature`, `type`, `ref`, `description?`} couvre les deux natures canoniques définies par DT-S5-3 sans mécanisme structurel différencié. Le champ `nature` suffit à les distinguer. Aucun sous-type structurel supplémentaire n'est requis.
+
+---
+
+#### Relation au modèle canonique LOT-P1-2.1
+
+DT-S5-6 définit le contenu du champ `valeur` pour la famille S5, dans le cadre des 6 champs obligatoires du modèle canonique LOT-P1-2.1 (famille · source · date · valeur · contexte optionnel · session optionnelle). Les 6 champs restent inchangés. DT-S5-6 ne modifie ni le modèle canonique ni les invariants de LOT-P1-2.1.
+
+---
+
+#### Décision débloquée par DT-S5-6
+
+DT-S5-6 complète P2-4.B avec DT-S5-3. La clôture de P2-4.B débloque P2-4.C (DT-S5-4 · DT-S5-5 · EP-S5).
+
+---
+
 ## §6 Décisions à trancher
 
 | ID | Question | Options | Dépend de |
@@ -393,7 +484,7 @@ L'admissibilité des événements dont l'occurrence est future ou planifiée en 
 | DT-S5-3 | **Grain de la trace S5** : une trace S5 représente-t-elle (A) un état de marché à un instant (session moteur), (B) un événement macro ponctuel, ou (C) les deux dans deux sous-types distincts ? | **TRANCHÉE** — Option C · §5.6 · 2026-08-14 | DT-S5-1 |
 | DT-S5-4 | **Périmètre Phase A** : quelles données S5 sont activables sans source externe ? Les champs du formulaire moteur ? Un sous-ensemble ? Un protocole de saisie structurée à définir ? | À définir | DT-S5-1 · DT-S5-3 |
 | DT-S5-5 | **Statut des sessions moteur existantes** : les sessions capturées en localStorage constituent-elles des données S5 rétroactivement, ou S5 ne concerne que les ingestions futures ? | A (rétroactif) · B (prospectif) | DT-S5-3 · DT-S5-4 |
-| DT-S5-6 | **Valeur canonique d'une trace S5** : structure exacte du champ `valeur` — objet structuré avec champs bornés ? texte libre enrichi de métadonnées ? valeur de référence + descripteurs libres ? | À définir | DT-S5-1 · DT-S5-3 |
+| DT-S5-6 | **Valeur canonique d'une trace S5** : structure exacte du champ `valeur` — objet structuré avec champs bornés ? texte libre enrichi de métadonnées ? valeur de référence + descripteurs libres ? | **TRANCHÉE** — Option C · §5.7 · 2026-08-15 | DT-S5-1 · DT-S5-3 |
 
 ---
 
