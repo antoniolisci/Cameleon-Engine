@@ -588,6 +588,76 @@ DT-S5-4 adoptée débloque DT-S5-5 (statut des sessions moteur existantes).
 
 ---
 
+### §5.9 DT-S5-5 — Décision adoptée (2026-08-15)
+
+**Décision opérateur :** DT-S5-5 est adoptée définitivement selon la formulation normative ci-dessous, issue de la décision opérateur du 2026-08-15.
+
+---
+
+#### Option B — Prospectif
+
+L'activation du contrat S5 Phase A est strictement prospective. Les traces produites ou ingérées avant l'activation formelle de RF-S5 et du contrat S5 Phase A conservent leur famille, leur contrat et leur provenance d'origine sans modification.
+
+**Principe fondateur :** UNE ONTOLOGIE NOUVELLE NE RÉÉCRIT PAS LE PASSÉ.
+
+---
+
+#### Règles normatives
+
+**P5-1 — Intangibilité de l'historique**
+
+Aucune session moteur existante, aucune trace capturée avant l'activation formelle de S5, ne fait l'objet d'une reclassification automatique vers la famille S5.
+
+**P5-2 — Intégrité de provenance**
+
+La provenance d'une trace historique ne peut pas être réécrite. Toute donnée produite ou ingérée avant l'activation de RF-S5 conserve la provenance déclarée au moment de sa production.
+
+**P5-3 — Interdiction de migration**
+
+Aucune opération de migration des sessions existantes vers S5 n'est admise, indépendamment de la ressemblance de leur contenu avec un type du référentiel canonique S5.
+
+**P5-4 — Interdiction d'anachronisme sémantique**
+
+Une trace historique ne devient pas S5 parce que son contenu ressemble à un type S5 défini ultérieurement. La classification est déterminée au moment de l'ingestion selon les règles en vigueur à cette date.
+
+**P5-5 — Lecture sans reclassification**
+
+Les sessions et traces existantes peuvent continuer d'être lues, référencées ou comparées par les couches qui les consomment. Cette lecture ne modifie ni leur famille canonique, ni leur provenance, ni leur contrat d'origine.
+
+---
+
+#### Conditions d'activation de S5
+
+Toute ingestion future qualifiée comme S5 doit satisfaire simultanément :
+- DT-S5-1 (Conditions A et B) ;
+- DT-S5-3 (nature S5-État ou S5-Événement) ;
+- DT-S5-4 (champ appartenant au périmètre Phase A) ;
+- DT-S5-6 (structure {nature, type, ref, description?}) ;
+- RF-S5 (évaluation dans la hiérarchie DI1 post-DT-S5-2) ;
+- le référentiel canonique S5 Phase A (types et valeurs bornées définis en §5.8).
+
+---
+
+#### Justification
+
+L'option prospective protège cinq propriétés fondamentales du corpus mémoriel :
+
+| Propriété | Protection |
+|---|---|
+| Provenance | Aucune trace ne se voit attribuer une provenance qu'elle n'avait pas au moment de sa production |
+| Intégrité historique | Le corpus existant reste stable et reproductible indépendamment des évolutions doctrinales |
+| Reproductibilité | Une trace relue demain produit la même famille qu'aujourd'hui |
+| Absence d'anachronisme | La sémantique d'une donnée est celle en vigueur à sa date de production |
+| Stabilité | Le corpus canonique existant n'est pas perturbé par l'activation de S5 |
+
+---
+
+#### Décision débloquée par DT-S5-5
+
+DT-S5-5 adoptée complète le périmètre décisionnel de P2-4.C avec DT-S5-4. La clôture de P2-4.C requiert encore EP-S5 (exigences de provenance S5, conformes à DI3).
+
+---
+
 ## §6 Décisions à trancher
 
 | ID | Question | Options | Dépend de |
@@ -596,7 +666,7 @@ DT-S5-4 adoptée débloque DT-S5-5 (statut des sessions moteur existantes).
 | DT-S5-2 | **Intégration dans DI1** : comment RF-S5 s'insère-t-elle dans la hiérarchie RF-R1→RF-R6 sans modifier les règles figées ? | **TRANCHÉE** — RF-S5 après RF-R3, avant RF-R4 · §5.5 · 2026-08-12 | DT-S5-1 |
 | DT-S5-3 | **Grain de la trace S5** : une trace S5 représente-t-elle (A) un état de marché à un instant (session moteur), (B) un événement macro ponctuel, ou (C) les deux dans deux sous-types distincts ? | **TRANCHÉE** — Option C · §5.6 · 2026-08-14 | DT-S5-1 |
 | DT-S5-4 | **Périmètre Phase A** : quelles données S5 sont activables sans source externe ? Les champs du formulaire moteur ? Un sous-ensemble ? Un protocole de saisie structurée à définir ? | **TRANCHÉE** — Option B · §5.8 · 2026-08-15 | DT-S5-1 · DT-S5-3 |
-| DT-S5-5 | **Statut des sessions moteur existantes** : les sessions capturées en localStorage constituent-elles des données S5 rétroactivement, ou S5 ne concerne que les ingestions futures ? | A (rétroactif) · B (prospectif) | DT-S5-3 · DT-S5-4 |
+| DT-S5-5 | **Statut des sessions moteur existantes** : les sessions capturées en localStorage constituent-elles des données S5 rétroactivement, ou S5 ne concerne que les ingestions futures ? | **TRANCHÉE** — Option B · §5.9 · 2026-08-15 | DT-S5-3 · DT-S5-4 |
 | DT-S5-6 | **Valeur canonique d'une trace S5** : structure exacte du champ `valeur` — objet structuré avec champs bornés ? texte libre enrichi de métadonnées ? valeur de référence + descripteurs libres ? | **TRANCHÉE** — Option C · §5.7 · 2026-08-15 | DT-S5-1 · DT-S5-3 |
 
 ---
