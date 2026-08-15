@@ -475,6 +475,119 @@ DT-S5-6 complète P2-4.B avec DT-S5-3. La clôture de P2-4.B débloque P2-4.C (D
 
 ---
 
+### §5.8 DT-S5-4 — Décision adoptée (2026-08-15)
+
+**Décision opérateur :** DT-S5-4 est adoptée définitivement selon la formulation normative ci-dessous, issue de la décision opérateur du 2026-08-15.
+
+---
+
+#### Option B — Sous-ensemble minimal défini
+
+Le périmètre S5 Phase A est constitué d'un sous-ensemble minimal de trois champs du formulaire moteur existant, sélectionnés selon les critères suivants :
+- satisfaction démontrée de DT-S5-1 Condition A et Condition B ;
+- nature S5-État conforme à DT-S5-3 ;
+- valeurs bornées permettant le déterminisme de RF-S5 ;
+- provenance identifiable sans dépendance à une source externe obligatoire ;
+- absence de dépendance à une décision architecturale encore ouverte.
+
+**Principe :** Phase A établit un premier noyau S5 déterministe, traçable et compréhensible. Elle ne cherche pas à maximiser le nombre de données S5 activées.
+
+---
+
+#### Données S5 admises en Phase A
+
+##### `market` — Régime de marché
+
+| Attribut | Valeur |
+|---|---|
+| Nature S5 | S5-État |
+| Type canonique candidat | `regime-marche` |
+| Ref bornée | {range, compression, expansion, defense, riskoff} |
+| Phénomène observé | État courant du marché — indépendant de l'opérateur |
+| Mode d'acquisition Phase A | Observation externe déclarée manuellement par l'opérateur |
+
+##### `btc` — Comportement de Bitcoin
+
+| Attribut | Valeur |
+|---|---|
+| Nature S5 | S5-État |
+| Type canonique candidat | `comportement-btc` |
+| Ref bornée | {stable, strong, weak} |
+| Phénomène observé | Comportement directionnel de Bitcoin dans l'environnement de marché |
+| Mode d'acquisition Phase A | Observation externe déclarée manuellement par l'opérateur |
+
+**Frontière S2 / S5 :** Bitcoin peut être référencé dans deux familles distinctes sans violation de IG-I5 :
+
+- **S2** : Bitcoin comme actif détenu (ACTIF, POSITION, LIEU, valorisation) — trace patrimoniale.
+- **S5** : Bitcoin comme état ou comportement de l'environnement de marché — trace contextuelle.
+
+Les deux traces coexistent sur le même objet réel sans fusion à l'ingestion. La famille est déterminée par la nature sémantique de la trace, non par l'objet référencé.
+
+##### `dxy` — Direction du Dollar index
+
+| Attribut | Valeur |
+|---|---|
+| Nature S5 | S5-État |
+| Type canonique candidat | `direction-dxy` |
+| Ref bornée | {neutral, up, down} |
+| Phénomène observé | Direction courante de l'indice DXY — indicateur macroéconomique externe |
+| Mode d'acquisition Phase A | Observation externe déclarée manuellement par l'opérateur |
+
+**Limite connue :** La fenêtre temporelle de lecture (intraday, hebdomadaire, etc.) n'est pas définie dans les valeurs bornées. Cette imprécision ne remet pas en cause l'admissibilité S5 Phase A. Elle constitue une limite documentée, non une précision implicite.
+
+---
+
+#### Données exclues de Phase A
+
+| Champ(s) | Motif d'exclusion |
+|---|---|
+| fire · air · earth · water · ether | DT-FORCES-01 non résolu — aucune canonisation indirecte via S5 tant que ce chantier n'est pas clos |
+| emotion | Sujet = état interne de l'opérateur — S4 |
+| userProfile · coreOrders · needAction | Sujet = configuration ou intention de l'opérateur — S4 |
+| validationState · validationNote · journalNote | S4 (état décisionnel / texte libre) ou SY3 |
+| momentumSignal · desordreStructurel | Déterminisme insuffisant pour IG-I3 |
+
+---
+
+#### Statut des champs à admissibilité différée
+
+Les champs suivants ne sont pas admis en Phase A mais ne sont pas déclarés définitivement non-S5.
+
+| Champ | Statut | Motif du report |
+|---|---|---|
+| `structureSignal` | ADMISSIBILITÉ DIFFÉRÉE | Nature ambiguë (S5-État / S5-Événement mixte) · définition des valeurs insuffisante pour IG-I3 |
+| `zoneSignal` | ADMISSIBILITÉ DIFFÉRÉE | Dépendance à une structure de marché préalablement identifiée par l'opérateur · ambiguïté Condition A |
+| `dominanceMacro` | ADMISSIBILITÉ DIFFÉRÉE | Concept S5-compatible en principe · binarité {none/active} insuffisante sans critères d'activation définis |
+
+Réévaluation possible dans un chantier ultérieur si leurs critères d'activation deviennent normatifs et reproductibles. Aucun nouveau protocole de saisie ne doit être créé pour les faire entrer en Phase A.
+
+---
+
+#### Principe : phénomène observé ≠ mode d'acquisition
+
+La provenance d'une trace S5 distingue deux dimensions :
+
+| Dimension | Définition | Exemples Phase A |
+|---|---|---|
+| **Phénomène observé** | Le fait ou état du monde externe que la trace représente | Régime de marché · comportement BTC · direction DXY |
+| **Mode d'acquisition Phase A** | Le canal par lequel l'observation est capturée dans CE | Saisie manuelle locale par l'opérateur |
+
+La saisie humaine est le canal d'acquisition en Phase A, non la source ontologique du phénomène. Cette distinction est structurellement nécessaire pour que les mêmes données puissent être acquises via des sources instrumentales en Phase B+ sans modification du contrat S5.
+
+---
+
+#### Principe : usage moteur ≠ famille canonique
+
+Le fait qu'un champ admis en S5 soit également consommé par une chaîne décisionnelle du moteur ne constitue pas une collision de famille. La nature d'une donnée est déterminée par ce qu'elle représente — son sujet, sa provenance, son niveau sémantique, son déterminisme — non par ses consommateurs. L'usage par le moteur est audité séparément au niveau architectural et ne doit pas être confondu avec la classification de la trace.
+
+---
+
+#### Décision débloquée par DT-S5-4
+
+DT-S5-4 adoptée débloque DT-S5-5 (statut des sessions moteur existantes).
+
+---
+
 ## §6 Décisions à trancher
 
 | ID | Question | Options | Dépend de |
@@ -482,7 +595,7 @@ DT-S5-6 complète P2-4.B avec DT-S5-3. La clôture de P2-4.B débloque P2-4.C (D
 | DT-S5-1 | **Frontière S4/S5** : critère de distinction entre donnée personnelle (S4) et donnée contextuelle de marché (S5) lorsque les deux peuvent être saisies par l'opérateur | **TRANCHÉE** — Conditions A+B · §5.4 · 2026-08-12 | Aucune — décision fondatrice |
 | DT-S5-2 | **Intégration dans DI1** : comment RF-S5 s'insère-t-elle dans la hiérarchie RF-R1→RF-R6 sans modifier les règles figées ? | **TRANCHÉE** — RF-S5 après RF-R3, avant RF-R4 · §5.5 · 2026-08-12 | DT-S5-1 |
 | DT-S5-3 | **Grain de la trace S5** : une trace S5 représente-t-elle (A) un état de marché à un instant (session moteur), (B) un événement macro ponctuel, ou (C) les deux dans deux sous-types distincts ? | **TRANCHÉE** — Option C · §5.6 · 2026-08-14 | DT-S5-1 |
-| DT-S5-4 | **Périmètre Phase A** : quelles données S5 sont activables sans source externe ? Les champs du formulaire moteur ? Un sous-ensemble ? Un protocole de saisie structurée à définir ? | À définir | DT-S5-1 · DT-S5-3 |
+| DT-S5-4 | **Périmètre Phase A** : quelles données S5 sont activables sans source externe ? Les champs du formulaire moteur ? Un sous-ensemble ? Un protocole de saisie structurée à définir ? | **TRANCHÉE** — Option B · §5.8 · 2026-08-15 | DT-S5-1 · DT-S5-3 |
 | DT-S5-5 | **Statut des sessions moteur existantes** : les sessions capturées en localStorage constituent-elles des données S5 rétroactivement, ou S5 ne concerne que les ingestions futures ? | A (rétroactif) · B (prospectif) | DT-S5-3 · DT-S5-4 |
 | DT-S5-6 | **Valeur canonique d'une trace S5** : structure exacte du champ `valeur` — objet structuré avec champs bornés ? texte libre enrichi de métadonnées ? valeur de référence + descripteurs libres ? | **TRANCHÉE** — Option C · §5.7 · 2026-08-15 | DT-S5-1 · DT-S5-3 |
 
