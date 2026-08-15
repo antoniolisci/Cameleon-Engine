@@ -10,9 +10,9 @@
 | Phase Roadmap V1 | A |
 | Type | Doctrine — Schéma canonique |
 | Document officiel | `docs/lots/LOT-P2-4_SCHEMA_S5_V1.md` |
-| Statut | EN COURS |
+| Statut | VALIDÉ |
 | Date d'ouverture | 2026-08-11 |
-| Date de clôture | — |
+| Date de clôture | 2026-08-15 |
 | Prérequis | LOT-P2-1 CLOS · LOT-P2-2 CLOS · LOT-P2-3 CLOS |
 
 ---
@@ -673,7 +673,7 @@ DT-S5-5 adoptée complète le périmètre décisionnel de P2-4.C avec DT-S5-4 am
 
 ### §5.10 EP-S5 — Exigences de provenance S5 (2026-08-15)
 
-**Fondement :** DI3 (différenciées · LOT-P2-1 §156) · DT-S5-4 amendée (Position Gamma) · DT-S5-5 (prospectif) · LOT-P1-2.4 §4.5.
+**Fondement :** DI3 (différenciées · LOT-P2-1 §5) · DT-S5-4 amendée (Position Gamma) · DT-S5-5 (prospectif) · LOT-P1-2.4 §4.5.
 
 ---
 
