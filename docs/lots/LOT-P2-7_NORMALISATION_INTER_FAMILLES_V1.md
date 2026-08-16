@@ -106,6 +106,79 @@ La réponse à cette question centrale a déterminé l'existence, le nombre et l
 
 ---
 
+## §5.2 — Règles effectives de normalisation inter-familles · P2-7.B
+
+### Fondement commun hérité
+
+Le champ `date` est obligatoire pour toute trace canonique S1→S5. Cette obligation est établie par **RV3 (LOT-P1-2.1 §5.3)** et **DI3 structure uniforme (LOT-P2-1 §14.2)**. LOT-P2-7 n'est pas une source de vérité pour cette obligation — elle est héritée et reprise ici comme fondement commun des trois règles ci-dessous.
+
+### Règle 1 — Format différencié par famille
+
+**Fondement :** EP-S1/EP-S2 (LOT-P2-1 §14.4) · EP-RC2 (LOT-P2-1 §14.5) · DT-S4-5 (LOT-P2-5 §5.9) · EP-S5-R2 (LOT-P2-4 §5.10) · D5b (LOT-P2-6 §5.10)
+
+Le format admis du champ `date` diffère selon la famille :
+
+| Famille | Format admis | Fondement | Niveau |
+|---|---|---|---|
+| S1 | ISO 8601 ou état formalisé R1/R3/R4, per EP-RC2 | EP-S1 · EP-RC2 | A |
+| S2 | ISO 8601 ou état formalisé R1/R3/R4, per EP-RC2 | EP-S2 · EP-RC2 | A |
+| S3 | ISO 8601 UTC produite par la couche | D5b · LOT-P1-2.4 §3.2 | B |
+| S4 | ISO 8601 UTC produite par la couche au moment de l'ingestion | DT-S4-5 | A |
+| S5 | ISO 8601 UTC produite par la couche | EP-S5-R2 | A |
+
+Cette différenciation de format est rendue explicitement observable dans un contexte cross-familles, conformément à la décision centrale (§6).
+
+### Règle 2 — Différence sémantique inter-familles
+
+**Fondement :** EP-S1 (LOT-P2-1 §14.4) · EP-S2 (LOT-P2-1 §14.4) · TB-2/TB-3 (LOT-P2-3) · DT-S4-5 (LOT-P2-5 §5.9) · EP-S5-R2 (LOT-P2-4 §5.10) · D5b (LOT-P2-6 §5.10)
+
+La sémantique du champ `date` diffère structurellement entre familles. Cette différence est corpus-documentée et rendue explicitement observable, conformément à la décision centrale (§6) :
+
+- **S1** : `date` est extraite du contenu du fichier source selon EP-RC2 — date de l'événement transactionnel source. Peut être historiquement antérieure à la date d'ingestion.
+- **S2** : `date` est extraite du contenu du fichier source selon EP-RC2 — date de l'événement source le plus récent contribuant à la position ou au snapshot (TB-2/TB-3). Peut être historiquement antérieure à la date d'ingestion.
+- **S4** : `date` est la date d'ingestion ISO 8601 UTC produite par la couche au moment de l'ingestion (DT-S4-5).
+- **S5** : `date` est la date d'ingestion ISO 8601 UTC produite par la couche (EP-S5-R2).
+- **S3** : `date` est ISO 8601 UTC produite par la couche (D5b). Le corpus ne définit pas la sémantique de ce que cette date représente — EP-S3 formellement différée à activation.
+
+La fissure sémantique entre S1/S2 (extraction depuis le fichier source) et S4/S5 (production par la couche à l'ingestion) est fondée au niveau A. Pour S3, le mode de production est fondé au niveau B (D5b) ; la sémantique de ce que la date représente est non déterminée.
+
+La règle de normalisation ne résout pas cette différence sémantique. Elle la rend explicitement observable.
+
+### Règle 3 — Périmètre des états formalisés inter-familles
+
+**Fondement :** EP-RC2 (LOT-P2-1 §14.5) · R1/R3/R4 (LOT-P2-1 §14.3) · DT-S4-5 (LOT-P2-5 §5.9)
+
+| Famille | Applicabilité R1/R3/R4 | Fondement | Niveau |
+|---|---|---|---|
+| S1 et S2 | Applicables per EP-RC2 | EP-S1 · EP-S2 · EP-RC2 | A |
+| S4 | Aucun cas d'application identifié | DT-S4-5 — formulation textuelle exacte | A |
+| S5 | Non mentionnés dans EP-S5-R2 — statut NON DÉTERMINÉ | Absence dans EP-S5-R2 | B |
+| S3 | Non documentés à ce stade — statut NON DÉTERMINÉ | EP-S3 différée · absence de texte | B |
+
+**Note de portée :** l'absence de mention de R1/R3/R4 dans EP-S5-R2 et l'absence de documentation pour S3 ne constituent pas une interdiction. Ces statuts sont non déterminés — à préciser dans les lots d'activation respectifs.
+
+L'état R4 contient de l'information temporelle réelle normalisable en ISO 8601 UTC (LOT-P2-1 §14.3 · LOT-P1-2.1 §6). La normalisation de R4 relève de l'implémentation technique (Programme P3+) — hors périmètre de LOT-P2-7 (§3.2).
+
+### Indéterminations résiduelles
+
+| Indétermination | Périmètre de résolution |
+|---|---|
+| Applicabilité R1/R3/R4 à S3 | LOT d'activation S3 |
+| Applicabilité R1/R3/R4 à S5 | LOT d'activation S5 |
+| Sémantique de la date S3 (ce qu'elle représente) | LOT d'activation S3 — EP-S3 |
+| Normalisation de R4 (epoch ms → ISO 8601 UTC) | Programme P3+ |
+| `date_phenomene` comme règle inter-familles S4 | LOT d'activation S4 |
+
+### Bornes préservées
+
+| Borne | Statut |
+|---|---|
+| BORNE-S3-3 | PRÉSERVÉE · reste ouverte · non modifiée par P2-7.B |
+| BORNE-S4-1 | PRÉSERVÉE · reste ouverte · non modifiée par P2-7.B |
+| BORNE-S4-2 | PRÉSERVÉE · reste ouverte · non modifiée par P2-7.B |
+
+---
+
 ## §6 — Registre des décisions
 
 ### Décision centrale — P2-7.A
@@ -127,8 +200,8 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 | Micro-lot | Mission | Statut |
 |---|---|---|
 | P2-7.A — Instrumentation | Définir la sémantique de « normalisation inter-familles » · identifier les axes et formats concernés · produire les décisions à trancher | **VALIDÉ · 2026-08-16** |
-| P2-7.B — Règles effectives | Produire les règles effectives de normalisation pour les dimensions fondées par le corpus et documenter les limitations strictement nécessaires révélées par leur instruction | **À INSTRUIRE** |
-| P2-7.C — Validation documentaire | DQC V2 CAS A · double revue indépendante · CV-1→CV-9 | **À DÉTERMINER après P2-7.B** |
+| P2-7.B — Règles effectives | Produire les règles effectives de normalisation pour les dimensions fondées par le corpus et documenter les limitations strictement nécessaires révélées par leur instruction | **VALIDÉ · 2026-08-16** |
+| P2-7.C — Validation documentaire | DQC V2 CAS A · double revue indépendante · CV-1→CV-9 | **À INSTRUIRE** |
 
 ### §7.2 — Critères de passage P2-7.A
 
@@ -143,7 +216,7 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 
 | Condition | Statut |
 |---|---|
-| P2-7.B VALIDÉ | EN ATTENTE |
+| P2-7.B VALIDÉ | SATISFAIT · 2026-08-16 |
 | P2-7.C VALIDÉ | EN ATTENTE |
 
 ---
@@ -169,7 +242,8 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 | Condition | Statut |
 |---|---|
 | P2-7.A VALIDÉ | SATISFAIT · 2026-08-16 |
-| P2-7.B · P2-7.C VALIDÉS | EN ATTENTE |
+| P2-7.B VALIDÉ | SATISFAIT · 2026-08-16 |
+| P2-7.C VALIDÉ | EN ATTENTE |
 | CV-1→CV-9 PASS | EN ATTENTE |
 | DQC V2 CAS A | EN ATTENTE |
 | DQC V3 PASS | EN ATTENTE |
@@ -177,4 +251,4 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 
 ---
 
-*P2-7 EN COURS — P2-7.B À INSTRUIRE.*
+*P2-7 EN COURS — P2-7.C À INSTRUIRE.*
