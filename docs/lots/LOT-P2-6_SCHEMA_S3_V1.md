@@ -177,13 +177,48 @@ Ce conflit n'est pas tranché par LOT-P2-6. Il est signalé comme condition néc
 
 Les forces Constellium (Feu · Air · Terre · Eau · Éther) font l'objet de DT-FORCES-01 — instruit, non décidé, Q-1→Q-5 ouvertes. Leur nature familiale est indéterminée. Elles sont exclues provisoirement du périmètre de ce lot — même pattern que LOT-P2-4 §5.8 et LOT-P2-5 §5.4. Aucune décision produite dans ce lot ne les concerne.
 
+### §5.6 DT-S3-1 — Périmètre opérationnel de RF-R3 · TRANCHÉE AVEC BORNE · 2026-08-16
+
+**Question :** Périmètre opérationnel de RF-R3 — condition "traité par un module d'analyse visuelle" · liste illustrative ou fermée · frontières S3/S1, S3/S2, S3/S5 · mécanisme de dérivation.
+
+**Statut :** TRANCHÉE AVEC BORNE — 2026-08-16
+
+#### D1a — Condition ontologique
+
+Le syntagme "traité par un module d'analyse visuelle" est une **condition ontologique** portant sur l'origine du datum : une donnée est S3 si et seulement si elle a été produite par l'analyse d'un support visuel par un module d'analyse visuelle. Cette condition qualifie le datum — elle est infrastructure-neutre. Tout datum produit par l'analyse d'un support visuel par un module satisfaisant ce critère fonctionnel est classifié S3, quelle que soit la nature technique de ce module. L'inactivité de S3 en Phase A (CL-P4) résulte de l'absence de module activé, non d'une inapplicabilité de RF-R3.
+
+**Nature de D1a — décision architecturale motivée :**
+La formulation ontologique retenue par D1a est une décision de DT-S3-1 construite à partir de la convergence de RF-R3, DI5 et CL-P4. Aucun de ces textes ne formule littéralement à lui seul l'équivalence complète retenue par D1a. D1a précise donc le sens opérationnel du corpus sans modifier le texte figé de RF-R3. Elle ne doit pas être citée ultérieurement comme une exigence textuelle directement énoncée par RF-R3.
+
+#### D1b — Liste illustrative
+
+Les trois formes citées par RF-R3 (image · capture d'écran · tout support graphique) constituent une **liste illustrative et non fermée**. La condition discriminante est l'origine visuelle primaire combinée au traitement par analyse visuelle. "Tout support graphique" est textuellement un quantificateur universel, non un troisième item d'une liste close.
+
+#### D1c — Frontières conditionnelles
+
+Les frontières suivantes sont conditionnelles au déclenchement de RF-R3. Elles décrivent le résultat du mécanisme DI1 lorsque RF-R3 produit un résultat — elles ne définissent pas la mise en œuvre technique de la condition ontologique établie par D1a, qui sera déterminée dans le périmètre d'activation.
+
+**Frontière S3/S1 :** RF-R3 (priorité 3) précède RF-R5 (priorité 5). Si RF-R3 produit un résultat pour le datum considéré, RF-R5 — qui produit S1 pour un événement transactionnel via DI4 — n'est pas évaluée pour ce même datum ; celui-ci n'est donc pas simultanément classifié S1 par RF-R5. **Fondement :** FB-F2 (LOT-P2-1 §13.3) · CL-A5 (LOT-P2-1 §11.1).
+
+**Frontière S3/S2 :** RF-R3 (priorité 3) précède RF-R5 (priorité 5). RF-R5 couvre également S2 pour un état de composition patrimoniale via DI4. Si RF-R3 produit un résultat pour le datum considéré, RF-R5 n'est pas évaluée pour ce même datum ; celui-ci n'est donc pas simultanément classifié S2 par RF-R5. **Fondement :** DI1 hiérarchie (LOT-P2-1 §12.2). Aucun FB nommé pour la frontière S3/S2 — la hiérarchie DI1 suffit.
+
+**Frontière S3/S5 :** RF-R3 (priorité 3) précède RF-S5 (priorité 3.5). Si RF-R3 produit un résultat pour le datum considéré, RF-S5 n'est pas évaluée pour ce même datum. **Fondement :** DI1 amendé par LOT-P2-4 · DT-S5-2.
+
+#### D1d — Portée exacte de "indépendamment du contenu extrait"
+
+La clause "indépendamment du contenu extrait" gouverne le critère de classification lorsqu'un datum a été produit depuis une source visuelle analysée : la **nature** du contenu n'affecte pas la famille S3. Elle ne se prononce pas sur le cas où l'analyse ne produit aucun contenu. La question de l'existence d'un datum S3 en l'absence de contenu extrait est non résolue par RF-R3 seul — elle dépend de DT-S3-2 et DT-S3-3. DT-S3-1 ne tranche pas ce cas.
+
+#### BORNE-S3-1 — Dérivation secondaire · NON DÉTERMINÉ
+
+La doctrine actuelle (IG-I2 · IG-I5 · EP-RC1) ne définit pas si la sortie extraite ou transformée par le module d'analyse visuelle depuis un support S3 constitue : (a) la même donnée que la trace S3, (b) une représentation de cette donnée, (c) un nouveau datum canonique susceptible d'une classification indépendante par DI1. En l'absence de cette définition, IG-I2 (unicité de famille par datum) ne suffit ni à autoriser ni à interdire une classification secondaire de cet output en S2 ou S5 — la règle s'applique à un datum dont la nature est déterminée, non à un objet dont le statut canonique est indéfini. IG-I5 et EP-RC1 ne suffisent pas davantage à résoudre cette question : leur portée ne définit pas le statut canonique d'une éventuelle sortie extraite ou transformée au regard des trois possibilités (a), (b) et (c). Cette indétermination est enregistrée. Son traitement sera déterminé dans le périmètre compétent.
+
 ---
 
 ## §6 Décisions à trancher
 
 | ID | Question ouverte | Statut | Prérequis |
 |---|---|---|---|
-| DT-S3-1 | Périmètre opérationnel de RF-R3 — condition "traité par un module" · liste illustrative ou fermée · frontières S3/S2 et S3/S5 par dérivation | **À INSTRUIRE** | Ouverture lot |
+| DT-S3-1 | Périmètre opérationnel de RF-R3 — condition "traité par un module" · liste illustrative ou fermée · frontières S3/S2 et S3/S5 par dérivation | **TRANCHÉE AVEC BORNE · §5.6 · 2026-08-16** | Ouverture lot |
 | DT-S3-2 | Quel est le grain canonique d'une trace S3 ? Une trace par image analysée ou une trace par datum extrait ? | **À INSTRUIRE** | DT-S3-1 |
 | DT-S3-3 | Quelle est la structure du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe déléguant au module ? | **À INSTRUIRE** | DT-S3-1 · DT-S3-2 |
 | DT-S3-4 | Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté | **À INSTRUIRE** | DT-S3-1 · DT-S3-3 |
@@ -244,4 +279,4 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — ouverture 2026-08-16 · DT-S3-1→DT-S3-5 À INSTRUIRE.*
+*P2-6 EN COURS — ouverture 2026-08-16 · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2→DT-S3-5 À INSTRUIRE.*
