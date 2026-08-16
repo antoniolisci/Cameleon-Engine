@@ -290,6 +290,40 @@ Aucune des possibilités ouvertes n'est fermée ou favorisée par DT-S3-3. Son t
 
 *(Cette borne est indépendante de BORNE-S3-1, qui porte sur le statut canonique d'une éventuelle sortie extraite ou transformée depuis un support S3, et de BORNE-S3-2, qui porte sur l'identité des supports et la relation entre plusieurs analyses.)*
 
+### §5.9 DT-S3-4 — Position de S3 en Phase A · TRANCHÉE · 2026-08-16
+
+**Question :** Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté.
+
+**Statut :** TRANCHÉE — 2026-08-16
+
+#### D4a — Position de S3 en Phase A (décision architecturale motivée)
+
+S3 est silencieuse en Phase A. Aucune trace S3 n'est produite tant que S3 n'a pas été formellement activée dans le périmètre compétent.
+
+L'existence ontologique de S3 (DT-S3-1), la définition de son grain (DT-S3-2) et l'état canonique actuel du champ `valeur` (DT-S3-3) décrivent l'état doctrinal actuel de S3 ; ils ne constituent pas son activation.
+
+Cette décision est fondée sur la convergence des éléments suivants, dont les statuts sont explicitement distingués :
+
+| Argument | Source | Statut exact |
+|---|---|---|
+| CL-P4 — "S3 inactive Phase A · aucune ingestion" | LOT-P2-1 §14 | **Ancrage principal · textuel** — formulation la plus explicite du corpus. DT-S3-4 traduit "aucune ingestion" en silence total sans reformulation. |
+| D1a — inactivité S3 = absence de module activé | DT-S3-1 §5.6 | **Convergence architecturale** — l'ontologie de S3 est infrastructure-neutre, mais l'acquisition exige un module opérationnel activé. |
+| IG-I6 — silence structurel si mécanisme absent | LOT-P2-1 §6 | **Signal normatif fort** — sans module d'analyse visuelle activé, aucun mécanisme d'acquisition S3 reproductible n'existe. |
+| I-01 — conflit architectural non tranché | §5.4 | **Contexte structurel · non fondement principal** — la nature du futur module (cloud / local-first) n'est pas décidée. La décision de silence tient sans I-01 : CL-P4 seul suffit. I-01 reste entièrement ouvert. |
+| DT-S4-4 Option A · DT-S5-4 Position Gamma | LOT-P2-5 · LOT-P2-4 | **Précédent de séquençage** — définition ontologique ≠ activation, applicable à S3 indépendamment des différences de mécanisme d'acquisition. |
+
+#### D4b — Activation future
+
+Les conditions nécessaires à une activation future de S3 restent à déterminer dans le périmètre compétent. DT-S3-4 ne les établit pas. DT-S3-5 tranchera la question d'EP-S3. La question de I-01 et de la Doctrine de la Mémoire Visuelle (GPD V1 §8.4) relève de périmètres distincts non résolus dans ce lot.
+
+#### D4c — Ce que DT-S3-4 ne tranche pas
+
+- I-01 reste non tranché.
+- BORNE-S3-1, BORNE-S3-2 et BORNE-S3-3 restent ouvertes.
+- D2c reste ouverte.
+- Le contenu d'EP-S3 est délégué à DT-S3-5.
+- DT-S3-4 ne produit aucune borne résiduelle.
+
 ---
 
 ## §6 Décisions à trancher
@@ -299,7 +333,7 @@ Aucune des possibilités ouvertes n'est fermée ou favorisée par DT-S3-3. Son t
 | DT-S3-1 | Périmètre opérationnel de RF-R3 — condition "traité par un module" · liste illustrative ou fermée · frontières S3/S2 et S3/S5 par dérivation | **TRANCHÉE AVEC BORNE · §5.6 · 2026-08-16** | Ouverture lot |
 | DT-S3-2 | Quel est le grain canonique d'une trace S3 ? Une trace par image analysée ou une trace par datum extrait ? | **TRANCHÉE AVEC BORNE · §5.7 · 2026-08-16** | DT-S3-1 |
 | DT-S3-3 | Quelle est la structure du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe déléguant au module ? | **TRANCHÉE AVEC BORNE · §5.8 · 2026-08-16** | DT-S3-1 · DT-S3-2 |
-| DT-S3-4 | Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté | **À INSTRUIRE** | DT-S3-1 · DT-S3-3 |
+| DT-S3-4 | Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté | **TRANCHÉE · §5.9 · 2026-08-16** | DT-S3-1 · DT-S3-3 |
 | DT-S3-5 | Quelles sont les exigences de provenance EP-S3 ? Différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5) ? Compatibilité avec I-01 requise | **À INSTRUIRE** | DT-S3-4 |
 
 ---
@@ -357,5 +391,6 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C EN COURS · P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4→DT-S3-5 À INSTRUIRE.*
+*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C EN COURS · P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4 TRANCHÉE · DT-S3-5 À INSTRUIRE.*
 *P2-6.B VALIDÉ — DT-S3-2 TRANCHÉE AVEC BORNE · grain canonique S3 = support visuel · BORNE-S3-2 enregistrée · DT-S3-3 TRANCHÉE AVEC BORNE · champ `valeur` non surspécifié · contrainte minimale RV4 · BORNE-S3-3 enregistrée · D2c reste ouverte.*
+*DT-S3-4 TRANCHÉE — S3 silencieuse Phase A · ancrage CL-P4 · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte · DT-S3-5 À INSTRUIRE.*
