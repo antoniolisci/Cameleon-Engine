@@ -324,6 +324,54 @@ Les conditions nécessaires à une activation future de S3 restent à détermine
 - Le contenu d'EP-S3 est délégué à DT-S3-5.
 - DT-S3-4 ne produit aucune borne résiduelle.
 
+### §5.10 DT-S3-5 — Exigences de provenance EP-S3 · TRANCHÉE · 2026-08-16
+
+**Question :** Quelles sont les exigences de provenance EP-S3 ? Différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5) ? Compatibilité avec I-01 requise.
+
+**Statut :** TRANCHÉE — 2026-08-16
+
+#### D5a — EP-S3 formellement différée (décision fondée textuellement)
+
+Les exigences de provenance de la famille S3 sont formellement différées à l'activation du module d'analyse visuelle correspondant. Aucun contenu opérationnel d'EP-S3 n'est défini dans ce lot.
+
+Cette décision est fondée sur deux textes concourants, dont les formulations sont explicites :
+
+| Source | Texte exact | Statut |
+|---|---|---|
+| LOT-P2-1 §14.4 | "Les familles S3 · [etc.] sont inactives en Phase A. Leurs exigences de provenance seront définies dans EP lors de l'activation de leur module écrivant ou de leur source d'ingestion respective." | **Ancrage principal · textuel** |
+| LOT-P1-2.4 §4.5 | "Il ne couvre pas les familles inactives (S3, S4, S5, ...) — leurs sources seront définies dans leur doctrine de provenance respective, au moment de leur activation." | **Confirmant · textuel** |
+
+La compatibilité avec CL-P4 et DT-S3-4 (§5.9) est totale : le silence Phase A et la différée EP procèdent du même ancrage — l'absence de module d'analyse visuelle activé.
+
+#### D5b — Cadre documentaire connu applicable à EP-S3
+
+Les éléments suivants sont déjà établis par le corpus applicable. Ils constituent le cadre documentaire connu auquel la future EP-S3 devra être confrontée lors de son activation, sans que DT-S3-5 n'en définisse ici le contenu opérationnel propre à S3.
+
+| Champ EP | Obligation | Fondement textuel |
+|---|---|---|
+| Source | Obligatoire | IG-I4 · LOT-P1-2.4 §3.2 · LOT-P1-2.1 §5.2 |
+| Date | Obligatoire — ISO 8601 UTC produite par la couche | LOT-P1-2.4 §3.2 · LOT-P1-2.1 §5.3 |
+| Contexte | Optionnel (RV5 > O4) | LOT-P1-2.1 §5.4 · EP-RC3 · LOT-P2-1 §14.2 |
+| Session | Optionnelle | LOT-P1-2.4 §6 · LOT-P2-1 §14.2 |
+
+**Caractérisation fonctionnelle de la source :** DI5 (LOT-P2-1 §5 — impact EP) établit que "la source d'une trace S3 est le module de reconnaissance visuelle, pas le format de fichier". La valeur précise du champ Source reste à définir dans le LOT d'activation, en cohérence avec la résolution de I-01.
+
+La structure applicable est la structure uniforme DI3 Option B (LOT-P2-1 §14.2). Le contenu différencié propre à S3 est à définir à l'activation.
+
+#### D5c — Pourquoi l'anticipation (modèle DT-S4-5) n'est pas fondée pour S3
+
+Pour DT-S4-5, la valeur "Opérateur" pour le champ Source était directement déductible de RF-R4 ("annotation manuelle ou journal de l'opérateur") et DI5 — le producteur de la trace S4 est l'opérateur, identifiable indépendamment de toute infrastructure externe. Cette déductibilité propre à S4 n'existe pas pour S3 : la valeur du champ Source dépend de l'identité du module d'analyse visuelle, non encore décidée (I-01 ouvert). Toute anticipation de contenu opérationnel d'EP-S3 constituerait une nouvelle décision architecturale sans fondement canonique à ce stade et risquerait de contraindre la résolution de I-01.
+
+#### D5d — Ce que DT-S3-5 ne tranche pas
+
+- I-01 reste non tranché.
+- La valeur précise du champ Source de la trace S3 reste à définir à l'activation.
+- Le contenu du champ Contexte pour S3 reste à définir à l'activation.
+- La définition opérationnelle de Session pour S3 reste à définir à l'activation.
+- BORNE-S3-1, BORNE-S3-2 et BORNE-S3-3 restent ouvertes.
+- D2c reste ouverte.
+- DT-S3-5 ne produit aucune borne résiduelle.
+
 ---
 
 ## §6 Décisions à trancher
@@ -334,7 +382,7 @@ Les conditions nécessaires à une activation future de S3 restent à détermine
 | DT-S3-2 | Quel est le grain canonique d'une trace S3 ? Une trace par image analysée ou une trace par datum extrait ? | **TRANCHÉE AVEC BORNE · §5.7 · 2026-08-16** | DT-S3-1 |
 | DT-S3-3 | Quelle est la structure du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe déléguant au module ? | **TRANCHÉE AVEC BORNE · §5.8 · 2026-08-16** | DT-S3-1 · DT-S3-2 |
 | DT-S3-4 | Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté | **TRANCHÉE · §5.9 · 2026-08-16** | DT-S3-1 · DT-S3-3 |
-| DT-S3-5 | Quelles sont les exigences de provenance EP-S3 ? Différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5) ? Compatibilité avec I-01 requise | **À INSTRUIRE** | DT-S3-4 |
+| DT-S3-5 | Quelles sont les exigences de provenance EP-S3 ? Différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5) ? Compatibilité avec I-01 requise | **TRANCHÉE · §5.10 · 2026-08-16** | DT-S3-4 |
 
 ---
 
@@ -391,6 +439,7 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C EN COURS · P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4 TRANCHÉE · DT-S3-5 À INSTRUIRE.*
+*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C EN COURS · P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4 TRANCHÉE · DT-S3-5 TRANCHÉE.*
 *P2-6.B VALIDÉ — DT-S3-2 TRANCHÉE AVEC BORNE · grain canonique S3 = support visuel · BORNE-S3-2 enregistrée · DT-S3-3 TRANCHÉE AVEC BORNE · champ `valeur` non surspécifié · contrainte minimale RV4 · BORNE-S3-3 enregistrée · D2c reste ouverte.*
-*DT-S3-4 TRANCHÉE — S3 silencieuse Phase A · ancrage CL-P4 · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte · DT-S3-5 À INSTRUIRE.*
+*DT-S3-4 TRANCHÉE — S3 silencieuse Phase A · ancrage CL-P4 · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
+*DT-S3-5 TRANCHÉE — EP-S3 formellement différée à activation · cadre DI3 Option B documenté · source = module de reconnaissance visuelle (DI5) · valeur Source non fixée · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
