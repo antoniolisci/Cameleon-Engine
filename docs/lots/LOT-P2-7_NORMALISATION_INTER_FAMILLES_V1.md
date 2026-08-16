@@ -51,7 +51,10 @@ Les lots amont ont documenté des indéterminations qui affectent directement le
 | BORNE-S4-1 | LOT-P2-5 §5.4 | Authorship du copy-paste externe — NON DÉTERMINÉ |
 | BORNE-S4-2 | LOT-P2-5 §5.5 | Frontière opérationnelle entre contributions distinctes — NON DÉTERMINÉ |
 
-Ces bornes seront documentées quant à leur impact sur la normalisation inter-familles. Leur résolution relève des lots d'activation respectifs.
+Ces bornes ont été instruites quant à leur impact sur les règles effectives de normalisation inter-familles au cours de LOT-P2-7.
+BORNE-S3-3 concerne le champ `valeur` S3, dimension pour laquelle aucune règle effective de normalisation inter-familles n'a été établie dans ce lot ; elle n'a donc pas d'incidence sur les règles de normalisation du champ `date`.
+BORNE-S4-1 et BORNE-S4-2 concernent respectivement l'authorship et la frontière des contributions S4 ; elles n'ont pas d'incidence sur les règles de normalisation du champ `date` établies en P2-7.B.
+Ces trois bornes restent ouvertes et leur résolution relève des lots d'activation respectifs.
 
 ---
 
@@ -201,7 +204,7 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 |---|---|---|
 | P2-7.A — Instrumentation | Définir la sémantique de « normalisation inter-familles » · identifier les axes et formats concernés · produire les décisions à trancher | **VALIDÉ · 2026-08-16** |
 | P2-7.B — Règles effectives | Produire les règles effectives de normalisation pour les dimensions fondées par le corpus et documenter les limitations strictement nécessaires révélées par leur instruction | **VALIDÉ · 2026-08-16** |
-| P2-7.C — Validation documentaire | DQC V2 CAS A · double revue indépendante · CV-1→CV-9 | **À INSTRUIRE** |
+| P2-7.C — Validation documentaire | DQC V2 CAS A · double revue indépendante · CV-1→CV-9 | **VALIDÉ · 2026-08-16** |
 
 ### §7.2 — Critères de passage P2-7.A
 
@@ -217,7 +220,7 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 | Condition | Statut |
 |---|---|
 | P2-7.B VALIDÉ | SATISFAIT · 2026-08-16 |
-| P2-7.C VALIDÉ | EN ATTENTE |
+| P2-7.C VALIDÉ | SATISFAIT · 2026-08-16 |
 
 ---
 
@@ -243,12 +246,12 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 |---|---|
 | P2-7.A VALIDÉ | SATISFAIT · 2026-08-16 |
 | P2-7.B VALIDÉ | SATISFAIT · 2026-08-16 |
-| P2-7.C VALIDÉ | EN ATTENTE |
-| CV-1→CV-9 PASS | EN ATTENTE |
-| DQC V2 CAS A | EN ATTENTE |
-| DQC V3 PASS | EN ATTENTE |
+| P2-7.C VALIDÉ | SATISFAIT · 2026-08-16 |
+| CV-1→CV-9 PASS | SATISFAIT · 2026-08-16 |
+| DQC V2 CAS A | SATISFAIT · d82a19b · 2026-08-16 |
+| DQC V3 PASS | SATISFAIT · 2026-08-16 |
 | Décision opérateur explicite de clôture | EN ATTENTE |
 
 ---
 
-*P2-7 EN COURS — P2-7.C À INSTRUIRE.*
+*P2-7 EN COURS — P2-7.C VALIDÉ · 2026-08-16. Décision opérateur de clôture requise.*
