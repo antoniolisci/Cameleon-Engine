@@ -397,7 +397,7 @@ LOT-P2-6 est un lot de doctrine pure. Ses micro-lots correspondent aux étapes d
 | **P2-6.A** — Ontologie S3 & frontières | Définir le périmètre de RF-R3 (DT-S3-1) · confirmer frontières S3/S1, S3/S2, S3/S5 · auditer mécanisme de dérivation éventuel | DT-S3-1 | Ouverture lot | **VALIDÉ** |
 | **P2-6.B** — Grain et structure canonique | Définir le grain de trace S3 (DT-S3-2) · définir la valeur canonique S3 (DT-S3-3) · schéma complet | DT-S3-2 **TRANCHÉE AVEC BORNE** · BORNE-S3-2 enregistrée · DT-S3-3 **TRANCHÉE AVEC BORNE** · BORNE-S3-3 enregistrée | P2-6.A VALIDÉ | **VALIDÉ** |
 | **P2-6.C** — Périmètre Phase A & provenance | Trancher la position Phase A (DT-S3-4) · rédiger ou différer EP-S3 (DT-S3-5) | DT-S3-4 **TRANCHÉE** · S3 silencieuse Phase A · DT-S3-5 **TRANCHÉE** · EP-S3 différée à activation · cadre DI3 documenté | P2-6.B VALIDÉ | **VALIDÉ** |
-| **P2-6.D** — Validation documentaire | Vérifier la cohérence globale · CV-1→CV-9 · DQC V2 CAS A | — | P2-6.C VALIDÉ | À INSTRUIRE |
+| **P2-6.D** — Validation documentaire | Vérifier la cohérence globale · CV-1→CV-9 · DQC V2 CAS A | — | P2-6.C VALIDÉ | **VALIDÉ** |
 
 ### §7.2 Contrainte architecturale
 
@@ -439,8 +439,9 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C VALIDÉ · P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4 TRANCHÉE · DT-S3-5 TRANCHÉE.*
+*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C VALIDÉ · P2-6.D VALIDÉ · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4 TRANCHÉE · DT-S3-5 TRANCHÉE.*
 *P2-6.B VALIDÉ — DT-S3-2 TRANCHÉE AVEC BORNE · grain canonique S3 = support visuel · BORNE-S3-2 enregistrée · DT-S3-3 TRANCHÉE AVEC BORNE · champ `valeur` non surspécifié · contrainte minimale RV4 · BORNE-S3-3 enregistrée · D2c reste ouverte.*
 *DT-S3-4 TRANCHÉE — S3 silencieuse Phase A · ancrage CL-P4 · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
 *DT-S3-5 TRANCHÉE — EP-S3 formellement différée à activation · cadre DI3 Option B documenté · source = module de reconnaissance visuelle (DI5) · valeur Source non fixée · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
 *P2-6.C VALIDÉ — DT-S3-4 TRANCHÉE · S3 silencieuse Phase A · ancrage CL-P4 · DT-S3-5 TRANCHÉE · EP-S3 différée à activation · cadre DI3 Option B documenté · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
+*P2-6.D VALIDÉ — CV-1→CV-9 PASS · DQC V2 CAS A · double revue indépendante · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte · I-01 non tranché.*
