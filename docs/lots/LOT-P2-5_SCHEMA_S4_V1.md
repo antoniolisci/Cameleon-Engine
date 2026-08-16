@@ -10,9 +10,9 @@
 | Phase Roadmap V1 | A |
 | Type | Doctrine — Schéma canonique |
 | Document officiel | `docs/lots/LOT-P2-5_SCHEMA_S4_V1.md` |
-| Statut | EN COURS |
+| Statut | CLOS |
 | Date d'ouverture | 2026-08-15 |
-| Date de clôture | — |
+| Date de clôture | 2026-08-16 |
 | Prérequis | LOT-P2-1 CLOS · LOT-P2-4 CLOS |
 
 ---
@@ -466,3 +466,4 @@ RF-R4 est figée dans la hiérarchie DI1 de LOT-P2-1 (priorité 4, après RF-S5,
 *P2-5.B VALIDÉ — DT-S4-2 TRANCHÉE AVEC BORNE · Option A · grain = contribution personnelle distincte · BORNE-S4-2 enregistrée · DT-S4-3 TRANCHÉE · contenu textuel libre · sans structuration imposée.*
 *P2-5.C VALIDÉ — DT-S4-4 TRANCHÉE · Option A · S4 silencieuse Phase A · décision architecturale motivée · DT-S4-5 TRANCHÉE · EP-S4 définie en anticipation de l'activation.*
 *P2-5.D VALIDÉ — DQC V2 CAS A · CV-1→CV-9 PASS · deux revues indépendantes (§3.1 · orthographe) · document propre.*
+*LOT-P2-5 CLOS — 2026-08-16 · décision opérateur explicite · S4 silencieuse Phase A · BORNE-S4-1/BORNE-S4-2 NON DÉTERMINÉES · activation S4 = LOT distinct.*
