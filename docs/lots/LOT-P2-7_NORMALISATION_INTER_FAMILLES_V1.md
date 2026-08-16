@@ -94,7 +94,7 @@ Les invariants figés dans LOT-P2-1 (RF · FB · DI · IG) et les schémas clos 
 
 ---
 
-## §5 — Question centrale
+## §5 — Instrumentation et règles de normalisation inter-familles
 
 ### §5.1 — Question centrale · INSTRUITE · P2-7.A
 
@@ -106,13 +106,13 @@ La réponse à cette question centrale a déterminé l'existence, le nombre et l
 
 ---
 
-## §5.2 — Règles effectives de normalisation inter-familles · P2-7.B
+### §5.2 — Règles effectives de normalisation inter-familles · P2-7.B
 
-### Fondement commun hérité
+#### Fondement commun hérité
 
 Le champ `date` est obligatoire pour toute trace canonique S1→S5. Cette obligation est établie par **RV3 (LOT-P1-2.1 §5.3)** et **DI3 structure uniforme (LOT-P2-1 §14.2)**. LOT-P2-7 n'est pas une source de vérité pour cette obligation — elle est héritée et reprise ici comme fondement commun des trois règles ci-dessous.
 
-### Règle 1 — Format différencié par famille
+#### Règle 1 — Format différencié par famille
 
 **Fondement :** EP-S1/EP-S2 (LOT-P2-1 §14.4) · EP-RC2 (LOT-P2-1 §14.5) · DT-S4-5 (LOT-P2-5 §5.9) · EP-S5-R2 (LOT-P2-4 §5.10) · D5b (LOT-P2-6 §5.10)
 
@@ -128,7 +128,7 @@ Le format admis du champ `date` diffère selon la famille :
 
 Cette différenciation de format est rendue explicitement observable dans un contexte cross-familles, conformément à la décision centrale (§6).
 
-### Règle 2 — Différence sémantique inter-familles
+#### Règle 2 — Différence sémantique inter-familles
 
 **Fondement :** EP-S1 (LOT-P2-1 §14.4) · EP-S2 (LOT-P2-1 §14.4) · TB-2/TB-3 (LOT-P2-3) · DT-S4-5 (LOT-P2-5 §5.9) · EP-S5-R2 (LOT-P2-4 §5.10) · D5b (LOT-P2-6 §5.10)
 
@@ -144,7 +144,7 @@ La fissure sémantique entre S1/S2 (extraction depuis le fichier source) et S4/S
 
 La règle de normalisation ne résout pas cette différence sémantique. Elle la rend explicitement observable.
 
-### Règle 3 — Périmètre des états formalisés inter-familles
+#### Règle 3 — Périmètre des états formalisés inter-familles
 
 **Fondement :** EP-RC2 (LOT-P2-1 §14.5) · R1/R3/R4 (LOT-P2-1 §14.3) · DT-S4-5 (LOT-P2-5 §5.9)
 
@@ -159,7 +159,7 @@ La règle de normalisation ne résout pas cette différence sémantique. Elle la
 
 L'état R4 contient de l'information temporelle réelle normalisable en ISO 8601 UTC (LOT-P2-1 §14.3 · LOT-P1-2.1 §6). La normalisation de R4 relève de l'implémentation technique (Programme P3+) — hors périmètre de LOT-P2-7 (§3.2).
 
-### Indéterminations résiduelles
+#### Indéterminations résiduelles
 
 | Indétermination | Périmètre de résolution |
 |---|---|
@@ -169,7 +169,7 @@ L'état R4 contient de l'information temporelle réelle normalisable en ISO 8601
 | Normalisation de R4 (epoch ms → ISO 8601 UTC) | Programme P3+ |
 | `date_phenomene` comme règle inter-familles S4 | LOT d'activation S4 |
 
-### Bornes préservées
+#### Bornes préservées
 
 | Borne | Statut |
 |---|---|
