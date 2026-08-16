@@ -7,9 +7,9 @@
 | Programme | P2 — Doctrine des Sources & Schémas d'Ingestion |
 | Phase Roadmap V1 | A |
 | Type | Doctrine — Règles de normalisation |
-| Statut | EN COURS |
+| Statut | CLOS |
 | Date d'ouverture | 2026-08-16 |
-| Date de clôture | — |
+| Date de clôture | 2026-08-16 |
 | Prérequis | LOT-P2-1 CLOS · LOT-P2-6 CLOS |
 
 ---
@@ -250,8 +250,8 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 | CV-1→CV-9 PASS | SATISFAIT · 2026-08-16 |
 | DQC V2 CAS A | SATISFAIT · d82a19b · 2026-08-16 |
 | DQC V3 PASS | SATISFAIT · 2026-08-16 |
-| Décision opérateur explicite de clôture | EN ATTENTE |
+| Décision opérateur explicite de clôture | SATISFAIT · 2026-08-16 |
 
 ---
 
-*P2-7 EN COURS — P2-7.C VALIDÉ · 2026-08-16. Décision opérateur de clôture requise.*
+*LOT-P2-7 CLOS · 2026-08-16 · opérateur Antonio Lisci.*
