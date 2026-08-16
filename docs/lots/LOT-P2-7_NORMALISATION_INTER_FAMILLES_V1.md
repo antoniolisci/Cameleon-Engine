@@ -127,7 +127,8 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 | Micro-lot | Mission | Statut |
 |---|---|---|
 | P2-7.A — Instrumentation | Définir la sémantique de « normalisation inter-familles » · identifier les axes et formats concernés · produire les décisions à trancher | **VALIDÉ · 2026-08-16** |
-| Micro-lots suivants | À déterminer après P2-7.A | **À DÉTERMINER après P2-7.A** |
+| P2-7.B — Règles effectives | Produire les règles effectives de normalisation pour les dimensions fondées par le corpus et documenter les limitations strictement nécessaires révélées par leur instruction | **À INSTRUIRE** |
+| P2-7.C — Validation documentaire | DQC V2 CAS A · double revue indépendante · CV-1→CV-9 | **À DÉTERMINER après P2-7.B** |
 
 ### §7.2 — Critères de passage P2-7.A
 
@@ -140,7 +141,10 @@ LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 
 ### §7.3 — Conditions de clôture
 
-Les conditions de clôture seront établies après P2-7.A, une fois que la structure effective du lot sera connue.
+| Condition | Statut |
+|---|---|
+| P2-7.B VALIDÉ | EN ATTENTE |
+| P2-7.C VALIDÉ | EN ATTENTE |
 
 ---
 
@@ -165,7 +169,7 @@ Les conditions de clôture seront établies après P2-7.A, une fois que la struc
 | Condition | Statut |
 |---|---|
 | P2-7.A VALIDÉ | SATISFAIT · 2026-08-16 |
-| Micro-lots suivants VALIDÉS | À DÉTERMINER après P2-7.A |
+| P2-7.B · P2-7.C VALIDÉS | EN ATTENTE |
 | CV-1→CV-9 PASS | EN ATTENTE |
 | DQC V2 CAS A | EN ATTENTE |
 | DQC V3 PASS | EN ATTENTE |
@@ -173,4 +177,4 @@ Les conditions de clôture seront établies après P2-7.A, une fois que la struc
 
 ---
 
-*P2-7 EN COURS — P2-7.A VALIDÉ · 2026-08-16.*
+*P2-7 EN COURS — P2-7.B À INSTRUIRE.*
