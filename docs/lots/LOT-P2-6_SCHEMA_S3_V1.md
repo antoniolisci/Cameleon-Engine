@@ -239,6 +239,57 @@ La doctrine canonique actuelle ne définit pas : (1) le critère d'identité ou 
 
 *(Cette borne est indépendante de BORNE-S3-1, qui porte sur le statut canonique d'une éventuelle sortie extraite ou transformée depuis un support S3.)*
 
+### §5.8 DT-S3-3 — Structure du champ `valeur` d'une trace S3 · TRANCHÉE AVEC BORNE · 2026-08-16
+
+**Question :** Quelle est la structure canonique du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe · autre ?
+
+**Statut :** TRANCHÉE AVEC BORNE — 2026-08-16
+
+#### D3a — Contraintes minimales du champ `valeur` (fondement textuel)
+
+Toute trace S3 possède un champ `valeur` conformément au modèle canonique de trace (IG-I1 · LOT-P1-2.1 §5). Ce champ doit satisfaire la règle RV4 (LOT-P1-2.1 §8.1) : la trace porte une valeur non absente. Une valeur absente ou sémantiquement vide est invalide et entraîne le rejet de la trace à l'ingestion (LOT-P1-2.2 §4.2).
+
+DT-S3-3 n'établit aucune contrainte additionnelle sur ce que le champ `valeur` représente.
+
+#### D3b — Non-détermination sémantique et structurelle
+
+DT-S3-3 ne dispose pas d'un fondement doctrinal suffisant pour fixer :
+
+- ce que le champ `valeur` d'une trace S3 représente sémantiquement ;
+- sa structure (texte libre · objet · enveloppe · scalaire · ou autre) ;
+- son format ou sa représentation technique ;
+- ses éventuels champs internes ;
+- la définition opérationnelle de « sémantiquement vide » pour une trace S3.
+
+Cette non-détermination n'est pas une lacune : elle reflète l'état actuel du corpus canonique, qui ne fonde pas ces choix à ce stade. Son traitement sera déterminé dans le périmètre compétent.
+
+#### D3c — DI5 / FB-F2 : tension d'interprétation à préserver
+
+DI5 (LOT-P2-1 §5) formule : « la valeur mémorielle est la capture elle-même, pas les données extraites ». FB-F2 (LOT-P2-1 §13.3) précise : « le contenu extrait par analyse est un artefact de ce processus d'observation — il n'est pas l'objet mémoriel ».
+
+Ces formulations créent une tension d'interprétation sur la nature de ce que le champ `valeur` devrait représenter pour une trace S3. DT-S3-3 ne tranche pas cette tension. Elle devra être prise en compte et résolue lors du traitement de BORNE-S3-3, sans modification des textes de DI5 et de FB-F2.
+
+#### D3d — Portée sur D2c / cas zéro contenu
+
+D2c (§5.7) avait délégué la question de la persistabilité d'une trace S3 en l'absence de contenu exploitable à DT-S3-3 et aux règles de validité applicables.
+
+DT-S3-3 ne résout pas D2c. Aucune équivalence n'est établie entre zéro contenu et valeur vide. La règle RV4 s'appliquera une fois la sémantique du champ `valeur` déterminée — c'est dans ce périmètre que D2c pourra être instruite. D2c reste ouverte.
+
+#### BORNE-S3-3 — Nature, structure et format du champ `valeur` · NON DÉTERMINÉ
+
+La doctrine canonique actuelle ne détermine pas :
+
+(a) ce que le champ `valeur` d'une trace S3 représente sémantiquement — résultat analytique, représentation du support, observation, sortie brute, ou toute autre nature ;
+(b) sa structure (texte · objet structuré · enveloppe · scalaire · autre) ;
+(c) son format et sa représentation technique ;
+(d) ses éventuels champs internes ;
+(e) la définition opérationnelle de « sémantiquement vide » pour une trace S3 ;
+(f) la résolution de la tension introduite par DI5 et FB-F2 sur la nature de l'objet mémoriel S3 — cette tension contraint la résolution future sans la préempter.
+
+Aucune des possibilités ouvertes n'est fermée ou favorisée par DT-S3-3. Son traitement sera déterminé dans le périmètre compétent.
+
+*(Cette borne est indépendante de BORNE-S3-1, qui porte sur le statut canonique d'une éventuelle sortie extraite ou transformée depuis un support S3, et de BORNE-S3-2, qui porte sur l'identité des supports et la relation entre plusieurs analyses.)*
+
 ---
 
 ## §6 Décisions à trancher
@@ -247,7 +298,7 @@ La doctrine canonique actuelle ne définit pas : (1) le critère d'identité ou 
 |---|---|---|---|
 | DT-S3-1 | Périmètre opérationnel de RF-R3 — condition "traité par un module" · liste illustrative ou fermée · frontières S3/S2 et S3/S5 par dérivation | **TRANCHÉE AVEC BORNE · §5.6 · 2026-08-16** | Ouverture lot |
 | DT-S3-2 | Quel est le grain canonique d'une trace S3 ? Une trace par image analysée ou une trace par datum extrait ? | **TRANCHÉE AVEC BORNE · §5.7 · 2026-08-16** | DT-S3-1 |
-| DT-S3-3 | Quelle est la structure du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe déléguant au module ? | **À INSTRUIRE** | DT-S3-1 · DT-S3-2 |
+| DT-S3-3 | Quelle est la structure du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe déléguant au module ? | **TRANCHÉE AVEC BORNE · §5.8 · 2026-08-16** | DT-S3-1 · DT-S3-2 |
 | DT-S3-4 | Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté | **À INSTRUIRE** | DT-S3-1 · DT-S3-3 |
 | DT-S3-5 | Quelles sont les exigences de provenance EP-S3 ? Différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5) ? Compatibilité avec I-01 requise | **À INSTRUIRE** | DT-S3-4 |
 
@@ -306,4 +357,4 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B EN COURS · P2-6.C→P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3→DT-S3-5 À INSTRUIRE.*
+*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B EN COURS · P2-6.C→P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4→DT-S3-5 À INSTRUIRE.*
