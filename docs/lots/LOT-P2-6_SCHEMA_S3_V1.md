@@ -232,12 +232,12 @@ La doctrine actuelle (IG-I2 · IG-I5 · EP-RC1) ne définit pas si la sortie ext
 
 LOT-P2-6 est un lot de doctrine pure. Ses micro-lots correspondent aux étapes de résolution des décisions et à la rédaction du schéma.
 
-| Micro-lot | Mission | Décisions tranchées | Prérequis |
-|---|---|---|---|
-| **P2-6.A** — Ontologie S3 & frontières | Définir le périmètre de RF-R3 (DT-S3-1) · confirmer frontières S3/S1, S3/S2, S3/S5 · auditer mécanisme de dérivation éventuel | DT-S3-1 | Ouverture lot |
-| **P2-6.B** — Grain et structure canonique | Définir le grain de trace S3 (DT-S3-2) · définir la valeur canonique S3 (DT-S3-3) · schéma complet | DT-S3-2 · DT-S3-3 | P2-6.A VALIDÉ |
-| **P2-6.C** — Périmètre Phase A & provenance | Trancher la position Phase A (DT-S3-4) · rédiger ou différer EP-S3 (DT-S3-5) | DT-S3-4 · DT-S3-5 | P2-6.B VALIDÉ |
-| **P2-6.D** — Validation documentaire | Vérifier la cohérence globale · CV-1→CV-9 · DQC V2 CAS A | — | P2-6.C VALIDÉ |
+| Micro-lot | Mission | Décisions tranchées | Prérequis | Statut |
+|---|---|---|---|---|
+| **P2-6.A** — Ontologie S3 & frontières | Définir le périmètre de RF-R3 (DT-S3-1) · confirmer frontières S3/S1, S3/S2, S3/S5 · auditer mécanisme de dérivation éventuel | DT-S3-1 | Ouverture lot | **VALIDÉ** |
+| **P2-6.B** — Grain et structure canonique | Définir le grain de trace S3 (DT-S3-2) · définir la valeur canonique S3 (DT-S3-3) · schéma complet | DT-S3-2 · DT-S3-3 | P2-6.A VALIDÉ | À INSTRUIRE |
+| **P2-6.C** — Périmètre Phase A & provenance | Trancher la position Phase A (DT-S3-4) · rédiger ou différer EP-S3 (DT-S3-5) | DT-S3-4 · DT-S3-5 | P2-6.B VALIDÉ | À INSTRUIRE |
+| **P2-6.D** — Validation documentaire | Vérifier la cohérence globale · CV-1→CV-9 · DQC V2 CAS A | — | P2-6.C VALIDÉ | À INSTRUIRE |
 
 ### §7.2 Contrainte architecturale
 
@@ -279,4 +279,4 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — ouverture 2026-08-16 · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2→DT-S3-5 À INSTRUIRE.*
+*P2-6 EN COURS — P2-6.A VALIDÉ · DT-S3-1 TRANCHÉE AVEC BORNE · P2-6.B→P2-6.D À INSTRUIRE · DT-S3-2→DT-S3-5 À INSTRUIRE.*
