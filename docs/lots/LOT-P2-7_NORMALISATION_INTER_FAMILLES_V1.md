@@ -100,9 +100,9 @@ Les invariants figés dans LOT-P2-1 (RF · FB · DI · IG) et les schémas clos 
 
 **Que signifie « normalisation inter-familles » dans le corpus Caméléon Engine ?**
 
-Le corpus (Roadmap V1 · LOT-P2-1 §3.2 · LOT-P2-4 §3.2 · LOT-P2-6 §3.2) nomme explicitement la « normalisation inter-familles » comme périmètre de LOT-P2-7 sans en définir la sémantique. La définition de cette sémantique — ce que normaliser signifie concrètement pour des données de familles différentes — est la question fondamentale à instruire en P2-7.A.
+Le corpus (Roadmap V1 · LOT-P2-1 §3.2 · LOT-P2-4 §3.2 · LOT-P2-6 §3.2) nomme explicitement la « normalisation inter-familles » comme périmètre de LOT-P2-7 sans en définir la sémantique. La définition de cette sémantique — ce que normaliser signifie concrètement pour des données de familles différentes — est la question fondamentale instruite en P2-7.A.
 
-La réponse à cette question centrale déterminera l'existence, le nombre et la nature des décisions à trancher dans ce lot. Aucune décision ne peut être préemptée avant cette instrumentation.
+La réponse à cette question centrale a déterminé l'existence, le nombre et la nature des décisions à trancher dans ce lot. La décision centrale issue de cette instrumentation est inscrite en §6.
 
 ---
 
