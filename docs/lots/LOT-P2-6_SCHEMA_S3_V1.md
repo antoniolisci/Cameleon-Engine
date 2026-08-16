@@ -10,9 +10,9 @@
 | Phase Roadmap V1 | A |
 | Type | Doctrine — Schéma canonique |
 | Document officiel | `docs/lots/LOT-P2-6_SCHEMA_S3_V1.md` |
-| Statut | EN COURS |
+| Statut | CLOS |
 | Date d'ouverture | 2026-08-16 |
-| Date de clôture | — |
+| Date de clôture | 2026-08-16 |
 | Prérequis | LOT-P2-1 CLOS · LOT-P2-5 CLOS |
 
 ---
@@ -439,9 +439,10 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C VALIDÉ · P2-6.D VALIDÉ · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4 TRANCHÉE · DT-S3-5 TRANCHÉE.*
+*P2-6 CLOS — P2-6.A VALIDÉ · P2-6.B VALIDÉ · P2-6.C VALIDÉ · P2-6.D VALIDÉ · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3 TRANCHÉE AVEC BORNE · DT-S3-4 TRANCHÉE · DT-S3-5 TRANCHÉE.*
 *P2-6.B VALIDÉ — DT-S3-2 TRANCHÉE AVEC BORNE · grain canonique S3 = support visuel · BORNE-S3-2 enregistrée · DT-S3-3 TRANCHÉE AVEC BORNE · champ `valeur` non surspécifié · contrainte minimale RV4 · BORNE-S3-3 enregistrée · D2c reste ouverte.*
 *DT-S3-4 TRANCHÉE — S3 silencieuse Phase A · ancrage CL-P4 · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
 *DT-S3-5 TRANCHÉE — EP-S3 formellement différée à activation · cadre DI3 Option B documenté · source = module de reconnaissance visuelle (DI5) · valeur Source non fixée · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
 *P2-6.C VALIDÉ — DT-S3-4 TRANCHÉE · S3 silencieuse Phase A · ancrage CL-P4 · DT-S3-5 TRANCHÉE · EP-S3 différée à activation · cadre DI3 Option B documenté · I-01 non tranché · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte.*
 *P2-6.D VALIDÉ — CV-1→CV-9 PASS · DQC V2 CAS A · double revue indépendante · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte · I-01 non tranché.*
+*LOT-P2-6 CLOS — 2026-08-16 · décision opérateur · P2-6.A/B/C/D VALIDÉS · DT-S3-1/S3-2/S3-3 TRANCHÉES AVEC BORNE · DT-S3-4/S3-5 TRANCHÉES · DQC V2 CAS A · DQC V3 PASS · BORNE-S3-1/S3-2/S3-3 ouvertes · D2c ouverte · I-01 non tranché.*
