@@ -1,6 +1,6 @@
 # Cameleon Engine
 
-- Notion hub: https://www.notion.so/de96712256b24041a7eb7b2c9394352d
+- Notion hub: https://fine-bream-92f.notion.site/Cam-l-on-Engine-3831ba8c861d8055a87ec8794b1cea50?source=copy_link
 - GitHub repository: https://github.com/antoniolisci/Cameleon-Engine
 
 Application d'aide à la décision pour le trading spot. Produit un diagnostic de marché structuré, un niveau d'engagement autorisé, et une analyse comportementale basée sur l'historique réel de trades.
