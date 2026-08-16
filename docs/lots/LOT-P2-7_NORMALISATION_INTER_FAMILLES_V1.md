@@ -96,7 +96,7 @@ Les invariants figés dans LOT-P2-1 (RF · FB · DI · IG) et les schémas clos 
 
 ## §5 — Question centrale
 
-### §5.1 — Question centrale · À INSTRUIRE EN P2-7.A
+### §5.1 — Question centrale · INSTRUITE · P2-7.A
 
 **Que signifie « normalisation inter-familles » dans le corpus Caméléon Engine ?**
 
@@ -108,7 +108,15 @@ La réponse à cette question centrale déterminera l'existence, le nombre et la
 
 ## §6 — Registre des décisions
 
-*À instrumenter par P2-7.A. Aucune décision inscrite à l'ouverture de ce lot.*
+### Décision centrale — P2-7.A
+
+**Adoptée · 2026-08-16**
+
+La normalisation inter-familles dans Caméléon Engine définit, pour les dimensions où le corpus fonde une représentation commune, les règles permettant leur lecture cohérente dans un contexte cross-familles, sans modifier la sémantique propre de chaque famille ni masquer les différences sémantiques pertinentes entre familles.
+
+Lorsque deux familles emploient un même champ canonique avec des sémantiques différentes, la règle de normalisation doit rendre cette différence explicitement observable plutôt que de la résoudre par uniformisation.
+
+LOT-P2-7 ne modifie aucun schéma canonique S1→S5.
 
 ---
 
@@ -118,17 +126,17 @@ La réponse à cette question centrale déterminera l'existence, le nombre et la
 
 | Micro-lot | Mission | Statut |
 |---|---|---|
-| P2-7.A — Instrumentation | Définir la sémantique de « normalisation inter-familles » · identifier les axes et formats concernés · produire les décisions à trancher | **À INSTRUIRE** |
+| P2-7.A — Instrumentation | Définir la sémantique de « normalisation inter-familles » · identifier les axes et formats concernés · produire les décisions à trancher | **VALIDÉ · 2026-08-16** |
 | Micro-lots suivants | À déterminer après P2-7.A | **À DÉTERMINER après P2-7.A** |
 
 ### §7.2 — Critères de passage P2-7.A
 
 | Condition | Statut |
 |---|---|
-| Sémantique de « normalisation inter-familles » définie et ancrée dans le corpus | EN ATTENTE |
-| Axes et formats concernés identifiés depuis les textes fondateurs | EN ATTENTE |
-| Impact des bornes amont (BORNE-S3-3 · BORNE-S4-1 · BORNE-S4-2) explicité | EN ATTENTE |
-| Registre des décisions à trancher (§6) alimenté ou vide justifié | EN ATTENTE |
+| Sémantique de « normalisation inter-familles » définie et ancrée dans le corpus | SATISFAIT · §6 · 2026-08-16 |
+| Axes et formats concernés identifiés depuis les textes fondateurs | SATISFAIT · P2-7.A · dimension `date` identifiée · `valeur` / `session` / `source` documentées comme non candidates |
+| Impact des bornes amont (BORNE-S3-3 · BORNE-S4-1 · BORNE-S4-2) explicité | SATISFAIT · P2-7.A · bornes préservées · impact sur la décision centrale documenté |
+| Registre des décisions à trancher (§6) alimenté ou vide justifié | SATISFAIT · §6 alimenté · Décision centrale inscrite |
 
 ### §7.3 — Conditions de clôture
 
@@ -156,7 +164,7 @@ Les conditions de clôture seront établies après P2-7.A, une fois que la struc
 
 | Condition | Statut |
 |---|---|
-| P2-7.A VALIDÉ | EN ATTENTE |
+| P2-7.A VALIDÉ | SATISFAIT · 2026-08-16 |
 | Micro-lots suivants VALIDÉS | À DÉTERMINER après P2-7.A |
 | CV-1→CV-9 PASS | EN ATTENTE |
 | DQC V2 CAS A | EN ATTENTE |
@@ -165,4 +173,4 @@ Les conditions de clôture seront établies après P2-7.A, une fois que la struc
 
 ---
 
-*P2-7 EN COURS — P2-7.A À INSTRUIRE.*
+*P2-7 EN COURS — P2-7.A VALIDÉ · 2026-08-16.*
