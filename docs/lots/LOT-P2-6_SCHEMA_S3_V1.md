@@ -212,6 +212,33 @@ La clause "indépendamment du contenu extrait" gouverne le critère de classific
 
 La doctrine actuelle (IG-I2 · IG-I5 · EP-RC1) ne définit pas si la sortie extraite ou transformée par le module d'analyse visuelle depuis un support S3 constitue : (a) la même donnée que la trace S3, (b) une représentation de cette donnée, (c) un nouveau datum canonique susceptible d'une classification indépendante par DI1. En l'absence de cette définition, IG-I2 (unicité de famille par datum) ne suffit ni à autoriser ni à interdire une classification secondaire de cet output en S2 ou S5 — la règle s'applique à un datum dont la nature est déterminée, non à un objet dont le statut canonique est indéfini. IG-I5 et EP-RC1 ne suffisent pas davantage à résoudre cette question : leur portée ne définit pas le statut canonique d'une éventuelle sortie extraite ou transformée au regard des trois possibilités (a), (b) et (c). Cette indétermination est enregistrée. Son traitement sera déterminé dans le périmètre compétent.
 
+### §5.7 DT-S3-2 — Grain canonique d'une trace S3 · TRANCHÉE AVEC BORNE · 2026-08-16
+
+**Question :** Quel est le grain canonique d'une trace S3 ? Une trace par image analysée (grain image = support visuel) ou une trace par datum extrait de l'image (grain datum = élément d'analyse) ?
+
+**Statut :** TRANCHÉE AVEC BORNE — 2026-08-16
+
+#### D2a — Grain canonique (décision architecturale motivée)
+
+Le grain canonique d'une trace S3 est le **support visuel** : le support visuel constitue l'unité canonique d'une trace S3, indépendamment du nombre d'éléments contenus dans ce support ou détectés par l'analyse. Cette décision est fondée sur DI5 (LOT-P2-1 §5) dont la formulation — "la valeur mémorielle est la capture elle-même, pas les données extraites" — identifie le support comme l'objet canonique mémoriel, par opposition aux éléments qu'il contient.
+
+**Nature de D2a — décision architecturale motivée :**
+DI5 ne formule pas une règle de grain explicite ; la formulation "la valeur mémorielle est la capture elle-même, pas les données extraites" est une règle sémantique de classification établissant la primauté de la forme de source sur le contenu extrait. D2a tire de cette règle la conséquence canonique de grain la plus cohérente avec l'ensemble DI5 + RF-R3. D2a est une décision architecturale motivée — elle ne doit pas être citée comme une règle de grain textuelle directement énoncée par DI5 ou RF-R3. L'option grain datum (grain = datum extrait) est écartée comme architecturalement incompatible avec l'interprétation retenue de DI5 : elle ferait des "données extraites" l'unité canonique, en contradiction directe avec le principe "la valeur mémorielle est la capture elle-même, pas les données extraites". Cette incompatibilité est une conséquence de la décision architecturale D2a, non une prohibition textuelle directe de DI5.
+
+#### D2b — Non-préemption de DT-S3-3
+
+La structure du champ `valeur` d'une trace S3 — y compris ce que ce champ représente (le support lui-même, son analyse, ou une forme dérivée) — est déterminée par DT-S3-3. DT-S3-2 fixe uniquement l'unité canonique de la trace sans préjuger de la sémantique, de la structure ou du contenu de `valeur`.
+
+#### D2c — Portée partielle sur le cas zéro contenu
+
+Le grain identifie le support visuel comme l'unité canonique retenue pour S3. Cette décision ne détermine pas à elle seule si une trace S3 existe ou peut être persistée lorsque l'analyse ne produit aucun contenu exploitable. La question reste dépendante de DT-S3-3 et des règles de validité applicables (RV4 · LOT-P1-2.2). DT-S3-2 ne tranche pas le cas zéro contenu.
+
+#### BORNE-S3-2 — Supports visuels multiples ou identiques · NON DÉTERMINÉ
+
+La doctrine canonique actuelle ne définit pas : (1) le critère d'identité ou d'équivalence entre deux supports visuels (même fichier · copie identique · même contenu dans un format différent · même capture recompressée ou recadrée) ; (2) la relation canonique à appliquer lorsque plusieurs opérations d'analyse concernent des supports dont l'identité ou l'équivalence n'est pas établie. En l'absence de ces définitions, DT-S3-2 ne peut pas statuer sur le comportement canonique dans ces situations. Cette indétermination est enregistrée. Son traitement sera déterminé dans le périmètre compétent.
+
+*(Cette borne est indépendante de BORNE-S3-1, qui porte sur le statut canonique d'une éventuelle sortie extraite ou transformée depuis un support S3.)*
+
 ---
 
 ## §6 Décisions à trancher
@@ -219,7 +246,7 @@ La doctrine actuelle (IG-I2 · IG-I5 · EP-RC1) ne définit pas si la sortie ext
 | ID | Question ouverte | Statut | Prérequis |
 |---|---|---|---|
 | DT-S3-1 | Périmètre opérationnel de RF-R3 — condition "traité par un module" · liste illustrative ou fermée · frontières S3/S2 et S3/S5 par dérivation | **TRANCHÉE AVEC BORNE · §5.6 · 2026-08-16** | Ouverture lot |
-| DT-S3-2 | Quel est le grain canonique d'une trace S3 ? Une trace par image analysée ou une trace par datum extrait ? | **À INSTRUIRE** | DT-S3-1 |
+| DT-S3-2 | Quel est le grain canonique d'une trace S3 ? Une trace par image analysée ou une trace par datum extrait ? | **TRANCHÉE AVEC BORNE · §5.7 · 2026-08-16** | DT-S3-1 |
 | DT-S3-3 | Quelle est la structure du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe déléguant au module ? | **À INSTRUIRE** | DT-S3-1 · DT-S3-2 |
 | DT-S3-4 | Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté | **À INSTRUIRE** | DT-S3-1 · DT-S3-3 |
 | DT-S3-5 | Quelles sont les exigences de provenance EP-S3 ? Différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5) ? Compatibilité avec I-01 requise | **À INSTRUIRE** | DT-S3-4 |
@@ -235,7 +262,7 @@ LOT-P2-6 est un lot de doctrine pure. Ses micro-lots correspondent aux étapes d
 | Micro-lot | Mission | Décisions tranchées | Prérequis | Statut |
 |---|---|---|---|---|
 | **P2-6.A** — Ontologie S3 & frontières | Définir le périmètre de RF-R3 (DT-S3-1) · confirmer frontières S3/S1, S3/S2, S3/S5 · auditer mécanisme de dérivation éventuel | DT-S3-1 | Ouverture lot | **VALIDÉ** |
-| **P2-6.B** — Grain et structure canonique | Définir le grain de trace S3 (DT-S3-2) · définir la valeur canonique S3 (DT-S3-3) · schéma complet | DT-S3-2 · DT-S3-3 | P2-6.A VALIDÉ | À INSTRUIRE |
+| **P2-6.B** — Grain et structure canonique | Définir le grain de trace S3 (DT-S3-2) · définir la valeur canonique S3 (DT-S3-3) · schéma complet | DT-S3-2 · DT-S3-3 | P2-6.A VALIDÉ | EN COURS |
 | **P2-6.C** — Périmètre Phase A & provenance | Trancher la position Phase A (DT-S3-4) · rédiger ou différer EP-S3 (DT-S3-5) | DT-S3-4 · DT-S3-5 | P2-6.B VALIDÉ | À INSTRUIRE |
 | **P2-6.D** — Validation documentaire | Vérifier la cohérence globale · CV-1→CV-9 · DQC V2 CAS A | — | P2-6.C VALIDÉ | À INSTRUIRE |
 
@@ -279,4 +306,4 @@ La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot
 
 ---
 
-*P2-6 EN COURS — P2-6.A VALIDÉ · DT-S3-1 TRANCHÉE AVEC BORNE · P2-6.B→P2-6.D À INSTRUIRE · DT-S3-2→DT-S3-5 À INSTRUIRE.*
+*P2-6 EN COURS — P2-6.A VALIDÉ · P2-6.B EN COURS · P2-6.C→P2-6.D À INSTRUIRE · DT-S3-1 TRANCHÉE AVEC BORNE · DT-S3-2 TRANCHÉE AVEC BORNE · DT-S3-3→DT-S3-5 À INSTRUIRE.*
