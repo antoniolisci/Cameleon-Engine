@@ -1,0 +1,247 @@
+# LOT-P2-6 — Schéma canonique S3 · Famille Visuelle V1
+
+## En-tête
+
+| Champ | Valeur |
+|---|---|
+| Identifiant | LOT-P2-6 |
+| Intitulé | Schéma canonique S3 · Famille Visuelle V1 |
+| Programme | P2 — Doctrine des Sources & Schémas d'Ingestion |
+| Phase Roadmap V1 | A |
+| Type | Doctrine — Schéma canonique |
+| Document officiel | `docs/lots/LOT-P2-6_SCHEMA_S3_V1.md` |
+| Statut | EN COURS |
+| Date d'ouverture | 2026-08-16 |
+| Date de clôture | — |
+| Prérequis | LOT-P2-1 CLOS · LOT-P2-5 CLOS |
+
+---
+
+## §1 Mission
+
+LOT-P2-6 définit le **schéma canonique de la trace S3 Visuelle** : la structure, la sémantique, les règles de classification et les exigences de provenance pour les données issues de l'analyse de supports visuels par le module d'analyse visuelle de Caméléon Engine.
+
+Ce lot produit un document de doctrine pure — aucun code, aucune implémentation. Il répond à trois questions indissociables :
+
+1. **Qu'est-ce qu'une donnée S3 ?** — définition ontologique de la famille Visuelle, distincte de S1 (Transactionnelle) selon FB-F2 et de toute autre famille selon les règles de priorité de DI1.
+2. **Comment une trace S3 est-elle structurée ?** — schéma canonique : champs obligatoires, types, valeurs, contraintes, résultat de l'analyse visuelle.
+3. **Comment S3 s'intègre-t-elle dans la doctrine d'ingestion V1 ?** — règle RF-R3 figée à priorité 3 dans la hiérarchie DI1, exigences de provenance EP-S3, position Phase A.
+
+LOT-P2-6 constitue le cinquième schéma source du Programme P2, après S1 (LOT-P2-2), S2 (LOT-P2-3), S5 (LOT-P2-4) et S4 (LOT-P2-5). La règle de classification RF-R3 est figée depuis LOT-P2-1 — ce lot ne la modifie pas. Il définit la structure interne de la trace S3, précise le périmètre opérationnel de RF-R3, et documente les conditions d'activation de S3.
+
+LOT-P2-6 est explicitement identifié comme le lot schéma S3 dans LOT-P2-4. Il est distinct de tout LOT d'activation opérationnelle de S3.
+
+---
+
+## §2 Sources doctrinales
+
+| Document | Rôle dans ce lot |
+|---|---|
+| LOT-P2-1 — Doctrine d'ingestion V1 | Source d'autorité pour RF · FB · EP · CL · DI1→DI5 — aucune de ces règles ne peut être modifiée |
+| LOT-P1-2.1 — Modèle canonique de trace V1 | Structure des 6 champs de toute trace : famille · source · date · valeur · contexte optionnel · session optionnelle |
+| LOT-P1-2.4 — Doctrine de provenance V1 | Règles de provenance — EP-S3 différées à activation (§4.5) selon CL-P4 |
+| LOT-P2-5 — Schéma canonique S4 V1 | Précédent de schéma doctrinal pur · pattern DT-S4-1→DT-S4-5 · traitement des bornes · précédent DT-S4-5 (EP définie en anticipation) |
+| LOT-P2-4 — Schéma canonique S5 V1 | Précédent de décision Phase A (DT-S5-4 amendée / Position Gamma) · LOT-P2-6 explicitement nommé · DI1 amendé (RF-S5 à priorité 3.5) |
+| GPD V1 §8.4 | Doctrine de la Mémoire Visuelle — absence identifiée comme blanc documentaire B3 · prérequis d'activation S3 · risque architectural I-01 |
+| Architecture Conceptuelle Fondatrice V1 | Registre officiel des 13 familles — S3 = Visuelle |
+| Roadmap V1 §4 P2 | Livrable L5 : Schéma canonique S3 (Visuelle — captures d'écran via GPT Vision) |
+| Language System V1 | Contrôle du vocabulaire introduit par ce lot |
+
+---
+
+## §3 Périmètre
+
+### §3.1 Inclus
+
+- Définition ontologique de la famille S3 Visuelle (ce qu'elle est, ce qu'elle n'est pas)
+- Frontière S3/S1 — consommation de FB-F2 (figée · LOT-P2-1 §13) et de CL-A5 (fondateur) comme fondement normatif
+- Frontière S3/S2 — audit de la priorité RF-R3 (3) sur RF-R5 (5) dans le contexte des captures patrimoniales · mécanisme de dérivation éventuel
+- Frontière S3/S5 — audit de la priorité RF-R3 (3) sur RF-S5 (3.5) dans le contexte des captures contextuelles · mécanisme de dérivation éventuel
+- Précision du périmètre opérationnel de RF-R3 — sans modification de son texte figé (DT-S3-1)
+- Grain canonique d'une trace S3 (DT-S3-2)
+- Structure du champ `valeur` d'une trace S3 (DT-S3-3)
+- Position Phase A de S3 (DT-S3-4)
+- Exigences de provenance EP-S3 — mode anticipation ou différée (DT-S3-5)
+- Documentation de la question ouverte structurelle I-01 sans décision d'infrastructure
+
+### §3.2 Exclus
+
+- Implémentation technique du module d'analyse visuelle (périmètre Programme P3)
+- Rédaction de la Doctrine de la Mémoire Visuelle (GPD V1 §8.4 — condition d'activation future, non condition de schéma)
+- Décision d'infrastructure vision (cloud GPT Vision vs local-first) — décision de niveau Architecture/Roadmap, non de niveau schéma
+- Normalisation inter-familles (périmètre LOT-P2-7)
+- Doctrine des Corrélations (périmètre LOT-P2-8)
+- Schéma S4 Personnelle (périmètre LOT-P2-5 — CLOS)
+- Schéma S2 Patrimoniale (périmètre LOT-P2-3 — CLOS)
+- Forces Constellium (DT-FORCES-01 — instruit, non décidé — exclusion provisoire : nature familiale indéterminée)
+- Toute modification des règles DI1→DI5 figées dans LOT-P2-1
+- Toute modification du texte figé de RF-R3, DI5, FB-F2 ou CL-A5
+
+---
+
+## §4 Invariants hérités — non négociables
+
+Ces règles sont figées par les lots antérieurs. LOT-P2-6 ne peut pas les modifier.
+
+### §4.1 Invariants LOT-P2-1 directement contraignants pour S3
+
+| Invariant | Source | Règle |
+|---|---|---|
+| IG-I1 | LOT-P2-1 §6 | Toute trace S3 est conforme au modèle canonique LOT-P1-2.1 (6 champs) |
+| IG-I2 | LOT-P2-1 §6 | Une donnée appartient à une et une seule famille — S3 exclut toute appartenance simultanée à S1, S2 ou S5 |
+| IG-I3 | LOT-P2-1 §6 | La classification est déterministe — RF-R3 produit un résultat unique pour tout input qualifiant |
+| IG-I4 | LOT-P2-1 §6 | Toute trace S3 a une source identifiable conforme à LOT-P1-2.4 |
+| IG-I5 | LOT-P2-1 §6 | Aucune corrélation à l'ingestion — une trace S3 ne fusionne pas avec d'autres familles |
+| IG-I6 | LOT-P2-1 §6 | Silence structurel — une donnée non classifiable comme S3 n'est pas forcée dans cette famille |
+| DI1 | LOT-P2-1 §5 · amendé LOT-P2-4 | Hiérarchie séquentielle : RF-R1 · RF-R2 · **RF-R3** · RF-S5 · RF-R4 · RF-R5 · RF-R6 — RF-R3 occupe la priorité 3, avant RF-S5 (3.5) et RF-R4 (4) |
+| DI5 | LOT-P2-1 §5 | **Figé** : S3 = toute donnée issue d'un support visuel analysé — la forme de la source prime sur le contenu extrait |
+| RF-R3 | LOT-P2-1 §12 | **Figée** : "Une donnée provient d'une source visuelle si son origine primaire est une image, une capture d'écran ou tout support graphique traité par un module d'analyse visuelle. Résultat : S3 — Visuelle, indépendamment du contenu extrait." |
+| FB-F2 | LOT-P2-1 §13 | **Figée** : S3/S1 — RF-R3 (priorité 3) précède RF-R5 (priorité 5) · CL-A5 fondateur : capture d'écran de relevé de trading analysée → S3, non S1 |
+| CL-A5 | LOT-P2-1 §11 | **Fondateur** : capture d'écran de relevé de trading analysée → S3, non S1 — cas de référence de la frontière S3/S1 |
+| CL-P4 | LOT-P2-1 §14 | S3 inactive Phase A — aucune ingestion — EP-S3 différées à activation |
+
+### §4.2 Position de RF-R3 dans DI1 — portée sur ce lot
+
+**Note préalable :** DI1 détermine la priorité d'évaluation des règles après déclenchement de RF-R3 — il ne tranche pas les conditions de déclenchement elles-mêmes. Ces conditions (notamment la condition "traité par un module d'analyse visuelle") restent à définir par DT-S3-1. Les observations ci-dessous valent uniquement si RF-R3 produit un résultat pour le support considéré.
+
+**Frontière S3/S5 (conditionnelle) :** si RF-R3 produit un résultat pour un support visuel, DI1 garantit que RF-S5 (priorité 3.5) n'est pas évaluée. Le contenu contextuel visible dans ce support n'atteint pas RF-S5. DT-S3-1 détermine les conditions dans lesquelles RF-R3 se déclenche.
+
+**Frontière S3/S4 (conditionnelle) :** si RF-R3 produit un résultat, RF-R4 (priorité 4) n'est pas évaluée. Aucune frontière directe S3/S4 à définir dans ce lot sous cette condition. DT-S3-1 détermine les conditions de déclenchement.
+
+**Frontière S3/S2 (conditionnelle) :** si RF-R3 produit un résultat, RF-R5 (priorité 5) n'est pas évaluée. Une capture d'écran patrimoniale atteint S3 si RF-R3 se déclenche — FB-F2 et CL-A5 figent ce résultat une fois RF-R3 déclenchée. DT-S3-1 détermine les conditions de déclenchement.
+
+### §4.3 Memory Doctrine V1 et Pattern Reflection Doctrine V1 — portée sur ce lot
+
+Ces doctrines produisent des contraintes sur les **couches d'usage et d'affichage futures** de S3. Elles ne définissent pas la structure canonique de S3 et ne contraignent pas le schéma produit par ce lot.
+
+En particulier : interdiction de fusion inter-sources (IG-I5 · Pattern Reflection Doctrine V1) et interdictions de prescription, prédiction, explication causale à partir de données S3 (Memory Doctrine V1 §IV) s'appliqueront aux couches d'exploitation lors de l'activation.
+
+---
+
+## §5 Tensions à instruire
+
+### §5.1 État de la question à l'ouverture
+
+LOT-P2-1 a figé RF-R3, FB-F2, CL-A5 et CL-P4, mais n'a pas défini la structure interne d'une trace S3 ni le périmètre exact du terme "support graphique traité par un module d'analyse visuelle". Ce lot doit définir S3 par sa propre ontologie, complémentaire à RF-R3.
+
+**Ce que les lots précédents ont figé :**
+
+- RF-R3 : source visuelle → S3, indépendamment du contenu extrait (LOT-P2-1 §12)
+- DI5 : la forme de la source prime sur le contenu extrait — la classification ne dépend pas de ce que l'analyse visuelle produit (LOT-P2-1 §5)
+- FB-F2 : S3/S1 → RF-R3 (p3) > RF-R5 (p5) · CL-A5 fondateur (LOT-P2-1 §13)
+- CL-P4 : S3 inactive Phase A — aucune ingestion, EP-S3 différées à activation (LOT-P2-1 §14)
+- DI1 : RF-R3 en position 3, avant RF-S5 (3.5) et RF-R4 (4) — amendé par LOT-P2-4
+
+**Ce que les lots précédents n'ont pas tranché :**
+
+- La condition "traité par un module d'analyse visuelle" dans RF-R3 : condition infrastructurelle d'activation ou description ontologique du classifieur ?
+- La liste des types de supports visuels : exhaustive (image · capture d'écran · support graphique) ou illustrative ?
+- La structure interne du champ `valeur` d'une trace S3 : résultat brut de l'analyse, objet structuré, ou enveloppe déléguant le format au module ?
+- Le grain d'une trace S3 : une trace par image analysée, ou une trace par datum extrait ?
+- La position Phase A de S3 : nature exacte du silence (CL-P4 déclare l'inactivité sans préciser la forme du silence)
+- Les exigences EP-S3 : différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5 de LOT-P2-5)
+
+### §5.2 Tension principale — Périmètre de RF-R3 (DT-S3-1)
+
+RF-R3 cite trois types de supports : image · capture d'écran · support graphique. La formulation "traité par un module d'analyse visuelle" introduit une ambiguïté structurelle. Ce lot doit trancher :
+
+| Axe | Question ouverte |
+|---|---|
+| Condition "traité par un module" | RF-R3 stipule "traité par un module d'analyse visuelle". Est-ce une condition d'activation du classifieur S3 (le module doit exister et avoir traité l'image) ou une description du contexte attendu (l'image est destinée à un tel traitement) ? Si condition stricte : aucune trace S3 possible sans module opérationnel. Si description ontologique : le périmètre de RF-R3 est indépendant de l'infrastructure. |
+| Liste exhaustive ou illustrative | Les trois formes nommées (image · capture d'écran · support graphique) sont-elles exhaustives ou illustratives ? Un document scanné ou une visualisation générée constituent-ils des supports S3 ? |
+| Résultat nul d'analyse | Une image soumise à analyse mais dont l'analyse ne produit aucun contenu exploitable qualifie-t-elle comme source S3 ? RF-R3 dit "indépendamment du contenu extrait" — un résultat vide est-il une trace S3 valide ? |
+| Ontologie vs. infrastructure | DT-S3-1 doit trancher si le périmètre ontologique de RF-R3 est indépendant de l'infrastructure d'analyse ou conditionné par son existence opérationnelle. Cette distinction impacte directement DT-S3-4 (Phase A) et I-01. |
+
+### §5.3 Tensions secondaires
+
+**Grain (DT-S3-2) :** S3 pose une question de grain inédite dans le Programme P2. Pour S1, S2, S4, S5, le grain est naturellement défini par l'objet source (transaction, position, contribution personnelle, état ou événement contextuel). Pour S3, la source est le support visuel — mais l'analyse peut produire plusieurs éléments indépendants depuis un seul support. Une capture d'écran d'un relevé de trading peut contenir dix lignes de positions. DT-S3-2 doit trancher : une trace par image analysée (grain image), ou une trace par datum extrait de l'image (grain datum).
+
+**Valeur (DT-S3-3) :** La structure du champ `valeur` d'une trace S3 est structurellement différente des familles précédentes. Pour S1/S2, la valeur est un ensemble de champs numériques structurés. Pour S4, la valeur est un texte libre préservant la voix de l'opérateur. Pour S5, la valeur est `{nature, type, ref, description?}`. Pour S3, la valeur est **le résultat d'une analyse visuelle** — dont la forme dépend du module d'analyse et de la décision de grain. DT-S3-3 doit trancher si la valeur est la représentation brute extraite, une structure normalisée définie par ce lot, ou une enveloppe déléguant le format au module d'activation (comme DT-S4-5 a délégué l'unité de session au périmètre d'activation).
+
+**Frontières par dérivation (DT-S3-1) :** Les données extraites d'une capture S3 peuvent contenir des informations patrimoniales (S2) ou contextuelles (S5). Par DI5 et DI1, la capture elle-même est classifiée S3 si RF-R3 se déclenche. Mais les données extraites peuvent-elles alimenter des traces S2 ou S5 distinctes via un mécanisme de dérivation secondaire ? Ce mécanisme éventuel doit être audité en P2-6.A sans modifier RF-R3, DI5 ni DI1.
+
+### §5.4 Question ouverte structurelle — I-01 : Infrastructure d'analyse visuelle
+
+LOT-P2-6 est un lot de schéma doctrinal pur. Il ne décide pas de l'infrastructure. Cependant, I-01 affecte les conditions d'activation de S3 et doit être documenté comme élément de contexte structurel.
+
+**I-01 — Conflit architectural :** GPD V1 §8.4 identifie la nécessité d'une Doctrine de la Mémoire Visuelle (blanc documentaire B3). Cette doctrine devra trancher :
+
+- **Option cloud** : GPT Vision (OpenAI) — analyse de haute qualité, mais dépendance à un service externe, transfert de données hors périmètre local-first, questions de consentement et de confidentialité des captures d'écran opérateur
+- **Option local-first** : module d'analyse visuelle local — conforme à l'architecture local-first de Caméléon Engine, mais qualité et disponibilité d'un tel module non établies à ce jour
+
+Ce conflit n'est pas tranché par LOT-P2-6. Il est signalé comme condition nécessaire à l'activation future de S3, dont la résolution relève de la Doctrine de la Mémoire Visuelle — non encore rédigée, périmètre GPD V1 §8.4.
+
+**Impact sur ce lot :** DT-S3-4 (position Phase A) et DT-S3-5 (EP-S3) doivent tenir compte de l'existence de I-01 sans le résoudre. Les décisions produites dans ce lot ne doivent pas contraindre l'une ou l'autre option d'infrastructure.
+
+### §5.5 Exclusion provisoire — DT-FORCES-01
+
+Les forces Constellium (Feu · Air · Terre · Eau · Éther) font l'objet de DT-FORCES-01 — instruit, non décidé, Q-1→Q-5 ouvertes. Leur nature familiale est indéterminée. Elles sont exclues provisoirement du périmètre de ce lot — même pattern que LOT-P2-4 §5.8 et LOT-P2-5 §5.4. Aucune décision produite dans ce lot ne les concerne.
+
+---
+
+## §6 Décisions à trancher
+
+| ID | Question ouverte | Statut | Prérequis |
+|---|---|---|---|
+| DT-S3-1 | Périmètre opérationnel de RF-R3 — condition "traité par un module" · liste illustrative ou fermée · frontières S3/S2 et S3/S5 par dérivation | **À INSTRUIRE** | Ouverture lot |
+| DT-S3-2 | Quel est le grain canonique d'une trace S3 ? Une trace par image analysée ou une trace par datum extrait ? | **À INSTRUIRE** | DT-S3-1 |
+| DT-S3-3 | Quelle est la structure du champ `valeur` d'une trace S3 ? Résultat brut · objet structuré · enveloppe déléguant au module ? | **À INSTRUIRE** | DT-S3-1 · DT-S3-2 |
+| DT-S3-4 | Quelle est la position de S3 en Phase A ? Silence total · ou autre forme ? Cohérence requise avec CL-P4 et I-01 documenté | **À INSTRUIRE** | DT-S3-1 · DT-S3-3 |
+| DT-S3-5 | Quelles sont les exigences de provenance EP-S3 ? Différées à activation (CL-P4) ou définies en anticipation (modèle DT-S4-5) ? Compatibilité avec I-01 requise | **À INSTRUIRE** | DT-S3-4 |
+
+---
+
+## §7 Stratégie de développement
+
+### §7.1 Séquençage des micro-lots
+
+LOT-P2-6 est un lot de doctrine pure. Ses micro-lots correspondent aux étapes de résolution des décisions et à la rédaction du schéma.
+
+| Micro-lot | Mission | Décisions tranchées | Prérequis |
+|---|---|---|---|
+| **P2-6.A** — Ontologie S3 & frontières | Définir le périmètre de RF-R3 (DT-S3-1) · confirmer frontières S3/S1, S3/S2, S3/S5 · auditer mécanisme de dérivation éventuel | DT-S3-1 | Ouverture lot |
+| **P2-6.B** — Grain et structure canonique | Définir le grain de trace S3 (DT-S3-2) · définir la valeur canonique S3 (DT-S3-3) · schéma complet | DT-S3-2 · DT-S3-3 | P2-6.A VALIDÉ |
+| **P2-6.C** — Périmètre Phase A & provenance | Trancher la position Phase A (DT-S3-4) · rédiger ou différer EP-S3 (DT-S3-5) | DT-S3-4 · DT-S3-5 | P2-6.B VALIDÉ |
+| **P2-6.D** — Validation documentaire | Vérifier la cohérence globale · CV-1→CV-9 · DQC V2 CAS A | — | P2-6.C VALIDÉ |
+
+### §7.2 Contrainte architecturale
+
+Ce lot produit un schéma doctrinal pur. Il ne génère aucun code, aucun module, aucune interface.
+
+RF-R3 est figée dans la hiérarchie DI1 de LOT-P2-1 (priorité 3, avant RF-S5, avant RF-R4). Ce lot précise le périmètre opérationnel de RF-R3 sans modifier son texte. Toute modification du texte figé de RF-R3 constituerait une violation des invariants de LOT-P2-1 et est interdite.
+
+La Doctrine de la Mémoire Visuelle (GPD V1 §8.4) n'est pas produite par ce lot. Ce lot documente sa nécessité comme condition d'activation future de S3 — il ne l'écrit pas.
+
+---
+
+## §8 Critères de validation
+
+| CV | Critère | Condition |
+|---|---|---|
+| CV-1 | DT-S3-1 tranchée — périmètre opérationnel de RF-R3 défini sans ambiguïté | DT-S3-1 adoptée |
+| CV-2 | Frontière S3/S1 documentée — FB-F2 et CL-A5 consommés sans contradiction ni réouverture | DT-S3-1 · FB-F2 · CL-A5 |
+| CV-3 | Frontières S3/S2 et S3/S5 documentées — architecture DI1 confirmée · mécanisme de dérivation audité | DT-S3-1 |
+| CV-4 | RF-R3 non modifiée — précision du périmètre uniquement | DT-S3-1 |
+| CV-5 | Schéma canonique S3 complet — DT-S3-2 et DT-S3-3 tranchées · tous champs définis | DT-S3-2 · DT-S3-3 |
+| CV-6 | Position Phase A tranchée — DT-S3-4 cohérente avec CL-P4 · I-01 documenté non résolu | DT-S3-4 |
+| CV-7 | EP-S3 rédigée ou différée — DT-S3-5 cohérente avec DI3, LOT-P1-2.4 §4.5 et I-01 | DT-S3-5 |
+| CV-8 | Aucune contradiction avec les invariants P2-1 — IG-I1→IG-I6 · DI1→DI5 · RF-R3 · FB-F2 | Contrôle global |
+| CV-9 | DQC V2 CAS A — double revue indépendante | P2-6.D |
+
+---
+
+## §9 Conditions de clôture
+
+| Condition | Critère |
+|---|---|
+| Condition 1 | Micro-lots P2-6.A à P2-6.D validés (présent document complet et cohérent) |
+| Condition 2 | CV-1 à CV-9 satisfaits |
+| Condition 3 | DT-S3-1 à DT-S3-5 documentées, adoptées et non contradictoires entre elles |
+| Condition 4 | Aucune violation des invariants LOT-P2-1 détectée |
+| Condition 5 | DQC V2 CAS A |
+| Condition 6 | DQC V3 PASS |
+| Condition 7 | Décision opérateur explicite de clôture |
+
+---
+
+*P2-6 EN COURS — ouverture 2026-08-16 · DT-S3-1→DT-S3-5 À INSTRUIRE.*
