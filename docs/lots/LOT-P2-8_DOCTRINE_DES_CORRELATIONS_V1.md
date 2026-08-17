@@ -85,12 +85,13 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 
 | ID | Nature | Statut |
 |---|---|---|
-| DÉCISION-01 | Définition canonique de "corrélation" dans CE | EN ATTENTE |
+| DÉCISION-01 | Définition canonique de "corrélation" dans CE | ADOPTÉE — §5.6 |
 | S-04 | Impact BORNE-S3-3/S4-1/S4-2 sur la doctrine des corrélations | PARTIELLEMENT INSTRUITE |
 | S-06 | Périmètre S3 dans les corrélations Phase A | NON TRANCHÉE — décision opérateur requise |
 | Y-1 | Tension : modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction fusion marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
 | Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE : NON DÉTERMINÉ. CONST-I4 établit uniquement, dans son périmètre Constellium, qu'une hypothèse reste une hypothèse jusqu'à validation explicite par l'opérateur et ne change pas automatiquement de statut. Aucune règle CE-générale équivalente n'a été trouvée dans le corpus gelé. | NON DÉTERMINÉ — À INSTRUIRE |
 | Y-6 | Tension : "lien" (modele-mental-canonique) vs "corrélation" — synonymie ou distinction à trancher | OUVERTE |
+| Y-7 | Périmètre des corrélations intra-famille — une corrélation intra-famille appartient-elle au périmètre du futur moteur de corrélation ? | NON DÉTERMINÉ — décision dédiée requise |
 
 ---
 
@@ -169,6 +170,7 @@ Voir également §2.3 — Questions / indéterminations propres à LOT-P2-8.
 | Y-1 | modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction de corrélation comportement × résultats de marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
 | Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE : NON DÉTERMINÉ. CONST-I4 établit uniquement, dans son périmètre Constellium, qu'une hypothèse reste une hypothèse jusqu'à validation explicite par l'opérateur et ne change pas automatiquement de statut. Aucune règle CE-générale équivalente n'a été trouvée dans le corpus gelé. | NON DÉTERMINÉ — À INSTRUIRE |
 | Y-6 | "lien" (modele-mental-canonique) vs "corrélation" — synonymie ou distinction à trancher | OUVERTE |
+| Y-7 | Périmètre des corrélations intra-famille — une corrélation intra-famille appartient-elle au périmètre du futur moteur de corrélation ? | NON DÉTERMINÉ — décision dédiée requise · identifié lors de l'instruction de DÉCISION-01 |
 
 ---
 
@@ -286,11 +288,100 @@ Une définition candidate doit satisfaire l'ensemble des critères suivants :
 7. *(Critère méthodologique provisoire d'arbitrage — non doctrinal)* Niveau composite minimum B — aucune composante structurante de niveau D · à valider par décision opérateur si retenu
 8. Compatibilité Language System V1 (terme à instruire ou confirmer)
 
-### §5.6 — État DÉCISION-01
+### §5.6 — DÉCISION-01 : ADOPTÉE
 
-**DÉCISION-01 : EN ATTENTE — Décision opérateur requise**
+**Définition canonique CE-générale :**
 
-Aucune option n'est sélectionnée à l'ouverture de ce lot. Les 4 options ont été instruites et leurs niveaux fondement documentés par composante. La sélection, la synthèse, ou la construction d'une option composite requiert une décision opérateur explicite.
+> « Une corrélation est une relation observée entre deux mémoires ou plus — jamais imposée, toujours détectée. »
+
+Formulation quasi-verbatim ACF V1 dictionnaire (M2 l.34). Niveau fondement : **A**. Option V-B retenue.
+
+---
+
+**D-01.1 — Formulation**
+
+Option V-B adoptée. La définition reprend quasi-verbatim le dictionnaire ACF V1. Aucune expansion interprétative de I-07 n'est introduite dans la définition elle-même.
+
+---
+
+**D-01.2 — Unité**
+
+Le terme canonique de l'unité dans la définition est **mémoire**. Ne pas remplacer par : trace · donnée · entité · dimension · signal.
+
+La présence de "traces" dans la responsabilité #5 d'ACF V1 constitue une différence de granularité entre niveau conceptuel (mémoire) et niveau opérationnel (trace = unité de base de la mémoire). Cette tension est conservée à instruire ultérieurement si nécessaire. Elle ne modifie pas DÉCISION-01.
+
+---
+
+**D-01.3 — Périmètre intra / inter-familles**
+
+DÉCISION-01 reste volontairement silencieuse sur la distinction intra-famille / inter-familles.
+
+"Appartenant à des familles différentes" n'est pas ajouté à la définition.
+
+Les textes F-04 (ACF V1 L2 Relationnelle) et F-05 (ACF V1 responsabilité #5) restent applicables dans leur périmètre fonctionnel actuel sans généralisation supplémentaire.
+
+La question de savoir si une corrélation intra-famille appartient au périmètre du futur moteur de corrélation reste **NON DÉTERMINÉE** tant qu'une décision dédiée ne l'a pas tranchée. Voir **Y-7**.
+
+---
+
+**D-01.4 — Y-6**
+
+L'utilisation du mot "relation" dans la définition reprend strictement le vocabulaire du dictionnaire ACF V1. DÉCISION-01 ne résout pas Y-6.
+
+Elle ne canonise ni "Relation > Corrélation" ni "Relation = Corrélation" ni aucune autre ontologie générale entre les termes relation · corrélation · lien.
+
+**Y-6 reste ouverte.**
+
+---
+
+**D-01.5 — Règles doctrinales distinctes — non absorbées par la définition**
+
+La définition canonique ne doit pas absorber les règles doctrinales suivantes. Chacune reste une règle indépendante :
+
+| # | Règle | Source | Statut |
+|---|---|---|---|
+| 1 | Corrélation ≠ causalité | CONST-I3 (A · Constellium) · intelligence_layer_position_audit §3 l.91 (A · général CE) | ÉTABLIE |
+| 2 | Aucune corrélation à l'ingestion | LOT-P2-1 IG-I5 | ÉTABLIE |
+| 3 | Seuil minimal d'observations — principe | PRD V1 R-P07 | ÉTABLIE (N2) |
+| 4 | Valeur numérique du seuil | — | NON FIXÉE — Programme P6 |
+| 5 | Provenance obligatoire lorsqu'une corrélation est persistée | ACF V1 I-08 · ROADMAP V1 P6 l.222 | ÉTABLIE |
+| 6 | Séparation structurelle comportement / marché | intelligence_layer_position_audit R-INT-07 | ÉTABLIE |
+| 7 | Règles de statut épistémique du Constellium | CONST-I2 · CONST-I3 · CONST-I4 · portée Constellium | ÉTABLIES · portée Constellium |
+| 8 | Y-5 — mécanisme général de changement de statut CE | — | NON DÉTERMINÉ — À INSTRUIRE |
+| 9 | Y-6 — rapport relation / corrélation / lien | — | OUVERTE |
+| 10 | S-06 — périmètre S3 dans les corrélations Phase A | — | NON TRANCHÉE |
+
+---
+
+**D-01.6 — Formulation écartée**
+
+Ne pas inscrire comme doctrine : "une corrélation est une propriété des données indépendamment du système".
+
+Cette formulation est une extrapolation de niveau C non établie par I-07.
+
+La formulation correctement fondée issue de I-07 est un invariant distinct : **"CE détecte des relations qui existent dans les données sans les fabriquer."** Cet invariant ne doit pas être fusionné silencieusement avec la définition canonique.
+
+Les lectures "observée = état épistémique" / "détectée = mécanisme" restent des interprétations de niveau C. Elles ne sont pas canonisées par cette décision et ne doivent pas être présentées comme des distinctions établies.
+
+---
+
+**D-01.7 — N-arité**
+
+"deux mémoires ou plus" autorise sémantiquement n ≥ 3.
+
+Cette permission sémantique ne signifie pas qu'une architecture n-aire est actuellement conçue, validée ou implémentée dans CE.
+
+**Permission sémantique ≠ architecture implémentée.**
+
+---
+
+**D-01.8 — Co-occurrence accidentelle**
+
+Ne pas inscrire : "le seuil minimal exclut les co-occurrences accidentelles".
+
+Le seuil minimal d'observations réduit le risque statistique de déclarer une co-occurrence accidentelle comme corrélation. Il ne constitue pas, à lui seul, une preuve doctrinale qu'une relation observée n'est pas accidentelle.
+
+La qualification statistique relève du chantier d'implémentation et de calibration correspondant (Programme P6).
 
 ---
 
