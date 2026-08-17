@@ -31,7 +31,7 @@ Cette validation porte sur la restitution amendée intégrant RES-01→RES-14, D
 
 ## §2 — Principe d'immuabilité
 
-Cette baseline représente définitivement CE QUE CAMÉLÉON ENGINE ÉTAIT À CET INSTANT.
+Cette baseline constitue la photographie canonique auditée de ce qui était observable de Caméléon Engine à cet instant, depuis les sources identifiées et dans les limites de reproductibilité, de couverture et d'indétermination documentées dans la présente baseline.
 
 Elle ne doit jamais être réécrite pour refléter un état postérieur. Si une anomalie observée dans cette baseline est corrigée ultérieurement, la correction est enregistrée comme évolution postérieure — jamais comme réécriture rétroactive de ce document.
 
@@ -206,7 +206,7 @@ Note : `src/constellium.html` (207L) ne fait pas partie de `admin/`. Sa classifi
 | LOT-P1-3 — Mémoire Opérateur V1 | CLOS |
 | LOT-P1-3.1 à LOT-P1-3.5 | CLOS |
 
-### §8.2 — Programme P2 — EN COURS (6/7 livrables CLOS)
+### §8.2 — Programme P2 — EN COURS (6/7 livrables Roadmap V1 CLOS)
 
 | LOT | Statut | Commit clôture |
 |---|---|---|
@@ -218,6 +218,8 @@ Note : `src/constellium.html` (207L) ne fait pas partie de `admin/`. Sa classifi
 | LOT-P2-6 — Schéma S3 V1 | CLOS | 2702a15 |
 | LOT-P2-7 — Normalisation inter-familles V1 | CLOS | 630e7a8 |
 | **LOT-P2-8 — Doctrine des Corrélations** | **NON OUVERT / EN ATTENTE** | — |
+
+Note : LOT-P2-1 (Doctrine d'ingestion V1) est un prérequis fondateur du programme P2 et n'est pas comptabilisé parmi les 7 livrables Roadmap V1 (L1→L7). Ces sept livrables correspondent à LOT-P2-2 → LOT-P2-8.
 
 ### §8.3 — Programmes P3→P8
 
@@ -258,7 +260,7 @@ NON OUVERTS — conditionnels à P2 GELÉ (⏳) et/ou P1 GELÉ (✅).
 | Constitution Opérationnelle V1 | ABSENT |
 | Constitution Intellectuelle V1 | ABSENT |
 
-Aucune dérive détectée. La Roadmap V1 est un document de séquencement structurel (P1→P8), non un inventaire exhaustif du projet.
+Dans le périmètre audité (P1 + P2), aucune violation du DAG Roadmap V1 n'a été détectée. P3→P8 sont NON OUVERTS et ne font pas l'objet d'un audit d'exécution dans cette baseline. La Roadmap V1 est un document de séquencement structurel (P1→P8), non un inventaire exhaustif du projet.
 
 ---
 
@@ -355,7 +357,7 @@ Le workflow `.github/workflows/deploy.yml` synchronise : `src/js/*` · `src/css/
 
 ## §14 — Vérification Notion (D-OP-04)
 
-**Consultation :** Page "🦎 Caméléon Engine" — fetchée 2026-08-16T17:53:41Z · lecture seule
+**Consultation :** Page "🦎 Caméléon Engine" — consultée le 2026-08-17 en lecture seule · dernier horodatage Notion observé : 2026-08-16T17:53:41Z
 
 | Élément | Statut Notion | Concordance |
 |---|---|---|
@@ -379,10 +381,16 @@ Stale Notion : champ "Dernier commit" = `87ba299` (2026-07-06) — limite connue
 
 | Dimension | Reproductibilité |
 |---|---|
-| Métriques REPO | COMPLÈTE |
+| Métriques CODE (ENG-001→ENG-009) | COMPLÈTE — src/, admin/, prototype/, supabase/ entièrement trackés |
+| DOC-006 (project_memory/ · 35 entrées) | COMPLÈTE — tracké dans le repo · vérifié à be2c14c |
+| DOC-001 / DOC-002 / DOC-005 / DOC-009 | PARTIELLE — valeurs du workspace T0 incluant `docs/architecture/oi_v1_execution_architecture.md` (1 fichier · 409L · non tracké à be2c14c) |
+| État versionné du repo | Reproductible depuis be2c14c |
+| Workspace T0 complet | Non reproductible depuis Git seul — nécessite restauration manuelle de `oi_v1_execution_architecture.md` |
 | M2 (mémoire auto-Claude) | NON — [LOCAL] hors repo |
 | Notion | NON — [NOTION] source externe |
 | Runtime | NON — non capturé |
+
+Note de reproductibilité DOC : `git checkout be2c14c` produit DOC-001 = 351 · DOC-002 = 293 · DOC-005 = 86 804 · DOC-009 = 97 383. Les valeurs baseline (352 / 294 / 87 213 / 97 792) sont des observations du workspace T0 incluant le fichier non tracké — elles restent les métriques canoniques T0.
 
 ---
 
@@ -441,6 +449,39 @@ Toute baseline future devra comparer ses métriques avec les valeurs canoniques 
 | Runners test auto | 5 |
 
 **Prochaine baseline suggérée :** CE-BASELINE-2027-02 (ou après gel de P2 et ouverture de Phase B).
+
+---
+
+## §19 — Amendement canonique post-validation
+
+**Date de l'amendement :** 2026-08-17
+
+**Statut :** D-OP-05 reste valide. La photographie T0 est inchangée. Il ne s'agit pas d'une nouvelle baseline.
+
+**Origine :** Relecture humaine intégrale effectuée après validation D-OP-05. Cinq réserves documentaires (RES-CAN-01→RES-CAN-05) identifiées par revue contradictoire ciblée. Un contrôle préalable complémentaire a établi le statut de DOC-006.
+
+**Nature des corrections :** exclusivement documentaires et de provenance. Aucune donnée postérieure à be2c14c n'a été utilisée pour modifier l'état T0.
+
+| RES | Section | Nature de la correction |
+|---|---|---|
+| RES-CAN-01 | §8.2 | Clarification comptage LOT-P2-1 hors livrables Roadmap V1 L1→L7 |
+| RES-CAN-02 | §14 | Distinction horodatage Notion (2026-08-16) / date de consultation (2026-08-17) |
+| RES-CAN-03 | §15 | Documentation précise de la provenance des métriques DOC (workspace T0 vs commit seul) |
+| RES-CAN-04 | §9 | Bornage du périmètre audité : P1+P2 uniquement · P3→P8 non ouverts |
+| RES-CAN-05 | §2 | Qualification de la portée de la photographie canonique |
+| DOC-006 (contrôle §0) | §15 | Confirmation REPRODUCTIBLE — REPO · project_memory/ tracké · 35 entrées vérifiées à be2c14c |
+
+**Invariants préservés :**
+- Commit photographié : `be2c14c5354564cf4a17ef7030c3d04c049fc15b`
+- DATE_DE_L_ETAT_OBSERVE : 2026-08-16
+- DATE_D_EXECUTION : 2026-08-17
+- D-OP-05 : PRONONCÉE — inchangée
+- Toutes les valeurs métriques T0 : inchangées
+- LOT-P2-8 : NON OUVERT
+- RES-R01 / RES-R02 / RES-R03 : inchangées
+- §17 (RES-01→RES-14) : inchangé
+
+**Commit d'amendement :** à créer après approbation opérateur du diff.
 
 ---
 
