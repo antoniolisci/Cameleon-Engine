@@ -88,7 +88,7 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | DÉCISION-01 | Définition canonique de "corrélation" dans CE | ADOPTÉE — §5.6 |
 | S-04 | Impact BORNE-S3-3/S4-1/S4-2 sur la doctrine des corrélations | PARTIELLEMENT INSTRUITE |
 | S-06 | Périmètre S3 dans les corrélations Phase A | NON TRANCHÉE — décision opérateur requise |
-| Y-1 | Tension : modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction fusion marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
+| Y-1 | Tension : modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction fusion marché (intelligence_layer_position_audit R-INT-07) | RÉSOLUE — FAUX CONFLIT DE PORTÉE + RESTRICTION OPÉRATIONNELLE PARTIELLE — voir §9 |
 | Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — voir §8 |
 | Y-5A | Autorité de validation en CE-général | RÉSOLUE — voir §8.1 |
 | Y-5B | Automaticité du changement de statut | PARTIELLEMENT RÉSOLUE — voir §8.2 |
@@ -180,7 +180,7 @@ Voir également §2.3 — Questions / indéterminations propres à LOT-P2-8.
 
 | ID | Tension | Statut |
 |---|---|---|
-| Y-1 | modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction de corrélation comportement × résultats de marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
+| Y-1 | modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction de corrélation comportement × résultats de marché (intelligence_layer_position_audit R-INT-07) | RÉSOLUE — voir §9 |
 | Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — voir §8 |
 | Y-6 | "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
@@ -647,9 +647,99 @@ Y-5F reste NON DÉTERMINÉE. Sa résolution relève du Programme P6.
 
 ---
 
-## §9 → §n — Réservés
+## §9 — Y-1 : Tension « entre patterns et résultats » — périmètre des corrélations autorisées
 
-Les sections §9 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
+**STATUT : RÉSOLUE — FAUX CONFLIT DE PORTÉE + RESTRICTION OPÉRATIONNELLE PARTIELLE**
+
+Y-1 instruite par analyse exhaustive du corpus : modele-mental-canonique §3 · intelligence_layer_position_audit §3 et §4 (R-INT-07) · PRD V1 §II/§III. La tension résulte d'une ambiguïté terminologique dans modele-mental-canonique §3 et d'une approximation dans la formulation initiale de Y-1. Elle n'est pas une contradiction réelle entre les deux textes sources.
+
+---
+
+### §9.1 — Expression « entre patterns et résultats » — lecture contextuelle de niveau B
+
+L'expression "entre patterns et résultats" figure dans modele-mental-canonique §3 (l.164), dans la liste des éléments appartenant au concept **"Corrélation personnelle"**, définie comme :
+
+> « Un lien révélé entre deux dimensions du comportement de l'opérateur, visible uniquement sur une durée suffisante. »
+
+Dans ce contexte définitionnel, "résultats" peut être lu comme désignant des résultats comportementaux ou opérationnels. Cette lecture est compatible avec la définition de la Corrélation personnelle, mais elle n'est pas définie verbatim par le corpus.
+
+**Niveau de cette lecture : B** — inférence contextuelle depuis la définition. Le corpus ne définit pas "résultats" verbatim comme "résultats comportementaux."
+
+**Ce que cette lecture n'établit pas :**
+
+- Elle n'affirme pas que "résultats" signifie définitivement "résultats comportementaux" — l'ambiguïté terminologique du document source subsiste.
+- Elle n'affirme pas que toute corrélation comportement × comportement est automatiquement autorisée.
+- Elle n'est pas une autorisation positive de nouvelles formes de corrélation.
+- Elle ne peut pas être élevée au niveau A.
+
+---
+
+### §9.2 — Interdictions de niveau A
+
+Ces interdictions s'appliquent indépendamment de la lecture contextuelle de §9.1 :
+
+| Forme interdite | Règle | Source | Niveau |
+|---|---|---|---|
+| Comportement × résultats financiers / PnL | "La séparation comportement / résultat est structurelle et permanente." · "L'Intelligence ne croise jamais le comportement avec les résultats financiers." | intelligence_layer_position_audit §4 "Scoring de performance" l.139–143 | A |
+| Comportement × observations de prix | "L'Intelligence ne croise jamais les lectures comportementales avec des observations de prix." | intelligence_layer_position_audit R-INT-07 l.225–229 | A |
+| Comportement × observations de tendance de marché | "… de tendance …" — même texte R-INT-07 | intelligence_layer_position_audit R-INT-07 l.225–229 | A |
+| Comportement × timing de marché | "… ou de timing de marché." — même texte R-INT-07 | intelligence_layer_position_audit R-INT-07 l.225–229 | A |
+| Données comportementales déclarées combinées avec données de lecture marché dans les opérations PRD V1 | "Ces opérations s'appliquent exclusivement aux données comportementales déclarées. Elles ne peuvent pas être combinées avec des données de lecture marché." | PRD V1 §II l.113 · §III l.143 | A |
+
+---
+
+### §9.3 — Exemple conflictuel : modele-mental-canonique l.170
+
+modele-mental-canonique §3 l.170 présente l'exemple suivant comme une "corrélation" :
+
+> « Tu trades plus gros quand le BTC monte »
+
+Cet exemple croise un comportement (taille de position) avec une observation de prix (BTC monte). Il est en conflit réel avec R-INT-07 (niveau A) : "L'Intelligence ne croise jamais les lectures comportementales avec des observations de prix."
+
+**Résolution par hiérarchie de niveaux dans ce lot :**
+
+| Document | Nature | Niveau dans §4.1 |
+|---|---|---|
+| modele-mental-canonique §3 l.160–168 | Document fondateur · Audit conceptuel | B |
+| intelligence_layer_position_audit R-INT-07 | Position opérationnelle | A |
+
+Pour LOT-P2-8, la règle de niveau A (R-INT-07) prévaut sur cet exemple de niveau B.
+
+**Ce que cette résolution n'implique pas :**
+
+- Elle ne modifie pas modele-mental-canonique.
+- Elle ne modifie pas intelligence_layer_position_audit.
+- La temporalité des deux documents est un élément de contexte documentaire — elle ne constitue pas à elle seule une règle de priorité doctrinale. La prévalence de R-INT-07 est fondée sur le niveau A attribué dans §4.1 de ce lot.
+
+---
+
+### §9.4 — Formes autorisées : corrélations comportement × contexte de session
+
+intelligence_layer_position_audit §3 (l.87–89, niveau A) autorise explicitement les corrélations comportementales avec le contexte de la session, désigné verbatim comme :
+
+- régime Macro
+- profil opérateur
+- état émotionnel déclaré
+
+**Ce que §9.4 n'établit pas :**
+
+- Il ne généralise pas à "tout contexte de session" ou "tout contexte de marché."
+- Il n'autorise pas d'autres formes de contexte par extension ou analogie.
+- La question de la volatilité reste distincte — voir §9.5.
+
+---
+
+### §9.5 — Point résiduel : volatilité et données de contexte ambiguës
+
+La volatilité, et plus généralement les données de contexte qui ne relèvent ni clairement du "régime Macro · profil opérateur · état émotionnel déclaré" (formes autorisées, niveau A) ni clairement des "observations de prix · tendance · timing de marché" (formes interdites, niveau A), présentent une ambiguïté non tranchée dans le corpus gelé.
+
+Ce point ne rouvre pas Y-1. Il constitue un point **NON DÉTERMINÉ** à trancher dans MANDAT-2 (règles d'assertion et de non-assertion), lors de la délimitation opérationnelle du périmètre des corrélations assertables en Phase A.
+
+---
+
+## §10 → §n — Réservés
+
+Les sections §10 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
 
 ---
 
