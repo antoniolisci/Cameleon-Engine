@@ -89,7 +89,13 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | S-04 | Impact BORNE-S3-3/S4-1/S4-2 sur la doctrine des corrélations | PARTIELLEMENT INSTRUITE |
 | S-06 | Périmètre S3 dans les corrélations Phase A | NON TRANCHÉE — décision opérateur requise |
 | Y-1 | Tension : modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction fusion marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
-| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE : NON DÉTERMINÉ. CONST-I4 établit uniquement, dans son périmètre Constellium, qu'une hypothèse reste une hypothèse jusqu'à validation explicite par l'opérateur et ne change pas automatiquement de statut. Aucune règle CE-générale équivalente n'a été trouvée dans le corpus gelé. | NON DÉTERMINÉ — À INSTRUIRE |
+| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — voir §8 |
+| Y-5A | Autorité de validation en CE-général | RÉSOLUE — voir §8.1 |
+| Y-5B | Automaticité du changement de statut | PARTIELLEMENT RÉSOLUE — voir §8.2 |
+| Y-5C | Relation entre évolution des lectures / confiance et validation | RÉSOLUE — voir §8.3 |
+| Y-5D | Taxonomie des statuts CE-général | NON DÉTERMINÉE — Programme P6 |
+| Y-5E | Graphe exact des transitions | NON DÉTERMINÉE — Programme P6 |
+| Y-5F | Critères et seuils de proposition de changement | NON DÉTERMINÉE — Programme P6 |
 | Y-6 | Tension : "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
 | Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
@@ -146,6 +152,8 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | ROADMAP V1 — P6 | l.219 | A | "Aucune corrélation imposée — uniquement détectées (I-07)" |
 | ROADMAP V1 — P6 | l.222 | A | "Toute corrélation persistée conserve sa provenance (I-08)" |
 | modele-mental-canonique — §3 | l.160–168 | B | "Un lien révélé entre deux dimensions du comportement de l'opérateur, visible uniquement sur une durée suffisante." |
+| Language System V1 — Couche 3 VALIDATION | §3 | A | "Rôle : enregistrer et restituer l'état de la décision humaine." · "accepter, refuser, confirmer" — exclusifs à cette couche |
+| Constitution Intellectuelle V1 | §5 · §8 | A | §5 : "droit et devoir du moteur de faire évoluer ses lectures lorsque les observations changent" · §8 : "le niveau de confiance affiché reste toujours proportionnel aux preuves disponibles" |
 
 **Note I-07 / I-08 :**
 
@@ -160,7 +168,7 @@ I-07 ≠ I-08 : toute section traitant de la détection s'appuie sur I-07. Toute
 | Aucune corrélation à l'ingestion | A | LOT-P2-1 IG-I5 |
 | Corrélation ≠ causalité | A | CONST-I3 (Constellium) · intelligence_layer_position_audit §3 l.91 (général CE) |
 | Statut épistémique visible au moment de la navigation dans le Constellium | A · portée Constellium | CONST-I2 · CONST-I3 — portée générale à instruire si nécessaire |
-| Hypothèse ≠ passage automatique de statut dans le Constellium | A · portée Constellium | CONST-I4 — portée CE-générale à instruire via Y-5 |
+| Hypothèse ≠ passage automatique de statut dans le Constellium | A · portée Constellium | CONST-I4 — portée Constellium uniquement · portée CE-générale partiellement instruite via Y-5 (§8) |
 | Seuil principe N2 · valeur N5 | A (principe) | PRD V1 R-P07 |
 | Interdiction clauses causales dans expression patterns | A | PRD V1 R-P03 |
 | Corrélation jamais imposée · toujours détectée | A | ACF V1 I-07 |
@@ -173,7 +181,7 @@ Voir également §2.3 — Questions / indéterminations propres à LOT-P2-8.
 | ID | Tension | Statut |
 |---|---|---|
 | Y-1 | modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction de corrélation comportement × résultats de marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
-| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE : NON DÉTERMINÉ. CONST-I4 établit uniquement, dans son périmètre Constellium, qu'une hypothèse reste une hypothèse jusqu'à validation explicite par l'opérateur et ne change pas automatiquement de statut. Aucune règle CE-générale équivalente n'a été trouvée dans le corpus gelé. | NON DÉTERMINÉ — À INSTRUIRE |
+| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — voir §8 |
 | Y-6 | "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
 | Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
@@ -363,7 +371,7 @@ La définition canonique ne doit pas absorber les règles doctrinales suivantes.
 | 5 | Provenance obligatoire lorsqu'une corrélation est persistée | ACF V1 I-08 · ROADMAP V1 P6 l.222 | ÉTABLIE |
 | 6 | Séparation structurelle comportement / marché | intelligence_layer_position_audit R-INT-07 | ÉTABLIE |
 | 7 | Règles de statut épistémique du Constellium | CONST-I2 · CONST-I3 · CONST-I4 · portée Constellium | ÉTABLIES · portée Constellium |
-| 8 | Y-5 — mécanisme général de changement de statut CE | — | NON DÉTERMINÉ — À INSTRUIRE |
+| 8 | Y-5 — mécanisme général de changement de statut CE | Language System V1 Couche 3 · Constitution Intellectuelle V1 §5/§8 | PARTIELLEMENT RÉSOLUE — Y-5A/Y-5C RÉSOLUES · Y-5B PARTIELLEMENT RÉSOLUE · Y-5D/E/F NON DÉTERMINÉES — voir §8 |
 | 9 | Y-6 — rapport relation / corrélation / lien | — | PARTIELLEMENT RÉSOLUE — voir §6 |
 | 10 | S-06 — périmètre S3 dans les corrélations Phase A | — | NON TRANCHÉE |
 | 11 | Y-7 — périmètre opérationnel L2 / P6 et corrélations intra-famille | — | PARTIELLEMENT RÉSOLUE — voir §7 |
@@ -528,9 +536,120 @@ Y-7B reste NON DÉTERMINÉE. Sa résolution requiert une décision doctrinale d�
 
 ---
 
-## §8 → §n — Réservés
+## §8 — Y-5 : Mécanisme général de changement de statut d'une relation / hypothèse dans CE
 
-Les sections §8 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
+**STATUT : PARTIELLEMENT RÉSOLUE**
+
+Y-5 instruite exhaustivement. Deux sous-questions sont résolues (Y-5A · Y-5C), une est partiellement résolue (Y-5B), trois restent NON DÉTERMINÉES (Y-5D · Y-5E · Y-5F).
+
+**Note CONST-I4 :**
+CONST-I4 ("Une hypothèse reste une hypothèse jusqu'à validation explicite par l'opérateur. Elle ne change pas de statut automatiquement.") est une règle strictement Constellium (dt_const_01 l.144). Elle n'est pas le fondement des règles CE-générales établies dans cette section. CONST-I4 est mentionné uniquement comme règle analogue existant dans le périmètre Constellium, sans extension à CE-général.
+
+---
+
+### §8.1 — Y-5A : Autorité de validation
+
+**STATUT : RÉSOLUE**
+
+**Règle Y-5A :**
+
+> « Lorsqu'un acte d'acceptation, de refus ou de confirmation intervient dans CE-général, cet acte relève exclusivement de la couche Validation et de la décision humaine. »
+
+Niveau composite : **B**
+
+| Source | Référence | Niveau | Élément applicable |
+|---|---|---|---|
+| Language System V1 — Couche 3 VALIDATION | §3 | A | "accepter, refuser, confirmer" — exclusifs à la couche Validation · tableau d'exclusivité |
+| Language System V1 — Couche 3 VALIDATION | §3 | A | "Rôle : enregistrer et restituer l'état de la décision humaine." |
+| Constitution Intellectuelle V1 | §1 | A | "La décision reste humaine." |
+
+**Ce que Y-5A n'établit pas :**
+
+- Toute validation humaine ne change pas nécessairement le statut d'une relation — cette implication inverse n'est pas fondée dans le corpus gelé.
+- Y-5A ne généralise pas CONST-I4 à CE-général.
+- Y-5A ne définit pas de liste de statuts CE-général.
+
+---
+
+### §8.2 — Y-5B : Automaticité du changement de statut
+
+**STATUT : PARTIELLEMENT RÉSOLUE**
+
+**Règle Y-5B :**
+
+> « Lorsqu'un changement de statut implique un acte d'acceptation, de refus ou de confirmation, cet acte ne peut pas être produit par une couche inférieure à la couche Validation. »
+
+Niveau composite : **B** — découle de Y-5A (§8.1) et de la séparation des couches Language System V1.
+
+**Portée de Y-5B :**
+
+La règle couvre uniquement la classe des changements de statut impliquant l'un des trois actes : accepter · refuser · confirmer.
+
+La classe des éventuels changements de statut n'impliquant ni acceptation, ni refus, ni confirmation reste **NON DÉTERMINÉE** dans le corpus gelé et dans ce lot.
+
+**Ce que Y-5B n'établit pas :**
+
+- Y-5B n'établit pas qu'aucun changement de statut ne peut jamais être automatique dans CE-général.
+- Y-5B ne définit pas les statuts accessibles ni de graphe de transitions.
+
+---
+
+### §8.3 — Y-5C : Relation entre évolution des lectures / confiance et validation
+
+**STATUT : RÉSOLUE**
+
+**Règle Y-5C :**
+
+> « Une évolution des lectures ou du niveau de confiance n'est pas, à elle seule, un acte d'acceptation, de refus ou de confirmation. »
+
+Niveau composite : **B**
+
+| Source | Référence | Niveau | Élément applicable |
+|---|---|---|---|
+| Constitution Intellectuelle V1 | §5 — Honnêteté intellectuelle | A | "droit et devoir du moteur de faire évoluer ses lectures lorsque les observations changent" |
+| Constitution Intellectuelle V1 | §8 — Proportionnalité | A | "le niveau de confiance affiché reste toujours proportionnel aux preuves disponibles" |
+| Language System V1 | Séparation Couche 2 / Couche 3 | A | Couche 2 = niveau de lisibilité du signal · Couche 3 = état de la décision humaine — couches distinctes |
+
+**Ce que Y-5C n'établit pas :**
+
+- Y-5C n'établit pas "confiance ≠ statut épistémique" comme règle CE-générale — "statut épistémique" reste un terme Constellium (CONST-I2, CONST-I3).
+- Y-5C n'établit pas que les lectures ou le niveau de confiance évoluent automatiquement.
+
+La distinction fondée ici est uniquement : une évolution de Couche 1 (lecture) ou Couche 2 (confiance) n'est pas un acte de Couche 3 (Validation).
+
+---
+
+### §8.4 — Y-5D : Taxonomie des statuts CE-général
+
+**STATUT : NON DÉTERMINÉE**
+
+Aucun texte du corpus gelé ne définit la liste des statuts épistémiques applicables aux relations ou hypothèses du corrélateur L2 en CE-général. CONST-I2/I3 définissent corrélation · hypothèse · dérivation · déclaration opérateur dans le périmètre Constellium uniquement. Cette taxonomie ne peut pas être transposée à CE-général sans décision doctrinale dédiée.
+
+Y-5D reste NON DÉTERMINÉE. Sa résolution relève du Programme P6 et du lot d'implémentation du moteur de corrélation L2.
+
+---
+
+### §8.5 — Y-5E : Graphe exact des transitions
+
+**STATUT : NON DÉTERMINÉE**
+
+Aucun texte du corpus gelé ne définit les passages de statut à statut pour les relations du corrélateur L2 en CE-général. Y-5E requiert que Y-5D soit d'abord résolue. Elle relève du Programme P6.
+
+---
+
+### §8.6 — Y-5F : Critères et seuils de proposition de changement
+
+**STATUT : NON DÉTERMINÉE — PROGRAMME P6**
+
+Les critères et seuils à partir desquels le corrélateur L2 pourrait proposer un changement de statut à l'opérateur ne sont définis ni dans le corpus gelé ni dans ce lot. La valeur numérique du seuil minimal d'observation (N5) est explicitement exclue du périmètre LOT-P2-8 (§3.2). Les critères de promotion de statut relèvent du même périmètre.
+
+Y-5F reste NON DÉTERMINÉE. Sa résolution relève du Programme P6.
+
+---
+
+## §9 → §n — Réservés
+
+Les sections §9 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
 
 ---
 
