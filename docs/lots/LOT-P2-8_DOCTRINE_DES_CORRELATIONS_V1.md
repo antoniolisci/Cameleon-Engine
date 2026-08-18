@@ -94,7 +94,9 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
 | Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
 | Y-6C | « lien » / « relation » dans I-07 | NON DÉTERMINÉE — voir §6.3 |
-| Y-7 | Périmètre des corrélations intra-famille — une corrélation intra-famille appartient-elle au périmètre du futur moteur de corrélation ? | NON DÉTERMINÉ — décision dédiée requise |
+| Y-7 | Périmètre des corrélations intra-famille — périmètre opérationnel L2 / P6 et existence conceptuelle des corrélations intra-famille | PARTIELLEMENT RÉSOLUE — voir §7 |
+| Y-7A | Périmètre opérationnel L2 / P6 — inter-familles ou non ? | RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé — voir §7.1 |
+| Y-7B | Existence doctrinale et mécanisme éventuel des corrélations intra-famille | NON DÉTERMINÉE — voir §7.2 |
 
 ---
 
@@ -176,7 +178,9 @@ Voir également §2.3 — Questions / indéterminations propres à LOT-P2-8.
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
 | Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
 | Y-6C | « lien » / « relation » dans I-07 — alternance "ne fabrique pas de liens / détecte des relations" | NON DÉTERMINÉE — voir §6.3 |
-| Y-7 | Périmètre des corrélations intra-famille — une corrélation intra-famille appartient-elle au périmètre du futur moteur de corrélation ? | NON DÉTERMINÉ — décision dédiée requise · identifié lors de l'instruction de DÉCISION-01 |
+| Y-7 | Périmètre des corrélations intra-famille — périmètre opérationnel L2 / P6 et existence conceptuelle des corrélations intra-famille | PARTIELLEMENT RÉSOLUE — voir §7 |
+| Y-7A | Périmètre opérationnel L2 / P6 — inter-familles ou non ? | RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé — voir §7.1 |
+| Y-7B | Existence doctrinale et mécanisme éventuel des corrélations intra-famille | NON DÉTERMINÉE — voir §7.2 |
 
 ---
 
@@ -320,13 +324,19 @@ La présence de "traces" dans la responsabilité #5 d'ACF V1 constitue une diff�
 
 **D-01.3 — Périmètre intra / inter-familles**
 
-DÉCISION-01 reste volontairement silencieuse sur la distinction intra-famille / inter-familles.
+**Distinction définition / périmètre moteur :**
+
+DÉCISION-01 est une définition CE-générale. Elle ne prescrit pas le périmètre opérationnel du futur moteur de corrélation.
+
+Le périmètre opérationnel du moteur (L2 / Programme P6) est instruit séparément dans Y-7A et Y-7B (voir §7).
 
 "Appartenant à des familles différentes" n'est pas ajouté à la définition.
 
+La définition canonique ("deux mémoires ou plus") ne pose aucune restriction explicite relative à l'appartenance familiale des mémoires mises en relation. Cette absence de restriction ne constitue pas une autorisation doctrinale positive des corrélations intra-famille.
+
 Les textes F-04 (ACF V1 L2 Relationnelle) et F-05 (ACF V1 responsabilité #5) restent applicables dans leur périmètre fonctionnel actuel sans généralisation supplémentaire.
 
-La question de savoir si une corrélation intra-famille appartient au périmètre du futur moteur de corrélation reste **NON DÉTERMINÉE** tant qu'une décision dédiée ne l'a pas tranchée. Voir **Y-7**.
+La question du périmètre des corrélations intra-famille est **PARTIELLEMENT RÉSOLUE** — voir **Y-7**.
 
 ---
 
@@ -356,6 +366,7 @@ La définition canonique ne doit pas absorber les règles doctrinales suivantes.
 | 8 | Y-5 — mécanisme général de changement de statut CE | — | NON DÉTERMINÉ — À INSTRUIRE |
 | 9 | Y-6 — rapport relation / corrélation / lien | — | PARTIELLEMENT RÉSOLUE — voir §6 |
 | 10 | S-06 — périmètre S3 dans les corrélations Phase A | — | NON TRANCHÉE |
+| 11 | Y-7 — périmètre opérationnel L2 / P6 et corrélations intra-famille | — | PARTIELLEMENT RÉSOLUE — voir §7 |
 
 ---
 
@@ -452,9 +463,74 @@ Y-6C reste NON DÉTERMINÉE. Sa résolution requiert soit un fondement de niveau
 
 ---
 
-## §7 → §n — Réservés
+## §7 — Y-7 : Périmètre opérationnel du moteur L2 / P6 et corrélations intra-famille
 
-Les sections §7 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
+### §7.1 — Y-7A : Périmètre opérationnel L2 / P6
+
+**STATUT : RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé**
+
+Le corpus canonique gelé désigne le moteur L2 / Programme P6 comme opérant sur des corrélations inter-familles. Six textes de niveau A fondent cette lecture :
+
+| # | Source | Référence | Niveau | Fondement inter-familles |
+|---|---|---|---|---|
+| F-01 | ACF V1 — L2 Relationnelle | M2 l.87 | A | "Moteur de corrélation — liens entre familles, détection de relations non évidentes" |
+| F-02 | ACF V1 — Responsabilité #5 | M2 l.157 | A | "Corréler — détecter des relations entre traces de familles différentes" |
+| F-03 | ROADMAP V1 — P6 Mission | l.207 | A | "Implémenter la couche L2 — détection de relations entre familles mémoire" |
+| F-04 | ROADMAP V1 — P6 Livrable 2 | l.213 | A | "Moteur de détection de relations inter-familles" |
+| F-05 | ROADMAP V1 — Phase C | l.327 | A | "P6 — Moteur de Corrélation (L2) · Corrélation inter-familles conforme Pattern Reflection Doctrine V1" |
+| F-06 | GPD V1 — §11.3 | l.1739 | A | "cette relation n'est visible qu'en croisant SY1 et S5" — exemple canonique de corrélation cross-familles |
+
+La convergence de ces six textes de niveau A établit que le périmètre opérationnel de L2 et P6 est inter-familles dans le corpus canonique gelé.
+
+**Y-7A : RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé.**
+
+Toute extension future de P6 vers des corrélations intra-famille nécessiterait une décision doctrinale explicite dans le lot compétent.
+
+---
+
+**Ce que Y-7A n'affirme pas :**
+
+- Y-7A n'affirme pas que les corrélations intra-famille sont interdites dans CE.
+- Y-7A n'affirme pas qu'une corrélation intra-famille est conceptuellement impossible.
+- Y-7A ne modifie pas DÉCISION-01 — la définition reste CE-générale.
+- Y-7A ne résout pas Y-7B.
+
+---
+
+### §7.2 — Y-7B : Existence doctrinale et mécanisme des corrélations intra-famille
+
+**STATUT : NON DÉTERMINÉE**
+
+La définition canonique de DÉCISION-01 ("deux mémoires ou plus") ne pose aucune restriction explicite relative à l'appartenance familiale des mémoires mises en relation.
+
+Cette absence de restriction ne constitue toutefois pas une autorisation doctrinale positive des corrélations intra-famille. Aucun texte de niveau A du corpus gelé ne les autorise explicitement, et aucun texte de niveau A ne les interdit explicitement.
+
+Leur existence doctrinale en CE reste donc NON DÉTERMINÉE.
+
+---
+
+**Frontière Pattern / Corrélation intra-famille :**
+
+Pattern (PRD V1) et corrélation sont deux concepts distincts dans CE :
+
+- Un **pattern** est une régularité comportementale temporelle — défini au niveau de la conduite opérateur sur une durée (PRD V1).
+- Une **corrélation** est une relation observée entre deux mémoires ou plus (DÉCISION-01).
+
+Cette distinction conceptuelle n'établit pas de frontière familiale. Elle ne signifie pas que les corrélations intra-famille seraient équivalentes aux patterns, ni que les patterns épuisent l'espace des relations possibles au sein d'une famille.
+
+**Ne jamais inscrire : corrélations intra-famille = patterns.**
+
+Ce glissement constituerait une inférence de niveau C non fondée dans le corpus gelé. L'existence doctrinale des corrélations intra-famille reste indépendante de la doctrine des patterns.
+
+---
+
+Y-7B reste NON DÉTERMINÉE. Sa résolution requiert une décision doctrinale dédiée dans un lot compétent.
+
+---
+
+## §8 → §n — Réservés
+
+Les sections §8 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
 
 ---
 
