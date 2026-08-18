@@ -90,7 +90,10 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | S-06 | Périmètre S3 dans les corrélations Phase A | NON TRANCHÉE — décision opérateur requise |
 | Y-1 | Tension : modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction fusion marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
 | Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE : NON DÉTERMINÉ. CONST-I4 établit uniquement, dans son périmètre Constellium, qu'une hypothèse reste une hypothèse jusqu'à validation explicite par l'opérateur et ne change pas automatiquement de statut. Aucune règle CE-générale équivalente n'a été trouvée dans le corpus gelé. | NON DÉTERMINÉ — À INSTRUIRE |
-| Y-6 | Tension : "lien" (modele-mental-canonique) vs "corrélation" — synonymie ou distinction à trancher | OUVERTE |
+| Y-6 | Tension : "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
+| Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
+| Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
+| Y-6C | « lien » / « relation » dans I-07 | NON DÉTERMINÉE — voir §6.3 |
 | Y-7 | Périmètre des corrélations intra-famille — une corrélation intra-famille appartient-elle au périmètre du futur moteur de corrélation ? | NON DÉTERMINÉ — décision dédiée requise |
 
 ---
@@ -169,7 +172,10 @@ Voir également §2.3 — Questions / indéterminations propres à LOT-P2-8.
 |---|---|---|
 | Y-1 | modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction de corrélation comportement × résultats de marché (intelligence_layer_position_audit R-INT-07) | OUVERTE |
 | Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE : NON DÉTERMINÉ. CONST-I4 établit uniquement, dans son périmètre Constellium, qu'une hypothèse reste une hypothèse jusqu'à validation explicite par l'opérateur et ne change pas automatiquement de statut. Aucune règle CE-générale équivalente n'a été trouvée dans le corpus gelé. | NON DÉTERMINÉ — À INSTRUIRE |
-| Y-6 | "lien" (modele-mental-canonique) vs "corrélation" — synonymie ou distinction à trancher | OUVERTE |
+| Y-6 | "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
+| Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
+| Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
+| Y-6C | « lien » / « relation » dans I-07 — alternance "ne fabrique pas de liens / détecte des relations" | NON DÉTERMINÉE — voir §6.3 |
 | Y-7 | Périmètre des corrélations intra-famille — une corrélation intra-famille appartient-elle au périmètre du futur moteur de corrélation ? | NON DÉTERMINÉ — décision dédiée requise · identifié lors de l'instruction de DÉCISION-01 |
 
 ---
@@ -200,8 +206,8 @@ Conclusion : aucun fragment ne fournit seul une définition canonique complète 
 |---|---|---|
 | Causalité | Interdit d'être asserté depuis une corrélation | CONST-I3 (A · Constellium) · intelligence_layer_position_audit §3 l.91 (A · général CE) |
 | Pattern | Comportement récurrent détecté — jamais un profil figé ; distinction avec « corrélation » = corollaire des périmètres distincts, non règle verbatim | ACF V1 dictionnaire (A · définition) · PRD V1 (B · distinction) |
-| Relation | Terme présent dans le corpus — rapport exact avec « corrélation » à instruire | ACF V1 I-07 · À INSTRUIRE — Y-6 |
-| Lien | Terme de modele-mental-canonique — non canonisé dans doctrine primaire · distinction Y-6 ouverte | B — non adopté |
+| Relation | Terme présent dans le corpus — rapport exact avec « corrélation » partiellement instruit | ACF V1 I-07 · PARTIELLEMENT RÉSOLUE — voir §6 |
+| Lien | Terme de modele-mental-canonique — non canonisé dans doctrine primaire · Y-6 partiellement résolue | B — non adopté · voir §6 |
 | Hypothèse | Statut épistémique applicable à une relation non prouvée — portée Constellium établie par CONST-I2 ; portée générale à instruire | CONST-I2 (A · Constellium) |
 | Co-occurrence | Terme absent du corpus gelé | PROPOSITION D'INSTRUCTION — niveau D |
 
@@ -330,7 +336,7 @@ L'utilisation du mot "relation" dans la définition reprend strictement le vocab
 
 Elle ne canonise ni "Relation > Corrélation" ni "Relation = Corrélation" ni aucune autre ontologie générale entre les termes relation · corrélation · lien.
 
-**Y-6 reste ouverte.**
+**Y-6 est partiellement résolue — voir §6.**
 
 ---
 
@@ -348,7 +354,7 @@ La définition canonique ne doit pas absorber les règles doctrinales suivantes.
 | 6 | Séparation structurelle comportement / marché | intelligence_layer_position_audit R-INT-07 | ÉTABLIE |
 | 7 | Règles de statut épistémique du Constellium | CONST-I2 · CONST-I3 · CONST-I4 · portée Constellium | ÉTABLIES · portée Constellium |
 | 8 | Y-5 — mécanisme général de changement de statut CE | — | NON DÉTERMINÉ — À INSTRUIRE |
-| 9 | Y-6 — rapport relation / corrélation / lien | — | OUVERTE |
+| 9 | Y-6 — rapport relation / corrélation / lien | — | PARTIELLEMENT RÉSOLUE — voir §6 |
 | 10 | S-06 — périmètre S3 dans les corrélations Phase A | — | NON TRANCHÉE |
 
 ---
@@ -385,9 +391,70 @@ La qualification statistique relève du chantier d'implémentation et de calibra
 
 ---
 
-## §6 → §n — Réservés
+## §6 — Y-6 : Rapport sémantique entre "relation", "corrélation" et "lien" dans CE
 
-Les sections §6 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
+### §6.1 — Y-6A : Relation / Corrélation dans le Constellium
+
+**STATUT : RÉSOLUE · PORTÉE CONSTELLIUM UNIQUEMENT**
+
+| Source | Référence | Niveau | Élément applicable |
+|---|---|---|---|
+| dt_const_01 — CONST-I3 | l.138 | A · portée Constellium | "toute relation — corrélation, hypothèse, dérivation, déclaration opérateur" |
+| constellium_v1_definition | §4 l.224 | A · portée Constellium | "Un lien est une relation entre deux étoiles, prouvée par les données." |
+
+Dans le périmètre Constellium :
+
+- "relation" est le terme générique. Une corrélation, une hypothèse, une dérivation et une déclaration opérateur sont toutes des types de relation (CONST-I3).
+- "lien" est le terme de représentation Constellium pour une relation prouvée par les données (constellium_v1_definition §4).
+- "corrélation" est un type de relation dans ce périmètre.
+
+Hiérarchie établie : **relation > corrélation** (en tant que type spécifique) dans le périmètre Constellium uniquement.
+
+Cette résolution est strictement circonscrite au périmètre Constellium. Elle ne s'étend pas au périmètre CE-général (voir §6.2).
+
+---
+
+### §6.2 — Y-6B : Relation / Corrélation en CE-général
+
+**STATUT : NON DÉTERMINÉE**
+
+DÉCISION-01 utilise le terme "relation" comme vocabulaire repris du dictionnaire ACF V1 (M2 l.34). Ce choix de vocabulaire ne crée pas d'ontologie CE-générale du terme "Relation".
+
+Aucun document du corpus gelé ne définit "relation" comme terme canonique CE-général distinct de "corrélation".
+
+La résolution Y-6A (périmètre Constellium) ne s'étend pas au périmètre CE-général : aucun fondement de niveau A ne permet d'asserter une ontologie "relation > corrélation" applicable hors Constellium.
+
+Y-6B reste NON DÉTERMINÉE. Sa résolution requiert une décision doctrinale dédiée dans un lot compétent.
+
+---
+
+### §6.3 — Y-6C : « lien » / « relation » dans I-07
+
+**STATUT : NON DÉTERMINÉE**
+
+Texte I-07 (ACF V1 M2 l.130, niveau A) :
+
+> « Le système ne fabrique pas de liens. Il détecte des relations qui existent dans les données. »
+
+I-07 contient une alternance entre "liens" (première clause) et "relations" (deuxième clause). Hypothèses locales testées lors de l'instruction de Y-6C :
+
+| Hypothèse | Contenu | Niveau |
+|---|---|---|
+| Y-6C-H1 — Synonymie locale | « liens » et « relations » seraient synonymes dans I-07 | B — cohérent, non établi verbatim |
+| Y-6C-H2 — Contraste rhétorique/actionnel | l'alternance « liens / relations » porterait principalement sur fabriquer vs détecter | B — interprétation cohérente, non établie verbatim |
+| Y-6C-H3 — Lecture Constellium | « liens » pourrait être lu à travers le sens Constellium de lien/relation représentée | C — inférence architecturale hors périmètre direct de I-07 |
+
+**Note méthodologique :**
+
+L'interprétation que le contraste "liens/relations" dans I-07 est purement rhétorique ou actionnel (Y-6C-H2) constitue une lecture de niveau B. Elle ne peut pas être inscrite comme résolution canonique. Aucun texte du corpus gelé n'établit verbatim que "liens" et "relations" sont synonymes dans I-07 (Y-6C-H1 non confirmé), ni qu'ils désignent deux objets sémantiquement distincts.
+
+Y-6C reste NON DÉTERMINÉE. Sa résolution requiert soit un fondement de niveau A dans le corpus gelé, soit une décision doctrinale explicite dans un lot compétent.
+
+---
+
+## §7 → §n — Réservés
+
+Les sections §7 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
 
 ---
 
