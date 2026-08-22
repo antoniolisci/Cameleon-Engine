@@ -356,4 +356,12 @@ function buildInterpretation(profileKey, dominantRisk, types) {
   return lines.slice(0, 4);
 }
 
-export { computeScore };
+// ── Correspondance label → clé ────────────────────────────────────────────────
+// Utilisé par behavior-reader.js pour reconstruire la clé depuis le label persisté
+// en mémoire opérateur. PROFILES reste la source canonique — non exporté.
+
+function getProfileKeyFromLabel(label) {
+  return PROFILES.find(p => p.label === label)?.key ?? null;
+}
+
+export { computeScore, getProfileKeyFromLabel };

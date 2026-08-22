@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>behavior-reader.js \u2014 Tests GM + BR</title>
+  <style>
+    * { box-sizing: border-box; }
+    body  { font-family: monospace; padding: 24px; background: #0e0e0e; color: #ccc; font-size: 13px; margin: 0; }
+    h1    { color: #fff; font-size: 16px; margin-bottom: 4px; }
+    .meta { color: #666; margin-bottom: 24px; font-size: 12px; }
+    h2    { color: #7cf; font-size: 14px; margin: 28px 0 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+    .summary { display: flex; gap: 24px; margin: 16px 0 28px; font-size: 14px; }
+    .s-pass   { color: #4f4; }
+    .s-fail   { color: #f44; }
+    .s-total  { color: #aaa; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+    td, th { border: 1px solid #222; padding: 4px 10px; text-align: left; }
+    th     { background: #161616; color: #adf; font-weight: normal; }
+    .pass  { color: #4f4; }
+    .fail  { color: #f44; background: #1a0000; }
+    .suite-block { margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+
+<h1>behavior-reader.js \u2014 Tests getProfileKeyFromLabel + getBehavioralProfile</h1>
+<div class="meta">Suite GM (7 tests) \u00b7 Suite BR (6 tests) \u00b7 Architecture Consolidation V1</div>
+
+<div id="root"></div>
+
+<script type="module">
+import { getProfileKeyFromLabel } from '../js/behavior/analytics/scoring.js';
+import { getBehavioralProfile }   from '../js/behavior/behavior-reader.js';
+import { resolveKey }             from '../js/storage.js';
+
+// \u2500\u2500 Framework d'assertion \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+const results = [];
+
+function assertEq(id, actual, expected) {
+  const pass = actual === expected;
+  const detail = pass
+    ? String(actual)
+    : 'obtenu "' + String(actual) + '", attendu "' + String(expected) + '"';
+  results.push({ id: id, pass: pass, detail: detail });
+}
+
+function assertDeepProfile(id, actual, expKey, expLabel) {
+  const pass = actual !== null
+    && typeof actual === 'object'
+    && actual.key === expKey
+    && actual.label === expLabel;
+  const detail = pass
+    ? 'key=' + expKey + ', label=' + expLabel
+    : 'obtenu ' + JSON.stringify(actual) + ', attendu {key:"' + expKey + '",label:"' + expLabel + '"}';
+  results.push({ id: id, pass: pass, detail: detail });
+}
+
+function assertNull(id, actual) {
+  const pass = actual === null;
+  const detail = pass ? 'null' : 'obtenu ' + JSON.stringify(actual) + ', attendu null';
+  results.push({ id: id, pass: pass, detail: detail });
+}
+
+// \u2500\u2500 Helpers m\u00e9moire \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+const MEM_KEY = resolveKey('CE_operator_memory_v1');
+const savedMem = localStorage.getItem(MEM_KEY);
+
+function buildTestMemory(window10) {
+  return JSON.stringify({
+    version:   1,
+    updatedAt: new Date().toISOString(),
+    data: {
+      sessionCount:         window10.length,
+      allTime: {
+        scoreSum:         0,
+        scoreSessions:    0,
+        patternFrequency: {
+          overtrading:        0,
+          revenge_trading:    0,
+          rapid_reentry:      0,
+          size_inconsistency: 0,
+          loss_chasing:       0,
+        },
+        profileHistory: [],
+      },
+      window10:             window10,
+      certifications:       [],
+      importedFingerprints: [],
+    },
+  });
+}
+
+function setMem(window10) {
+  localStorage.setItem(MEM_KEY, buildTestMemory(window10));
+}
+
+function clearMem() {
+  localStorage.removeItem(MEM_KEY);
+}
+
+// \u2500\u2500 Suite GM \u2014 getProfileKeyFromLabel \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+assertEq('GM-1', getProfileKeyFromLabel('Disciplin\u00e9'), 'disciplined');
+assertEq('GM-2', getProfileKeyFromLabel('R\u00e9actif'),    'reactive');
+assertEq('GM-3', getProfileKeyFromLabel('Impulsif'),        'impulsive');
+assertEq('GM-4', getProfileKeyFromLabel('Agressif'),        'aggressive');
+assertEq('GM-5', getProfileKeyFromLabel('unknown'),         null);
+assertEq('GM-6', getProfileKeyFromLabel(''),                null);
+assertEq('GM-7', getProfileKeyFromLabel(null),              null);
+
+// \u2500\u2500 Suite BR \u2014 getBehavioralProfile \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+try {
+
+  // BR-1 \u2014 m\u00e9moire vide (window10 vide) \u2192 null
+  setMem([]);
+  assertNull('BR-1', getBehavioralProfile());
+
+  // BR-2 \u2014 profil Disciplin\u00e9 \u2192 { key: 'disciplined', label: 'Disciplin\u00e9' }
+  setMem([{ score: 85, profile: 'Disciplin\u00e9', patterns: [], createdAt: 0 }]);
+  assertDeepProfile('BR-2', getBehavioralProfile(), 'disciplined', 'Disciplin\u00e9');
+
+  // BR-3 \u2014 profil Agressif \u2192 { key: 'aggressive', label: 'Agressif' }
+  setMem([{ score: 20, profile: 'Agressif', patterns: [], createdAt: 0 }]);
+  assertDeepProfile('BR-3', getBehavioralProfile(), 'aggressive', 'Agressif');
+
+  // BR-4 \u2014 label non reconnu \u2192 null
+  setMem([{ score: 50, profile: 'unknown', patterns: [], createdAt: 0 }]);
+  assertNull('BR-4', getBehavioralProfile());
+
+  // BR-5 \u2014 entr\u00e9e sans champ profile \u2192 null
+  setMem([{ score: 70, patterns: [], createdAt: 0 }]);
+  assertNull('BR-5', getBehavioralProfile());
+
+  // BR-6 \u2014 window10[0] = entr\u00e9e la plus r\u00e9cente
+  setMem([
+    { score: 20, profile: 'Agressif',        patterns: [], createdAt: 2 },
+    { score: 85, profile: 'Disciplin\u00e9', patterns: [], createdAt: 1 },
+  ]);
+  assertDeepProfile('BR-6', getBehavioralProfile(), 'aggressive', 'Agressif');
+
+} finally {
+  if (savedMem !== null) {
+    localStorage.setItem(MEM_KEY, savedMem);
+  } else {
+    clearMem();
+  }
+}
+
+// \u2500\u2500 Rendu \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+function renderSuite(title, ids) {
+  const suite = results.filter(function(r) { return ids.indexOf(r.id) !== -1; });
+  const pCount = suite.filter(function(r) { return r.pass; }).length;
+  const fCount = suite.length - pCount;
+  const statusHtml = fCount > 0
+    ? '<span style="color:#f44">FAIL</span>'
+    : '<span style="color:#4f4">PASS</span>';
+  let rows = '';
+  for (let i = 0; i < suite.length; i++) {
+    const r    = suite[i];
+    const cls  = r.pass ? 'pass' : 'fail';
+    const icon = r.pass ? '\u2713' : '\u2717';
+    rows += '<tr class="' + cls + '">'
+      + '<td>' + icon + '</td>'
+      + '<td>' + r.id + '</td>'
+      + '<td>' + r.detail + '</td>'
+      + '</tr>';
+  }
+  return '<div class="suite-block">'
+    + '<h2>' + title + ' \u2014 ' + pCount + '/' + suite.length + ' ' + statusHtml + '</h2>'
+    + '<table><thead><tr><th></th><th>ID</th><th>D\u00e9tail</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table>'
+    + '</div>';
+}
+
+const total = results.length;
+const nPass = results.filter(function(r) { return r.pass; }).length;
+const nFail = total - nPass;
+
+const rendered =
+  '<div class="summary">'
+  + '<span class="s-pass">\u2713 ' + nPass + ' PASS</span>'
+  + '<span class="s-fail">' + (nFail > 0 ? '\u2717 ' + nFail + ' FAIL' : '') + '</span>'
+  + '<span class="s-total">/ ' + total + ' tests</span>'
+  + '</div>'
+  + renderSuite('Suite GM \u2014 getProfileKeyFromLabel', ['GM-1','GM-2','GM-3','GM-4','GM-5','GM-6','GM-7'])
+  + renderSuite('Suite BR \u2014 getBehavioralProfile',   ['BR-1','BR-2','BR-3','BR-4','BR-5','BR-6']);
+
+document.getElementById('root').innerHTML = rendered;
+</script>
+
+</body>
+</html>
