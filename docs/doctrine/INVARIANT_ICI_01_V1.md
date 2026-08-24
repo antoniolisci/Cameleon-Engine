@@ -132,7 +132,7 @@ Résultat : STATEFUL_ADAPTATION confirmée. Singleton de session `_s`, 4 signaux
 
 ICI-01 n'est pas un DNA. C'est une propriété émergente dont la totalité dépasse tout DNA individuel.
 
-**Note sur la taxonomie DNA :** Les propriétés architecturales (DNA-01 à DNA-14) ont été identifiées lors de l'EMERGENT-AUDIT-2026-08-22. Cette taxonomie n'est pas encore formalisée dans un document du dépôt. Les relations ci-dessous sont référencées par leur contenu conceptuel, sans ID canonique, jusqu'à ce que le registre DNA soit commité.
+**Note sur la taxonomie DNA :** Les propriétés architecturales constitutives ont été identifiées lors de l'EMERGENT-AUDIT-2026-08-22. Le registre canonique des 4 DNA retenus est formalisé dans `docs/doctrine/REGISTRY_DNA_V1.md` (commit 048f589, 2026-08-24). Les relations ci-dessous sont référencées par leur contenu conceptuel ; seuls DNA-01 à DNA-04 sont des identifiants canoniques.
 
 | Propriété conceptuelle | Relation avec ICI-01 |
 |------------------------|---------------------|

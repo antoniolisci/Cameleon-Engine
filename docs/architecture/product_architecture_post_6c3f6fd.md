@@ -38,7 +38,7 @@ Source de vérité : `docs/architecture/canonical_motor_state_2026.md` (commit `
 
 | Composant | Chemin réel | Nature de la connexion |
 |-----------|-------------|----------------------|
-| Guard instantané | `engine.js` → `payload.behavior.overtradingLevel` → `render.js` | Effets moteur + affichage |
+| Guard instantané | `engine.js` → `payload.behavior.riskLevel` → `render.js` | Affichage comportemental (riskLevel fixe = 1 jusqu'à connexion behavior bridge) |
 | V2 T3 | `buildPayload()` → `pipeline-v2.js` → `payload.v2.expositionResult` → `#v2MessageBlock` | Affichage cockpit |
 | Historical guard | `behavior-view.js` → localStorage → `render.js` Math.max | Affichage uniquement — pas d'effets moteur |
 | `friction.js` | `render.js:29` import → boutons snapshot / attack / sniper | UX délai cognitif |
