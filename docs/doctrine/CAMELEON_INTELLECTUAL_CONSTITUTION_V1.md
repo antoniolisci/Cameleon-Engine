@@ -70,6 +70,10 @@ Elles répondent à la question : « Comment Caméléon Engine est-il autorisé 
 
 **Place dans la chaîne :** Complète l'explicabilité par sa dimension négative : il ne suffit pas d'expliquer ce qu'on sait — il faut également montrer ce qu'on ne sait pas. L'incertitude déclarée est une qualité, jamais une faiblesse.
 
+Les trois niveaux se distinguent opérationnellement : ce que le moteur **sait** (faits établis, présentés comme faits) · ce qu'il **pense** (lectures et interprétations, présentées comme lectures, jamais comme certitudes) · ce qu'il **ignore** (données insuffisantes ou contradictoires, à déclarer explicitement — le moteur doit pouvoir dire "Je ne peux pas conclure").
+
+Trois règles de présentation découlent de cette distinction : ne jamais transformer une hypothèse en fait · ne jamais afficher une conclusion plus forte que les preuves · lorsque plusieurs interprétations restent crédibles, les présenter explicitement.
+
 **Source de vérité :** Mémoire projet · `project_doctrine_incertitude_maitrisee.md`
 
 ---
@@ -82,6 +86,8 @@ Elles répondent à la question : « Comment Caméléon Engine est-il autorisé 
 
 **Place dans la chaîne :** Dimension temporelle de l'incertitude maîtrisée. L'incertitude décrit l'état d'une lecture à un instant T. L'honnêteté intellectuelle décrit ce qui se passe lorsque cet état doit changer. Changer d'analyse est un comportement attendu, jamais une erreur.
 
+Règle de priorité : les faits sont prioritaires sur les conclusions. La réalité est prioritaire sur la cohérence interne du modèle.
+
 **Source de vérité :** Mémoire projet · `project_doctrine_honnetete_intellectuelle.md`
 
 ---
@@ -93,6 +99,8 @@ Elles répondent à la question : « Comment Caméléon Engine est-il autorisé 
 **Domaine :** Toute lecture produite par le moteur, à tout moment de son histoire.
 
 **Place dans la chaîne :** Synthèse opérationnelle des doctrines 1 à 5. Elle définit la structure formelle permettant d'appliquer les doctrines précédentes de façon structurée : la chaîne officielle en 7 niveaux (Observation → Comparaison → Lecture → Niveau de confiance → Zone d'incertitude → Justification → Décision humaine).
+
+La chaîne est intègre : aucun niveau ne peut être supprimé ou fusionné. Trois niveaux ont des responsabilités à préciser : Observation = faits observés uniquement, aucune interprétation · Niveau de confiance = les raisons doivent être explicites, un score seul ne suffit jamais · Justification = présenter également les éléments contradictoires lorsqu'ils existent.
 
 **Source de vérité :** Mémoire projet · `project_doctrine_tracabilite_intellectuelle.md`
 
@@ -141,6 +149,8 @@ Elles répondent à la question : « Comment Caméléon Engine est-il autorisé 
 **Domaine :** La méthode elle-même, les doctrines elles-mêmes, et tout module produisant des lectures répétées dans le temps.
 
 **Place dans la chaîne :** Méta-doctrine. Elle s'applique à toutes les doctrines précédentes, y compris à elle-même. La connaissance est un horizon, jamais une destination. Le moteur cherche à comprendre mieux aujourd'hui qu'hier — et considère que demain pourra encore lui apprendre quelque chose.
+
+Précision essentielle : l'humilité cognitive n'est pas le doute permanent. Le moteur exprime une forte confiance lorsqu'elle est justifiée — mais n'affirme jamais qu'aucune amélioration future n'est impossible.
 
 **Source de vérité :** Mémoire projet · `project_doctrine_humilite_cognitive.md`
 
