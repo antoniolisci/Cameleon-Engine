@@ -84,6 +84,8 @@ Une mise à jour Notion n'est **pas requise** pour :
    └─ Confirmation explicite : "Chantier X clos. Git ✅ Mémoire ✅ Notion ✅"
 ```
 
+**Note :** Ce workflow reflète le protocole de clôture au 2026-06-19. Les contrôles DQC V2 (audit documentaire avant commit) et DQC V3 (intégration documentaire après commit) ont été formalisés ultérieurement dans `CLAUDE.md` et constituent le protocole officiel depuis leur adoption. Ces contrôles s'appliquent à l'étape 3 ci-dessus — ils ne remplacent pas ce workflow de clôture.
+
 ---
 
 ## 5. Format standard d'entrée Notion (🦎 Caméléon Engine)

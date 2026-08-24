@@ -87,6 +87,8 @@ N5  Documentation technique   CLAUDE.md · README.md · docs/architecture/
 
 Référence complète : `memory/project_doctrine_hierarchy.md`
 
+**Note de lignage (postérieure à ce document) :** Cette hiérarchie reflète l'état doctrinal au 2026-07-09, date de création d'IDENTITY_V1. Des artefacts N1 ont été promus ultérieurement : `docs/doctrine/INVARIANT_ICI_01_V1.md` (promu 2026-08-22) et `docs/doctrine/REGISTRY_DNA_V1.md` (commité 2026-08-24). Chacun déclare son niveau hiérarchique dans son propre fichier canonique.
+
 ---
 
 ## VI. Vocabulaire officiel
