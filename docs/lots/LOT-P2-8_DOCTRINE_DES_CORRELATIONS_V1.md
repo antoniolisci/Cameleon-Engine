@@ -87,18 +87,18 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 |---|---|---|
 | DÉCISION-01 | Définition canonique de "corrélation" dans CE | ADOPTÉE — §5.6 |
 | S-04 | Impact BORNE-S3-3/S4-1/S4-2 sur la doctrine des corrélations | PARTIELLEMENT INSTRUITE |
-| S-06 | Périmètre S3 dans les corrélations Phase A | NON TRANCHÉE — décision opérateur requise |
+| S-06 | Périmètre S3 dans les corrélations Phase A | RÉSOLUE — RESOLVED_BY_EXISTING_CANONICAL_FACTS + HUMAN_VALIDATION — voir §10.4 |
 | Y-1 | Tension : modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction fusion marché (intelligence_layer_position_audit R-INT-07) | RÉSOLUE — FAUX CONFLIT DE PORTÉE + RESTRICTION OPÉRATIONNELLE PARTIELLE — voir §9 |
-| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — voir §8 |
+| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — Y-5A/Y-5C/Y-5D RÉSOLUES · Y-5B PARTIELLEMENT RÉSOLUE · Y-5E/Y-5F SANS OBJET — voir §8 + §10 |
 | Y-5A | Autorité de validation en CE-général | RÉSOLUE — voir §8.1 |
 | Y-5B | Automaticité du changement de statut | PARTIELLEMENT RÉSOLUE — voir §8.2 |
 | Y-5C | Relation entre évolution des lectures / confiance et validation | RÉSOLUE — voir §8.3 |
-| Y-5D | Taxonomie des statuts CE-général | NON DÉTERMINÉE — Programme P6 |
-| Y-5E | Graphe exact des transitions | NON DÉTERMINÉE — Programme P6 |
-| Y-5F | Critères et seuils de proposition de changement | NON DÉTERMINÉE — Programme P6 |
+| Y-5D | Taxonomie des statuts CE-général | RÉSOLUE — décision doctrinale négative · aucune taxonomie épistémique autonome adoptée — voir §10 |
+| Y-5E | Graphe exact des transitions | SANS OBJET dans sa formulation originale — voir §10 |
+| Y-5F | Critères et seuils de proposition de changement | SANS OBJET dans sa formulation originale · besoin résiduel transféré à P6 — voir §10 |
 | Y-6 | Tension : "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
-| Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
+| Y-6B | Relation / Corrélation en CE-général | RÉSOLUE — PATH-N — voir §10.5 |
 | Y-6C | « lien » / « relation » dans I-07 | NON DÉTERMINÉE — voir §6.3 |
 | Y-7 | Périmètre des corrélations intra-famille — périmètre opérationnel L2 / P6 et existence conceptuelle des corrélations intra-famille | PARTIELLEMENT RÉSOLUE — voir §7 |
 | Y-7A | Périmètre opérationnel L2 / P6 — inter-familles ou non ? | RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé — voir §7.1 |
@@ -168,7 +168,7 @@ I-07 ≠ I-08 : toute section traitant de la détection s'appuie sur I-07. Toute
 | Aucune corrélation à l'ingestion | A | LOT-P2-1 IG-I5 |
 | Corrélation ≠ causalité | A | CONST-I3 (Constellium) · intelligence_layer_position_audit §3 l.91 (général CE) |
 | Statut épistémique visible au moment de la navigation dans le Constellium | A · portée Constellium | CONST-I2 · CONST-I3 — portée générale à instruire si nécessaire |
-| Hypothèse ≠ passage automatique de statut dans le Constellium | A · portée Constellium | CONST-I4 — portée Constellium uniquement · portée CE-générale partiellement instruite via Y-5 (§8) |
+| Hypothèse ≠ passage automatique de statut dans le Constellium | A · portée Constellium | CONST-I4 — portée Constellium uniquement · non transposé à CE-général — voir DÉCISION-MANDAT-1 (§10) |
 | Seuil principe N2 · valeur N5 | A (principe) | PRD V1 R-P07 |
 | Interdiction clauses causales dans expression patterns | A | PRD V1 R-P03 |
 | Corrélation jamais imposée · toujours détectée | A | ACF V1 I-07 |
@@ -181,10 +181,10 @@ Voir également §2.3 — Questions / indéterminations propres à LOT-P2-8.
 | ID | Tension | Statut |
 |---|---|---|
 | Y-1 | modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction de corrélation comportement × résultats de marché (intelligence_layer_position_audit R-INT-07) | RÉSOLUE — voir §9 |
-| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — voir §8 |
+| Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — voir §8 + §10 |
 | Y-6 | "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
-| Y-6B | Relation / Corrélation en CE-général | NON DÉTERMINÉE — voir §6.2 |
+| Y-6B | Relation / Corrélation en CE-général | RÉSOLUE — PATH-N — voir §10.5 |
 | Y-6C | « lien » / « relation » dans I-07 — alternance "ne fabrique pas de liens / détecte des relations" | NON DÉTERMINÉE — voir §6.3 |
 | Y-7 | Périmètre des corrélations intra-famille — périmètre opérationnel L2 / P6 et existence conceptuelle des corrélations intra-famille | PARTIELLEMENT RÉSOLUE — voir §7 |
 | Y-7A | Périmètre opérationnel L2 / P6 — inter-familles ou non ? | RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé — voir §7.1 |
@@ -371,9 +371,9 @@ La définition canonique ne doit pas absorber les règles doctrinales suivantes.
 | 5 | Provenance obligatoire lorsqu'une corrélation est persistée | ACF V1 I-08 · ROADMAP V1 P6 l.222 | ÉTABLIE |
 | 6 | Séparation structurelle comportement / marché | intelligence_layer_position_audit R-INT-07 | ÉTABLIE |
 | 7 | Règles de statut épistémique du Constellium | CONST-I2 · CONST-I3 · CONST-I4 · portée Constellium | ÉTABLIES · portée Constellium |
-| 8 | Y-5 — mécanisme général de changement de statut CE | Language System V1 Couche 3 · Constitution Intellectuelle V1 §5/§8 | PARTIELLEMENT RÉSOLUE — Y-5A/Y-5C RÉSOLUES · Y-5B PARTIELLEMENT RÉSOLUE · Y-5D/E/F NON DÉTERMINÉES — voir §8 |
+| 8 | Y-5 — mécanisme général de changement de statut CE | Language System V1 Couche 3 · Constitution Intellectuelle V1 §5/§8 | PARTIELLEMENT RÉSOLUE — Y-5A/Y-5C RÉSOLUES · Y-5B PARTIELLEMENT RÉSOLUE · Y-5D RÉSOLUE décision doctrinale négative · Y-5E/F SANS OBJET dans leur formulation originale — voir §8 + §10 |
 | 9 | Y-6 — rapport relation / corrélation / lien | — | PARTIELLEMENT RÉSOLUE — voir §6 |
-| 10 | S-06 — périmètre S3 dans les corrélations Phase A | — | NON TRANCHÉE |
+| 10 | S-06 — périmètre S3 dans les corrélations Phase A | — | RÉSOLUE — voir §10.4 |
 | 11 | Y-7 — périmètre opérationnel L2 / P6 et corrélations intra-famille | — | PARTIELLEMENT RÉSOLUE — voir §7 |
 
 ---
@@ -435,7 +435,7 @@ Cette résolution est strictement circonscrite au périmètre Constellium. Elle 
 
 ### §6.2 — Y-6B : Relation / Corrélation en CE-général
 
-**STATUT : NON DÉTERMINÉE**
+**STATUT ACTUEL : RÉSOLUE — PATH-N · voir §10.5**
 
 DÉCISION-01 utilise le terme "relation" comme vocabulaire repris du dictionnaire ACF V1 (M2 l.34). Ce choix de vocabulaire ne crée pas d'ontologie CE-générale du terme "Relation".
 
@@ -443,7 +443,12 @@ Aucun document du corpus gelé ne définit "relation" comme terme canonique CE-g
 
 La résolution Y-6A (périmètre Constellium) ne s'étend pas au périmètre CE-général : aucun fondement de niveau A ne permet d'asserter une ontologie "relation > corrélation" applicable hors Constellium.
 
+*État de l'analyse au moment de la rédaction de §6.2 :*
+
 Y-6B reste NON DÉTERMINÉE. Sa résolution requiert une décision doctrinale dédiée dans un lot compétent.
+
+*Résolution ultérieure : DECISION-HUMAN-H1-01 — PATH-N — voir §10.5.
+Cette résolution ne modifie pas le raisonnement historique ci-dessus.*
 
 ---
 
@@ -737,9 +742,165 @@ Ce point ne rouvre pas Y-1. Il constitue un point **NON DÉTERMINÉ** à tranche
 
 ---
 
-## §10 → §n — Réservés
+## §10 — MANDAT-2 : Décisions de périmètre et intégration KG V1
 
-Les sections §10 et suivantes seront ouvertes à l'avancement du lot selon les décisions opérateur.
+---
+
+### §10.1 — Ouverture de MANDAT-2 et structure des catégories
+
+MANDAT-2 remplit deux fonctions distinctes et séparées.
+
+**Catégorie A — Décisions humaines propres au périmètre LOT-P2-8.** Encoder formellement les décisions de LOT-P2-8 référencées dans l'index du document (§2.3, §4.2, §4.3, §5.6) mais absentes du corps. Ces décisions appartiennent au périmètre doctrinal de LOT-P2-8 et sont matérialisées ici en tant que décisions de LOT-P2-8.
+
+**Catégorie B — Contraintes provenant de KG V1, doctrine N1 distincte.** Inscrire les contraintes imposées par KG V1 (N1 · commit `a075d2b` · 2026-08-25), doctrine extérieure à LOT-P2-8. Ces contraintes s'appliquent au contenu futur du présent document. Elles ne constituent pas de nouvelles décisions de LOT-P2-8.
+
+La séparation entre Catégorie A et Catégorie B est une séparation de nature, d'autorité et de source. Ces deux catégories ne sont jamais fusionnées. Une contrainte B ne justifie jamais rétrospectivement une décision A.
+
+---
+
+### §10.2 — [Catégorie A] DÉCISION-MANDAT-1 : Non-transposition de CONST-I4
+
+**Identifiant :** DÉCISION-MANDAT-1  
+**Niveau :** Décision humaine propre au périmètre LOT-P2-8  
+**Date :** 2026-08-25  
+**HISTORICAL_RATIONALE :** PARTIALLY_RECOVERED / NON DÉMONTRABLE
+
+**A — Décision :**
+
+CONST-I4 (invariant de qualification épistémique du corpus Constellium) n'est pas transposé au niveau CE-général dans le périmètre de LOT-P2-8.
+
+**B — Conséquence directe de la décision :**
+
+Aucune taxonomie épistémique autonome CE-général n'est adoptée dans LOT-P2-8.
+
+**C — Cross-check avec KG V1 (non historique — vérification postérieure) :**
+
+Cette décision est compatible avec KG-06. Cette compatibilité est une vérification postérieure — elle n'était pas la motivation historique de DÉCISION-MANDAT-1, dont la justification exacte n'est pas entièrement récupérable depuis les sources disponibles.
+
+**Conséquences directes :** Y-5D RÉSOLUE (négative) · Y-5E SANS OBJET dans sa formulation originale · Y-5F SANS OBJET dans sa formulation originale (voir §10.3).
+
+---
+
+### §10.3 — [Catégorie A] Résolution Y-5D / Y-5E / Y-5F
+
+**Y-5D — RÉSOLUE (décision doctrinale négative)**
+
+Aucune taxonomie épistémique autonome CE-général n'est adoptée dans LOT-P2-8. La question initiale reçoit une réponse négative explicite.
+
+**Y-5E — SANS OBJET dans sa formulation originale**
+
+Formulation originale sans objet — conséquence de la résolution négative Y-5D. Aucune règle produite sur ce point.
+
+**Y-5F — SANS OBJET dans sa formulation originale · besoin résiduel transféré à P6**
+
+Formulation originale sans objet — conséquence de la résolution négative Y-5D. Le besoin résiduel (suivi de l'évolution du statut épistémique des corrélations) est transféré à P6.  
+*Source : WORKTREE_FACT récupéré · §2.3 index.*
+
+---
+
+### §10.4 — [Catégorie A] DECISION-HUMAN-G1-01 : Périmètre de corrélation — famille S3 en Phase A
+
+**Identifiant :** DECISION-HUMAN-G1-01  
+**Code :** S-06  
+**Date :** 2026-08-25  
+**S06_RESOLUTION_STATUS :** RESOLVED_BY_EXISTING_CANONICAL_FACTS + HUMAN_VALIDATION  
+**S06_SUBSTANTIVE_DOCTRINAL_DECISION_CREATED :** NO
+
+**Décision récupérée :**
+
+S3 est hors du périmètre opérationnel de la corrélation en Phase A.
+
+Cette conclusion est factuelle et découle de la conjonction des quatre sources canoniques suivantes :
+
+1. **CL-P4** — LOT-P2-1 §15.2, niveau A : S3 inactive Phase A, non ingérée
+2. **LOT-P2-1 §14.4**, niveau A : familles S3 … inactives en Phase A
+3. **DT-S3-4 D4a** — LOT-P2-6 §5.9, TRANCHÉE : S3 silencieuse en Phase A · aucune trace S3 produite avant activation formelle
+4. **DÉCISION-01** — LOT-P2-8 §5.6, niveau A, ADOPTÉE : corrélation = relation observée entre deux mémoires ou plus
+
+Conséquence factuelle de cette conjonction : aucune mémoire S3 n'existe en Phase A · aucune corrélation S3 n'est opérationnellement possible en Phase A.
+
+Aucune règle universelle nouvelle n'est créée. Au moment de DECISION-HUMAN-G1-01, l'encodage documentaire avait été différé à la reprise de LOT-P2-8. La présente section matérialise cet encodage sans modifier la décision.
+
+**Périmètre strict de S-06 :**
+
+| Paramètre | Valeur |
+|---|---|
+| S3_ACTIVATION | NOT AUTHORIZED · NOT PERFORMED · OUTSIDE THIS DECISION |
+| S3_POST_ACTIVATION_CORRELATION_DOCTRINE | NOT DECIDED · NOT CONSTRAINED BY THIS DECISION |
+| BORNE-S3-1 / S3-2 / S3-3 | UNCHANGED |
+| T0-1 / T0-2 / T0-6 / T0-7 | UNCHANGED |
+| UNIVERSAL_RULE_CREATED | NO |
+
+---
+
+### §10.5 — [Catégorie A] DECISION-HUMAN-H1-01 : Ontologie du concept « relation » (PATH-N)
+
+**Identifiant :** DECISION-HUMAN-H1-01  
+**Code :** Y-6B  
+**Chemin retenu :** PATH-N  
+**Date :** 2026-08-25  
+**Point Y-6B :** RÉSOLUE
+
+**Décision récupérée :**
+
+Aucune ontologie CE-général du concept « relation » n'est créée. Le terme « relation » dans DÉCISION-01 reste un vocabulaire de corpus, non une entité ontologique de CE-général. Aucune hiérarchie Relation > Corrélation ou Relation = Corrélation n'est établie. Au moment de DECISION-HUMAN-H1-01, l'encodage documentaire avait été différé à la reprise de LOT-P2-8. La présente section matérialise cet encodage sans modifier la décision.
+
+Toute création future d'une ontologie CE-générale de « relation » devra faire l'objet d'une décision doctrinale dédiée dans un périmètre compétent.
+
+**Portée stricte :**
+
+- Aucune ontologie CE-générale autonome de « relation » créée.
+- « relation » dans DÉCISION-01 = vocabulaire repris du corpus, non entité ontologique.
+- Aucune Relation > Corrélation.
+- Aucune Relation = Corrélation.
+- Aucune autre ontologie relation / corrélation / lien créée dans ce périmètre.
+- DÉCISION-01 (§5.6) inchangée.
+- Y-6C : NON RÉSOLUE — hors périmètre de H1-01.
+- Y-7B : NON RÉSOLUE — hors périmètre de H1-01.
+- Le corpus Constellium est inchangé dans son propre périmètre.
+
+---
+
+### §10.6 — [Catégorie B] Contraintes N1 postérieures : KG-02 · KG-04 · KG-06
+
+Ces contraintes découlent de KG V1 (N1 · commit `a075d2b` · 2026-08-25), doctrine extérieure à LOT-P2-8. Elles s'appliquent au contenu futur du présent document. Elles ne constituent pas de nouvelles décisions de LOT-P2-8.
+
+#### KG-02 — CANONICAL ≠ RUNTIME
+
+Une corrélation détectée par le moteur est un état runtime. Elle ne constitue pas une connaissance canonique au sens de KG V1 du seul fait de sa détection. Elle ne devient canonique que si les conditions applicables selon KG-06 sont satisfaites.
+
+Applicable à toute règle future de ce document traitant du statut des corrélations produites.
+
+#### KG-04 — Anti-autoréférentialité
+
+Un sous-système ne peut pas utiliser ses propres sorties comme source de preuve indépendante pour les mêmes sorties.
+
+Applicable à toute règle future de ce document traitant de la validation ou de l'assertion des corrélations.
+
+#### KG-06 — PRODUCTION METHOD → STATUS
+
+Le statut épistémique d'une connaissance dépend de la méthode qui l'a produite. La taxonomie KG-06 définit quatre niveaux : BY DEFINITION · AFTER DETERMINISTIC VALIDATION · AFTER INDEPENDENT VALIDATION · AFTER HUMAN VALIDATION. Aucune taxonomie locale ne se substitue à KG-06.
+
+Application aux corrélations de ce document : le niveau KG-06 exact applicable aux corrélations produites par L2 dépend de la méthode réelle de production de L2. La méthode L2 n'étant pas encore déterminée (P6 non ouvert), le niveau KG-06 exact est NON DÉTERMINÉ. LOT-P2-8 ne choisit aucun niveau par défaut. Une corrélation détectée reste runtime tant que les conditions de canonisation applicables ne sont pas satisfaites.
+
+**Cross-check Y-5D ↔ KG-06 :** L'absence de taxonomie locale décidée en Y-5D est compatible avec KG-06. KG-06 fournit désormais le cadre de qualification applicable sans réécrire la motivation historique de Y-5D.
+
+---
+
+### §10.7 — [Catégorie C] Éléments NON RÉSOLUS et NON RÉCUPÉRÉS
+
+**Y-6C — Rapport entre lien et relation dans I-07**  
+Statut : NON DÉTERMINÉ.
+
+**Y-7B — Corrélations intra-famille**  
+Statut : NON DÉTERMINÉ.
+
+**Niveau KG-06 exact de L2**  
+Statut : NON DÉTERMINÉ — dépend de la méthode réelle de production de L2 (P6 non défini).
+
+**R-C-01→R-C-13 / Architecture C / D1-D5**  
+RECOVERY_STATUS : NOT_RECOVERED_EXACTLY.  
+Les éléments désignés R-C-01→R-C-13 et Architecture C / D1-D5 ne sont pas encodés ici, leur formulation exacte n'ayant pas été récupérée avec un niveau de preuve suffisant. Aucune reconstruction n'est effectuée dans MANDAT-2.
 
 ---
 
