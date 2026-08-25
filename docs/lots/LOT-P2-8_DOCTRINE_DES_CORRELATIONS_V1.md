@@ -103,6 +103,7 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | Y-7 | Périmètre des corrélations intra-famille — périmètre opérationnel L2 / P6 et existence conceptuelle des corrélations intra-famille | PARTIELLEMENT RÉSOLUE — voir §7 |
 | Y-7A | Périmètre opérationnel L2 / P6 — inter-familles ou non ? | RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé — voir §7.1 |
 | Y-7B | Existence doctrinale et mécanisme éventuel des corrélations intra-famille | NON DÉTERMINÉE — voir §7.2 |
+| §9.5 | Volatilité et données de contexte ambiguës — périmètre L2 / Phase A | RÉSOLUE — Validation opérateur OPTION I (2026-08-25) → §11 |
 
 ---
 
@@ -736,9 +737,13 @@ intelligence_layer_position_audit §3 (l.87–89, niveau A) autorise expliciteme
 
 ### §9.5 — Point résiduel : volatilité et données de contexte ambiguës
 
+*État de l'analyse au moment de la rédaction de §9.5 (2026-08-17) : point NON DÉTERMINÉ — décision différée à MANDAT-2.*
+
 La volatilité, et plus généralement les données de contexte qui ne relèvent ni clairement du "régime Macro · profil opérateur · état émotionnel déclaré" (formes autorisées, niveau A) ni clairement des "observations de prix · tendance · timing de marché" (formes interdites, niveau A), présentent une ambiguïté non tranchée dans le corpus gelé.
 
 Ce point ne rouvre pas Y-1. Il constitue un point **NON DÉTERMINÉ** à trancher dans MANDAT-2 (règles d'assertion et de non-assertion), lors de la délimitation opérationnelle du périmètre des corrélations assertables en Phase A.
+
+*Résolution ultérieure (2026-08-25) : périmètre exhaustif établi par validation opérateur OPTION I — voir §11.*
 
 ---
 
@@ -901,6 +906,57 @@ Statut : NON DÉTERMINÉ — dépend de la méthode réelle de production de L2 
 **R-C-01→R-C-13 / Architecture C / D1-D5**  
 RECOVERY_STATUS : NOT_RECOVERED_EXACTLY.  
 Les éléments désignés R-C-01→R-C-13 et Architecture C / D1-D5 ne sont pas encodés ici, leur formulation exacte n'ayant pas été récupérée avec un niveau de preuve suffisant. Aucune reconstruction n'est effectuée dans MANDAT-2.
+
+---
+
+## §11 — Résolution §9.5 : Périmètre exhaustif des contextes corrélables (L2 / Phase A)
+
+*Ce paragraphe résout le point NON DÉTERMINÉ identifié en §9.5 : la volatilité et les données de contexte ambiguës n'avaient pas reçu de statut opérationnel dans le corpus gelé. La résolution s'appuie sur une décision opérateur explicite (OPTION I, 2026-08-25).*
+
+---
+
+### §11.1 — Fondement : périmètre exhaustif des contextes autorisés
+
+**A — Base factuelle — corpus de niveau A**
+
+Le corpus canonique de niveau A établit trois contextes explicitement autorisés pour les corrélations L2 :
+
+> *« L'Intelligence peut corréler le comportement observé avec le contexte de la session : régime Macro, profil opérateur, état émotionnel déclaré. »*
+> — intelligence_layer_position_audit §3 l.87–89
+
+Ces trois contextes sont établis comme autorisés par le corpus. Le corpus de niveau A ne se prononce pas sur le caractère exhaustif ou non de cette liste — l'énumération est affirmative, la clôture ne l'est pas.
+
+**B — Décision opérateur — liste exhaustive pour L2 / Phase A**
+
+Par validation opérateur explicite (OPTION I, 2026-08-25) :
+
+La liste des contextes corrélables avec le comportement observé en L2 / Phase A est exhaustive. Aucun contexte non listé dans la base factuelle (§11.1-A) ne peut être utilisé comme contexte de corrélation en L2 / Phase A.
+
+Corollaire de cette décision : *l'absence d'interdiction explicite ne vaut pas autorisation* en L2 / Phase A. Ce corollaire est propre au périmètre L2 / Phase A. Il ne constitue pas un principe doctrinal général de Caméléon Engine.
+
+**C — Conséquence opérationnelle**
+
+Pour L2 / Phase A, les seuls contextes corrélables avec le comportement observé sont :
+
+1. Régime Macro
+2. Profil opérateur
+3. État émotionnel déclaré
+
+Tout contexte absent de cette liste — y compris la volatilité et les autres données de contexte ambiguës identifiées en §9.5 — est hors périmètre L2 / Phase A.
+
+---
+
+### §11.2 — Statut de la volatilité et des données de contexte ambiguës
+
+La volatilité n'est pas interdite par une règle doctrinale générale de Caméléon Engine. Elle est hors périmètre L2 / Phase A par conséquence directe de §11.1-C : n'apparaissant pas dans les trois contextes autorisés, elle ne peut pas être utilisée comme contexte de corrélation en L2 / Phase A.
+
+Ce statut est une conséquence de périmètre pour L2 / Phase A. Il n'est pas une prohibition permanente. Toute extension de ce périmètre requiert une décision explicite dédiée avant utilisation en L2.
+
+---
+
+### §11.3 — Conformité KG V1 (aval)
+
+Pour les contraintes KG V1 relatives aux corrélations L2, voir §10.6 (KG-02 · KG-04 · KG-06). La présente résolution §11 ne modifie pas leur portée.
 
 ---
 
