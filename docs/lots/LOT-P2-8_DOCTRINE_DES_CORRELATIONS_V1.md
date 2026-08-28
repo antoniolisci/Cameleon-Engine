@@ -8,9 +8,9 @@
 | Livrable Roadmap V1 | L7 |
 | Phase Roadmap V1 | A |
 | Type | Doctrine — Corrélations |
-| Statut | EN COURS |
+| Statut | CLOS |
 | Date d'ouverture | 2026-08-17 |
-| Date de clôture | — |
+| Date de clôture | 2026-08-28 |
 | Commit d'ouverture | à venir |
 | Prérequis | LOT-P2-1 CLOS · LOT-P2-7 CLOS |
 | Document | docs/lots/LOT-P2-8_DOCTRINE_DES_CORRELATIONS_V1.md |
@@ -86,12 +86,12 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | ID | Nature | Statut |
 |---|---|---|
 | DÉCISION-01 | Définition canonique de "corrélation" dans CE | ADOPTÉE — §5.6 |
-| S-04 | Impact BORNE-S3-3/S4-1/S4-2 sur la doctrine des corrélations | PARTIELLEMENT INSTRUITE |
+| S-04 | Impact BORNE-S3-3/S4-1/S4-2 sur la doctrine des corrélations | PARTIELLEMENT INSTRUITE · DÉFÉRÉE — lots d'activation S3/S4 |
 | S-06 | Périmètre S3 dans les corrélations Phase A | RÉSOLUE — RESOLVED_BY_EXISTING_CANONICAL_FACTS + HUMAN_VALIDATION — voir §10.4 |
 | Y-1 | Tension : modele-mental-canonique §3 l.170 "entre patterns et résultats" vs interdiction fusion marché (intelligence_layer_position_audit R-INT-07) | RÉSOLUE — FAUX CONFLIT DE PORTÉE + RESTRICTION OPÉRATIONNELLE PARTIELLE — voir §9 |
 | Y-5 | Mécanisme général de changement de statut d'une relation / hypothèse dans CE | PARTIELLEMENT RÉSOLUE — Y-5A/Y-5C/Y-5D RÉSOLUES · Y-5B PARTIELLEMENT RÉSOLUE · Y-5E/Y-5F SANS OBJET — voir §8 + §10 |
 | Y-5A | Autorité de validation en CE-général | RÉSOLUE — voir §8.1 |
-| Y-5B | Automaticité du changement de statut | PARTIELLEMENT RÉSOLUE — voir §8.2 |
+| Y-5B | Automaticité du changement de statut | PARTIELLEMENT RÉSOLUE · RÉSIDUEL DÉFÉRÉ P6 — voir §8.2 |
 | Y-5C | Relation entre évolution des lectures / confiance et validation | RÉSOLUE — voir §8.3 |
 | Y-5D | Taxonomie des statuts CE-général | RÉSOLUE — décision doctrinale négative · aucune taxonomie épistémique autonome adoptée — voir §10 |
 | Y-5E | Graphe exact des transitions | SANS OBJET dans sa formulation originale — voir §10 |
@@ -99,10 +99,10 @@ Ces 7 indéterminations T0 restent sous l'autorité de leurs périmètres de ré
 | Y-6 | Tension : "lien" / "relation" / "corrélation" — rapport sémantique et ontologique dans CE | PARTIELLEMENT RÉSOLUE — voir §6 |
 | Y-6A | Relation / Corrélation dans le Constellium | RÉSOLUE · portée Constellium uniquement — voir §6.1 |
 | Y-6B | Relation / Corrélation en CE-général | RÉSOLUE — PATH-N — voir §10.5 |
-| Y-6C | « lien » / « relation » dans I-07 | NON DÉTERMINÉE — voir §6.3 |
+| Y-6C | « lien » / « relation » dans I-07 | NON DÉTERMINÉE · DÉFÉRÉE — lot compétent — voir §6.3 |
 | Y-7 | Périmètre des corrélations intra-famille — périmètre opérationnel L2 / P6 et existence conceptuelle des corrélations intra-famille | PARTIELLEMENT RÉSOLUE — voir §7 |
 | Y-7A | Périmètre opérationnel L2 / P6 — inter-familles ou non ? | RÉSOLUE — INTER-FAMILLES dans le périmètre actuellement canonisé — voir §7.1 |
-| Y-7B | Existence doctrinale et mécanisme éventuel des corrélations intra-famille | NON DÉTERMINÉE — voir §7.2 |
+| Y-7B | Existence doctrinale et mécanisme éventuel des corrélations intra-famille | NON DÉTERMINÉE · DÉFÉRÉE — lot compétent — voir §7.2 |
 | §9.5 | Volatilité et données de contexte ambiguës — périmètre L2 / Phase A | RÉSOLUE — Validation opérateur OPTION I (2026-08-25) → §11 |
 
 ---
@@ -314,6 +314,8 @@ Une définition candidate doit satisfaire l'ensemble des critères suivants :
 > « Une corrélation est une relation observée entre deux mémoires ou plus — jamais imposée, toujours détectée. »
 
 Formulation quasi-verbatim ACF V1 dictionnaire (M2 l.34). Niveau fondement : **A**. Option V-B retenue.
+
+Option V-B désigne la formulation quasi-verbatim du dictionnaire ACF V1 (M2 l.34), adoptée en alternative aux quatre options composites du §5.4 — aucune d'entre elles ne satisfaisant simultanément le niveau fondement A et le critère de complétude opératoire défini en §5.5.
 
 ---
 
@@ -905,7 +907,8 @@ Statut : NON DÉTERMINÉ — dépend de la méthode réelle de production de L2 
 
 **R-C-01→R-C-13 / Architecture C / D1-D5**  
 RECOVERY_STATUS : NOT_RECOVERED_EXACTLY.  
-Les éléments désignés R-C-01→R-C-13 et Architecture C / D1-D5 ne sont pas encodés ici, leur formulation exacte n'ayant pas été récupérée avec un niveau de preuve suffisant. Aucune reconstruction n'est effectuée dans MANDAT-2.
+Les éléments désignés R-C-01→R-C-13 et Architecture C / D1-D5 ne sont pas encodés ici, leur formulation exacte n'ayant pas été récupérée avec un niveau de preuve suffisant. Aucune reconstruction n'est effectuée dans MANDAT-2.  
+Décision opérateur (2026-08-28) : ces éléments sont DIFFÉRÉS à P6. Ils ne constituent pas un prérequis bloquant pour la clôture doctrinale de LOT-P2-8.
 
 ---
 
@@ -960,4 +963,4 @@ Pour les contraintes KG V1 relatives aux corrélations L2, voir §10.6 (KG-02 ·
 
 ---
 
-*Footer opérateur — LOT-P2-8 · État : EN COURS · Ouverture : 2026-08-17*
+*Footer opérateur — LOT-P2-8 · État : CLOS · Ouverture : 2026-08-17 · Clôture : 2026-08-28*
