@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; media-src 'self'; object-src 'none'; worker-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
+  <title>Cameleon Engine</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/behavior.css">
+  <link rel="stylesheet" href="./css/account.css">
+  <script src="./js/onboarding-init.js"></script>
+</head>
+<body data-shell-state="range">
+  <div class="shell">
+    <header class="saas-header">
+      <div class="saas-header-inner">
+        <div class="brand-wrap">
+          <div class="brand-seal">
+            <video
+              class="video-logo"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="auto"
+            >
+              <!-- source supprimée — slot de remplacement futur (cf. MOTION_DEBT_REGISTER MD-01) -->
+            </video>
+          </div>
+          <div>
+            <div class="brand-title">Caméléon Engine</div>
+            <div class="brand-subtitle">Décision lisible, jamais prise.</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="header-chip"><span class="header-dot"></span><strong>Live</strong></div>
+          <div class="header-chip">Moteur : <strong id="headerState">Range</strong></div>
+          <div class="header-chip">Mode : <strong id="headerMode">Socle</strong></div>
+          <button class="header-chip header-help-btn" id="helpBtn" type="button">Mode d'emploi</button>
+          <div id="header-account-chip" class="header-chip" hidden>Compte : <strong id="headerAccountStatus">—</strong></div>
+          <div class="header-chip">Heure : <strong id="liveClockHeader">--:--:--</strong></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="floating-sidebar">
+        <div class="sidebar-head"><div class="sidebar-seal">
+          <video
+            class="video-circle"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+          >
+            <!-- source supprimée — slot de remplacement futur (cf. MOTION_DEBT_REGISTER MD-01) -->
+          </video>
+        </div></div>
+        <div class="sidebar-nav">
+          <button class="side-tab active" id="sideTabMoteur" type="button" data-tab-target="moteur">
+            <div class="side-tab-icon">M</div>
+            <div class="side-tab-label">Moteur</div>
+            <div class="side-tab-role">Lis la synthèse</div>
+            <div class="side-tab-state" id="sideStateMoteur">Actif</div>
+          </button>
+          <button class="side-tab" type="button" data-tab-target="pilotage">
+            <div class="side-tab-icon">P</div>
+            <div class="side-tab-label">Pilotage</div>
+            <div class="side-tab-role">Pose le cadre</div>
+            <div class="side-tab-state" id="sideStatePilotage">Prêt</div>
+          </button>
+          <button class="side-tab" type="button" data-tab-target="memoire">
+            <div class="side-tab-icon">H</div>
+            <div class="side-tab-label">Mémoire</div>
+            <div class="side-tab-role">Garde la trace</div>
+            <div class="side-tab-state" id="sideStateMemoire">Prêt</div>
+          </button>
+          <button class="side-tab" id="behaviorTabBtn" type="button">
+            <div class="side-tab-icon">C</div>
+            <div class="side-tab-label">Comportement</div>
+            <div class="side-tab-role">Vois qui tu es vraiment</div>
+            <div class="side-tab-state">Import données</div>
+          </button>
+          <button class="side-tab" type="button" data-tab-target="manifeste">
+            <div class="side-tab-icon">§</div>
+            <div class="side-tab-label">Manifeste</div>
+            <div class="side-tab-state" id="sideStateManifeste">Doctrine</div>
+          </button>
+          <button class="side-tab" id="sideTabCompte" type="button">
+            <div class="side-tab-icon">@</div>
+            <div class="side-tab-label">Compte</div>
+            <div class="side-tab-role">Mémoire longue</div>
+            <div class="side-tab-state" id="sideStateCompte">Non connecté</div>
+          </button>
+        </div>
+
+        <div class="sidebar-doctrine-link">
+          <a href="https://fine-bream-92f.notion.site/01-Lois-du-Cam-l-on-35a1ba8c861d8003b26de8c8d26ad2b0?source=copy_link" target="_blank" rel="noopener noreferrer" class="doctrine-link">
+            Lois du Caméléon
+          </a>
+        </div>
+        <button id="expertModeBtn" class="expert-mode-btn" type="button">Mode expert</button>
+
+        <div id="debug-brain">
+          <div class="debug-brain__label">Moteur Brut</div>
+          <div class="debug-brain__sublabel">Lecture système</div>
+
+          <div class="cerveau-core">
+            <div class="debug-brain__row"><span>State</span><strong id="db-state">—</strong></div>
+            <div class="debug-brain__row"><span>Posture</span><strong id="db-posture">—</strong></div>
+            <div class="debug-brain__row"><span>Decision</span><strong id="dp-primary">—</strong></div>
+            <div class="debug-brain__row"><span>Agent</span><strong id="active-agent">OBSERVER</strong></div>
+            <div class="debug-brain__row"><span>Action</span><strong id="active-agent-action">—</strong></div>
+          </div>
+
+          <div class="cerveau-rules">
+            <div class="cerveau-rules__block cerveau-rules__block--allowed">
+              <div class="cerveau-rules__title">Autorisé</div>
+              <div id="rules-allowed" class="cerveau-rules__list">—</div>
+            </div>
+            <div class="cerveau-rules__block cerveau-rules__block--forbidden">
+              <div class="cerveau-rules__title">Interdit</div>
+              <div id="rules-forbidden" class="cerveau-rules__list">—</div>
+            </div>
+          </div>
+
+          <div class="cerveau-synthesis-row">
+            <div id="cerveau-synthesis" class="cerveau-synthesis-text">—</div>
+          </div>
+
+          <!-- IDs conservés pour compatibilité JS — non affichés -->
+          <div class="cerveau-hidden" aria-hidden="true">
+            <span id="db-confidence"></span>
+            <span id="db-volatility"></span>
+            <span id="db-trend"></span>
+            <span id="db-reading"></span>
+            <span id="db-actions"></span>
+            <span id="db-risk-level"></span>
+            <span id="dp-best-alt"></span>
+          </div>
+        </div>
+
+      </aside>
+
+      <main class="main-shell">
+        <p class="hero-promesse">Il ne te dit pas quoi trader — il te montre dans quel état tu es avant d'agir.</p>
+        <div class="signature-cameleon">
+          <div class="signature-line1">Lire le marché. Filtrer l'impulsion. Décider proprement.</div>
+          <div class="signature-line2">Moteur adaptatif · Protection comportementale · Décision structurée</div>
+        </div>
+
+        <section class="hero" id="hero-section">
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <div class="hero-top">
+                <div>
+                  <div class="badge"><span class="badge-dot"></span> Caméléon Engine</div>
+                  <h1 id="hero-h1">Le cockpit qui structure la lecture avant la décision.</h1>
+                  <p class="subtitle">Protéger. Filtrer. Décider proprement.</p>
+                </div>
+                <div class="badge" id="liveClock">--:--:--</div>
+              </div>
+
+              <div class="hero-decision-grid" data-zone="observation">
+                <div class="hero-decision-card primary">
+                  <span class="hero-chip-label">Verdict</span>
+                  <strong class="hero-decision-mini" id="heroDecisionVerdict">CORE prioritaire</strong>
+                </div>
+                <div class="hero-decision-card">
+                  <span class="hero-chip-label">Agent</span>
+                  <strong class="hero-decision-text" id="heroDecisionAgent">OBSERVER</strong>
+                </div>
+                <div class="hero-decision-card primary">
+                  <span class="hero-chip-label">Action du jour</span>
+                  <strong class="hero-decision-main" id="heroDecisionAction">Attendre lecture méritée.</strong>
+                </div>
+                <div class="hero-decision-card warning">
+                  <span class="hero-chip-label">Risque trop élevé</span>
+                  <strong class="hero-decision-text" id="heroDecisionAvoid">Toute entrée sans preuve nette.</strong>
+                </div>
+              </div>
+
+              <div class="engine-journal-live">
+                <div class="engine-journal-head">
+                  <div class="engine-journal-title">Journal du moteur</div>
+                  <div class="engine-journal-status"><span class="badge-dot"></span><span>Le système reste vivant</span></div>
+                </div>
+                <div class="engine-journal-main">Moteur actif. En attente de lecture.</div>
+                <div class="engine-journal-sub">Structure · profil · émotion · validation — réévaluation à chaque cycle.</div>
+                <div class="engine-journal-row">
+                  <div class="engine-journal-mini">
+                    <div class="engine-journal-mini-label">Structure</div>
+                    <div class="engine-journal-mini-value">En attente</div>
+                  </div>
+                  <div class="engine-journal-mini">
+                    <div class="engine-journal-mini-label">Risque</div>
+                    <div class="engine-journal-mini-value">Sous contrôle</div>
+                  </div>
+                  <div class="engine-journal-mini">
+                    <div class="engine-journal-mini-label">Action</div>
+                    <div class="engine-journal-mini-value">Observation</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero-bottom-zone">
+                <div class="lecture-day-card">
+                  <div class="ldc-header">
+                    <div class="tiny-label">Décision du jour</div>
+                  </div>
+                  <div class="ldc-body">
+                    <div class="lecture-day-main" id="lectureDayMain">Marché en attente</div>
+                    <p class="lecture-day-sub" id="lectureDaySub">Structure bloquée. Attendre.</p>
+                  </div>
+                  <div class="ldc-rule">
+                    <div class="ldc-rule-label">Règle du jour</div>
+                    <p class="ldc-rule-text" id="lectureDayRule">—</p>
+                  </div>
+                </div>
+
+                <div class="signal-narratif">
+                  <div class="signal-narratif-head">
+                    <div class="signal-narratif-title">Signal narratif</div>
+                    <div class="signal-narratif-pill">Lecture active</div>
+                  </div>
+                  <div class="signal-narratif-main">Même setup, lecture différente selon le profil.</div>
+                  <div class="signal-narratif-sub">Filtre émotionnel et validation humaine gardent la main sur l'exécution.</div>
+                </div>
+
+                <div class="mantra-operationnel">
+                  <div class="mantra-operationnel-head">
+                    <div class="mantra-operationnel-title">Mantra opérationnel</div>
+                    <div class="mantra-operationnel-pill">Direct</div>
+                  </div>
+                  <div class="mantra-operationnel-main">Lire. Filtrer. Décider.</div>
+                </div>
+
+
+                <div id="hero-split">
+                  <div class="hero-block hero-market">
+                    <div class="hero-title">Lecture du marché</div>
+                    <div>Régime : <span id="market-regime"></span></div>
+                    <div>Score : <span id="market-score"></span></div>
+                    <div>Verdict : <span id="market-verdict"></span></div>
+                    <div>Contexte : <span id="market-context"></span></div>
+                  </div>
+                  <div class="hero-status" id="hero-status"></div>
+                  <div class="hero-block hero-decision">
+                    <div class="hero-title">Décision du moteur</div>
+                    <div>Décision : <span id="decision-status"></span></div>
+                    <div>Posture : <span id="decision-posture"></span></div>
+                    <div>Action : <span id="decision-action"></span></div>
+                    <div>Risque : <span id="decision-risk"></span></div>
+                    <div>Validation : <span id="decision-validation"></span></div>
+                  </div>
+                </div>
+
+                <div class="hero-logo">
+                  <div class="hero-visual-frame" aria-hidden="true">
+                    <video
+                      class="video-main"
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                      preload="auto"
+                    >
+                      <!-- source supprimée — slot de remplacement futur (cf. MOTION_DEBT_REGISTER MD-01) -->
+                    </video>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <div id="guidanceCard" class="side-card guidance-card"></div>
+
+        <div class="account-screen" hidden aria-hidden="true">
+          <div class="ac-panel-root">
+            <div id="account-root"></div>
+          </div>
+        </div>
+
+        <div class="main-grid">
+          <div class="stack moteur-flow">
+            <section class="card zone-conscience tab-panel active" data-tab-panel="moteur" id="bhvInfluencePanel">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">État d'exécution</h2>
+                  <p class="card-desc">Lecture comportementale active.</p>
+                </div>
+              </div>
+              <div class="bhv-influence-body">
+                <span class="bhv-influence-level" id="bhvInfluenceLevel">—</span>
+                <span class="bhv-influence-text" id="bhvInfluenceText">Aucune analyse comportementale chargée.</span>
+              </div>
+            </section>
+
+            <section class="card verdict-shell tab-panel active" data-tab-panel="moteur">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Verdict moteur</h2>
+                  <p class="card-desc">Lecture structurée. Contexte disponible.</p>
+                </div>
+                <div class="state-pill" id="signalNarratifPill">Lecture active</div>
+              </div>
+              <div id="premiumDecisionBlock" class="premium-decision-block">
+                <div id="premiumVerdictLabel" class="pdv-label">—</div>
+                <div id="premiumInfoLine" class="pdv-info">Score : — · Lisibilité : — · Mode : —</div>
+              </div>
+              <div id="noTradeBlock" class="no-trade-block nt-hidden">
+                <div class="nt-title">Aucune position recommandée</div>
+                <div class="nt-sub">Le moteur ne produit pas de lecture en faveur d'une entrée.</div>
+              </div>
+              <div class="action-directive">
+                <div class="tiny-label">Verdict</div>
+                <strong id="verdictImmediate">On attend</strong>
+              </div>
+              <div class="exec-confidence-block" id="execConfidenceBlock">
+                <div class="tiny-label">Confiance d'exécution</div>
+                <div class="exec-confidence-score" id="execConfidenceScore">—</div>
+                <div class="exec-confidence-bar">
+                  <div class="exec-confidence-fill" id="execConfidenceFill"></div>
+                </div>
+                <div class="exec-confidence-label" id="execConfidenceLabel">—</div>
+                <p class="exec-confidence-phrase" id="execConfidencePhrase"></p>
+              </div>
+              <div class="action-zone">
+                <div class="action-panel do">
+                  <div class="tiny-label">Posture et action</div>
+                  <ul class="action-bullets">
+                    <li id="verdictAllowed">Ne force rien.</li>
+                    <li id="verdictNext">Observe sans entrer.</li>
+                  </ul>
+                </div>
+                <div class="action-panel dont">
+                  <div class="tiny-label">Risque et décision</div>
+                  <ul class="action-bullets">
+                    <li id="verdictBlocked">Ne trade pas au hasard.</li>
+                    <li id="verdictWatch">Le marché est bloqué. Attends une sortie claire.</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section id="prudenceExpertBlock" class="card prudence-expert-shell tab-panel" data-tab-panel="moteur">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Prudence comportementale</h2>
+                  <p class="card-desc" id="prudenceExpertSub">Setup validé, mais dérive comportementale détectée.</p>
+                </div>
+              </div>
+              <div class="prudence-expert-body"></div>
+            </section>
+
+            <section class="card pourquoi-shell tab-panel" data-tab-panel="moteur">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Pourquoi cette décision</h2>
+                  <p class="card-desc">Les raisons qui ont guidé le moteur.</p>
+                </div>
+              </div>
+              <div id="whyDecisionPrimary" class="why-primary"></div>
+              <ul id="whyDecisionSecondary" class="why-secondary"></ul>
+            </section>
+
+            <section class="master-card tab-panel active" data-tab-panel="moteur">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Contexte utile</h2>
+                  <p class="card-desc">Juste assez d'information pour rester crédible sans brouiller la décision.</p>
+                </div>
+                <div class="state-pill" id="statePill">Range</div>
+              </div>
+              <div class="alerts-grid">
+                <div class="alert-card">
+                  <div class="alert-label">État</div>
+                  <div class="alert-value" id="alertStructureValue">Lisible</div>
+                  <div class="alert-sub" id="alertStructureSub">Le cadre reste exploitable.</div>
+                </div>
+                <div class="alert-card">
+                  <div class="alert-label">Risque</div>
+                  <div class="alert-value" id="alertRiskValue">Faible</div>
+                  <div class="alert-sub" id="alertRiskSub">Le terrain respire encore.</div>
+                </div>
+                <div class="alert-card">
+                  <div class="alert-label">Mode</div>
+                  <div class="alert-value" id="alertOpportunityValue">Patiente</div>
+                  <div class="alert-sub" id="alertOpportunitySub">Aucun ajout sans preuve claire.</div>
+                </div>
+                <div class="alert-card">
+                  <div class="alert-label">Validation</div>
+                  <div class="alert-value" id="alertDisciplineValue">Critique</div>
+                  <div class="alert-sub" id="alertDisciplineSub">Le profil donne le tempo final.</div>
+                </div>
+              </div>
+              <div class="alertes-bottom-grid">
+                <div class="insight-panel">
+                  <div class="tiny-label">Insight moteur</div>
+                  <div class="insight-quote" id="engineJournalMain">Le moteur garde la structure avant l’impulsion.</div>
+                  <div class="insight-sub" id="signalNarratifSub">Le filtre émotionnel et la validation humaine gardent toujours la main sur l’exécution.</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card publications-shell tab-panel active" data-tab-panel="moteur">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title" id="publicationsTitle">Publications</h2>
+                  <p class="card-desc" id="publicationsDescription">Une sélection contextualisée pour prolonger la décision avec des lectures fiables, éditoriales et réellement ouvrables.</p>
+                </div>
+                <div class="state-pill" id="publicationsState">Range · 5 lectures</div>
+              </div>
+              <div class="publications-grid" id="publicationsGrid"></div>
+            </section>
+
+            <section class="card navigation-shell">
+              <div class="tab-shell">
+                <div class="tab-panel active" data-tab-panel="moteur">
+                  <div class="overview-grid">
+                    <div class="short-box">
+                      <div class="tiny-label" id="marketStateTinyLabel">État du marché</div>
+                      <p class="big-state" id="marketStateText">Range</p>
+                      <p class="text-soft" id="marketStateNote">Lecture moteur intégrée.</p>
+                      <div class="micro-badge-row">
+                        <span class="micro-badge"><span class="dot blue"></span> <span id="microConfidence">Score stable</span></span>
+                        <span class="micro-badge"><span class="dot warn"></span> <span id="microRisk">Risque contenu</span></span>
+                      </div>
+                    </div>
+                    <div class="agent-box">
+                      <div class="tiny-label">Filtre adaptatif</div>
+                      <p class="agent-name" id="agentName">CORE Guardian</p>
+                      <div class="alert-badge" id="agentAlert">CORE prioritaire</div>
+                      <p class="text-soft" id="agentDesc">Profil actif. Filtre adaptatif.</p>
+                      <div class="micro-badge-row">
+                        <span class="micro-badge"><span class="dot green"></span> <span id="agentModeBadge">Mode : lecture calme</span></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="kpi-grid">
+                    <div class="kpi-card" id="scoreCard">
+                      <div class="kpi-label">Contexte marché</div>
+                      <div class="kpi-value" id="scoreValue">50</div>
+                      <div class="kpi-sub" id="scoreSub">Lecture globale du contexte</div>
+                      <div class="score-bar"><div class="score-bar-fill" id="scoreBar"></div></div>
+                      <div class="confidence-flag" id="confidenceFlag"></div>
+                      <div class="score-decision-row">
+                        <span id="score-posture">—</span>
+                        <span class="score-decision-sep">·</span>
+                        <span id="score-agent">—</span>
+                        <span class="score-decision-sep">·</span>
+                        <span id="score-action">—</span>
+                      </div>
+                    </div>
+                    <div class="kpi-card">
+                      <div class="kpi-label">Mode</div>
+                      <div class="kpi-value" id="engineMode">Range cadré</div>
+                      <div class="kpi-sub" id="engineModeSub">Cadre du moteur universel</div>
+                    </div>
+                    <div class="kpi-card">
+                      <div class="kpi-label">CORE / ATTACK</div>
+                      <div class="kpi-value" id="attackStatus">Inactif</div>
+                      <div class="kpi-sub" id="attackSub">Le filtre final décide de l'agressivité</div>
+                    </div>
+                    <div class="kpi-card">
+                      <div class="kpi-label">SNIPER</div>
+                      <div class="kpi-value" id="sniperMode">Inactif</div>
+                      <div class="kpi-sub" id="sniperSub">N'apparaît qu'avec une validation suffisante</div>
+                    </div>
+                  </div>
+
+                  <div class="confidence-panel" data-tone="warning" data-mode="wait" data-strength="weak" data-score="0">
+                    <div class="kpi-grid confidence-kpi-grid">
+                      <div class="kpi-card">
+                        <div class="kpi-label link-setup">Qualité du setup</div>
+                        <div class="kpi-value" id="cs-score">—</div>
+                        <div class="kpi-sub" id="cs-label">En attente</div>
+                        <div class="score-bar">
+                          <div class="score-bar-fill" id="cs-bar"></div>
+                        </div>
+                      </div>
+                      <div class="kpi-card">
+                        <div class="kpi-label link-mode">Mode opérationnel</div>
+                        <div class="kpi-value" id="cs-mode">—</div>
+                        <div class="kpi-sub" id="cs-action">—</div>
+                      </div>
+                    </div>
+                    <div class="mode-panel">
+                      <div class="tiny-label">Lecture contextuelle</div>
+                      <p class="text-soft" id="cs-message">Le moteur attend une lecture complète.</p>
+                    </div>
+                    <p class="text-soft">
+                      Ce panneau structure la lecture du marché et du niveau d'engagement.
+                      Il n'influence pas la décision finale du moteur.
+                    </p>
+                  </div>
+
+                  <div class="mode-panel">
+                    <div class="tiny-label">État décisionnel</div>
+                    <div class="mode-head">
+                      <div class="mode-box">
+                        <div class="tiny-label">Verdict</div>
+                        <div class="mode-main" id="tradingStatus">On attend</div>
+                        <div class="mode-sub" id="tradingStatusNote">Le moteur produit une lecture du contexte.</div>
+                      </div>
+                      <div class="mode-box">
+                        <div class="tiny-label">Posture</div>
+                        <div class="mode-main" id="validationBadge">Ne force rien</div>
+                        <div class="mode-sub" id="validationSummary">Tu attends tant que ce n'est pas clair.</div>
+                      </div>
+                      <div class="mode-box">
+                        <div class="tiny-label">Décision du jour</div>
+                        <div class="mode-main" id="alignmentScore">Observe</div>
+                        <div class="mode-sub" id="alignmentNote">Le marché est bloqué. Attends une sortie claire.</div>
+                      </div>
+                    </div>
+                    <div class="mode-actions">
+                      <button class="mode-btn" type="button" id="modeCoreBtn" data-action="Protect Capital">
+                        <div class="mode-btn-title">Socle</div>
+                        <div class="mode-btn-desc">On protège le capital avant tout.</div>
+                      </button>
+                      <button class="mode-btn" type="button" id="modeAttackBtn" data-action="Execute Trade">
+                        <div class="mode-btn-title">Attaque</div>
+                        <div class="mode-btn-desc">On profite d'un mouvement clair.</div>
+                      </button>
+                      <button class="mode-btn" type="button" id="modeSniperBtn" data-action="Scale In">
+                        <div class="mode-btn-title">Sniper</div>
+                        <div class="mode-btn-desc">On agit seulement sur signal parfait.</div>
+                      </button>
+                      <button class="mode-btn active" type="button" id="modeWaitBtn" data-action="Prepare Entry">
+                        <div class="mode-btn-title">Attente</div>
+                        <div class="mode-btn-desc">Ne rien faire est parfois la meilleure décision.</div>
+                      </button>
+                    </div>
+                    <div id="policy-message" class="policy-message"></div>
+                    <div id="attackFrictionMsg" class="friction-message" hidden aria-live="polite"></div>
+                    <div id="sniperFrictionMsg" class="friction-message" hidden aria-live="polite"></div>
+                  </div>
+
+
+                </div>
+
+                <div class="tab-panel" data-tab-panel="pilotage">
+                  <div class="pilotage-chapeau">
+                    Tu n'es pas en train de remplir un formulaire.<br>
+                    Tu définis dans quelles conditions le moteur est autorisé à travailler.
+                  </div>
+                  <div class="pilot-grid">
+                    <section class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Lecture du marché</h2>
+                          <p class="card-desc">Ce que tu observes — les variables que le moteur lit pour évaluer le contexte.</p>
+                        </div>
+                      </div>
+                      <div class="form-grid" id="marketFields"></div>
+                      <div class="memory-actions compact-actions">
+                        <button id="prefillBtn" class="mode-btn compact-btn" type="button">
+                          <div class="mode-btn-title">Tester une lecture Constellium</div>
+                          <div class="mode-btn-desc">Simulation pédagogique — à vérifier avant usage.</div>
+                        </button>
+                        <button id="constelliumNavBtn" class="mode-btn compact-btn" type="button">
+                          <div class="mode-btn-title">Lire le Constellium</div>
+                          <div class="mode-btn-desc">Comprendre avant d'agir.</div>
+                        </button>
+                      </div>
+                      <div id="prefillWarning" class="prefill-warning" hidden>
+                        <span class="prefill-warning-icon"></span>
+                        <div class="prefill-warning-body">
+                          <strong>Ceci n'est pas une décision.</strong>
+                          <p>C'est une lecture proposée.<br>Si tu ne la comprends pas, ne l'utilise pas.</p>
+                          <p>Le moteur ne valide rien tant que tu ne comprends pas.</p>
+                        </div>
+                      </div>
+                    </section>
+                    <section class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Cadre opérateur</h2>
+                          <p class="card-desc">Ce que tu décides — profil, filtre, validation : les contraintes que le moteur respecte.</p>
+                        </div>
+                      </div>
+                      <div class="form-grid" id="adaptiveFields"></div>
+                      <div class="form-grid" id="contextualFields"></div>
+                    </section>
+                  </div>
+
+                  <div class="diagnostic-grid stretch-grid">
+                    <div class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Trigger intelligent</h2>
+                          <p class="card-desc">Le moteur juge si le contexte mérite une réévaluation immédiate.</p>
+                        </div>
+                      </div>
+                      <div id="triggerBox" class="alert-box"></div>
+                      <div class="result" id="triggerReason"></div>
+                      <div id="actionTags" class="tag-row"></div>
+                    </div>
+                    <div class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Filtre profil</h2>
+                          <p class="card-desc">Un même marché peut appeler une posture différente selon l'opérateur.</p>
+                        </div>
+                      </div>
+                      <div id="profileFilterBox" class="alert-box"></div>
+                      <div class="result" id="profileFilterReason"></div>
+                    </div>
+                    <div class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Pourquoi</h2>
+                          <p class="card-desc">Trace claire du raisonnement moteur.</p>
+                        </div>
+                      </div>
+                      <div class="list" id="whyBlock"></div>
+                    </div>
+                    <div class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Incohérences</h2>
+                          <p class="card-desc">Détection des frottements entre setup, régime et validation.</p>
+                        </div>
+                      </div>
+                      <div class="list" id="inconsistencyBlock"></div>
+                    </div>
+                    <div class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Lecture synthétique</h2>
+                          <p class="card-desc">Synthèse du moteur pour la session en cours.</p>
+                        </div>
+                      </div>
+                      <div class="result strong-result" id="action">Aucune donnée</div>
+                      <div class="result" id="summary">Aucune donnée</div>
+                    </div>
+                    <div class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Zones et risque</h2>
+                          <p class="card-desc">Traduction opérationnelle du payload dans un langage de trading net.</p>
+                        </div>
+                      </div>
+                      <div class="list">
+                        <div class="action-item" id="coreText"></div>
+                        <div class="action-item" id="attackText"></div>
+                        <div class="action-item" id="buyZone"></div>
+                        <div class="action-item" id="sellZone"></div>
+                        <div class="action-item" id="riskZone"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="memory-actions compact-actions">
+                    <button id="saveSnapshotBtn" class="mode-btn compact-btn" type="button">
+                      <div class="mode-btn-title">Mémoriser cet état</div>
+                      <div class="mode-btn-desc">Snapshot du moteur — consultable dans l'historique Pilotage.</div>
+                    </button>
+                    <div id="snapshotFrictionMsg" class="friction-message" hidden aria-live="polite"></div>
+                    <button id="saveBehaviorBtn" class="mode-btn compact-btn" type="button">
+                      <div class="mode-btn-title">Enregistrer dans la mémoire</div>
+                      <div class="mode-btn-desc">Lecture comportementale — alimente Motifs de transition et Comparaison des fenêtres.</div>
+                    </button>
+                  </div>
+
+                  <div class="table-shell">
+                    <div class="tiny-label">Sortie du moteur</div>
+                    <div class="table-mini-summary" id="tableMiniSummary">Le payload relit le contexte, le profil et la validation dans un seul passage.</div>
+                    <div class="payload-grid">
+                      <div class="payload-item"><span>Marché proposé</span><strong id="autoMarket">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>Score proposé</span><strong id="autoScore">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>Mode proposé</span><strong id="autoMode">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>ATTACK brut</span><strong id="autoAttack">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>SNIPER brut</span><strong id="autoSniper">Aucune donnée</strong></div>
+                      <div class="payload-item"><span>Réaction finale</span><strong id="profileFiltered">Aucune donnée</strong></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tab-panel" data-tab-panel="memoire">
+                  <div class="memory-shell">
+                    <div class="memory-actions">
+                      <button id="saveBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Sauvegarder la lecture</div>
+                        <div class="mode-btn-desc">Ajoute le payload courant à l'historique local de la session.</div>
+                      </button>
+                      <button id="clearBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Vider l'historique</div>
+                        <div class="mode-btn-desc">Supprime les entrées locales sans toucher au moteur actif.</div>
+                      </button>
+                    </div>
+                    <p class="mem-empty-hint">Mémorisez 3 états pour activer l'analyse comportementale</p>
+
+                    <!-- DATA -->
+                    <div class="mem-zone mem-zone--data">
+                      <div class="mem-zone-label">Données</div>
+                      <div class="memory-list" id="historyList"></div>
+                      <div id="history-insight"></div>
+                      <div id="history-section">
+                        <div class="history-header">
+                          <span class="history-label">Historique moteur</span>
+                          <button id="clearSnapshotBtn" class="mode-btn compact-btn" type="button">
+                            <div class="mode-btn-title">Nettoyer les données comportementales</div>
+                          </button>
+                        </div>
+                        <div id="history"></div>
+                      </div>
+                      <div id="behaviorRepetitionCard" class="side-card"></div>
+
+                      <!-- LECTEUR DE MÉMOIRE MINIMAL V1 — Refléter le motif -->
+                      <section class="side-card">
+                        <div class="card-head">
+                          <div>
+                            <h2 class="card-title">Motifs de transition</h2>
+                            <p class="card-desc">Transitions comportementales issues des lectures sauvegardées via « Sauvegarder la lecture » ou « Enregistrer dans la mémoire ».</p>
+                          </div>
+                        </div>
+                        <div id="patternReflectionCard"></div>
+                      </section>
+
+                      <section class="side-card">
+                        <div class="card-head">
+                          <div>
+                            <h2 class="card-title">Comparaison des fenêtres</h2>
+                            <p class="card-desc">Distribution comportementale comparée entre deux fenêtres temporelles issues des lectures sauvegardées.</p>
+                          </div>
+                        </div>
+                        <div id="changeCertificationCard"></div>
+                      </section>
+                    </div>
+
+                    <!-- SIGNAL -->
+                    <div class="mem-zone mem-zone--signal">
+                      <div class="mem-zone-label">Signal</div>
+                      <div id="behaviorAlertCard" class="side-card"></div>
+                      <div id="preBehaviorAlertCard" class="side-card"></div>
+                    </div>
+
+                    <!-- DIAGNOSTIC -->
+                    <div class="mem-zone mem-zone--diagnostic">
+                      <div class="mem-zone-label">Diagnostic</div>
+                      <div id="traderSignatureCard" class="side-card"></div>
+                      <div id="behaviorProfileCard" class="side-card"></div>
+                      <div id="traderMemoryCard" class="side-card"></div>
+                    </div>
+
+                    <!-- INTERPRÉTATION -->
+                    <div class="mem-zone mem-zone--interpretation">
+                      <div class="mem-zone-label">Interprétation</div>
+                      <div id="psychProfileCard" class="side-card"></div>
+                    </div>
+
+                    <!-- ACTION -->
+                    <div class="mem-zone mem-zone--action">
+                      <div class="mem-zone-label">Action</div>
+                      <div id="behaviorCoachCard" class="side-card"></div>
+                    </div>
+
+                    <!-- JOURNAL DE DÉCISION -->
+                    <section class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Journal de décision</h2>
+                          <p class="card-desc">Mémoire contextuelle de la lecture. Ces données n'influencent pas le moteur.</p>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Validation</strong>
+                          <div id="jdValidationState" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Note de validation</strong>
+                          <div id="jdValidationNote" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Note de session</strong>
+                          <div id="jdJournalNote" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Résumé moteur</strong>
+                          <div id="jdMoteurSummary" class="muted">—</div>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <h3>Dernières décisions</h3>
+                        <div id="jdHistory"></div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Pattern détecté</strong>
+                          <div id="jdPattern" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>Score décision</strong>
+                          <div id="jdScore" class="muted">—</div>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Alerte comportementale</strong>
+                          <div id="jdAlert" class="muted">—</div>
+                        </div>
+                      </div>
+                      <div class="history">
+                        <div class="history-item">
+                          <strong>Analyse globale</strong>
+                          <div id="jdMetaMessage" class="muted">—</div>
+                        </div>
+                        <div class="history-item">
+                          <strong>État comportement</strong>
+                          <div id="jdMetaBadge" class="muted">—</div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <!-- DIAGNOSTIC MÉMORIEL V1 (LOT-P1) -->
+                    <section id="memoryDiagnosticPanel" class="side-card mem-diag-panel" aria-label="Diagnostic mémoriel"></section>
+
+                    <!-- MÉMOIRE OPÉRATEUR V1 (LOT-P1-3) -->
+                    <section id="operatorMemoryPanel" class="side-card" aria-label="Mémoire Opérateur V1"></section>
+
+                    <!-- IMPORT TRANSACTIONNEL S1 (LOT-P2-2) -->
+                    <section class="side-card" aria-label="Import de source transactionnelle">
+                      <div class="card-head"><div>
+                        <h2 class="card-title">Import de source transactionnelle</h2>
+                        <p class="card-desc">Importe un fichier Binance (CSV ou PDF) dans la couche canonique S1.</p>
+                      </div></div>
+                      <button id="ingestionImportBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Sélectionner un fichier</div>
+                        <div class="mode-btn-desc">Formats acceptés : CSV ou PDF Binance TRADE_HISTORY / ORDER_HISTORY.</div>
+                      </button>
+                      <input id="ingestionFileInput" type="file" accept=".csv,.pdf,text/csv,application/pdf" style="display:none" aria-hidden="true">
+                      <div id="ingestionResultPanel" style="display:none"></div>
+                    </section>
+
+                    <!-- GESTION DES DONNÉES -->
+                    <section class="side-card">
+                      <div class="card-head">
+                        <div>
+                          <h2 class="card-title">Gestion des données</h2>
+                          <p class="card-desc">Export, import et suppression des données opérateur locales.</p>
+                        </div>
+                      </div>
+                      <button id="exportDataBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Exporter mes données</div>
+                        <div class="mode-btn-desc">Télécharge une sauvegarde JSON de toutes vos données locales.</div>
+                      </button>
+                      <button id="importDataBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Restaurer depuis fichier</div>
+                        <div class="mode-btn-desc">Importe une sauvegarde JSON pour restaurer vos données sur cet appareil.</div>
+                      </button>
+                      <input id="importDataInput" type="file" accept=".json,application/json" style="display:none" aria-hidden="true">
+                      <button id="clearOperatorDataBtn" class="mode-btn" type="button">
+                        <div class="mode-btn-title">Réinitialiser toutes les données</div>
+                        <div class="mode-btn-desc">Supprime définitivement toutes les données opérateur locales. Irréversible.</div>
+                      </button>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+                <div class="tab-panel" data-tab-panel="manifeste" hidden aria-hidden="true">
+                  <div class="manifeste-inner" id="manifeste-top">
+
+                    <p class="manifeste-accroche">Le cockpit explique quoi faire.<br>Le manifeste explique pourquoi il existe.</p>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">Préambule</h2>
+                      <p>Ce document est la doctrine stable de Caméléon Engine. Il sert de référence à toutes les décisions produit, de l'écriture d'un message à la conception d'une nouvelle fonctionnalité, du design d'une zone à l'élaboration d'une vidéo de présentation, du choix d'un wording à l'évolution du modèle économique.</p>
+                      <p>Quand un doute survient, ce document tranche. Quand une fonctionnalité est envisagée, elle se mesure à ces principes. Quand le produit grandit, il grandit dans cette continuité.</p>
+                      <p>Ce n'est pas un document marketing. C'est un document fondateur. Il dit qui le produit est avant de dire ce qu'il fait.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">I. Ce que Caméléon Engine est</h2>
+                      <p>Caméléon Engine est un cockpit cognitif de décision pour traders. Sa fonction est d'augmenter la lucidité de son utilisateur dans ses décisions de marché.</p>
+                      <p>Le mot <em>cockpit</em> est précis : c'est un poste de pilotage où l'humain reste le pilote. Le cockpit fournit des instruments de lecture, des synthèses, des points de repère. Il ne décide jamais à la place du pilote.</p>
+                      <p>Le mot <em>cognitif</em> est précis : le produit travaille au niveau de la conscience décisionnelle. Il n'opère pas le marché à la place de l'utilisateur, il opère la qualité de sa lecture.</p>
+                      <p>Le mot <em>décision</em> est précis : la valeur produite par le cockpit se mesure dans la qualité des décisions humaines qu'il rend possibles, pas dans la quantité de données qu'il affiche.</p>
+                      <p>Caméléon Engine est un <em>système de friction intelligente</em>. Il ne bloque pas, il ralentit le geste impulsif juste assez pour que la conscience rattrape la pulsion. Il rend l'action coûteuse en conscience, jamais impossible.</p>
+                      <p>Caméléon Engine est un <em>miroir lucide</em>. Il restitue à l'utilisateur une lecture de son propre état comportemental, pour lui permettre d'intégrer cette dimension dans ses décisions.</p>
+                      <p>Caméléon Engine est une <em>présence calme</em>. Il habite l'écran du trader avec une qualité de chambre habitée, sans s'éteindre, sans s'agiter, sans crier, sans flatter.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">II. Ce que Caméléon Engine n'est pas</h2>
+                      <p>Caméléon Engine n'est pas un bot. Il ne génère pas d'ordres, ne déclenche pas d'exécutions, ne pilote pas de positions à la place de l'utilisateur.</p>
+                      <p>Caméléon Engine n'est pas un système de signaux. Il ne dit jamais "achète" ou "vends". Il propose des lectures, jamais des injonctions.</p>
+                      <p>Caméléon Engine n'est pas un oracle. Il ne prétend pas voir l'avenir du marché. Ses lectures sont toujours conditionnelles, partielles, datées.</p>
+                      <p>Caméléon Engine n'est pas un système de protection autoritaire. Il ne protège pas l'utilisateur contre lui-même par la force. Il ne verrouille pas, n'interdit pas, ne sanctionne pas.</p>
+                      <p>Caméléon Engine n'est pas un dashboard. Il n'affiche pas des données simultanées en attente d'être lues. Il raconte une histoire séquentielle.</p>
+                      <p>Caméléon Engine n'est pas un produit grand public déguisé en produit pro. Il ne flatte pas, ne s'agite pas, n'utilise pas le vocabulaire de l'urgence ou de la performance pour exister.</p>
+                      <p>Caméléon Engine n'est pas un thérapeute. Il ne soigne pas le trader, ne lui donne pas de conseils de vie, ne se mêle pas de son bien-être au-delà de sa qualité de lecture décisionnelle.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">III. Philosophie produit</h2>
+                      <h3 class="manifeste-h3">Le principe d'autonomie préservée</h3>
+                      <p>L'autorité finale de toute décision appartient à l'utilisateur. À chaque instant, en toute condition, le trader conserve son pouvoir de décision plein. Le cockpit ne prend jamais ce pouvoir, ne le réduit jamais, ne le contourne jamais.</p>
+                      <p>Cette autonomie n'est pas une concession ergonomique. Elle est une condition fondatrice. Un cockpit qui retire de l'autonomie produit, à terme, un trader qui contourne le cockpit pour la reconquérir. La friction intelligente fonctionne précisément parce qu'elle ne touche jamais à cette autonomie.</p>
+                      <h3 class="manifeste-h3">Le principe de lucidité augmentée</h3>
+                      <p>La valeur du produit ne se mesure pas en signaux générés, en bonnes décisions imposées, en pertes évitées par blocage. Elle se mesure en élargissement de la conscience décisionnelle de l'utilisateur. Le cockpit ne fait pas le travail à la place de l'utilisateur — il rend le travail plus lisible.</p>
+                      <p>Un trader qui utilise le cockpit pendant des années doit pouvoir dire : je vois mieux qu'avant. Pas : je suis dépendant de cet outil. La signature de la qualité produit, c'est la lucidité accrue, pas la dépendance créée.</p>
+                      <h3 class="manifeste-h3">Le principe d'honnêteté narrative</h3>
+                      <p>Le cockpit ne ment jamais sur ce qu'il voit. Il ne minimise pas, ne dramatise pas, n'invente pas, ne camoufle pas. Quand sa lecture est partielle, il le dit. Quand elle est invalidée, il le dit. Quand il ne sait pas, il se tait.</p>
+                      <p>Cette honnêteté est l'actif principal du produit. Elle se construit en milliers de petits gestes quotidiens — chaque message, chaque transition, chaque silence. Elle se détruit en un seul geste de tromperie.</p>
+                      <h3 class="manifeste-h3">Le principe d'inversion d'intensité</h3>
+                      <p>Plus la situation devient intense, plus le cockpit devient calme. Cette inversion est la signature mature du produit. Quand le marché s'agite, l'interface ralentit. Quand tout crie autour, le cockpit chuchote. Quand l'utilisateur est tenté de réagir, le cockpit pose.</p>
+                      <p>Cette posture n'est pas un effet de style. Elle est ce qui rend le cockpit utile précisément quand il doit l'être.</p>
+                      <h3 class="manifeste-h3">Le principe de continuité</h3>
+                      <p>Le cockpit ne change jamais de personnage. Sa voix dans le silence, sa voix dans la tension, sa voix dans l'erreur, sa voix dans l'événement — toutes ces voix sont la même voix. Aucune circonstance ne justifie une rupture de tonalité.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">IV. Relation à l'utilisateur</h2>
+                      <h3 class="manifeste-h3">Le trader est l'autorité finale</h3>
+                      <p>Tout dans le produit présuppose un utilisateur intelligent, expérimenté, capable de décision en pleine conscience. Le cockpit n'éduque pas, n'infantilise pas, n'explique pas l'évidence, ne répète pas pour s'assurer d'être compris.</p>
+                      <p>Cette posture définit la cible utilisateur : un trader qui veut un compagnon mature, pas un assistant pédagogue. Le produit n'est pas pour les débutants qui cherchent à apprendre. Il est pour les praticiens qui cherchent à voir clair.</p>
+                      <h3 class="manifeste-h3">Le respect comme fondation</h3>
+                      <p>Le respect de l'utilisateur s'exprime dans des centaines de micro-gestes : pas d'exclamation, pas de majuscule d'emphase, pas de flatterie, pas de félicitation, pas de paternalisme, pas de morale, pas d'évaluation a posteriori des décisions prises.</p>
+                      <p>Le cockpit traite l'utilisateur comme un pair professionnel, pas comme un client à séduire ou à protéger. Cette posture est rare dans l'industrie. C'est précisément ce qui fait la différenciation produit.</p>
+                      <h3 class="manifeste-h3">La relation de longue durée</h3>
+                      <p>Le produit est conçu pour des relations de plusieurs années. Toutes ses décisions sont arbitrées en faveur de la durabilité, jamais de l'impact immédiat. Une fonctionnalité qui produit un effet "wow" mais qui usera après trois mois est rejetée.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">V. Rapport au marché</h2>
+                      <h3 class="manifeste-h3">Le marché est une réalité, pas un adversaire</h3>
+                      <p>Le cockpit observe le marché comme un témoin patient. Il ne le combat pas, ne le prédit pas, ne prétend pas le maîtriser. Il en restitue des lectures — des descriptions structurées de phénomènes observables.</p>
+                      <h3 class="manifeste-h3">La lecture comme acte central</h3>
+                      <p>Le cockpit produit des lectures à plusieurs niveaux : état du marché, configurations émergentes, état comportemental de l'utilisateur, confiance d'exécution comme synthèse. Ces lectures ne sont jamais des verdicts. La distinction entre lecture et verdict est fondatrice : le verdict ferme, la lecture ouvre.</p>
+                      <h3 class="manifeste-h3">L'humilité épistémique</h3>
+                      <p>Toute lecture du cockpit est implicitement conditionnée par les limites de l'observation. Le cockpit assume cette finitude dans sa grammaire quotidienne. Cette humilité est intégrée à la grammaire courante, pas accolée comme un avertissement.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">VI. Rapport au comportement</h2>
+                      <h3 class="manifeste-h3">L'état comportemental est une dimension légitime de la décision</h3>
+                      <p>Le cockpit traite l'état comportemental du trader comme une donnée objectivable, au même titre que la structure de marché. Cette légitimité est fondatrice : elle pose que la décision de trading n'est pas seulement technique, mais aussi conditionnée par l'état du décideur.</p>
+                      <h3 class="manifeste-h3">Les cinq états du Caméléon</h3>
+                      <p>Le système comportemental est articulé autour de cinq états : Ancré, En Veille Active, Friction, Dérive, Rupture. Ces états ne sont pas des niveaux de gravité. Ce sont des lectures qualitatives d'un état d'être. Aucun état n'est une faute. Aucun état n'est une perfection.</p>
+                      <h3 class="manifeste-h3">Le miroir, jamais le juge</h3>
+                      <p>La zone comportementale est un miroir, pas un tribunal. Elle restitue ce qu'elle voit, sans évaluation morale, sans dramatisation, sans flatterie. Le caméléon décrit, il ne juge pas.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">VII. Rapport à l'incertitude</h2>
+                      <h3 class="manifeste-h3">L'incertitude est constitutive</h3>
+                      <p>Le cockpit ne prétend pas voir avec certitude. Toute synthèse est partielle, datée, conditionnée. Cette incertitude n'est pas un défaut à camoufler — c'est une propriété intégrée du produit, visible en permanence dans sa grammaire.</p>
+                      <h3 class="manifeste-h3">L'erreur comme dimension</h3>
+                      <p>Le cockpit reconnaît trois types d'erreur : la lecture incomplète (état permanent), l'invalidation par le marché (cas fréquent), l'erreur intrinsèque (cas rare). Aucune ne déclenche d'excuse, de drame ou de réécriture de l'histoire.</p>
+                      <h3 class="manifeste-h3">La confiance comme construction lente</h3>
+                      <p>La confiance utilisateur ne se construit pas par des promesses ou des démonstrations spectaculaires. Elle se construit par la constance de l'honnêteté sur des milliers d'interactions.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">VIII. Manière de parler</h2>
+                      <h3 class="manifeste-h3">Une voix unique</h3>
+                      <p>Le cockpit a une voix linguistique unique, présente dans toutes ses zones, dans toutes ses circonstances. Cette voix est posée, jamais agitée — factuelle, jamais persuasive — sobre, jamais dramatique — respectueuse, jamais paternaliste — humble, jamais servile — continue, jamais discontinue.</p>
+                      <h3 class="manifeste-h3">Vocabulaire à bannir</h3>
+                      <p>Le cockpit ne dit jamais : interdit, bloqué, suspendu, verrouillé, refusé — attention, danger, alerte, risque élevé — opportunité, signal, go, feu vert, feu rouge — bravo, bien joué, excellent, parfait — prends une pause, calme-toi, reprends-toi — désolé, excusez-moi, erreur regrettable.</p>
+                      <h3 class="manifeste-h3">Règles formelles</h3>
+                      <p>Pas de point d'exclamation, jamais. Pas de majuscule d'emphase, jamais. Pas de gras dans les messages d'interface. Pas d'emoji. Une phrase par zone en conditions normales.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">IX. Manière de se taire</h2>
+                      <p>Le cockpit habite le silence comme il habite la parole. La qualité du silence d'un cockpit est ce qui distingue un produit professionnel d'un produit grand public. Un produit qui redoute le silence le remplit de bruit. Un produit qui respecte le silence l'honore comme une couleur du réel.</p>
+                      <p>Premier principe — ne jamais commenter l'absence par soustraction. Le cockpit ne dit pas "aucun setup détecté", "marché calme", "pas d'opportunité". Il décrit ce qui est, jamais ce qui manque.</p>
+                      <p>Deuxième principe — la micro-vie visuelle. Pendant le silence, le cockpit reste vivant par des signaux non-narratifs minimaux.</p>
+                      <p>Troisième principe — la respiration linguistique. Quand un état dure des heures, ses formulations peuvent évoluer lentement sans que le contenu change.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">X. Manière de ne jamais bloquer</h2>
+                      <h3 class="manifeste-h3">La friction au lieu de l'interdiction</h3>
+                      <p>Le cockpit n'a aucun mécanisme de blocage punitif. À aucun moment, dans aucune circonstance, il ne retire à l'utilisateur la capacité d'agir. Cette règle est absolue et n'admet aucune exception.</p>
+                      <h3 class="manifeste-h3">La règle d'or de l'autonomie</h3>
+                      <p>À chaque instant, l'utilisateur peut exécuter ce qu'il veut. Le cockpit n'a qu'un pouvoir : celui de rendre la décision lisible. Il n'a pas le pouvoir de l'empêcher. Cette asymétrie est volontaire, fondatrice, non-négociable.</p>
+                      <h3 class="manifeste-h3">Le paradoxe productif</h3>
+                      <p>Plus l'état du trader se dégrade, plus le cockpit devient calme et silencieux. Ce silence grave produit le plus souvent la bonne décision, là où une alerte aurait été défiée et un blocage contourné. La friction maximale est aussi la plus silencieuse. Quand le cockpit se tait gravement, l'utilisateur s'entend lui-même.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XI. Architecture des zones</h2>
+                      <p>Le cockpit s'organise en quatre zones narratives qui travaillent comme une seule conscience qui pense à travers quatre voix.</p>
+                      <p><em>Marché</em> — la voix du témoin patient. Décrit le contexte extérieur en continu, sans verdict, sans charge émotionnelle.</p>
+                      <p><em>Setup</em> — la voix de l'événement. Silencieuse 80% du temps. Précise et brève quand elle parle.</p>
+                      <p><em>Comportemental</em> — la voix du miroir intime. Restitue l'état du trader avec une tonalité plus humaine, plus organique.</p>
+                      <p><em>Confiance</em> — la voix de la synthèse. Le seul point de vérité visuel autorisé à parler fort. Ferme le récit en réconciliant les trois autres lectures.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XII. Doctrine visuelle</h2>
+                      <p>Aucune couleur ne déclenche une émotion plus forte que la lecture rationnelle qu'elle accompagne. Le rouge agressif est strictement banni. Les feux de circulation sont strictement bannis.</p>
+                      <p>Aucune animation ne décore. Le mouvement signale, toujours. Les transitions sont lentes : 600 à 1200ms en conditions normales, 1000 à 1500ms en conditions de tension.</p>
+                      <p>Pas de gras dans les messages d'interface. La graisse est agressive ; le produit cherche la présence calme. Pas de majuscules dans les messages, jamais.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XIII. Doctrine économique</h2>
+                      <p>Modèle SaaS, accès gratuit limité et abonnement payant. La version gratuite est honnête, la version payante apporte une valeur claire. Aucun mécanisme de freemium agressif.</p>
+                      <p>Le produit ne vend pas des indicateurs. Il vend de la lucidité maintenue dans la tempête. Le produit ne vend pas de performance, de résultats, de promesses de rentabilité.</p>
+                      <p>Le produit ne fait pas de publicité dans son interface. Les notifications restent strictement liées à la fonction de lecture.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XIV. Doctrine d'extension</h2>
+                      <h3 class="manifeste-h3">Le test du manifeste</h3>
+                      <p>Toute nouvelle fonctionnalité doit pouvoir être validée contre ce manifeste. Si une fonctionnalité contredit l'un des principes énoncés ici, elle est rejetée — quelle que soit son utilité apparente.</p>
+                      <h3 class="manifeste-h3">Extensions incompatibles</h3>
+                      <p>Sont incompatibles avec la doctrine : tout système d'exécution automatique, tout système de signaux poussés, tout dispositif de gamification, toute fonctionnalité de validation sociale, toute publicité ou monétisation tierce, tout système qui retirerait de l'autonomie à l'utilisateur.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XV. Test de cohérence</h2>
+                      <p>Toute décision produit peut être validée contre cette grille en cinq questions.</p>
+                      <ol class="manifeste-list">
+                        <li>Est-ce que cette décision préserve l'autonomie de l'utilisateur ?</li>
+                        <li>Est-ce que cette décision augmente la lucidité ou crée la dépendance ?</li>
+                        <li>Est-ce que cette décision respecte la voix unique du cockpit ?</li>
+                        <li>Est-ce que cette décision honore l'incertitude constitutive ?</li>
+                        <li>Est-ce que cette décision tient en condition de tension extrême ?</li>
+                      </ol>
+                      <p>Une décision qui passe ces cinq tests est compatible avec la doctrine. Une décision qui en échoue à un seul mérite d'être retravaillée.</p>
+                    </div>
+
+                    <div class="manifeste-section">
+                      <h2 class="manifeste-h2">XVI. Principe directeur unique</h2>
+                      <p>Si tout ce manifeste devait se réduire à une seule phrase :</p>
+                      <blockquote class="manifeste-principe">
+                        Caméléon Engine est une présence calme qui rend la décision lisible sans la prendre.
+                      </blockquote>
+                      <p>Cette phrase contient tout. La calme posture. La présence. La lisibilité. La décision. Le respect de l'utilisateur. C'est la boussole.</p>
+                    </div>
+
+                    <div class="manifeste-origin-link">
+                      <a href="https://paragraph.com/@cameleon/la-naissance-du-cameleon" target="_blank" rel="noopener noreferrer" class="manifeste-ext-link">
+                        La naissance du Caméléon
+                      </a>
+                    </div>
+
+                    <div class="manifeste-section manifeste-postface">
+                      <h2 class="manifeste-h2">Postface</h2>
+                      <p>Ce manifeste n'est pas figé. Il peut évoluer — mais seulement par approfondissement, jamais par renoncement. Une évolution qui consoliderait la doctrine est légitime. Une évolution qui contredirait l'un des principes fondateurs serait une rupture, pas une croissance.</p>
+                      <p>Le produit que vous construisez est rare. Il appartient à une catégorie où peu de produits existent vraiment : celle des outils qui respectent l'intelligence de leurs utilisateurs sans rien rabaisser de leur exigence. Cette rareté est un actif. Elle se protège par la fidélité à la doctrine.</p>
+                      <p class="manifeste-closing">Caméléon Engine n'est pas un produit. C'est une posture. Le manifeste est sa colonne vertébrale.</p>
+                    </div>
+
+                  </div>
+                </div>
+
+
+          </div>
+
+          <aside class="side-panel">
+            <section class="side-card">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Centre de décision</h2>
+                </div>
+              </div>
+              <div class="decision-summary-card">
+                <div class="decision-summary-headline" id="decisionSummaryHeadline">On attend</div>
+              </div>
+            </section>
+            <section id="actionPlanCard" class="side-card plan-card">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Plan d'action</h2>
+                  <p class="card-desc">Lecture opérationnelle du contexte.</p>
+                </div>
+              </div>
+              <div id="actionPlan"></div>
+            </section>
+
+            <section id="mentalResetCard" class="side-card">
+              <div id="mentalReset"></div>
+            </section>
+
+
+            <section class="side-card">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Gestion de position</h2>
+                  <p class="card-desc">Cadre opérationnel selon l'état décisionnel réel.</p>
+                </div>
+              </div>
+              <div class="history">
+                <div class="history-item">
+                  <strong>Taille</strong>
+                  <div id="pmSize" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Mode</strong>
+                  <div id="pmMode" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Entrée</strong>
+                  <div id="pmEntry" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Sortie / allègement</strong>
+                  <div id="pmExit" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Risque max</strong>
+                  <div id="pmMaxRisk" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Statut position</strong>
+                  <div id="pmStatus" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Risque par trade</strong>
+                  <div id="rmRiskPerTrade" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Taille position</strong>
+                  <div id="rmPositionSize" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Exposition max</strong>
+                  <div id="rmMaxExposure" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>RR minimum</strong>
+                  <div id="rmRrMinimum" class="muted">—</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="side-card">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Scénarios SI → ALORS</h2>
+                  <p class="card-desc">Lectures conditionnelles selon l'évolution du contexte.</p>
+                </div>
+              </div>
+              <div class="history">
+                <div class="history-item">
+                  <strong>Si validation</strong>
+                  <div id="scIfValidation" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Si rejet</strong>
+                  <div id="scIfRejection" class="muted">—</div>
+                </div>
+                <div class="history-item">
+                  <strong>Si stagnation</strong>
+                  <div id="scIfStagnation" class="muted">—</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="side-card secondary-technical-card">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">Sortie technique</h2>
+                  <p class="card-desc">Le payload brut reste disponible pour audit ou branchement externe, mais il passe désormais au second plan visuel.</p>
+                </div>
+              </div>
+              <details class="technical-shell">
+                <summary>Afficher le payload brut</summary>
+                <div class="memory-box">
+                  <pre id="jsonOutput"></pre>
+                </div>
+              </details>
+            </section>
+          </aside>
+        </div>
+
+        <div id="overtrading-block" class="overtrading-block">
+          <div class="overtrading-media">
+            <img id="overtrading-img" class="overtrading-img" />
+          </div>
+          <div class="overtrading-content">
+            <div class="overtrading-header">
+              <span id="overtrading-badge" class="overtrading-badge"></span>
+              <div id="overtrading-etat" class="overtrading-etat"></div>
+            </div>
+            <div id="overtrading-message" class="overtrading-message"></div>
+            <div id="overtrading-risque" class="overtrading-risque"></div>
+            <div id="overtrading-action" class="overtrading-action"></div>
+          </div>
+        </div>
+
+        <p class="footer-note">Caméléon Engine · Décision lisible, jamais prise.</p>
+        <div class="footer-nav">
+          <button class="footer-link" data-tab-target="manifeste" type="button">Manifeste</button>
+          <a class="footer-link" href="https://fine-bream-92f.notion.site/01-Lois-du-Cam-l-on-35a1ba8c861d8003b26de8c8d26ad2b0?source=copy_link" target="_blank" rel="noopener noreferrer">Lois du Caméléon</a>
+          <a class="footer-link" href="/mentions-legales">Mentions légales</a>
+          <a class="footer-link" href="/cgu">CGU</a>
+          <a class="footer-link" href="/politique-confidentialite">Confidentialité</a>
+        </div>
+      </main>
+      <section id="behavior-root" hidden></section>
+    </div>
+  </div>
+  <dialog class="help-dialog" id="helpDialog" aria-labelledby="helpTitle">
+    <div class="help-dialog-shell">
+      <div class="card-head">
+        <h2 class="card-title" id="helpTitle">Mode d'emploi</h2>
+        <button class="mode-btn compact-btn help-close-btn" id="helpCloseBtn" type="button">
+          <div class="mode-btn-title">Fermer</div>
+        </button>
+      </div>
+      <p class="help-tagline">Pilotage → Moteur → Mémoire → Comportement</p>
+
+      <section class="help-card">
+        <p>Caméléon Engine ne te dit pas quoi acheter.<br>Il t'aide à voir dans quel état tu décides.</p>
+      </section>
+
+      <section class="help-card">
+        <div class="tiny-label">Ce que Caméléon Engine n'est pas</div>
+        <p>Ce système n'est pas un système de signaux. Il ne prédit pas le marché. Il ne décide pas à ta place. Il ne trade pas pour toi.</p>
+        <p>Son rôle : structurer ta lecture du contexte, préserver ta mémoire et mettre en lumière les comportements qui influencent tes décisions.</p>
+        <p>Le système automatise le contexte. L'humain reste responsable de l'action.</p>
+      </section>
+
+      <div class="help-grid">
+        <section class="help-card">
+          <div class="tiny-label">P — PILOTAGE · Pose le cadre</div>
+          <p>Tu définis le cadre dans lequel le moteur va travailler.</p>
+        </section>
+        <section class="help-card">
+          <div class="tiny-label">M — MOTEUR · Lis la synthèse</div>
+          <p>Le moteur interprète le contexte et produit un verdict.</p>
+        </section>
+        <section class="help-card">
+          <div class="tiny-label">H — MÉMOIRE · Garde la trace</div>
+          <p>La mémoire conserve les lectures précédentes pour créer du recul.</p>
+        </section>
+        <section class="help-card">
+          <div class="tiny-label">C — COMPORTEMENT · Vois qui tu es vraiment</div>
+          <p>Le comportement révèle ce que tu fais réellement lorsque tu trades.</p>
+        </section>
+      </div>
+
+      <div class="help-grid">
+        <section class="help-card">
+          <div class="tiny-label">Ordre recommandé</div>
+          <ul class="help-list">
+            <li>1. Pose le cadre</li>
+            <li>2. Lis la synthèse</li>
+            <li>3. Garde la trace</li>
+            <li>4. Vérifie ton comportement</li>
+          </ul>
+        </section>
+        <section class="help-card">
+          <div class="tiny-label">Règles du système</div>
+          <p>Si c'est bloqué → tu ne trades pas.<br>Si c'est flou → tu attends.<br>Si c'est clair → la décision reste la tienne.<br>Si tu hésites → tu ne fais rien.</p>
+        </section>
+      </div>
+    </div>
+  </dialog>
+  <div class="onboarding-overlay" id="onboardingOverlay" aria-modal="true" role="dialog" aria-labelledby="onboardingTitle">
+    <div class="onboarding-card">
+      <div class="onboarding-logo">Caméléon Engine</div>
+      <p class="onboarding-phrase">Ce système ne te donne pas des signaux.<br>Il t'empêche de faire des erreurs.</p>
+      <div class="onboarding-blocks">
+        <div class="onboarding-block">
+          <div class="tiny-label">Principe</div>
+          <p>Le moteur structure la lecture.<br>La décision t'appartient.</p>
+        </div>
+        <div class="onboarding-block">
+          <div class="tiny-label">Règle</div>
+          <p>Si c'est bloqué → tu ne trades pas<br>Si c'est flou → tu attends<br>Si c'est clair → la lecture est disponible.</p>
+        </div>
+        <div class="onboarding-block">
+          <div class="tiny-label">Règle finale</div>
+          <p>Si tu hésites → tu ne fais rien</p>
+        </div>
+      </div>
+      <div class="onboarding-block">
+        <div class="tiny-label">Comment démarrer</div>
+        <p>
+          <strong>PILOTAGE</strong> — Tu poses le cadre : régime, filtre, validation.<br>
+          <strong>MOTEUR</strong> — Le moteur interprète à l'intérieur de ce cadre.<br>
+          <strong>MÉMOIRE</strong> — Tu conserves les lectures et les décisions.<br>
+          <strong>COMPORTEMENT</strong> — Tu confrontes ce que tu crois faire à ce que tu fais.
+        </p>
+        <p style="margin-top:8px;font-size:11px;opacity:0.55;">Commence par PILOTAGE.</p>
+      </div>
+      <button class="onboarding-btn" id="onboardingBtn" type="button">Compris</button>
+    </div>
+  </div>
+
+  <script type="module" src="./js/account/account-init.js"></script>
+  <script type="module" src="./js/render.js"></script>
+  <script type="module" src="./js/behavior/behavior-main.js"></script>
+  <script type="module" src="./js/account/account-ui.js"></script>
+
+  <div id="constelliumPanel" class="cst-panel" hidden>
+    <div class="cst-panel-card">
+      <button id="closeConstellium" class="cst-close-btn">Fermer</button>
+      <h3 class="cst-panel-title">Lecture du Constellium</h3>
+      <p class="cst-sub">Pourquoi ces choix ont été proposés</p>
+      <div id="constelliumExplanation" class="cst-expl">
+        <div class="cst-context-line" id="explContextLine"></div>
+        <div class="cst-expl-lines">
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">ÉTHER</span><span class="cst-expl-value" id="explEther">—</span></div>
+            <div class="cst-expl-desc">Lecture globale du contexte (alignement ou contradiction)</div>
+            <div class="cst-expl-sentence" id="explEtherSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">FEU</span><span class="cst-expl-value" id="explFire">—</span></div>
+            <div class="cst-expl-desc">Énergie et intensité du mouvement</div>
+            <div class="cst-expl-sentence" id="explFireSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">AIR</span><span class="cst-expl-value" id="explAir">—</span></div>
+            <div class="cst-expl-desc">Clarté du setup</div>
+            <div class="cst-expl-sentence" id="explAirSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">TERRE</span><span class="cst-expl-value" id="explEarth">—</span></div>
+            <div class="cst-expl-desc">Solidité du niveau</div>
+            <div class="cst-expl-sentence" id="explEarthSentence"></div>
+          </div>
+          <div class="cst-expl-row">
+            <div class="cst-expl-head"><span class="cst-expl-label">EAU</span><span class="cst-expl-value" id="explWater">—</span></div>
+            <div class="cst-expl-desc">Risque potentiel</div>
+            <div class="cst-expl-sentence" id="explWaterSentence"></div>
+          </div>
+        </div>
+        <div class="cst-expl-footer">Lecture indicative — aucune validation moteur.</div>
+        <div class="cst-legal-block">
+          <div class="cst-legal-title">Cadre d'utilisation</div>
+          <p>Les informations fournies par ce module sont issues d'un traitement algorithmique et sont communiquées à titre indicatif uniquement.</p>
+          <p>Elles ne constituent ni un conseil en investissement, ni une recommandation personnalisée, ni une incitation à agir sur les marchés financiers.</p>
+          <p>L'utilisateur reste seul décisionnaire de ses actions et assume l'entière responsabilité des conséquences de ses choix.</p>
+          <p>Le trading et l'investissement comportent des risques élevés, incluant un risque de perte partielle ou totale du capital.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

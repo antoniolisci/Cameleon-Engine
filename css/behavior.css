@@ -1,0 +1,1417 @@
+/*
+ * behavior.css — Module Analyse comportementale
+ * Toutes les classes sont préfixées .bhv- ou scopées #behavior-root.
+ * Aucun style global. Utilise les variables CSS de style.css.
+ */
+
+/* ── Layout : placement dans la grille .layout ─────────────────────────────── */
+
+#behavior-root {
+  grid-column: 2;
+  grid-row: 1;
+  overflow-y: auto;
+  padding: 24px 24px 48px;
+  min-height: 0;
+}
+
+/* Lorsque le module est ouvert, masquer le cockpit principal */
+body.bhv-panel-open .main-shell {
+  display: none;
+}
+
+/* ── Shell ──────────────────────────────────────────────────────────────────── */
+
+.bhv-shell {
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+
+.bhv-header {
+  padding-bottom: 4px;
+}
+
+.bhv-title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gold, #d4af37);
+  letter-spacing: 0.02em;
+}
+
+.bhv-subtitle {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Sidebar tab button ──────────────────────────────────────────────────────── */
+
+#behaviorTabBtn.bhv-active {
+  background: rgba(212, 175, 55, 0.12);
+  border-left: 2px solid var(--gold, #d4af37);
+}
+
+/* ── Card ───────────────────────────────────────────────────────────────────── */
+
+.bhv-card {
+  background: var(--panel, rgba(18, 18, 18, 0.88));
+  border: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  border-radius: var(--radius-md, 18px);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bhv-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bhv-card-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text, #f4ecd0);
+}
+
+.bhv-card-desc {
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+}
+
+/* ── Import card ─────────────────────────────────────────────────────────────── */
+
+.bhv-drop-zone {
+  border: 1px dashed var(--border-strong, rgba(212, 175, 55, 0.26));
+  border-radius: var(--radius-md, 18px);
+  padding: 18px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+
+.bhv-drop-zone:hover,
+.bhv-drop-zone.bhv-dragover {
+  border-color: var(--gold, #d4af37);
+  background: rgba(212, 175, 55, 0.04);
+}
+
+@keyframes bhv-border-pulse {
+  0%, 100% { border-color: rgba(212, 175, 55, 0.26); }
+  50%       { border-color: rgba(212, 175, 55, 0.65); }
+}
+
+.bhv-drop-zone.bhv-loading {
+  pointer-events: none;
+  opacity: 0.6;
+  animation: bhv-border-pulse 1.1s ease-in-out infinite;
+}
+
+.bhv-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.bhv-drop-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  pointer-events: none;
+}
+
+.bhv-drop-icon {
+  font-size: 1.6rem;
+  color: var(--gold, #d4af37);
+  line-height: 1;
+}
+
+.bhv-drop-text {
+  font-size: 0.9rem;
+  color: var(--text-soft, #e9ddb7);
+}
+
+.bhv-drop-hint {
+  font-size: 0.75rem;
+  color: var(--muted, #bba76b);
+}
+
+/* ── Messages ────────────────────────────────────────────────────────────────── */
+
+.bhv-msg {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.bhv-msg--error {
+  background: rgba(255, 123, 123, 0.1);
+  border: 1px solid rgba(255, 123, 123, 0.3);
+  color: var(--danger, #ff7b7b);
+}
+
+.bhv-msg--info {
+  background: rgba(125, 255, 179, 0.07);
+  border: 1px solid rgba(125, 255, 179, 0.2);
+  color: var(--ok, #7dffb3);
+}
+
+.bhv-msg--grid-context {
+  background: rgba(180, 160, 255, 0.07);
+  border: 1px solid rgba(180, 160, 255, 0.2);
+  color: rgba(180, 160, 255, 0.85);
+}
+
+.bhv-msg--diagnostic {
+  background: rgba(255, 200, 100, 0.06);
+  border: 1px solid rgba(255, 200, 100, 0.2);
+  color: rgba(255, 200, 100, 0.75);
+  font-family: monospace;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+/* ── Drop zone — types de fichiers ──────────────────────────────────────────── */
+
+.bhv-drop-types {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.bhv-drop-type {
+  display: grid;
+  grid-template-columns: 1.3rem 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 5px;
+}
+.bhv-drop-type-icon {
+  grid-row: 1 / 3;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.bhv-drop-type-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-soft, #e9ddb7);
+  line-height: 1.3;
+}
+.bhv-drop-type-desc {
+  font-size: 0.7rem;
+  color: var(--muted, #bba76b);
+  line-height: 1.2;
+}
+.bhv-drop-formats-hint { opacity: 0.45; font-style: italic; }
+.bhv-drop-formats {
+  font-size: 0.7rem;
+  color: var(--muted, #bba76b);
+  margin-bottom: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 8px;
+}
+
+/* ── Import notice (format non supporté) ────────────────────────────────────── */
+
+.bhv-msg--notice {
+  background: rgba(180, 200, 255, 0.06);
+  border: 1px solid rgba(180, 200, 255, 0.15);
+  color: var(--text-soft, #e9ddb7);
+}
+.bhv-notice-title   { font-weight: 600; margin-bottom: 6px; }
+.bhv-notice-body    { margin-bottom: 8px; }
+.bhv-notice-formats { opacity: 0.7; margin-bottom: 8px; line-height: 1.8; }
+.bhv-notice-cta     { opacity: 0.5; font-size: 0.8rem; }
+
+/* ── Import summary ─────────────────────────────────────────────────────────── */
+
+.bhv-import-summary {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.82rem;
+}
+.bhv-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+.bhv-summary-label { opacity: 0.6; }
+.bhv-summary-val   { font-weight: 600; }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+
+.bhv-import-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bhv-btn {
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.bhv-btn:hover { opacity: 0.8; }
+
+.bhv-btn--danger {
+  background: rgba(255, 123, 123, 0.12);
+  border-color: rgba(255, 123, 123, 0.3);
+  color: var(--danger, #ff7b7b);
+}
+
+/* ── Analysis section ────────────────────────────────────────────────────────── */
+
+.bhv-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Metrics grid ────────────────────────────────────────────────────────────── */
+
+.bhv-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 680px) {
+  .bhv-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.bhv-metric {
+  background: var(--panel-soft, rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.bhv-metric-label {
+  font-size: 0.72rem;
+  color: var(--muted, #bba76b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.bhv-metric-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text, #f4ecd0);
+}
+
+/* ── Hour distribution chart ─────────────────────────────────────────────────── */
+
+.bhv-hour-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bhv-hour-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 60px;
+}
+
+.bhv-hour-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 2px;
+  cursor: default;
+}
+
+.bhv-hour-bar {
+  width: 100%;
+  min-height: 2px;
+  background: var(--gold, #d4af37);
+  opacity: 0.7;
+  border-radius: 2px 2px 0 0;
+  transition: opacity 0.15s;
+}
+
+.bhv-hour-col:hover .bhv-hour-bar { opacity: 1; }
+
+.bhv-hour-label {
+  font-size: 0.6rem;
+  color: var(--muted, #bba76b);
+  height: 14px;
+  line-height: 14px;
+}
+
+/* ── Patterns ────────────────────────────────────────────────────────────────── */
+
+.bhv-patterns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bhv-pattern {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-left: 3px solid transparent;
+}
+
+.bhv-pattern--medium {
+  background: rgba(255, 211, 110, 0.07);
+  border-left-color: var(--warn, #ffd36e);
+}
+
+.bhv-pattern--high {
+  background: rgba(255, 123, 123, 0.08);
+  border-left-color: var(--danger, #ff7b7b);
+}
+
+.bhv-pattern-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text, #f4ecd0);
+  margin-bottom: 4px;
+}
+
+.bhv-pattern-desc {
+  font-size: 0.80rem;
+  color: var(--text-soft, #e9ddb7);
+  line-height: 1.5;
+}
+
+.bhv-empty {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--muted, #bba76b);
+}
+
+/* ── Badge ───────────────────────────────────────────────────────────────────── */
+
+.bhv-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--gold, #d4af37);
+  border: 1px solid var(--border-strong, rgba(212, 175, 55, 0.26));
+}
+
+.bhv-badge--warn {
+  background: rgba(255, 211, 110, 0.12);
+  color: var(--warn, #ffd36e);
+  border-color: rgba(255, 211, 110, 0.3);
+}
+
+/* ── Journal table ───────────────────────────────────────────────────────────── */
+
+.bhv-table-wrap {
+  overflow-x: auto;
+}
+
+.bhv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.80rem;
+}
+
+.bhv-table th {
+  text-align: left;
+  padding: 7px 10px;
+  color: var(--muted, #bba76b);
+  font-size: 0.70rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  white-space: nowrap;
+}
+
+.bhv-table td {
+  padding: 7px 10px;
+  color: var(--text-soft, #e9ddb7);
+  border-bottom: 1px solid var(--border, rgba(212, 175, 55, 0.07));
+  white-space: nowrap;
+}
+
+.bhv-table tbody tr:hover td {
+  background: rgba(212, 175, 55, 0.04);
+}
+
+.bhv-side { font-weight: 700; }
+.bhv-side--buy  { color: var(--ok,   #7dffb3); }
+.bhv-side--sell { color: var(--danger, #ff7b7b); }
+
+.bhv-tags {
+  font-size: 0.72rem;
+  color: var(--muted, #bba76b);
+}
+
+.bhv-tags--flagged {
+  color: var(--warn, #ffd36e);
+  font-weight: 600;
+}
+
+/* ── Grille métriques secondaires ────────────────────────────────────────────── */
+
+.bhv-metrics-grid--secondary {
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: -4px;
+}
+
+@media (max-width: 680px) {
+  .bhv-metrics-grid--secondary { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Variante warn pour les métriques hors norme */
+.bhv-metric--warn .bhv-metric-value {
+  color: var(--warn, #ffd36e);
+}
+
+/* ── Lecture comportementale ─────────────────────────────────────────────────── */
+
+.bhv-reading-card {
+  border-color: rgba(212, 175, 55, 0.22);
+}
+
+.bhv-reading-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bhv-reading-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--text-soft, #e9ddb7);
+  line-height: 1.55;
+}
+
+.bhv-reading-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold, #d4af37);
+  margin-top: 7px;
+  opacity: 0.8;
+}
+
+/* Variantes colorées du dot (score card) */
+.bhv-reading-dot--ok      { background: var(--ok,      #7dffb3); }
+.bhv-reading-dot--gold    { background: var(--gold,    #d4af37); }
+.bhv-reading-dot--warn    { background: var(--warn,    #ffd36e); }
+.bhv-reading-dot--danger  { background: var(--danger,  #ff7b7b); }
+.bhv-reading-dot--neutral { background: rgba(233, 221, 183, 0.35); }
+
+/* ── Score card ──────────────────────────────────────────────────────────────── */
+
+.bhv-score-card {
+  border-color: rgba(212, 175, 55, 0.28);
+}
+
+.bhv-score-body {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.bhv-score-num {
+  font-size: 3.6rem;
+  font-weight: 800;
+  line-height: 1;
+  min-width: 84px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.bhv-score-num--ok     { color: var(--ok,     #7dffb3); }
+.bhv-score-num--gold   { color: var(--gold,   #d4af37); }
+.bhv-score-num--warn   { color: var(--warn,   #ffd36e); }
+.bhv-score-num--danger { color: var(--danger, #ff7b7b); }
+
+.bhv-score-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bhv-score-profile {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
+}
+
+.bhv-score-profile--ok     { color: var(--ok,     #7dffb3); }
+.bhv-score-profile--gold   { color: var(--gold,   #d4af37); }
+.bhv-score-profile--warn   { color: var(--warn,   #ffd36e); }
+.bhv-score-profile--danger { color: var(--danger, #ff7b7b); }
+
+.bhv-score-risk {
+  font-size: 0.84rem;
+  color: var(--text-soft, #e9ddb7);
+}
+
+.bhv-score-range {
+  font-size: 0.68rem;
+  color: var(--muted, #bba76b);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.bhv-score-interp {
+  border-top: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Coaching card ───────────────────────────────────────────────────────────── */
+
+.bhv-coaching-card {
+  border-color: rgba(125, 255, 179, 0.2);
+}
+
+.bhv-coaching-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bhv-coaching-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--text-soft, #e9ddb7);
+  line-height: 1.55;
+}
+
+.bhv-coaching-bullet {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok, #7dffb3);
+  margin-top: 7px;
+  opacity: 0.8;
+}
+
+.bhv-coaching-bullet--plan {
+  background: var(--gold, #d4af37);
+}
+
+.bhv-coaching-plan {
+  border-top: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Two-column layout ───────────────────────────────────────────────────────── */
+
+.bhv-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .bhv-layout         { grid-template-columns: 1fr; }
+  .bhv-sidebar        { display: none; }
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────────── */
+
+.bhv-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Stat grid (compteurs de lecture rapide) ─────────────────────────────────── */
+
+.bhv-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bhv-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Risque dominant : pleine largeur + séparateur */
+.bhv-stat--full {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border, rgba(212, 175, 55, 0.14));
+  padding-top: 10px;
+}
+
+.bhv-stat-label {
+  font-size: 0.64rem;
+  color: var(--muted, #bba76b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bhv-stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text, #f4ecd0);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bhv-stat-value--ok     { color: var(--ok,     #7dffb3); }
+.bhv-stat-value--gold   { color: var(--gold,   #d4af37); }
+.bhv-stat-value--warn   { color: var(--warn,   #ffd36e); }
+.bhv-stat-value--danger { color: var(--danger, #ff7b7b); }
+
+/* Risque dominant — 2 lignes max, ellipsis si débordement */
+.bhv-stat-risk {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft, #e9ddb7);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Size distribution chart ─────────────────────────────────────────────────── */
+
+.bhv-size-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 60px;
+}
+
+.bhv-size-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 2px;
+  cursor: default;
+}
+
+.bhv-size-bar {
+  width: 100%;
+  min-height: 2px;
+  background: var(--ok, #7dffb3);
+  opacity: 0.65;
+  border-radius: 2px 2px 0 0;
+  transition: opacity 0.15s;
+}
+
+.bhv-size-col:hover .bhv-size-bar { opacity: 1; }
+
+.bhv-size-label {
+  font-size: 0.54rem;
+  color: var(--muted, #bba76b);
+  height: 14px;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   UX — Micro-interactions & animations
+   Toutes les règles ci-dessous s'ajoutent aux existantes sans les remplacer.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Card hover ───────────────────────────────────────────────────────────── */
+
+.bhv-card {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bhv-card:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.07), 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* ── 2. Pattern hover — lift + ombre ─────────────────────────────────────────── */
+
+.bhv-pattern {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bhv-pattern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+/* ── 3. Animation d'apparition ───────────────────────────────────────────────── */
+
+@keyframes bhv-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.bhv-fade-in {
+  animation: bhv-fade-in 0.35s ease both;
+}
+
+/* ── 4. Risque dominant — bordure gauche colorée ────────────────────────────── */
+
+.bhv-stat-risk {
+  border-left: 2px solid transparent;
+  padding-left: 8px;
+}
+
+.bhv-stat-risk--gold   { border-left-color: var(--gold,   #d4af37); }
+.bhv-stat-risk--warn   { border-left-color: var(--warn,   #ffd36e); }
+.bhv-stat-risk--danger { border-left-color: var(--danger, #ff7b7b); }
+
+/* ── 5. Compteurs — scale au hover ──────────────────────────────────────────── */
+
+.bhv-stat-value {
+  transition: transform 0.15s ease;
+}
+
+.bhv-stat:hover .bhv-stat-value {
+  transform: scale(1.06);
+}
+
+/* ── 6. Pulse vert après import réussi ──────────────────────────────────────── */
+
+@keyframes bhv-pulse-ok {
+  0%   { box-shadow: 0 0 0 0   rgba(125, 255, 179, 0.35); }
+  60%  { box-shadow: 0 0 0 10px rgba(125, 255, 179, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(125, 255, 179, 0);    }
+}
+
+.bhv-pulse-ok {
+  animation: bhv-pulse-ok 0.55s ease-out;
+}
+
+/* ── 7. Scrollbar discrète ───────────────────────────────────────────────────── */
+
+#behavior-root::-webkit-scrollbar       { width: 6px; }
+#behavior-root::-webkit-scrollbar-track { background: transparent; }
+#behavior-root::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+#behavior-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Plan d'action — label plus lisible ─────────────────────────────────────── */
+
+.bhv-plan-label {
+  color: var(--text-soft, #e9ddb7);
+  font-size: 0.75rem;
+}
+
+/* ── Journal — bouton "Voir tout" ────────────────────────────────────────────── */
+
+.bhv-journal-expand {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.bhv-journal-btn {
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.bhv-journal-btn:hover {
+  color: var(--gold, #d4af37);
+  background: rgba(212, 175, 55, 0.06);
+}
+
+/* ── Sessions card ───────────────────────────────────────────────────────────── */
+
+.bhv-sessions-card .bhv-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bhv-sessions-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bhv-sessions-tip {
+  font-size: 0.68rem;
+  color: var(--muted, #bba76b);
+  margin-top: 4px;
+  margin-bottom: 10px;
+  opacity: 0.75;
+}
+
+.bhv-btn--clear-sessions {
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 123, 123, 0.2);
+  background: transparent;
+  color: var(--muted, #bba76b);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.bhv-btn--clear-sessions:hover {
+  color: var(--danger, #ff7b7b);
+  border-color: rgba(255, 123, 123, 0.45);
+}
+
+.bhv-btn--save {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--gold, #d4af37);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.bhv-btn--save:hover {
+  background: rgba(212, 175, 55, 0.16);
+  border-color: rgba(212, 175, 55, 0.6);
+}
+
+.bhv-session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.bhv-session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  transition: border-color 0.15s;
+}
+
+.bhv-session:hover {
+  border-color: rgba(212, 175, 55, 0.22);
+}
+
+.bhv-session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bhv-session-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text, #f4ecd0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bhv-session-meta {
+  font-size: 0.68rem;
+  color: var(--muted, #bba76b);
+}
+
+.bhv-session-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bhv-session-btn {
+  font-size: 0.72rem;
+  padding: 3px 9px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.bhv-session-btn--load {
+  background: rgba(125, 255, 179, 0.07);
+  border-color: rgba(125, 255, 179, 0.25);
+  color: var(--ok, #7dffb3);
+}
+
+.bhv-session-btn--load:hover {
+  background: rgba(125, 255, 179, 0.15);
+  border-color: rgba(125, 255, 179, 0.5);
+}
+
+.bhv-session-btn--delete {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted, #bba76b);
+  padding: 3px 6px;
+}
+
+.bhv-session-btn--delete:hover {
+  color: var(--danger, #ff7b7b);
+  background: rgba(255, 123, 123, 0.08);
+}
+
+.bhv-sessions-empty {
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  padding: 6px 0 2px;
+}
+
+/* ── Score badge inline dans la liste des sessions ───────────────────────────── */
+
+.bhv-session-score {
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-right: 12px;
+  min-width: 70px;
+  text-align: right;
+  opacity: 0.95;
+  white-space: nowrap;
+}
+
+.bhv-session-score--ok     { color: var(--ok,     #7dffb3); }
+.bhv-session-score--gold   { color: var(--gold,   #d4af37); }
+.bhv-session-score--warn   { color: var(--warn,   #ffd36e); }
+.bhv-session-score--danger { color: var(--danger, #ff7b7b); }
+
+/* ── Bloc de synthèse comparative ────────────────────────────────────────────── */
+
+.bhv-sessions-synthesis {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 175, 55, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bhv-synth-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.bhv-synth-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bhv-synth-label {
+  font-size: 0.62rem;
+  color: var(--muted, #bba76b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bhv-synth-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text, #f4ecd0);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.bhv-synth-value--ok     { color: var(--ok,     #7dffb3); }
+.bhv-synth-value--danger { color: var(--danger, #ff7b7b); }
+
+/* ── Mini graphe d'évolution ─────────────────────────────────────────────────── */
+
+.bhv-synth-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+}
+
+.bhv-synth-bar-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  cursor: default;
+}
+
+.bhv-synth-bar {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.bhv-synth-bar-col:hover .bhv-synth-bar { opacity: 1; }
+
+.bhv-synth-bar--ok     { background: var(--ok,     #7dffb3); }
+.bhv-synth-bar--gold   { background: var(--gold,   #d4af37); }
+.bhv-synth-bar--warn   { background: var(--warn,   #ffd36e); }
+.bhv-synth-bar--danger { background: var(--danger, #ff7b7b); }
+
+/* ── Lecture comportementale — synthèse sessions ─────────────────────────────── */
+
+.bhv-synth-reading {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.bhv-synth-reading--solid     { color: var(--ok,     #7dffb3); }
+.bhv-synth-reading--irregular { color: var(--warn,   #ffd36e); }
+.bhv-synth-reading--unstable  { color: var(--danger, #ff7b7b); }
+
+.bhv-synth-insight {
+  font-size: 0.72rem;
+  color: var(--muted, #bba76b);
+  line-height: 1.4;
+}
+
+/* ── Comportement dominant — banner score card ───────────────────────────────── */
+
+.bhv-dominant-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  border-left: 4px solid transparent;
+}
+
+.bhv-dominant-banner--ok     { border-left-color: var(--ok,     #7dffb3); background: rgba(125, 255, 179, 0.11); }
+.bhv-dominant-banner--gold   { border-left-color: var(--gold,   #d4af37); background: rgba(212, 175,  55, 0.11); }
+.bhv-dominant-banner--warn   { border-left-color: var(--warn,   #ffd36e); background: rgba(255, 211, 110, 0.11); }
+.bhv-dominant-banner--danger { border-left-color: var(--danger, #ff7b7b); background: rgba(255, 123, 123, 0.11); }
+
+.bhv-dominant-label {
+  font-size: 0.65rem;
+  color: var(--text-soft, #e9ddb7);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.bhv-dominant-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text, #f4ecd0);
+}
+
+/* ── Action prioritaire — coaching card ─────────────────────────────────────── */
+
+.bhv-action-priority {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.07);
+  border-left: 3px solid var(--gold, #d4af37);
+  margin-bottom: 12px;
+}
+
+.bhv-action-priority-label {
+  font-size: 0.62rem;
+  color: var(--gold, #d4af37);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bhv-action-priority-text {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text, #f4ecd0);
+  line-height: 1.45;
+}
+
+/* ── Patterns — hiérarchie des niveaux ──────────────────────────────────────── */
+
+.bhv-pattern--critical {
+  border-color: rgba(255, 123, 123, 0.45);
+  background:   rgba(255, 123, 123, 0.06);
+}
+
+.bhv-pattern--critical .bhv-pattern-name {
+  color: var(--danger, #ff7b7b);
+}
+
+.bhv-pattern--secondary {
+  border-color: rgba(255, 211, 110, 0.35);
+  background:   rgba(255, 211, 110, 0.04);
+}
+
+.bhv-pattern--secondary .bhv-pattern-name {
+  color: var(--warn, #ffd36e);
+}
+
+.bhv-pattern--tertiary {
+  border-color: rgba(255, 255, 255, 0.07);
+  background:   transparent;
+}
+
+.bhv-pattern--tertiary .bhv-pattern-name {
+  color: var(--muted, #bba76b);
+}
+
+
+/* ── Validation warnings list ───────────────────────────────────────────────── */
+
+.bhv-warning-list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.8rem;
+}
+
+.bhv-warning-list .warn-critical { color: #ff6b6b; }
+.bhv-warning-list .warn-info     { color: #facc15; }
+
+/* ── Verdict block ──────────────────────────────────────────────────────────── */
+
+.bhv-verdict {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border-strong, rgba(212, 175, 55, 0.26));
+  border-radius: 8px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-lg);
+}
+
+.bhv-verdict--stop   { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 28px rgba(255, 123, 123, 0.10), var(--shadow-lg); }
+.bhv-verdict--adjust { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 28px rgba(255, 211, 110, 0.10), var(--shadow-lg); }
+.bhv-verdict--ok     { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 28px rgba( 93, 222, 150, 0.10), var(--shadow-lg); }
+
+.bhv-verdict-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bhv-verdict-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.bhv-verdict-label {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bhv-verdict-text {
+  font-size: 0.82rem;
+  color: var(--muted, #bba76b);
+  margin-left: 2px;
+}
+
+.bhv-verdict-status--stop   .bhv-verdict-label { color: var(--danger, #ff7b7b); }
+.bhv-verdict-status--adjust .bhv-verdict-label { color: var(--warn,   #ffd36e); }
+.bhv-verdict-status--ok     .bhv-verdict-label { color: #5dde96; }
+
+.bhv-verdict-action {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text, #f4ecd0);
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--gold, #d4af37);
+  border-radius: 0 4px 4px 0;
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.03);
+}
+
+.bhv-verdict-cause {
+  font-size: 0.76rem;
+  color: var(--muted, #bba76b);
+  letter-spacing: 0.02em;
+}
+
+/* ── Panneau Mémoire Comportementale ─────────────────────────────────────────── */
+
+.bhv-mem-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bhv-mem-profile-count {
+  font-size: 0.82rem;
+  color: var(--text, #f4ecd0);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.bhv-mem-profile-section {
+  font-size: 0.70rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted, #bba76b);
+  margin-bottom: 2px;
+}
+
+.bhv-mem-profile-pattern-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bhv-mem-profile-pattern-label {
+  font-size: 0.82rem;
+  color: var(--text, #f4ecd0);
+}
+
+.bhv-mem-profile-pattern-val {
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  white-space: nowrap;
+}
+
+.bhv-mem-profile-trend {
+  font-size: 0.78rem;
+  color: var(--muted, #bba76b);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.bhv-mem-profile-manage {
+  padding-top: 4px;
+  text-align: right;
+}
+
+.bhv-mem-profile-manage-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--muted, #bba76b);
+  opacity: 0.65;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+.bhv-mem-profile-manage-link:hover {
+  opacity: 1;
+}
+
+.bhv-mem-profile-reset-zone {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bhv-mem-profile-reset-warn {
+  font-size: 0.76rem;
+  color: var(--muted, #bba76b);
+  line-height: 1.5;
+}
+
+.bhv-mem-profile-reset-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bhv-mem-profile-reset-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: var(--text, #f4ecd0);
+  font-size: 0.80rem;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.bhv-mem-profile-reset-input:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.bhv-mem-profile-reset-input--error {
+  border-color: rgba(255, 123, 123, 0.70);
+  animation: bhv-shake 0.25s ease;
+}
+
+@keyframes bhv-shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-4px); }
+  75%       { transform: translateX(4px); }
+}
+
+.bhv-btn--sm {
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  border-radius: 6px;
+}
+
+/* ── Badge récurrent — patterns card ─────────────────────────────────────────── */
+
+.bhv-badge--recurring {
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-size: 0.66rem;
+  background: rgba(255, 123, 123, 0.10);
+  color: var(--danger, #ff7b7b);
+  border-color: rgba(255, 123, 123, 0.28);
+  vertical-align: middle;
+}
+

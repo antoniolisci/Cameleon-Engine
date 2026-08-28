@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Politique de confidentialité — Caméléon Engine</title>
+  <style>
+    :root{--bg:#0b0b0b;--surface:#141414;--text:#d4cbb8;--heading:#e8e2d4;--accent:#ccb577;--muted:#7a7060;--border:rgba(204,181,119,.12);--link:#b8a56a}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.75;min-height:100vh}
+    .page-wrap{max-width:720px;margin:0 auto;padding:28px 24px 64px}
+    .back-nav{margin-bottom:44px}
+    .back-link{color:var(--muted);text-decoration:none;font-size:13px;letter-spacing:.04em;transition:color .2s}
+    .back-link:hover{color:var(--accent)}
+    h1{font-size:1.45rem;font-weight:600;color:var(--heading);margin-bottom:6px;letter-spacing:-.01em}
+    .meta{font-size:12px;color:var(--muted);margin-bottom:44px}
+    h2{font-size:.95rem;font-weight:600;color:var(--accent);margin:40px 0 12px;letter-spacing:.03em;text-transform:uppercase}
+    h3{font-size:.9rem;font-weight:600;color:var(--heading);margin:24px 0 10px}
+    p{margin-bottom:14px}
+    ul{margin:0 0 14px 22px;list-style:disc}
+    li{margin-bottom:5px}
+    a{color:var(--link);text-decoration:none}
+    a:hover{text-decoration:underline}
+    strong{color:var(--heading);font-weight:600}
+    hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+    table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:14px}
+    th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+    th{color:var(--accent);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+    .page-footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:12px}
+    .page-footer a{color:var(--muted);opacity:.7;transition:opacity .2s}
+    .page-footer a:hover{opacity:1;text-decoration:none}
+    .page-footer a.current{color:var(--accent);opacity:1;pointer-events:none;cursor:default}
+    .footer-sep{color:var(--border);margin-left:auto}
+    .page-footer a:last-child{color:var(--muted);opacity:.5}
+    @media(max-width:480px){.page-wrap{padding:18px 16px 48px}h1{font-size:1.2rem}.page-footer{gap:12px}}
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <nav class="back-nav"><a class="back-link" href="/">← Caméléon Engine</a></nav>
+    <h1>Politique de confidentialité</h1>
+    <p class="meta">Dernière mise à jour : 2026-06-11</p>
+    <h2>1. Responsable du traitement</h2>
+    <p><strong>Antonio Lisci</strong><br>Caméléon Engine — projet indépendant<br>France<br>Contact : <a href="mailto:antonio.lisci@gmail.com">antonio.lisci@gmail.com</a></p>
+    <hr>
+    <h2>2. Données collectées</h2>
+    <h3>2.1 Adresse email</h3>
+    <p>Lors de la création d'un compte, l'utilisateur fournit son adresse email. Elle est utilisée exclusivement pour :</p>
+    <ul>
+      <li>l'envoi du lien de connexion (Magic Link) ;</li>
+      <li>les communications relatives au compte (modifications substantielles des CGU, réponses aux demandes RGPD).</li>
+    </ul>
+    <p>Aucun email commercial ni newsletter n'est envoyé sans consentement explicite.</p>
+    <h3>2.2 Données de compte</h3>
+    <p>Les données suivantes sont associées au compte utilisateur sur le serveur :</p>
+    <ul>
+      <li>adresse email ;</li>
+      <li>identifiant de compte (généré automatiquement depuis l'authentification Supabase) ;</li>
+      <li>statut du compte (gratuit ou premium) ;</li>
+      <li>date de création du compte ;</li>
+      <li>consentement aux présentes politiques (horodaté).</li>
+    </ul>
+    <h3>2.3 Données d'utilisation</h3>
+    <p>Pour les utilisateurs disposant d'un compte, les données suivantes peuvent être synchronisées sur le serveur :</p>
+    <ul>
+      <li>sessions d'analyse comportementale (imports CSV analysés) ;</li>
+      <li>snapshots de décision du moteur.</li>
+    </ul>
+    <p>Ces données sont associées au seul compte de l'utilisateur. Elles ne sont pas partagées avec des tiers à des fins commerciales.</p>
+    <hr>
+    <h2>3. Stockage local (localStorage)</h2>
+    <p>Pour tous les utilisateurs, y compris sans compte, les données suivantes sont stockées <strong>localement dans le navigateur</strong> uniquement :</p>
+    <ul>
+      <li>état du formulaire et historique des sessions moteur (50 sessions maximum) ;</li>
+      <li>sessions d'analyse comportementale (50 sessions maximum) ;</li>
+      <li>identifiant local de l'appareil (UUID généré automatiquement, non lié à l'identité réelle) ;</li>
+      <li>préférences d'interface.</li>
+    </ul>
+    <p>Ces données restent sur l'appareil de l'utilisateur. Elles ne sont transmises à aucun serveur sauf accord explicite lors de la migration de compte vers le serveur.</p>
+    <hr>
+    <h2>4. Stockage serveur (Supabase)</h2>
+    <p>Pour les utilisateurs disposant d'un compte, certaines données sont synchronisées sur les serveurs de <strong>Supabase</strong> (infrastructure PostgreSQL). Supabase héberge les données dans des centres de données situés dans l'Union Européenne.</p>
+    <p>Supabase agit en qualité de sous-traitant au sens du RGPD. Les données sont chiffrées en transit (TLS) et au repos.</p>
+    <p>Politique de sécurité Supabase : <a href="https://supabase.com/security" rel="noopener noreferrer" target="_blank">supabase.com/security</a></p>
+    <hr>
+    <h2>5. Emails transactionnels (Postmark)</h2>
+    <p>Les liens de connexion Magic Link sont envoyés via <strong>Postmark</strong> (Wildbit LLC). L'adresse email de l'utilisateur est transmise à Postmark dans le seul but d'acheminer l'email transactionnel. Aucun email à des fins marketing n'est traité par ce canal.</p>
+    <p>Politique de confidentialité Postmark : <a href="https://postmarkapp.com/privacy-policy" rel="noopener noreferrer" target="_blank">postmarkapp.com/privacy-policy</a></p>
+    <hr>
+    <h2>6. Hébergement du site</h2>
+    <p>Le site est hébergé sur <strong>GitHub Pages</strong> (GitHub, Inc., États-Unis). L'accès au site peut entraîner la collecte de logs d'accès par GitHub (adresse IP, navigateur, URL demandée). Ces données sont traitées par GitHub selon sa propre politique : <a href="https://docs.github.com/fr/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer" target="_blank">docs.github.com — Politique de confidentialité GitHub</a></p>
+    <hr>
+    <h2>7. Durée de conservation</h2>
+    <table>
+      <thead><tr><th>Donnée</th><th>Durée de conservation</th></tr></thead>
+      <tbody>
+        <tr><td>Données de compte (email, statut)</td><td>Jusqu'à suppression du compte ou inactivité de 24 mois</td></tr>
+        <tr><td>Sessions comportementales synchronisées</td><td>Jusqu'à suppression du compte</td></tr>
+        <tr><td>Snapshots moteur synchronisés</td><td>Jusqu'à suppression du compte</td></tr>
+        <tr><td>Données locales (localStorage)</td><td>Jusqu'à effacement par l'utilisateur ou son navigateur</td></tr>
+      </tbody>
+    </table>
+    <hr>
+    <h2>8. Droits RGPD</h2>
+    <p>Conformément au Règlement Général sur la Protection des Données (RGPD — UE 2016/679), l'utilisateur dispose des droits suivants :</p>
+    <ul>
+      <li><strong>Droit d'accès</strong> : obtenir une copie de ses données personnelles.</li>
+      <li><strong>Droit de rectification</strong> : corriger des données inexactes ou incomplètes.</li>
+      <li><strong>Droit à l'effacement</strong> : demander la suppression du compte et de toutes ses données serveur.</li>
+      <li><strong>Droit à la portabilité</strong> : exporter ses données au format JSON directement depuis l'interface.</li>
+      <li><strong>Droit d'opposition</strong> : s'opposer à certains traitements dans les cas prévus par le RGPD.</li>
+    </ul>
+    <h3>Comment exercer ses droits</h3>
+    <p><strong>Depuis l'interface :</strong> les utilisateurs connectés peuvent exporter leurs données et demander la suppression de leur compte directement depuis le panel Compte.</p>
+    <p><strong>Par email :</strong> <a href="mailto:antonio.lisci@gmail.com">antonio.lisci@gmail.com</a> — objet : "Demande RGPD — [droit concerné]". Délai de traitement : 30 jours.</p>
+    <p>En cas de réponse insatisfaisante : <a href="https://www.cnil.fr/fr/plaintes" rel="noopener noreferrer" target="_blank">cnil.fr — Déposer une plainte</a></p>
+    <hr>
+    <h2>9. Cookies et traceurs</h2>
+    <p>Caméléon Engine n'utilise pas de cookies tiers, de traceurs publicitaires, ni de solutions d'analyse comportementale externes (Google Analytics, Hotjar, etc.).</p>
+    <p>Le <code>localStorage</code> utilisé pour la persistance des données n'est pas un cookie : il n'est pas partagé entre domaines et ne peut pas être lu par des tiers. Aucun bandeau de consentement cookies n'est requis.</p>
+    <hr>
+    <h2>10. Modifications de la politique</h2>
+    <p>En cas de modification substantielle de cette politique, les utilisateurs disposant d'un compte seront informés par email dans un délai raisonnable avant l'entrée en vigueur des modifications.</p>
+    <p>La date de dernière mise à jour figure en en-tête du document.</p>
+    <footer class="page-footer">
+      <a href="/mentions-legales">Mentions légales</a>
+      <a href="/cgu">CGU</a>
+      <a href="/politique-confidentialite" class="current">Politique de confidentialité</a>
+      <span class="footer-sep">·</span>
+      <a href="/">← Retour au site</a>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,360 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0a0a0f;
+  color: #c8cad4;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.cst-header {
+  background: #0d0d14;
+  border-bottom: 1px solid #1e1e2e;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.cst-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cst-header-seal {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+  border: 1px solid #3a3a5c;
+  flex-shrink: 0;
+}
+
+.cst-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e8eaf0;
+  letter-spacing: 0.02em;
+}
+
+.cst-header-subtitle {
+  font-size: 11px;
+  color: #6b6d7a;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.cst-back-btn {
+  background: #13131f;
+  border: 1px solid #2a2a40;
+  color: #8b8d9a;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.cst-back-btn:hover {
+  border-color: #4a4a6a;
+  color: #c8cad4;
+}
+
+/* ── Layout ──────────────────────────────────────────────── */
+.cst-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 32px 80px;
+}
+
+/* ── Hero ────────────────────────────────────────────────── */
+.cst-hero {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.cst-hero-title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #e8eaf0;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.cst-hero-subtitle {
+  font-size: 16px;
+  color: #7a7c8a;
+  font-style: italic;
+  margin-bottom: 40px;
+}
+
+.cst-hero-img {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 12px;
+  border: 1px solid #1e1e2e;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── Narrative ───────────────────────────────────────────── */
+.cst-section {
+  margin-bottom: 48px;
+}
+
+.cst-narrative {
+  color: #9a9caa;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.cst-narrative p {
+  margin-bottom: 14px;
+}
+
+.cst-narrative p:last-child {
+  margin-bottom: 0;
+}
+
+.cst-narrative strong {
+  color: #c8cad4;
+  font-weight: 600;
+}
+
+/* ── Section title ───────────────────────────────────────── */
+.cst-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4a4c5a;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1a1a28;
+}
+
+/* ── Guide image ─────────────────────────────────────────── */
+.cst-guide-img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #1e1e2e;
+  display: block;
+}
+
+/* ── Force blocks ────────────────────────────────────────── */
+.cst-forces {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cst-force {
+  background: #0d0d16;
+  border: 1px solid #1a1a28;
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+
+.cst-force-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.cst-force-name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e8eaf0;
+}
+
+.cst-force-role {
+  font-size: 13px;
+  color: #5a5c6a;
+  font-weight: 400;
+}
+
+.cst-force-question {
+  font-size: 13px;
+  color: #6b6d7a;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.cst-force-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cst-force-level {
+  font-size: 13px;
+  color: #7a7c8a;
+  display: flex;
+  gap: 10px;
+}
+
+.cst-force-level-label {
+  color: #c8cad4;
+  font-weight: 600;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+
+/* ── How to use ──────────────────────────────────────────── */
+.cst-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cst-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 20px;
+  background: #0d0d16;
+  border: 1px solid #1a1a28;
+  border-radius: 8px;
+}
+
+.cst-step-num {
+  font-size: 11px;
+  font-weight: 800;
+  color: #3a3c4a;
+  min-width: 20px;
+  padding-top: 1px;
+}
+
+.cst-step-text {
+  font-size: 14px;
+  color: #9a9caa;
+}
+
+/* ── Final rule ──────────────────────────────────────────── */
+.cst-rule-block {
+  background: #0a0a12;
+  border: 1px solid #2a2a40;
+  border-left: 3px solid #3a3a6a;
+  border-radius: 8px;
+  padding: 28px 32px;
+  text-align: center;
+}
+
+.cst-rule-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4a4c6a;
+  margin-bottom: 14px;
+}
+
+.cst-rule-main {
+  font-size: 17px;
+  color: #c8cad4;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.cst-rule-main em {
+  font-style: normal;
+  color: #e8eaf0;
+  font-weight: 600;
+}
+
+.cst-rule-sub {
+  font-size: 13px;
+  color: #5a5c6a;
+  font-style: italic;
+}
+
+/* ── Quick recap ─────────────────────────────────────────── */
+.cst-recap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.cst-recap-item {
+  background: #0d0d16;
+  border: 1px solid #1a1a28;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.cst-recap-name {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e8eaf0;
+  margin-bottom: 4px;
+}
+
+.cst-recap-question {
+  font-size: 13px;
+  color: #6b6d7a;
+}
+
+/* ── Warning ─────────────────────────────────────────────── */
+.cst-warning {
+  background: #100d10;
+  border: 1px solid #2a1a2a;
+  border-left: 3px solid #5a2a5a;
+  border-radius: 8px;
+  padding: 24px 28px;
+}
+
+.cst-warning-intro {
+  font-size: 14px;
+  color: #8a7a8a;
+  margin-bottom: 14px;
+}
+
+.cst-warning-rules {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.cst-warning-rules li {
+  font-size: 14px;
+  color: #c8aac8;
+  font-weight: 600;
+}
+
+.cst-warning-note {
+  font-size: 13px;
+  color: #6a5a6a;
+  font-style: italic;
+  padding-top: 12px;
+  border-top: 1px solid #2a1a2a;
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+.cst-divider {
+  height: 1px;
+  background: #1a1a28;
+  margin: 48px 0;
+}
+
+@media (max-width: 600px) {
+  .cst-main { padding: 32px 20px 60px; }
+  .cst-header { padding: 16px 20px; }
+  .cst-hero-title { font-size: 26px; }
+  .cst-recap { grid-template-columns: 1fr; }
+}

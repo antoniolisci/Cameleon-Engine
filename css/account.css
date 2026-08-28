@@ -1,0 +1,283 @@
+/* account.css — Styles du panel Compte Utilisateur V1 */
+/* Caméléon Engine · LOT 3 · Préfixe : .ac- */
+
+/* ── Écran Compte — remplace .main-grid quand actif ── */
+/* Placé juste avant .main-grid dans le HTML pour occuper la même zone. */
+.account-screen {
+  width: 100%;
+  max-width: 500px;
+  margin-top: 36px;
+}
+
+/* ── Panel root ── */
+.ac-panel-root {
+  padding: 0;
+  max-width: 500px;
+}
+
+/* ── Frontière freemium (toujours visible) ── */
+.ac-freemium-banner {
+  background: #0e1a10;
+  border: 1px solid #1e3a20;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: #6abf6a;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* ── Erreur ── */
+.ac-error {
+  background: #2a0a0a;
+  border: 1px solid #8b1a1a;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: #ff6b6b;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+/* ── Carte contenu ── */
+.ac-card {
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.ac-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #d4d4d4;
+  margin-bottom: 6px;
+}
+
+.ac-card-desc {
+  font-size: 0.82rem;
+  color: #888;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* ── Formulaire ── */
+.ac-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ac-input {
+  width: 100%;
+  background: #0e0e0e;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 9px 12px;
+  color: #d4d4d4;
+  font-size: 0.82rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.ac-input:focus { border-color: #555; }
+
+.ac-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #888;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.ac-checkbox {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: #ccb577;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
+.ac-link {
+  color: #ccb577;
+  text-decoration: none;
+}
+
+.ac-link:hover { text-decoration: underline; }
+
+/* ── Bouton principal ── */
+.ac-btn {
+  background: #2a2210;
+  border: 1px solid #4a3a10;
+  color: #ccb577;
+  padding: 9px 16px;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-family: inherit;
+  text-align: center;
+}
+
+.ac-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.ac-btn:not(:disabled):hover { opacity: 0.8; }
+
+/* ── Bouton secondaire ── */
+.ac-btn-secondary {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  color: #aaa;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.ac-btn-secondary:hover { border-color: #555; color: #ccc; }
+
+/* ── État lien envoyé ── */
+.ac-email-sent {
+  font-size: 0.82rem;
+  color: #d4d4d4;
+  font-family: monospace;
+  background: #1e1e1e;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.ac-hint {
+  font-size: 0.78rem;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+/* ── État connecté ── */
+.ac-account-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ac-account-email {
+  font-size: 0.85rem;
+  color: #d4d4d4;
+  font-weight: 500;
+}
+
+.ac-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ac-status-free {
+  background: #1e2a1e;
+  color: #6abf6a;
+  border: 1px solid #2a4a2a;
+}
+
+.ac-status-premium {
+  background: #2a2210;
+  color: #ccb577;
+  border: 1px solid #4a3a10;
+}
+
+.ac-upgrade-hint {
+  font-size: 0.78rem;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+/* ── Zone sync LOT 3 ── */
+.ac-sync-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #222;
+}
+
+.ac-sync-status {
+  font-size: 0.78rem;
+  color: #666;
+  margin-bottom: 10px;
+  min-height: 1.2em;
+  line-height: 1.4;
+}
+
+.ac-sync-btn {
+  width: 100%;
+}
+
+/* ── Modale de conflit ── */
+.ac-conflict-modal {
+  margin-top: 16px;
+  padding: 14px;
+  background: #1a1a14;
+  border: 1px solid #3a3a20;
+  border-radius: 8px;
+}
+
+.ac-conflict-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #ccb577;
+  margin-bottom: 8px;
+}
+
+.ac-conflict-body {
+  font-size: 0.78rem;
+  color: #888;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.ac-conflict-meta {
+  font-size: 0.74rem;
+  color: #555;
+  margin-bottom: 14px;
+}
+
+.ac-conflict-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ac-conflict-btn {
+  width: 100%;
+  text-align: center;
+}
+
+.ac-conflict-defer-btn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 0.74rem;
+  cursor: pointer;
+  padding: 4px 0;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  display: block;
+}
+
+.ac-conflict-defer-btn:hover { color: #888; }
